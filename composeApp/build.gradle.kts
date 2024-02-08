@@ -92,3 +92,11 @@ detekt {
     config.setFrom(file("detekt.yml"))
     buildUponDefaultConfig = true
 }
+
+tasks.register("detektAll") {
+    group = "verification"
+    dependsOn += "detektAndroidRelease"
+    dependsOn += "detektAndroidDebugAndroidTest"
+    dependsOn += "detektAndroidReleaseUnitTest"
+}
+
