@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.detekt)
 }
 
 kotlin {
@@ -15,9 +16,9 @@ kotlin {
             }
         }
     }
-    
+
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
@@ -31,6 +32,10 @@ kotlin {
             implementation(compose.components.resources)
         }
     }
+}
+
+dependencies {
+    detektPlugins(libs.detekt.formatting)
 }
 
 android {
@@ -67,3 +72,8 @@ android {
     }
 }
 
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    config.setFrom(file("detekt.yml"))
+    buildUponDefaultConfig = true
+}
