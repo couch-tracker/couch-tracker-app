@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -22,6 +23,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.sqldelight.android)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -69,6 +71,19 @@ android {
     }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
+    }
+}
+
+sqldelight {
+    databases {
+        create("User") {
+            packageName.set("io.github.couchtracker.db.user")
+            srcDirs.setFrom("commonMain/sqldelight/user")
+        }
+        create("Tmdb") {
+            packageName.set("io.github.couchtracker.db.tmdb")
+            srcDirs.setFrom("commonMain/sqldelight/tmdb")
+        }
     }
 }
 

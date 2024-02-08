@@ -1,0 +1,4 @@
+-- EXAMPLE
+CREATE TABLE ShowCollection (
+  showTmdbId INTEGER PRIMARY KEY NOT NULL
+);
