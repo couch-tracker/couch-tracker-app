@@ -11,15 +11,110 @@ complexity:
   LongParameterList:
     ignoreDefaultParameters: true
 
-style:
-  MagicNumber:
-    ignorePropertyDeclaration: true
-    ignoreCompanionObjectPropertyDeclaration: true
-  UnusedPrivateMember:
+formatting:
+  ArgumentListWrapping:
+    maxLineLength: 140
+  ClassName:
+    active: true
+  EnumWrapping:
+    active: true
+  Filename:
     ignoreAnnotated: ["Preview"]
+  FunctionReturnTypeSpacing:
+    maxLineLength: 140
+  FunctionSignature:
+    active: true
+    maxLineLength: 140
+  IfElseBracing:
+    active: true
+  IfElseWrapping:
+    active: true
+  MaximumLineLength:
+    maxLineLength: 140 #TODO
+  NoSingleLineBlockComment:
+    active: true
+  ParameterListWrapping:
+    maxLineLength: 140
+  ParameterWrapping:
+    maxLineLength: 140
+  PropertyWrapping:
+    maxLineLength: 140
+  TrailingCommaOnCallSite:
+    active: true
+    useTrailingCommaOnCallSite: true
+  TrailingCommaOnDeclarationSite:
+    active: true
+    useTrailingCommaOnDeclarationSite: true
+  TryCatchFinallySpacing:
+    active: true
+  TypeArgumentListSpacing:
+    active: true
+  TypeParameterListSpacing:
+    active: true
+  Wrapping:
+    maxLineLength: 140
 
 naming:
   FunctionNaming:
     ignoreAnnotated: ["Composable"]
+  MatchingDeclarationName:
+    active: false # Overlaps with formatting > Filename
   TopLevelPropertyNaming:
     constantPattern: "[A-Z][A-Za-z0-9]*"
+
+style:
+  CanBeNonNullable:
+    active: true
+  CascadingCallWrapping:
+    active: true
+  ClassOrdering:
+    active: true
+  DoubleNegativeLambda:
+    active: true
+  EqualsOnSignatureLine:
+    active: true
+  ExplicitCollectionElementAccessMethod:
+    active: true
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+  MandatoryBracesLoops:
+    active: true
+  MaxLineLength:
+    active: false # Overlaps with formatting > MaximumLineLength
+  MultilineRawStringIndentation:
+    active: true
+  NewLineAtEndOfFile:
+    active: false # Overlaps with formatting > FinalNewline
+  NoTabs:
+    active: true
+  WildcardImport:
+    active: false # Overlaps with formatting > NoWildcardImports
+  NullableBooleanCheck:
+    active: true
+  OptionalUnit:
+    active: true
+  RedundantVisibilityModifierRule:
+    active: true
+  ReturnCount:
+    excludeGuardClauses: true
+  SpacingBetweenPackageAndImports:
+    active: true
+  ThrowsCount:
+    excludeGuardClauses: true
+  TrailingWhitespace:
+    active: true
+  TrimMultilineRawString:
+    active: true
+  UnderscoresInNumericLiterals:
+    active: true
+  UnnecessaryBackticks:
+    active: true
+  UnusedPrivateMember:
+    ignoreAnnotated: [ "Preview" ]
+  UseEmptyCounterpart:
+    active: true
+  UseIfEmptyOrIfBlank:
+    active: true
+  UseSumOfInsteadOfFlatMapSize:
+    active: true
