@@ -24,6 +24,9 @@ kotlin {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.sqldelight.android)
+
+            // There is no androidUnitTest target
+            implementation(libs.kotest.runner.junit5)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -32,6 +35,10 @@ kotlin {
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.kotest.framework.datatest)
         }
     }
 }
@@ -69,6 +76,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    testOptions.unitTests {
+        all {
+            it.useJUnitPlatform()
+        }
+    }
+
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }
