@@ -102,6 +102,11 @@ sqldelight {
             packageName.set("io.github.couchtracker.db.user")
             srcDirs.setFrom("src/androidMain/sqldelight/user")
         }
+        // Internal app database. Contains app-only data, like list of users
+        create("AppData") {
+            packageName.set("io.github.couchtracker.db.app")
+            srcDirs.setFrom("src/androidMain/sqldelight/app")
+        }
         // Internal DB containing TMDB cache
         create("Tmdb") {
             packageName.set("io.github.couchtracker.db.tmdb")
