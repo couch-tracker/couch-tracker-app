@@ -9,6 +9,7 @@ androidx-constraintlayout = "2.1.4"
 androidx-core-ktx = "1.12.0"
 androidx-espresso-core = "3.5.1"
 androidx-material = "1.11.0"
+androidx-lifecycle = "2.7.0"
 androidx-test-junit = "1.1.5"
 compose = "1.6.0"
 compose-plugin = "1.5.12"
@@ -29,10 +30,12 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-material = { group = "com.google.android.material", name = "material", version.ref = "androidx-material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
