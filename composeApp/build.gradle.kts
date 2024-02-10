@@ -1,5 +1,4 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -65,6 +64,15 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
+
+            // FIX FOR COMPILATION FAILURE
+            // SEE https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-debug/
+            excludes += "META-INF/licenses/ASM"
+            pickFirsts += "win32-x86-64/attach_hotspot_windows.dll"
+            pickFirsts += "win32-x86/attach_hotspot_windows.dll"
+            // END FIX
         }
     }
     buildTypes {
