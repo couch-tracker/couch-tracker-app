@@ -97,13 +97,15 @@ android {
 
 sqldelight {
     databases {
-        create("User") {
+        // User database schema. This is what we expose to users
+        create("UserData") {
             packageName.set("io.github.couchtracker.db.user")
-            srcDirs.setFrom("commonMain/sqldelight/user")
+            srcDirs.setFrom("src/androidMain/sqldelight/user")
         }
+        // Internal DB containing TMDB cache
         create("Tmdb") {
             packageName.set("io.github.couchtracker.db.tmdb")
-            srcDirs.setFrom("commonMain/sqldelight/tmdb")
+            srcDirs.setFrom("src/androidMain/sqldelight/tmdb")
         }
     }
 }
