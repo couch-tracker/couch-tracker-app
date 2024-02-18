@@ -20,6 +20,7 @@ sqldelight = "2.0.1"
 kotest = "5.8.0"
 buildConfig = "5.3.5"
 tmdb-api = "1.3.2"
+mockk = "1.13.9"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -43,6 +44,7 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
 tmdb-api = { module = "app.moviebase:tmdb-api", version.ref = "tmdb-api" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

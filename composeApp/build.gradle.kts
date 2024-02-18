@@ -41,6 +41,7 @@ kotlin {
 
             // There is no androidUnitTest target
             implementation(libs.kotest.runner.junit5)
+            implementation(libs.mockk.android)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
