@@ -1,4 +1,6 @@
+import io.github.couchtracker.db.user.show.ExternalShowId;
+
 -- EXAMPLE
 CREATE TABLE ShowCollection (
-  showTmdbId INTEGER PRIMARY KEY NOT NULL
+  showId TEXT AS ExternalShowId PRIMARY KEY NOT NULL
 );

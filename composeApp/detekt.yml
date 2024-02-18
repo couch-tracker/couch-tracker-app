@@ -108,6 +108,8 @@ style:
     active: true
   UnderscoresInNumericLiterals:
     active: true
+  UnnecessaryAbstractClass:
+    active: false
   UnnecessaryBackticks:
     active: true
   UnusedPrivateMember:
