@@ -36,9 +36,12 @@ fun App() {
             }
 
             Text(text = "User list", fontSize = 30.sp)
-            for (user in users) {
-                Button(onClick = { currentUser = user }) {
-                    Text(text = user.name)
+            when(val userList = users) {
+                null -> Text("Loading...")
+                else -> for (user in userList) {
+                    Button(onClick = { currentUser = user }) {
+                        Text(text = user.name)
+                    }
                 }
             }
             Button(
