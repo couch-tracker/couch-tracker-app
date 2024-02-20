@@ -6,6 +6,18 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.detekt)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.buildConfig)
+}
+
+buildConfig {
+    forClass("io.github.couchtracker.tmdb", "TmdbConfig") {
+        buildConfigField<String>(
+            name = "API_KEY",
+            value = provider {
+                properties["COUCH_TRACKER_TMDB_API_KEY"]?.toString() ?: error("You must provide a Tmdb API key")
+            },
+        )
+    }
 }
 
 kotlin {
@@ -25,6 +37,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.sqldelight.android)
             implementation(libs.sqldelight.coroutines)
+            implementation(libs.sqldelight.async)
 
             // There is no androidUnitTest target
             implementation(libs.kotest.runner.junit5)
@@ -36,6 +49,7 @@ kotlin {
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
+            implementation(libs.tmdb.api)
         }
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)
