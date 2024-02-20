@@ -9,6 +9,6 @@ import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.Dispatchers
 
 @Composable
-fun <T : Any> Query<T>.asListState(): State<List<T>> {
-    return this.asFlow().mapToList(Dispatchers.IO).collectAsStateWithLifecycle(emptyList())
+fun <T : Any> Query<T>.asListState(): State<List<T>?> {
+    return this.asFlow().mapToList(Dispatchers.IO).collectAsStateWithLifecycle(null)
 }
