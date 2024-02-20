@@ -1,4 +1,4 @@
-name: Detekt
+name: Tests
 
 on:
   push:
@@ -24,10 +24,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests
-        continue-on-error: true
         run: ./gradlew testReleaseUnitTest
 
       - name: Archive test results
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           path: composeApp/build/reports/tests/testReleaseUnitTest/*
