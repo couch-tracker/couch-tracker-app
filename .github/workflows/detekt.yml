@@ -10,6 +10,8 @@ jobs:
   build:
     name: Detekt
     runs-on: ubuntu-latest
+    env:
+      ORG_GRADLE_PROJECT_COUCH_TRACKER_TMDB_API_KEY: ${{ secrets.ORG_GRADLE_PROJECT_COUCH_TRACKER_TMDB_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
