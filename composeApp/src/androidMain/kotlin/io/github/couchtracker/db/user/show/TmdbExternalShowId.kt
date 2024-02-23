@@ -10,11 +10,11 @@ value class TmdbExternalShowId(val id: Long) : ExternalShowId {
         requireTmdbId(id)
     }
 
-    override val type get() = Companion.type
+    override val provider get() = Companion.provider
     override val value get() = id.toString()
 
     companion object : ExternalId.InheritorsCompanion<TmdbExternalShowId> {
-        override val type = "tmdb"
+        override val provider = "tmdb"
 
         override fun ofValue(value: String): TmdbExternalShowId {
             return TmdbExternalShowId(value.toLongOrNull() ?: throw IllegalArgumentException("Invalid TMDB external ID: $value"))
