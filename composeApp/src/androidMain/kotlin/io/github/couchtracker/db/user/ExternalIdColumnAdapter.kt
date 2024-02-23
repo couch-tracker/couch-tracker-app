@@ -14,3 +14,4 @@ class ExternalIdColumnAdapter<EID : ExternalId>(
         return value.serialize()
     }
 }
+fun <EID : ExternalId> ExternalId.SealedInterfacesCompanion<EID>.columnAdapter() = ExternalIdColumnAdapter(this)
