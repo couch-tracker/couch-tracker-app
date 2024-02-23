@@ -2,23 +2,23 @@ package io.github.couchtracker.db.user
 
 interface ExternalId {
 
-    val type: String
+    val provider: String
     val value: String
 
     fun serialize(): String {
-        return "$type-$value"
+        return "$provider-$value"
     }
 
     interface InheritorsCompanion<out EID : ExternalId> {
 
-        val type: String
+        val provider: String
 
         fun ofValue(value: String): EID
     }
 
     abstract class SealedInterfacesCompanion<out EID : ExternalId>(
         private val inheritors: List<InheritorsCompanion<EID>>,
-        private val unknownProvider: (type: String, value: String) -> EID,
+        private val unknownProvider: (provider: String, value: String) -> EID,
     ) {
         fun parse(serializedValue: String): EID {
             return Companion.parse(serializedValue, decoders = inheritors, unknownProvider = unknownProvider)
@@ -36,7 +36,7 @@ interface ExternalId {
             require(split.size >= 2) { "Invalid serialized external ID: $serializedValue" }
             val (type, value) = split
 
-            val decoder = decoders.find { it.type == type }
+            val decoder = decoders.find { it.provider == type }
             if (decoder == null) {
                 return unknownProvider(type, value)
             }
