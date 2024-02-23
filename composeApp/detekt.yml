@@ -75,6 +75,8 @@ style:
     active: true
   ExplicitCollectionElementAccessMethod:
     active: true
+  ForbiddenComment: # TODO: remove once the project is stable
+    active: false
   MagicNumber:
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
