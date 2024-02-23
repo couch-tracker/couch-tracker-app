@@ -2,6 +2,12 @@ package io.github.couchtracker.db.user
 
 import app.cash.sqldelight.ColumnAdapter
 
+/**
+ * Implementation of a [ColumnAdapter] that allows to save and extract [ExternalId]s in the database.
+ *
+ * @property type the type of [ExternalId]. This should just be the companion object instance of your [ExternalId] type.
+ * @see ExternalId
+ */
 class ExternalIdColumnAdapter<EID : ExternalId>(
     private val type: ExternalId.SealedInterfacesCompanion<EID>,
 ) : ColumnAdapter<EID, String> {
@@ -14,4 +20,8 @@ class ExternalIdColumnAdapter<EID : ExternalId>(
         return value.serialize()
     }
 }
+
+/**
+ * Returns an [ExternalIdColumnAdapter] to encode and decode the [EID] external ID type.
+ */
 fun <EID : ExternalId> ExternalId.SealedInterfacesCompanion<EID>.columnAdapter() = ExternalIdColumnAdapter(this)
