@@ -57,7 +57,7 @@ naming:
   MatchingDeclarationName:
     active: false # Overlaps with formatting > Filename
   TopLevelPropertyNaming:
-    constantPattern: "[A-Z][A-Za-z0-9]*"
+    constantPattern: "([A-Z][A-Za-z0-9]*|[A-Z][_A-Z0-9]*)"
 
 style:
   CanBeNonNullable:
