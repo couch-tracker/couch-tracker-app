@@ -22,9 +22,6 @@ formatting:
     ignoreAnnotated: ["Preview"]
   FunctionReturnTypeSpacing:
     maxLineLength: 140
-  FunctionSignature:
-    active: true
-    maxLineLength: 140
   IfElseBracing:
     active: true
   IfElseWrapping:
