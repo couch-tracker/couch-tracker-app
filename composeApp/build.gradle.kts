@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.buildConfig)
+    alias(libs.plugins.serialization)
 }
 
 buildConfig {
@@ -38,6 +39,9 @@ kotlin {
             implementation(libs.sqldelight.android)
             implementation(libs.sqldelight.coroutines)
             implementation(libs.sqldelight.async)
+            implementation(libs.sqldelight.primitive.adapters)
+            implementation(libs.sqldelight.sqlite.dialect)
+            implementation(libs.requery.android)
 
             // There is no androidUnitTest target
             implementation(libs.kotest.runner.junit5)
@@ -51,6 +55,8 @@ kotlin {
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation(libs.tmdb.api)
+            implementation(libs.serialization.core)
+            implementation(libs.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)
@@ -113,21 +119,26 @@ android {
 }
 
 sqldelight {
+    val dialect = libs.sqldelight.sqlite.dialect.get().toString()
     databases {
         // User database schema. This is what we expose to users
         create("UserData") {
             packageName.set("io.github.couchtracker.db.user")
             srcDirs.setFrom("src/androidMain/sqldelight/user")
+            dialect(dialect)
         }
         // Internal app database. Contains app-only data, like list of users
         create("AppData") {
             packageName.set("io.github.couchtracker.db.app")
             srcDirs.setFrom("src/androidMain/sqldelight/app")
+            dialect(dialect)
         }
         // Internal DB containing TMDB cache
-        create("Tmdb") {
-            packageName.set("io.github.couchtracker.db.tmdb")
-            srcDirs.setFrom("src/androidMain/sqldelight/tmdb")
+        create("TmdbCache") {
+            packageName.set("io.github.couchtracker.db.tmdbCache")
+            srcDirs.setFrom("src/androidMain/sqldelight/tmdbCache")
+            generateAsync.set(true)
+            dialect(dialect)
         }
     }
 }

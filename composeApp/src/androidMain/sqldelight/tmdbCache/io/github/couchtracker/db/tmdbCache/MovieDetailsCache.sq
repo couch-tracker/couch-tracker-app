@@ -1,0 +1,20 @@
+import app.moviebase.tmdb.model.TmdbMovieDetail;
+import io.github.couchtracker.tmdb.TmdbLanguage;
+import kotlin.Int;
+
+CREATE TABLE MovieDetailsCache (
+  tmdbId INTEGER AS Int NOT NULL,
+  language TEXT AS TmdbLanguage NOT NULL,
+  details TEXT AS TmdbMovieDetail NOT NULL,
+  PRIMARY KEY(tmdbId, language)
+);
+
+get:
+SELECT details
+FROM MovieDetailsCache
+WHERE tmdbId = ? AND language = ?;
+
+put:
+INSERT INTO MovieDetailsCache
+VALUES (:tmdbId, :language, :details)
+ON CONFLICT DO UPDATE SET details = :details;
