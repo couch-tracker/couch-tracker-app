@@ -1,5 +1,8 @@
 package io.github.couchtracker
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +16,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
+import androidx.documentfile.provider.DocumentFile
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,6 +31,7 @@ import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.db.app.AppDb
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbCacheDb
+import io.github.couchtracker.db.user.db
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
@@ -36,6 +42,8 @@ import io.github.couchtracker.ui.screens.navigateToMovie
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 val LocalTmdbCache = staticCompositionLocalOf<TmdbCache> {
     throw IllegalStateException("Not initialized yet")
@@ -75,14 +83,27 @@ private fun UserSection() {
     val appContext = LocalContext.current.applicationContext
     val appDb = remember { AppDb.get(appContext) }
 
+    val coroutineScope = rememberCoroutineScope()
     val selectAllUsers = remember { appDb.userQueries.selectAll() }
     val users by selectAllUsers.asListState()
     var currentUserId by remember { mutableStateOf<Long?>(null) }
+    val openDbWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        val document = uri?.let { DocumentFile.fromSingleUri(appContext, uri) }
+        if (document != null) {
+            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            appContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
+
+            appDb.userQueries.insert(
+                name = "Opened user (${document.name})",
+                externalFileUri = document.uri,
+            )
+        }
+    }
 
     Text(text = "Current user", fontSize = 30.sp)
     when (val user = users?.find { it.id == currentUserId }) {
         null -> Text(text = "No current user", fontStyle = FontStyle.Italic)
-        else -> UserPane(user = user)
+        else -> UserPane(appData = appDb, user = user)
     }
 
     Text(text = "User list", fontSize = 30.sp)
@@ -97,16 +118,22 @@ private fun UserSection() {
     Button(
         onClick = {
             appDb.userQueries.insert(
-                name = "Create time: ${System.currentTimeMillis()}",
+                name = "Created user (${Clock.System.now()}",
                 externalFileUri = null,
             )
         },
     ) {
         Text(text = "Add user")
     }
+    Button(onClick = { openDbWorkflow.launch(arrayOf("*/*")) }) {
+        Text(text = "Open user")
+    }
     Button(
         onClick = {
-            appDb.userQueries.deleteAll()
+            for (user in users.orEmpty()) {
+                coroutineScope.launch { user.db(appContext, appDb).unlink(appContext) }
+                appDb.userQueries.delete(user.id)
+            }
         },
     ) {
         Text(text = "Remove all")

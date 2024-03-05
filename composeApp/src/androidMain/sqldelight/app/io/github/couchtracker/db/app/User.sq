@@ -16,8 +16,8 @@ insert:
 INSERT INTO User(name, externalFileUri)
 VALUES (?, ?);
 
-deleteAll:
-DELETE FROM User;
+delete:
+DELETE FROM User WHERE id = ?;
 
 setExternalFileUri:
 UPDATE User
