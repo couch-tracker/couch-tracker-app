@@ -10,9 +10,25 @@ internal val tmdb = Tmdb3 {
     maxRetriesOnException = 3
 }
 
-inline fun <T> tmdbDownload(f: (Tmdb3) -> T): T {
+/**
+ * Utility function to handle cached downloads towards TMDB.
+ *
+ * TODO: multiple calls on the same API should be batched, so the download is performed only once
+ * TODO: the cache should expire at some point
+ */
+inline fun <T : Any> tmdbGetOrDownload(
+    get: () -> T?,
+    put: (T) -> Unit,
+    downloader: (Tmdb3) -> T,
+): T {
+    return get() ?: tmdbDownload(downloader).also {
+        put(it)
+    }
+}
+
+inline fun <T> tmdbDownload(download: (Tmdb3) -> T): T {
     try {
-        return f(tmdb)
+        return download(tmdb)
     } catch (e: CancellationException) {
         throw e
     } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {

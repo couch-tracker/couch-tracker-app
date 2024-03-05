@@ -2,11 +2,17 @@ package io.github.couchtracker.db.app
 
 import android.content.Context
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 
 object AppDb {
 
     fun get(context: Context): AppData {
-        val driver = AndroidSqliteDriver(AppData.Schema, context, "app.db")
+        val driver = AndroidSqliteDriver(
+            AppData.Schema,
+            context,
+            "app.db",
+            factory = RequerySQLiteOpenHelperFactory(),
+        )
         return AppData(driver)
     }
 }

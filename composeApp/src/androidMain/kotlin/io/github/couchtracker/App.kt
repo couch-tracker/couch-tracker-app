@@ -19,8 +19,10 @@ import androidx.compose.ui.unit.sp
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.db.app.AppDb
 import io.github.couchtracker.db.app.User
+import io.github.couchtracker.db.tmdbCache.TmdbCacheDb
 import io.github.couchtracker.tmdb.TmdbException
-import io.github.couchtracker.tmdb.tmdbDownload
+import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbMovie
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
@@ -85,21 +87,24 @@ sealed interface MoviesSectionState {
     data class Loaded(val movies: List<TmdbMovieDetail>) : MoviesSectionState
 }
 
-private val exampleMovies = listOf(526_896, 10_625, 166_424, 9607)
+private val exampleMovies = listOf(
+    TmdbMovie(526_896, TmdbLanguage.English),
+    TmdbMovie(10_625, TmdbLanguage.English),
+    TmdbMovie(166_424, TmdbLanguage.English),
+    TmdbMovie(9607, TmdbLanguage.English),
+)
 
 @Composable
 private fun MoviesSection() {
+    val appContext = LocalContext.current.applicationContext
+    val tmdbCache = remember(appContext) { TmdbCacheDb.get(appContext) }
     var state by remember { mutableStateOf<MoviesSectionState>(MoviesSectionState.Loading) }
     LaunchedEffect(Unit) {
         state = try {
-            val movies = exampleMovies.map { tmdbId ->
-                async {
-                    tmdbDownload { tmdbApi ->
-                        tmdbApi.movies.getDetails(tmdbId, "en")
-                    }
-                }
+            val details = exampleMovies.map { movie ->
+                async { movie.details(tmdbCache) }
             }.awaitAll()
-            MoviesSectionState.Loaded(movies)
+            MoviesSectionState.Loaded(details)
         } catch (e: TmdbException) {
             MoviesSectionState.Error(e.message ?: "Error")
         }
