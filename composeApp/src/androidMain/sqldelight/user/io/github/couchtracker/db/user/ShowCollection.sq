@@ -4,3 +4,12 @@ import io.github.couchtracker.db.user.show.ExternalShowId;
 CREATE TABLE ShowCollection (
   showId TEXT AS ExternalShowId PRIMARY KEY NOT NULL
 );
+
+selectShowCollection:
+SELECT * FROM ShowCollection;
+
+insertShow:
+INSERT INTO ShowCollection(showId) VALUES (?);
+
+deleteShow:
+DELETE FROM ShowCollection WHERE showId=?;

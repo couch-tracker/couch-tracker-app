@@ -70,6 +70,16 @@ sealed interface UserDbResult<out T> {
 }
 
 /**
+ * TODO: remove, for debug only
+ */
+fun <T> UserDbResult<T>.debugSuccessOr(fallback: () -> T): T {
+    return when (this) {
+        is UserDbResult.Completed.Success -> result
+        else -> fallback()
+    }
+}
+
+/**
  * Maps the value of a [UserDbResult.Completed.Success] from type [T] to type [R].
  *
  * It [this] is of any other type, returns [this]
