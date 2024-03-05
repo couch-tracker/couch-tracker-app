@@ -35,6 +35,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.documentfile)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.sqldelight.android)
             implementation(libs.sqldelight.coroutines)

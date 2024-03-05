@@ -70,6 +70,16 @@ sealed interface UserDbResult<out T> {
 }
 
 /**
+ * TODO: remove, for debug only
+ */
+fun <T> UserDbResult<T>.debugSuccessOr(fallback: () -> T): T {
+    return when (this) {
+        is UserDbResult.Completed.Success -> result
+        else -> fallback()
+    }
+}
+
+/**
  * Maps the value of a [UserDbResult.Completed.Success] from type [T] to type [R].
  *
  * It [this] is of any other type, returns [this]
@@ -81,5 +91,23 @@ fun <T, R> UserDbResult<T>.map(block: (T) -> R): UserDbResult<R> {
         is UserDbResult.FileError.ContentProviderFailure -> this
         is UserDbResult.FileError.InvalidDatabase -> this
         is UserDbResult.FileError.UriCannotBeOpened -> this
+    }
+}
+
+/**
+ * Calls [block] whenever [this] is not a [UserDbResult.Completed.Success].
+ *
+ * Being inline, allows idiomatic code such as:
+ * ```kotlin
+ * value.onError { return it }
+ * ```
+ */
+inline fun <T> UserDbResult<T>.onError(block: (UserDbResult<Nothing>) -> Unit) {
+    when (this) {
+        is UserDbResult.Completed.Success -> {}
+        is UserDbResult.Completed.Error -> block(this)
+        is UserDbResult.FileError.ContentProviderFailure -> block(this)
+        is UserDbResult.FileError.InvalidDatabase -> block(this)
+        is UserDbResult.FileError.UriCannotBeOpened -> block(this)
     }
 }
