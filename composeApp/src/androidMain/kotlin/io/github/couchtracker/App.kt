@@ -17,8 +17,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import io.github.couchtracker.componens.UserPane
 import io.github.couchtracker.db.app.AppDb
-import io.github.couchtracker.db.app.User
 import io.github.couchtracker.db.tmdbCache.TmdbCacheDb
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
@@ -39,25 +39,24 @@ fun App() {
 
 @Composable
 private fun UserSection() {
-    val appDb = AppDb.get(LocalContext.current)
-    val users by appDb.userQueries.selectAll().asListState()
-    var currentUser by remember { mutableStateOf<User?>(null) }
+    val appContext = LocalContext.current.applicationContext
+    val appDb = remember { AppDb.get(appContext) }
+
+    val selectAllUsers = remember { appDb.userQueries.selectAll() }
+    val users by selectAllUsers.asListState()
+    var currentUserId by remember { mutableStateOf<Long?>(null) }
 
     Text(text = "Current user", fontSize = 30.sp)
-    when (val u = currentUser) {
+    when (val user = users?.find { it.id == currentUserId }) {
         null -> Text(text = "No current user", fontStyle = FontStyle.Italic)
-        else -> Column {
-            Text("ID: ${u.id}")
-            Text("Name: ${u.name}")
-            Text("External file URI: ${u.externalFileUri}")
-        }
+        else -> UserPane(user = user)
     }
 
     Text(text = "User list", fontSize = 30.sp)
     when (val userList = users) {
         null -> Text("Loading...")
         else -> for (user in userList) {
-            Button(onClick = { currentUser = user }) {
+            Button(onClick = { currentUserId = user.id }) {
                 Text(text = user.name)
             }
         }
