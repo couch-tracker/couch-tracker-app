@@ -1,16 +1,30 @@
+import android.net.Uri;
+import kotlinx.datetime.Instant;
+
 CREATE TABLE User (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  externalFileUri TEXT
+  externalFileUri TEXT AS Uri,
+  cachedDbLastModified TEXT AS Instant
 );
 
 selectAll:
-SELECT id, name, externalFileUri
+SELECT *
 FROM User;
 
 insert:
-INSERT INTO User(name,externalFileUri)
+INSERT INTO User(name, externalFileUri)
 VALUES (?, ?);
 
 deleteAll:
 DELETE FROM User;
+
+setExternalFileUri:
+UPDATE User
+SET externalFileUri = ?, cachedDbLastModified = ?
+WHERE id = ?;
+
+setCachedDbLastModified:
+UPDATE User
+SET cachedDbLastModified = ?
+WHERE id = ?;

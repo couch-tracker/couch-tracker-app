@@ -2,6 +2,8 @@ package io.github.couchtracker.db.app
 
 import android.content.Context
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import io.github.couchtracker.db.common.InstantColumnAdapter
+import io.github.couchtracker.db.common.UriColumnAdapter
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 
 object AppDb {
@@ -13,6 +15,12 @@ object AppDb {
             "app.db",
             factory = RequerySQLiteOpenHelperFactory(),
         )
-        return AppData(driver)
+        return AppData(
+            driver = driver,
+            UserAdapter = User.Adapter(
+                externalFileUriAdapter = UriColumnAdapter,
+                cachedDbLastModifiedAdapter = InstantColumnAdapter,
+            ),
+        )
     }
 }
