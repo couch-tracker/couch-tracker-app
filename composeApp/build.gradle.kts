@@ -42,6 +42,9 @@ kotlin {
             implementation(libs.sqldelight.primitive.adapters)
             implementation(libs.sqldelight.sqlite.dialect)
             implementation(libs.requery.android)
+            implementation(libs.navigation.fragment)
+            implementation(libs.navigation.ui)
+            implementation(libs.navigation.compose)
 
             // There is no androidUnitTest target
             implementation(libs.kotest.runner.junit5)
@@ -115,6 +118,7 @@ android {
 
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
+        debugImplementation(libs.navigation.testing)
     }
 }
 

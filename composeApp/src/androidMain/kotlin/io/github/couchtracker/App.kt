@@ -1,5 +1,6 @@
 package io.github.couchtracker
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Button
@@ -7,33 +8,65 @@ import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import app.moviebase.tmdb.model.TmdbMovieDetail
-import io.github.couchtracker.componens.UserPane
 import io.github.couchtracker.db.app.AppDb
+import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbCacheDb
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
+import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.ui.components.UserPane
+import io.github.couchtracker.ui.screens.movieScreen
+import io.github.couchtracker.ui.screens.navigateToMovie
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+
+val LocalTmdbCache = staticCompositionLocalOf<TmdbCache> {
+    throw IllegalStateException("Not initialized yet")
+}
 
 @Composable
 fun App() {
-    MaterialTheme {
-        Column(Modifier.fillMaxSize()) {
-            UserSection()
-            Divider()
-            MoviesSection()
+    val navController = rememberNavController()
+    val appContext = LocalContext.current.applicationContext
+    val tmdbCache = remember(appContext) { TmdbCacheDb.get(appContext) }
+
+    CompositionLocalProvider(
+        LocalTmdbCache provides tmdbCache,
+    ) {
+        MaterialTheme {
+            NavHost(navController = navController, startDestination = "main") {
+                composable("main") {
+                    Main(openMovie = { movie -> navController.navigateToMovie(movie) })
+                }
+                movieScreen()
+            }
         }
+    }
+}
+
+@Composable
+private fun Main(openMovie: (TmdbMovie) -> Unit) {
+    Column(Modifier.fillMaxSize()) {
+        UserSection()
+        Divider()
+        MoviesSection(openMovie)
     }
 }
 
@@ -83,27 +116,28 @@ private fun UserSection() {
 sealed interface MoviesSectionState {
     data object Loading : MoviesSectionState
     data class Error(val message: String) : MoviesSectionState
-    data class Loaded(val movies: List<TmdbMovieDetail>) : MoviesSectionState
+    data class Loaded(val movies: Map<TmdbMovie, TmdbMovieDetail>) : MoviesSectionState
 }
 
 private val exampleMovies = listOf(
-    TmdbMovie(526_896, TmdbLanguage.English),
-    TmdbMovie(10_625, TmdbLanguage.English),
-    TmdbMovie(166_424, TmdbLanguage.English),
-    TmdbMovie(9607, TmdbLanguage.English),
-)
+    526_896,
+    10_625,
+    166_424,
+    9607,
+).map { TmdbMovie(TmdbMovieId(it), TmdbLanguage.ENGLISH) }
 
 @Composable
-private fun MoviesSection() {
-    val appContext = LocalContext.current.applicationContext
-    val tmdbCache = remember(appContext) { TmdbCacheDb.get(appContext) }
+private fun MoviesSection(openMovie: (TmdbMovie) -> Unit) {
     var state by remember { mutableStateOf<MoviesSectionState>(MoviesSectionState.Loading) }
+    val tmdbCache = LocalTmdbCache.current
     LaunchedEffect(Unit) {
         state = try {
-            val details = exampleMovies.map { movie ->
-                async { movie.details(tmdbCache) }
-            }.awaitAll()
-            MoviesSectionState.Loaded(details)
+            coroutineScope {
+                val details = exampleMovies.map { movie ->
+                    async { movie to movie.details(tmdbCache) }
+                }.awaitAll()
+                MoviesSectionState.Loaded(details.toMap())
+            }
         } catch (e: TmdbException) {
             MoviesSectionState.Error(e.message ?: "Error")
         }
@@ -113,8 +147,8 @@ private fun MoviesSection() {
         MoviesSectionState.Loading -> Text("Downloading movies...")
         is MoviesSectionState.Loaded -> {
             Column {
-                m.movies.forEach { movie ->
-                    Text(movie.title)
+                m.movies.forEach { (movie, details) ->
+                    Text(details.title, Modifier.clickable { openMovie(movie) })
                 }
             }
         }

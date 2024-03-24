@@ -1,5 +1,6 @@
 package io.github.couchtracker.db.user.show
 
+import io.github.couchtracker.tmdb.TmdbShowId
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -7,17 +8,11 @@ import org.junit.jupiter.api.assertThrows
 
 class TmdbExternalShowIdTest : FunSpec(
     {
-        test("fails with invalid ID") {
-            assertThrows<IllegalArgumentException> {
-                TmdbExternalShowId(-1)
-            }
-        }
-
         context("ofValue()") {
             context("works with valid values") {
                 withData(
-                    "1234" to TmdbExternalShowId(1234),
-                    "1234" to TmdbExternalShowId(1234),
+                    "1234" to TmdbExternalShowId(TmdbShowId(1234)),
+                    "1234" to TmdbExternalShowId(TmdbShowId(1234)),
                 ) { (value, expected) ->
                     TmdbExternalShowId.ofValue(value) shouldBe expected
                 }

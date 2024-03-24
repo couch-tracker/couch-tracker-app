@@ -1,10 +1,12 @@
 package io.github.couchtracker.tmdb
 
 import app.moviebase.tmdb.Tmdb3
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
-@PublishedApi
-internal val tmdb = Tmdb3 {
+private val tmdb = Tmdb3 {
     tmdbApiKey = TmdbConfig.API_KEY
     useTimeout = true
     maxRetriesOnException = 3
@@ -16,17 +18,20 @@ internal val tmdb = Tmdb3 {
  * TODO: multiple calls on the same API should be batched, so the download is performed only once
  * TODO: the cache should expire at some point
  */
-inline fun <T : Any> tmdbGetOrDownload(
-    get: () -> T?,
-    put: (T) -> Unit,
-    downloader: (Tmdb3) -> T,
+suspend fun <T : Any> tmdbGetOrDownload(
+    get: suspend () -> T?,
+    put: suspend (T) -> Unit,
+    downloader: suspend (Tmdb3) -> T,
+    coroutineContext: CoroutineContext = Dispatchers.IO,
 ): T {
-    return get() ?: tmdbDownload(downloader).also {
-        put(it)
+    return withContext(coroutineContext) {
+        get() ?: tmdbDownload(downloader).also {
+            put(it)
+        }
     }
 }
 
-inline fun <T> tmdbDownload(download: (Tmdb3) -> T): T {
+suspend fun <T> tmdbDownload(download: suspend (Tmdb3) -> T): T {
     try {
         return download(tmdb)
     } catch (e: CancellationException) {

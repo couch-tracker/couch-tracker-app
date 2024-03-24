@@ -1,23 +1,20 @@
 package io.github.couchtracker.db.user.movie
 
 import io.github.couchtracker.db.user.ExternalId
-import io.github.couchtracker.db.user.requireTmdbId
+import io.github.couchtracker.tmdb.TmdbMovieId
 
 @JvmInline
-value class TmdbExternalMovieId(val id: Long) : ExternalMovieId {
-
-    init {
-        requireTmdbId(id)
-    }
+value class TmdbExternalMovieId(val id: TmdbMovieId) : ExternalMovieId {
 
     override val provider get() = Companion.provider
-    override val value get() = id.toString()
+    override val value get() = id.value.toString()
 
     companion object : ExternalId.InheritorsCompanion<TmdbExternalMovieId> {
         override val provider = "tmdb"
 
         override fun ofValue(value: String): TmdbExternalMovieId {
-            return TmdbExternalMovieId(value.toLongOrNull() ?: throw IllegalArgumentException("Invalid TMDB external ID: $value"))
+            val id = value.toIntOrNull() ?: throw IllegalArgumentException("Invalid TMDB external ID: $value")
+            return TmdbExternalMovieId(TmdbMovieId(id))
         }
     }
 }

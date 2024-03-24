@@ -12,13 +12,13 @@ import io.github.couchtracker.db.tmdbCache.TmdbCache
  * either by downloading them or loading them from cache.
  */
 data class TmdbMovie(
-    val id: Int,
+    val id: TmdbMovieId,
     val language: TmdbLanguage,
 ) {
     suspend fun details(cache: TmdbCache): TmdbMovieDetail = tmdbGetOrDownload(
         get = { cache.movieDetailsCacheQueries.get(id, language).awaitAsOneOrNull() },
         put = { cache.movieDetailsCacheQueries.put(tmdbId = id, language = language, details = it) },
-        downloader = { it.movies.getDetails(id, language.apiParameter) },
+        downloader = { it.movies.getDetails(id.value, language.apiParameter) },
     )
 
     suspend fun releaseDates(cache: TmdbCache): List<TmdbReleaseDates> = tmdbGetOrDownload(
@@ -26,7 +26,7 @@ data class TmdbMovie(
         put = { cache.movieReleaseDatesCacheQueries.put(tmdbId = id, language = language, releaseDates = it) },
         downloader = {
             it.movies.getDetails(
-                id,
+                id.value,
                 language.apiParameter,
                 listOf(AppendResponse.RELEASES_DATES),
             ).releaseDates?.results.orEmpty()

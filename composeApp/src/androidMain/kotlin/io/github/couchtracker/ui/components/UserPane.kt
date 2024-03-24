@@ -1,4 +1,4 @@
-package io.github.couchtracker.componens
+package io.github.couchtracker.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Text
