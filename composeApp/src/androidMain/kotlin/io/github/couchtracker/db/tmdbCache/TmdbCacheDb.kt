@@ -4,7 +4,7 @@ import android.content.Context
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import io.github.couchtracker.jsonAdapter
+import io.github.couchtracker.db.common.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 
