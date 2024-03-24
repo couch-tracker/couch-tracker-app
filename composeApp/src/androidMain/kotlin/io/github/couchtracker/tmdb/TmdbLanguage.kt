@@ -31,10 +31,12 @@ data class TmdbLanguage(
 
     fun serialize() = apiParameter
 
-    companion object {
-        val English = TmdbLanguage("en", null)
+    override fun toString() = serialize()
 
-        val dbAdapter = object : ColumnAdapter<TmdbLanguage, String> {
+    companion object {
+        val ENGLISH = TmdbLanguage("en", null)
+
+        val DB_ADAPTER = object : ColumnAdapter<TmdbLanguage, String> {
             override fun decode(databaseValue: String) = parse(databaseValue)
             override fun encode(value: TmdbLanguage) = value.serialize()
         }

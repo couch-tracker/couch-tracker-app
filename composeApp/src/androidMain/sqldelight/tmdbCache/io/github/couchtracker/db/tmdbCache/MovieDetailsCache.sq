@@ -1,9 +1,9 @@
 import app.moviebase.tmdb.model.TmdbMovieDetail;
 import io.github.couchtracker.tmdb.TmdbLanguage;
-import kotlin.Int;
+import io.github.couchtracker.tmdb.TmdbMovieId;
 
 CREATE TABLE MovieDetailsCache (
-  tmdbId INTEGER AS Int NOT NULL,
+  tmdbId INTEGER AS TmdbMovieId NOT NULL,
   language TEXT AS TmdbLanguage NOT NULL,
   details TEXT AS TmdbMovieDetail NOT NULL,
   PRIMARY KEY(tmdbId, language)

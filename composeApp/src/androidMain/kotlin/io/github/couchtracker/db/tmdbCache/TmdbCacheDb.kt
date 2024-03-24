@@ -1,11 +1,11 @@
 package io.github.couchtracker.db.tmdbCache
 
 import android.content.Context
-import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import io.github.couchtracker.db.common.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbMovieId
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 
 object TmdbCacheDb {
@@ -19,13 +19,13 @@ object TmdbCacheDb {
                 factory = RequerySQLiteOpenHelperFactory(),
             ),
             MovieDetailsCacheAdapter = MovieDetailsCache.Adapter(
-                tmdbIdAdapter = IntColumnAdapter,
-                languageAdapter = TmdbLanguage.dbAdapter,
+                tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.DB_ADAPTER,
                 detailsAdapter = jsonAdapter(),
             ),
             MovieReleaseDatesCacheAdapter = MovieReleaseDatesCache.Adapter(
-                tmdbIdAdapter = IntColumnAdapter,
-                languageAdapter = TmdbLanguage.dbAdapter,
+                tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.DB_ADAPTER,
                 releaseDatesAdapter = jsonAdapter(),
             ),
         )
