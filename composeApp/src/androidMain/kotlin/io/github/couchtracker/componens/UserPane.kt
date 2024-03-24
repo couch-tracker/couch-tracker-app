@@ -13,4 +13,3 @@ fun UserPane(user: User) {
         Text("External file URI: ${user.externalFileUri}")
     }
 }
-
