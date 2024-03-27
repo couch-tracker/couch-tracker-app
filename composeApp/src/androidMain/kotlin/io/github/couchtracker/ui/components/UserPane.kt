@@ -1,7 +1,7 @@
 package io.github.couchtracker.ui.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import io.github.couchtracker.db.app.User
 

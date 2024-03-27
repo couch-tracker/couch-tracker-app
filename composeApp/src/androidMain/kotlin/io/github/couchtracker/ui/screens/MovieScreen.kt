@@ -1,8 +1,8 @@
 package io.github.couchtracker.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -81,8 +81,8 @@ fun MovieScreen(movie: TmdbMovie) {
         MoviesScreenState.Loading -> Text("Downloading movie...")
         is MoviesScreenState.Loaded -> {
             Column {
-                Text(state.title, style = MaterialTheme.typography.h1)
-                Text(state.overview, style = MaterialTheme.typography.body1)
+                Text(state.title, style = MaterialTheme.typography.displayLarge)
+                Text(state.overview, style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
