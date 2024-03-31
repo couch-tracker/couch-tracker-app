@@ -106,8 +106,6 @@ inline fun <T> UserDbResult<T>.onError(block: (UserDbResult<Nothing>) -> Unit) {
     when (this) {
         is UserDbResult.Completed.Success -> {}
         is UserDbResult.Completed.Error -> block(this)
-        is UserDbResult.FileError.ContentProviderFailure -> block(this)
-        is UserDbResult.FileError.InvalidDatabase -> block(this)
-        is UserDbResult.FileError.UriCannotBeOpened -> block(this)
+        is UserDbResult.FileError -> block(this)
     }
 }
