@@ -88,9 +88,7 @@ fun <T, R> UserDbResult<T>.map(block: (T) -> R): UserDbResult<R> {
     return when (this) {
         is UserDbResult.Completed.Success -> UserDbResult.Completed.Success(block(result))
         is UserDbResult.Completed.Error -> this
-        is UserDbResult.FileError.ContentProviderFailure -> this
-        is UserDbResult.FileError.InvalidDatabase -> this
-        is UserDbResult.FileError.UriCannotBeOpened -> this
+        is UserDbResult.FileError -> this
     }
 }
 
