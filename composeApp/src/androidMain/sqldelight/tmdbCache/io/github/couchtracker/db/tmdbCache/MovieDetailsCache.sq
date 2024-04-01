@@ -1,12 +1,8 @@
-import app.moviebase.tmdb.model.TmdbMovieDetail;
-import io.github.couchtracker.tmdb.TmdbLanguage;
-import io.github.couchtracker.tmdb.TmdbMovieId;
-
 CREATE TABLE MovieDetailsCache (
-  tmdbId INTEGER AS TmdbMovieId NOT NULL,
-  language TEXT AS TmdbLanguage NOT NULL,
-  details TEXT AS TmdbMovieDetail NOT NULL,
-  PRIMARY KEY(tmdbId, language)
+    tmdbId INTEGER AS io.github.couchtracker.tmdb.TmdbMovieId NOT NULL,
+    language TEXT AS io.github.couchtracker.tmdb.TmdbLanguage NOT NULL,
+    details TEXT AS app.moviebase.tmdb.model.TmdbMovieDetail NOT NULL,
+    PRIMARY KEY(tmdbId, language)
 );
 
 get:

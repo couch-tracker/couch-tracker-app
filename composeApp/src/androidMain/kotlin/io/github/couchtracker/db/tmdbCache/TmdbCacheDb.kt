@@ -20,12 +20,11 @@ object TmdbCacheDb {
             ),
             MovieDetailsCacheAdapter = MovieDetailsCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
-                languageAdapter = TmdbLanguage.DB_ADAPTER,
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
                 detailsAdapter = jsonAdapter(),
             ),
             MovieReleaseDatesCacheAdapter = MovieReleaseDatesCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
-                languageAdapter = TmdbLanguage.DB_ADAPTER,
                 releaseDatesAdapter = jsonAdapter(),
             ),
         )
