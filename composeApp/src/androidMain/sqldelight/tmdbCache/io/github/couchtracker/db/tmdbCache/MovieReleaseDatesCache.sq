@@ -1,21 +1,15 @@
-import app.moviebase.tmdb.model.TmdbReleaseDates;
-import io.github.couchtracker.tmdb.TmdbLanguage;
-import io.github.couchtracker.tmdb.TmdbMovieId;
-import kotlin.collections.List;
-
 CREATE TABLE MovieReleaseDatesCache (
-  tmdbId INTEGER AS TmdbMovieId NOT NULL,
-  language TEXT AS TmdbLanguage NOT NULL,
-  releaseDates TEXT AS List<TmdbReleaseDates> NOT NULL,
-  PRIMARY KEY(tmdbId, language)
+    tmdbId INTEGER AS io.github.couchtracker.tmdb.TmdbMovieId NOT NULL,
+    releaseDates TEXT AS kotlin.collections.List<app.moviebase.tmdb.model.TmdbReleaseDates> NOT NULL,
+    PRIMARY KEY(tmdbId)
 );
 
 get:
 SELECT releaseDates
 FROM MovieReleaseDatesCache
-WHERE tmdbId = ? AND language = ?;
+WHERE tmdbId = ?;
 
 put:
 INSERT INTO MovieReleaseDatesCache
-VALUES (:tmdbId, :language, :releaseDates)
+VALUES (:tmdbId, :releaseDates)
 ON CONFLICT DO UPDATE SET releaseDates = :releaseDates;

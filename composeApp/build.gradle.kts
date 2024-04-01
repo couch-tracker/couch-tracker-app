@@ -149,6 +149,14 @@ sqldelight {
     }
 }
 
+tasks.register<SqlDelightTmdbCacheDefinitionsGenerator>("generateSqldelightTmdbCacheDefinitions")
+
+tasks.whenTaskAdded {
+    if (this.name == "generateCommonMainTmdbCacheInterface") {
+        dependsOn += "generateSqldelightTmdbCacheDefinitions"
+    }
+}
+
 detekt {
     toolVersion = libs.versions.detekt.get()
     config.setFrom(file("detekt.yml"))
@@ -161,4 +169,3 @@ tasks.register("detektAll") {
     dependsOn += "detektAndroidDebugAndroidTest"
     dependsOn += "detektAndroidReleaseUnitTest"
 }
-

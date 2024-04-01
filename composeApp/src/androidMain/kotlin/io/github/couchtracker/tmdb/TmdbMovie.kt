@@ -22,12 +22,12 @@ data class TmdbMovie(
     )
 
     suspend fun releaseDates(cache: TmdbCache): List<TmdbReleaseDates> = tmdbGetOrDownload(
-        get = { cache.movieReleaseDatesCacheQueries.get(id, language).awaitAsOneOrNull() },
-        put = { cache.movieReleaseDatesCacheQueries.put(tmdbId = id, language = language, releaseDates = it) },
+        get = { cache.movieReleaseDatesCacheQueries.get(id).awaitAsOneOrNull() },
+        put = { cache.movieReleaseDatesCacheQueries.put(tmdbId = id, releaseDates = it) },
         downloader = {
             it.movies.getDetails(
                 id.value,
-                language.apiParameter,
+                null,
                 listOf(AppendResponse.RELEASES_DATES),
             ).releaseDates?.results.orEmpty()
         },

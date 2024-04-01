@@ -36,7 +36,7 @@ data class TmdbLanguage(
     companion object {
         val ENGLISH = TmdbLanguage("en", null)
 
-        val DB_ADAPTER = object : ColumnAdapter<TmdbLanguage, String> {
+        val COLUMN_ADAPTER = object : ColumnAdapter<TmdbLanguage, String> {
             override fun decode(databaseValue: String) = parse(databaseValue)
             override fun encode(value: TmdbLanguage) = value.serialize()
         }
