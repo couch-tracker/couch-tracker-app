@@ -1,23 +1,25 @@
 package io.github.couchtracker.db.tmdbCache
 
-import android.content.Context
 import app.cash.sqldelight.async.coroutines.synchronous
-import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import io.github.couchtracker.db.common.AndroidSqliteDriverFactory
+import io.github.couchtracker.db.common.DbPath
+import io.github.couchtracker.db.common.SqliteDriverFactory
 import io.github.couchtracker.db.common.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
-import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
+import org.koin.core.qualifier.named
+import org.koin.dsl.bind
+import org.koin.dsl.module
 
-object TmdbCacheDb {
-    fun get(context: Context): TmdbCache {
-        return TmdbCache(
-            driver = AndroidSqliteDriver(
-                // See https://github.com/cashapp/sqldelight/issues/5058
-                TmdbCache.Schema.synchronous(),
-                context,
-                "tmdb-cache.db",
-                factory = RequerySQLiteOpenHelperFactory(),
-            ),
+val TmdbCacheDbModule = module {
+    factory(named("TmdbCacheDb")) {
+        AndroidSqliteDriverFactory(schema = TmdbCache.Schema.synchronous())
+    }.bind<SqliteDriverFactory>()
+
+    single {
+        val driverFactory = get<SqliteDriverFactory>(named("TmdbCacheDb"))
+        TmdbCache(
+            driver = driverFactory.getDriver(DbPath.of(get(), "tmdb-cache.db")),
             MovieDetailsCacheAdapter = MovieDetailsCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 languageAdapter = TmdbLanguage.COLUMN_ADAPTER,

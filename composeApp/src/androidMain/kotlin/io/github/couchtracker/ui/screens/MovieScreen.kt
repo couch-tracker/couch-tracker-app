@@ -14,13 +14,14 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import io.github.couchtracker.LocalTmdbCache
+import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.user.movie.ExternalMovieId
 import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.user.movie.UnknownExternalMovieId
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
+import org.koin.compose.koinInject
 
 private const val ARGUMENTS_MOVIE_ID = "movieId"
 private const val ARGUMENTS_LANGUAGE = "language"
@@ -64,7 +65,7 @@ sealed interface MoviesScreenState {
 
 @Composable
 fun MovieScreen(movie: TmdbMovie) {
-    val tmdbCache = LocalTmdbCache.current
+    val tmdbCache = koinInject<TmdbCache>()
     var screenState by remember { mutableStateOf<MoviesScreenState>(MoviesScreenState.Loading) }
 
     LaunchedEffect(movie) {

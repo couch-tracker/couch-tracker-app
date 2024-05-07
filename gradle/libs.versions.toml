@@ -25,6 +25,7 @@ tmdb-api = "1.3.4"
 mockk = "1.13.9"
 serialization = "1.6.3"
 navigation = "2.7.7"
+koin-bom = "3.5.6"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -51,6 +52,10 @@ sqldelight-sqlite-dialect = { module = "app.cash.sqldelight:sqlite-3-38-dialect"
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
+koin-core = { group = "io.insert-koin", name = "koin-core" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 requery-android = { module = "com.github.requery:sqlite-android", version.ref = "requeryAndroid" }
 tmdb-api = { module = "app.moviebase:tmdb-api", version.ref = "tmdb-api" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
