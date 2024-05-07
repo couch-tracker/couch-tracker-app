@@ -46,6 +46,7 @@ kotlin {
             implementation(libs.navigation.fragment)
             implementation(libs.navigation.ui)
             implementation(libs.navigation.compose)
+            implementation(libs.koin.androidx.compose)
 
             // There is no androidUnitTest target
             implementation(libs.kotest.runner.junit5)
@@ -62,6 +63,9 @@ kotlin {
             implementation(libs.tmdb.api)
             implementation(libs.serialization.core)
             implementation(libs.serialization.json)
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)

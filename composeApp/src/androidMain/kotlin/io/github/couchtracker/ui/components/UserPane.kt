@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.app.User
 import io.github.couchtracker.db.user.ExternalUserDb
 import io.github.couchtracker.db.user.ManagedUserDb
@@ -27,7 +26,7 @@ import kotlin.random.Random
 
 @Composable
 @Suppress("LongMethod") // TODO: remove this debug pane
-fun UserPane(appData: AppData, user: User) {
+fun UserPane(user: User) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -35,7 +34,7 @@ fun UserPane(appData: AppData, user: User) {
     var lastActionStatus by remember { mutableStateOf<UserDbResult<Unit>?>(null) }
     var moveStatus by remember { mutableStateOf<UserDbResult<Unit>?>(null) }
 
-    val userDb = remember(user, context, appData) { user.db(context, appData) }
+    val userDb = remember(user) { user.db() }
 
     val takeOwnershipWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(UserDbUtils.MIME_TYPE)) { uri ->
         if (uri != null && userDb is ManagedUserDb) {
@@ -80,7 +79,7 @@ fun UserPane(appData: AppData, user: User) {
         Button(
             onClick = {
                 coroutineScope.launch {
-                    showCollection = userDb.read(context) { db ->
+                    showCollection = userDb.read { db ->
                         db.showCollectionQueries.selectShowCollection().executeAsList()
                     }.debugSuccessOr { emptyList() }
                 }
@@ -92,7 +91,7 @@ fun UserPane(appData: AppData, user: User) {
         Button(
             onClick = {
                 coroutineScope.launch {
-                    lastActionStatus = userDb.write(context) { db ->
+                    lastActionStatus = userDb.write { db ->
                         @Suppress("MagicNumber")
                         db.showCollectionQueries.insertShow(TmdbShowId(Random.nextInt(0, 999_999)).toExternalId())
                     }
@@ -107,7 +106,7 @@ fun UserPane(appData: AppData, user: User) {
                 val id = showCollection.randomOrNull()
                 if (id != null) {
                     coroutineScope.launch {
-                        lastActionStatus = userDb.write(context) { db ->
+                        lastActionStatus = userDb.write { db ->
                             db.showCollectionQueries.deleteShow(id)
                         }
                     }

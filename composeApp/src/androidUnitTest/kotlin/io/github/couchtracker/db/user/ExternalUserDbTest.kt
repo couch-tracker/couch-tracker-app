@@ -14,7 +14,7 @@ class ExternalUserDbTest : FunSpec(
                     every { externalFileUri } returns null
                 }
                 shouldThrow<IllegalArgumentException> {
-                    ExternalUserDb.of(context = mockk(), user = user, appData = mockk())
+                    ExternalUserDb.of(user = user)
                 }
             }
         }

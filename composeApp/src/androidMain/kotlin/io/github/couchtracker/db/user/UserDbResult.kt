@@ -1,7 +1,6 @@
 package io.github.couchtracker.db.user
 
 import android.content.ContentResolver
-import java.io.FileNotFoundException
 
 /**
  * Represents the result of an operation on the user database.
@@ -56,7 +55,7 @@ sealed interface UserDbResult<out T> {
          * @see ContentResolver.openOutputStream
          */
         data class UriCannotBeOpened(
-            val exception: FileNotFoundException,
+            val exception: Exception,
             val attemptedOperation: AttemptedOperation,
         ) : FileError
 

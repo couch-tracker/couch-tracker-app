@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
-import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.app.User
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
@@ -12,6 +11,8 @@ import io.github.couchtracker.db.toDocumentFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -24,21 +25,19 @@ class ExternalUserDb private constructor(
     private val user: User,
     private val cachedDb: DbPath,
     private val externalDb: DocumentFile,
-    private val appData: AppData,
 ) : UserDb() {
 
-    override suspend fun <T> doTransaction(context: Context, block: DatabaseTransaction<TransactionResult<T>>): UserDbResult<T> {
+    override suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): UserDbResult<T> {
         // Check if we have an up-to-date cached copy of the database. If not, copy it to internal storage
         val externalLastModified = externalDb.lastModifiedInstant()
         if (!isCachedDatabaseUpToDate(externalLastModified)) {
             Log.i(LOG_TAG, "External database is not up to date or doesn't exist, copying to internal storage")
-            externalDb.uri.copyToInternal(context, cachedDb.file).onError { return it }
+            externalDb.uri.copyToInternal(cachedDb.file).onError { return it }
             updateCachedLastModified(externalLastModified)
         }
 
         // Execute transaction on cached file
         val dbResult = openAndUseDatabase(
-            context = context,
             dbPath = cachedDb,
             onCorrupted = {
                 // this probably means that the external file is not a valid SQLite file
@@ -63,11 +62,11 @@ class ExternalUserDb private constructor(
                     cleanCached()
 
                     // And let's rerun the transaction again.
-                    return doTransaction(context, block)
+                    return doTransaction(block)
                 }
 
                 // Copy the now edited cached file back to its rightful place
-                cachedDb.file.copyToExternal(context, externalDb.uri).onError {
+                cachedDb.file.copyToExternal(externalDb.uri).onError {
                     // Let's clean the cached DB as it contains successful changes that are not valid
                     // (because they couldn't be saved to external storage)
                     cleanCached()
@@ -132,7 +131,7 @@ class ExternalUserDb private constructor(
         return withContext(coroutineContext) {
             // Copies the external DB to internal storage
             val internalDb = UserDbUtils.getManagedDbNameForUser(context, user.id)
-            externalDb.uri.copyToInternal(context, internalDb.file).onError { return@withContext it }
+            externalDb.uri.copyToInternal(internalDb.file).onError { return@withContext it }
 
             // Removes external DB information from the app DB
             appData.userQueries.setExternalFileUri(externalFileUri = null, cachedDbLastModified = null, id = user.id)
@@ -148,29 +147,33 @@ class ExternalUserDb private constructor(
     /**
      * Removes the locally cached file (if any) and releases the persistent URI permissions for the external DB
      */
-    override suspend fun unlink(context: Context) {
+    override suspend fun unlink() {
         cleanCached()
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        context.applicationContext.contentResolver.releasePersistableUriPermission(externalDb.uri, flags)
+        try {
+            context.applicationContext.contentResolver.releasePersistableUriPermission(externalDb.uri, flags)
+        } catch (e: SecurityException) {
+            Log.w(LOG_TAG, "Unable to release persistable URI permissions", e)
+        }
     }
 
-    companion object {
+    companion object : KoinComponent {
 
         /**
          * Creates a new [ExternalUserDb] for the given [user].
          *
          * Fails if the user database is not currently being managed externally.
          */
-        fun of(context: Context, user: User, appData: AppData): ExternalUserDb {
+        fun of(user: User): ExternalUserDb {
             val externalFileUri = requireNotNull(user.externalFileUri) {
                 "ExternalUserDb can only be created when the database is currently managed externally"
             }
+            val context = get<Context>()
 
             return ExternalUserDb(
                 user = user,
                 cachedDb = UserDbUtils.getCachedDbNameForUser(context, user.id),
                 externalDb = externalFileUri.toDocumentFile(context),
-                appData = appData,
             )
         }
     }

@@ -11,14 +11,12 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
@@ -28,9 +26,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.moviebase.tmdb.model.TmdbMovieDetail
-import io.github.couchtracker.db.app.AppDb
+import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.db.tmdbCache.TmdbCacheDb
 import io.github.couchtracker.db.user.db
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
@@ -44,20 +41,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-
-val LocalTmdbCache = staticCompositionLocalOf<TmdbCache> {
-    throw IllegalStateException("Not initialized yet")
-}
+import org.koin.compose.KoinContext
+import org.koin.compose.koinInject
 
 @Composable
 fun App() {
     val navController = rememberNavController()
-    val appContext = LocalContext.current.applicationContext
-    val tmdbCache = remember(appContext) { TmdbCacheDb.get(appContext) }
 
-    CompositionLocalProvider(
-        LocalTmdbCache provides tmdbCache,
-    ) {
+    KoinContext {
         MaterialTheme {
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") {
@@ -81,7 +72,7 @@ private fun Main(openMovie: (TmdbMovie) -> Unit) {
 @Composable
 private fun UserSection() {
     val appContext = LocalContext.current.applicationContext
-    val appDb = remember { AppDb.get(appContext) }
+    val appDb = koinInject<AppData>()
 
     val coroutineScope = rememberCoroutineScope()
     val selectAllUsers = remember { appDb.userQueries.selectAll() }
@@ -103,7 +94,7 @@ private fun UserSection() {
     Text(text = "Current user", fontSize = 30.sp)
     when (val user = users?.find { it.id == currentUserId }) {
         null -> Text(text = "No current user", fontStyle = FontStyle.Italic)
-        else -> UserPane(appData = appDb, user = user)
+        else -> UserPane(user = user)
     }
 
     Text(text = "User list", fontSize = 30.sp)
@@ -131,7 +122,7 @@ private fun UserSection() {
     Button(
         onClick = {
             for (user in users.orEmpty()) {
-                coroutineScope.launch { user.db(appContext, appDb).unlink(appContext) }
+                coroutineScope.launch { user.db().unlink() }
                 appDb.userQueries.delete(user.id)
             }
         },
@@ -156,7 +147,7 @@ private val exampleMovies = listOf(
 @Composable
 private fun MoviesSection(openMovie: (TmdbMovie) -> Unit) {
     var state by remember { mutableStateOf<MoviesSectionState>(MoviesSectionState.Loading) }
-    val tmdbCache = LocalTmdbCache.current
+    val tmdbCache = koinInject<TmdbCache>()
     LaunchedEffect(Unit) {
         state = try {
             coroutineScope {
