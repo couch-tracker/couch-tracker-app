@@ -30,6 +30,10 @@ kotlin {
         }
     }
 
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
+
     sourceSets {
 
         androidMain.dependencies {
