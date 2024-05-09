@@ -26,6 +26,8 @@ mockk = "1.13.9"
 serialization = "1.6.3"
 navigation = "2.7.7"
 koin-bom = "3.5.6"
+coil = "2.6.0"
+palette = "1.0.0"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -65,6 +67,9 @@ navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", 
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigation" }
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+palette = { module = "androidx.palette:palette", version.ref = "palette" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
