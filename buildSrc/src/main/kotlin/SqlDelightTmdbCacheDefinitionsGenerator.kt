@@ -18,6 +18,16 @@ private val CACHES = listOf(
         key = listOf(MOVIE_ID_COLUMN),
         value = SqlColumn.text("releaseDates", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbReleaseDates>"),
     ),
+    SqlTable(
+        name = "MovieCreditsCache",
+        key = listOf(MOVIE_ID_COLUMN),
+        value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbCredits"),
+    ),
+    SqlTable(
+        name = "MovieImagesCache",
+        key = listOf(MOVIE_ID_COLUMN),
+        value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
+    ),
 )
 
 /** Which sql functions to generate */

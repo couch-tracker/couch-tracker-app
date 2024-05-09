@@ -46,6 +46,7 @@ kotlin {
             implementation(libs.navigation.fragment)
             implementation(libs.navigation.ui)
             implementation(libs.navigation.compose)
+            implementation(libs.palette)
             implementation(libs.koin.androidx.compose)
 
             // There is no androidUnitTest target
@@ -58,7 +59,6 @@ kotlin {
             implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.ui)
-            @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation(libs.tmdb.api)
             implementation(libs.serialization.core)
@@ -66,6 +66,8 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+            implementation(libs.coil)
+            implementation(libs.coil.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)
@@ -110,6 +112,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug") // TODO remove this
         }
     }
     compileOptions {

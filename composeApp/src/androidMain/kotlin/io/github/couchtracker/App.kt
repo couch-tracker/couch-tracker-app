@@ -6,22 +6,29 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
 import androidx.documentfile.provider.DocumentFile
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -44,17 +51,22 @@ import kotlinx.datetime.Clock
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 
+val LocalNavController = staticCompositionLocalOf<NavController> { error("no default nav controller") }
+
 @Composable
 fun App() {
     val navController = rememberNavController()
-
     KoinContext {
-        MaterialTheme {
-            NavHost(navController = navController, startDestination = "main") {
-                composable("main") {
-                    Main(openMovie = { movie -> navController.navigateToMovie(movie) })
+        MaterialTheme(colorScheme = darkColorScheme()) {
+            CompositionLocalProvider(LocalNavController provides navController) {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    NavHost(navController = navController, startDestination = "main") {
+                        composable("main") {
+                            Main(openMovie = { movie -> navController.navigateToMovie(movie) })
+                        }
+                        movieScreen()
+                    }
                 }
-                movieScreen()
             }
         }
     }
@@ -62,11 +74,15 @@ fun App() {
 
 @Composable
 private fun Main(openMovie: (TmdbMovie) -> Unit) {
-    Column(Modifier.fillMaxSize()) {
-        UserSection()
-        Divider()
-        MoviesSection(openMovie)
-    }
+    Scaffold(
+        content = { innerPadding ->
+            Column(Modifier.fillMaxSize().padding(innerPadding)) {
+                UserSection()
+                HorizontalDivider()
+                MoviesSection(openMovie)
+            }
+        },
+    )
 }
 
 @Composable
@@ -138,10 +154,16 @@ sealed interface MoviesSectionState {
 }
 
 private val exampleMovies = listOf(
+    671,
     526_896,
     10_625,
     166_424,
     9607,
+    438_631,
+    693_134,
+    940_721,
+    929_590,
+    577_922,
 ).map { TmdbMovie(TmdbMovieId(it), TmdbLanguage.ENGLISH) }
 
 @Composable

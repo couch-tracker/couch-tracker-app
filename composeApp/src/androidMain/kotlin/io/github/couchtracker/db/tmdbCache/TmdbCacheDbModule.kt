@@ -29,6 +29,14 @@ val TmdbCacheDbModule = module {
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 releaseDatesAdapter = jsonAdapter(),
             ),
+            MovieCreditsCacheAdapter = MovieCreditsCache.Adapter(
+                tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
+                creditsAdapter = jsonAdapter(),
+            ),
+            MovieImagesCacheAdapter = MovieImagesCache.Adapter(
+                tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
+                imagesAdapter = jsonAdapter(),
+            ),
         )
     }
 }

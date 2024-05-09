@@ -79,7 +79,7 @@ style:
     # We forbid to import anything under androidx.compose.material because we should import from material3
     # We use a negative lookahead to allow for those classes we know are not on material3 and thus can be imported from material
     # e.g. (?!(Allowed|AlsoAllowed|AnotherAllowed)$)
-    forbiddenPatterns: "androidx\\.compose\\.material\\.(?!()$).+"
+    forbiddenPatterns: "androidx\\.compose\\.material\\.(?!(icons\\..*)$).+"
   MagicNumber:
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
