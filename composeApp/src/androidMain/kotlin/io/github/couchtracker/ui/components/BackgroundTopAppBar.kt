@@ -20,22 +20,22 @@ import androidx.compose.ui.unit.times
 fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     backgroundColor: Color,
-    image: @Composable (modifier: Modifier) -> Unit,
-    appBar: @Composable (modifier: Modifier, colors: TopAppBarColors) -> Unit,
+    image: @Composable (Modifier) -> Unit,
+    appBar: @Composable (Modifier, TopAppBarColors) -> Unit,
 ) {
     Box {
         image(
-            modifier = Modifier.matchParentSize().blur(scrollBehavior.state.collapsedFraction * 8.dp),
+            Modifier.matchParentSize().blur(scrollBehavior.state.collapsedFraction * 8.dp),
         )
         appBar(
-            modifier = Modifier
+            Modifier
                 .background(
                     Brush.verticalGradient(
                         0f to backgroundColor.copy(alpha = 0.5f),
                         1f to backgroundColor,
                     ),
                 ),
-            colors = TopAppBarDefaults.topAppBarColors(
+            TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
                 scrolledContainerColor = Color.Transparent,
             ),
