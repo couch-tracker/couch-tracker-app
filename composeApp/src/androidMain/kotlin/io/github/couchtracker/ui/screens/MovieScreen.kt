@@ -5,7 +5,6 @@ package io.github.couchtracker.ui.screens
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -41,8 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -51,7 +48,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -78,6 +74,7 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.ui.backgroundColor
+import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -187,44 +184,41 @@ private fun MovieAppBar(
     backgroundColor: Color,
 ) {
     val navController = LocalNavController.current
-    Box {
-        AsyncImage(
-            modifier = Modifier.matchParentSize().blur(scrollBehavior.state.collapsedFraction * 8.dp),
-            model = state.backdrop,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-        )
-        LargeTopAppBar(
-            modifier = Modifier
-                .background(
-                    Brush.verticalGradient(
-                        0f to backgroundColor.copy(alpha = 0.5f),
-                        1f to backgroundColor,
-                    ),
-                ),
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent,
-            ),
-            title = {
-                Text(
-                    state.title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            },
-            navigationIcon = {
-                IconButton({ navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        // TODO: translate
-                        contentDescription = "Back",
+    BackgroundTopAppBar(
+        scrollBehavior = scrollBehavior,
+        backgroundColor = backgroundColor,
+        image = { modifier ->
+            AsyncImage(
+                modifier = modifier,
+                model = state.backdrop,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
+        },
+        appBar = { modifier, colors ->
+            LargeTopAppBar(
+                modifier = modifier,
+                colors = colors,
+                title = {
+                    Text(
+                        state.title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                }
-            },
-            scrollBehavior = scrollBehavior,
-        )
-    }
+                },
+                navigationIcon = {
+                    IconButton({ navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            // TODO: translate
+                            contentDescription = "Back",
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    )
 }
 
 private const val BACKDROP_FILL_PERCENTAGE = 0.8
