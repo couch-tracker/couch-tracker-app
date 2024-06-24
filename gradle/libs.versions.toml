@@ -4,26 +4,26 @@ android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
 androidx-activityCompose = "1.9.0"
-androidx-appcompat = "1.6.1"
+androidx-appcompat = "1.7.0"
 androidx-constraintlayout = "2.1.4"
 androidx-core-ktx = "1.13.1"
 androidx-documentfile = "1.0.1"
-androidx-espresso-core = "3.5.1"
+androidx-espresso-core = "3.6.0"
 androidx-material = "1.12.0"
-androidx-lifecycle = "2.7.0"
-androidx-test-junit = "1.1.5"
-compose = "1.6.7"
-compose-plugin = "1.6.2"
+androidx-lifecycle = "2.8.2"
+androidx-test-junit = "1.2.1"
+compose = "1.6.8"
+compose-plugin = "1.6.11"
 junit = "4.13.2"
-kotlin = "1.9.23"
-detekt = "1.23.3"
-sqldelight = "2.0.1"
-kotest = "5.8.0"
+kotlin = "2.0.0"
+detekt = "1.23.6"
+sqldelight = "2.0.2"
+kotest = "5.9.1"
 buildConfig = "5.3.5"
 requeryAndroid = "3.45.0"
 tmdb-api = "1.3.4"
-mockk = "1.13.9"
-serialization = "1.6.3"
+mockk = "1.13.11"
+serialization = "1.7.1"
 navigation = "2.7.7"
 koin-bom = "3.5.6"
 coil = "2.6.0"
@@ -60,10 +60,10 @@ koin-compose = { group = "io.insert-koin", name = "koin-compose" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 requery-android = { module = "com.github.requery:sqlite-android", version.ref = "requeryAndroid" }
 tmdb-api = { module = "app.moviebase:tmdb-api", version.ref = "tmdb-api" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
-navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigation" }
@@ -75,6 +75,7 @@ palette = { module = "androidx.palette:palette", version.ref = "palette" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

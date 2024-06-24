@@ -31,7 +31,7 @@ class UserDbResultTest : FunSpec(
 
         context("onError()") {
             test("nothing happens on success") {
-                val onError = spyk<(UserDbResult<Nothing>) -> Unit>({})
+                val onError = spyk<(UserDbResult<Nothing>) -> Unit>(@JvmSerializableLambda {})
                 UserDbResult.Completed.Success("yey!").onError(onError)
                 verify(exactly = 0) { onError(any()) }
             }
@@ -42,7 +42,7 @@ class UserDbResultTest : FunSpec(
                     UserDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), AttemptedOperation.WRITE),
                     UserDbResult.FileError.ContentProviderFailure(AttemptedOperation.READ),
                 ) { instance ->
-                    val onError = spyk<(UserDbResult<Nothing>) -> Unit>({})
+                    val onError = spyk<(UserDbResult<Nothing>) -> Unit>(@JvmSerializableLambda {})
                     instance.onError(onError)
                     verify(exactly = 1) { onError(instance) }
                 }
