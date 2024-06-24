@@ -1,7 +1,11 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.detekt)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.buildConfig)
@@ -22,8 +26,10 @@ buildConfig {
 kotlin {
     androidTarget {
         compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget = JvmTarget.JVM_1_8
+                }
             }
         }
     }
@@ -39,13 +45,11 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.documentfile)
             implementation(libs.androidx.lifecycle.runtime.compose)
+
+            // Database stuff
             implementation(libs.sqldelight.android)
-            implementation(libs.sqldelight.coroutines)
-            implementation(libs.sqldelight.async)
-            implementation(libs.sqldelight.primitive.adapters)
-            implementation(libs.sqldelight.sqlite.dialect)
             implementation(libs.requery.android)
-            implementation(libs.navigation.fragment)
+
             implementation(libs.navigation.ui)
             implementation(libs.navigation.compose)
             implementation(libs.palette)
@@ -56,6 +60,11 @@ kotlin {
             implementation(libs.mockk.android)
         }
         commonMain.dependencies {
+            // Kotlin stuff
+            implementation(libs.serialization.core)
+            implementation(libs.serialization.json)
+
+            // Compose
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
@@ -63,18 +72,29 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(libs.tmdb.api)
-            implementation(libs.serialization.core)
-            implementation(libs.serialization.json)
+
+            // SQLDelight
+            implementation(libs.sqldelight.coroutines)
+            implementation(libs.sqldelight.async)
+            implementation(libs.sqldelight.primitive.adapters)
+            implementation(libs.sqldelight.sqlite.dialect)
+
+            // Koin (dependency injection)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+
+            // Coil (image library)
             implementation(libs.coil)
             implementation(libs.coil.compose)
+
+            // Other
+            implementation(libs.tmdb.api)
         }
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)
             implementation(libs.kotest.framework.datatest)
+            implementation(libs.mockk)
         }
     }
 }
@@ -175,7 +195,14 @@ detekt {
 
 tasks.register("detektAll") {
     group = "verification"
-    dependsOn += "detektAndroidRelease"
-    dependsOn += "detektAndroidDebugAndroidTest"
-    dependsOn += "detektAndroidReleaseUnitTest"
+    allprojects {
+        this@register.dependsOn(tasks.withType<Detekt>())
+    }
+}
+
+tasks.withType<Detekt>().configureEach {
+    exclude {
+        // Exclude auto generated files
+        it.file.relativeTo(projectDir).startsWith("build")
+    }
 }
