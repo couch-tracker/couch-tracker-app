@@ -1,15 +1,20 @@
 import io.github.couchtracker.db.user.show.ExternalShowId;
+import kotlinx.datetime.Instant;
 
--- EXAMPLE
+/**
+ * Saves the list of shows in the user's collection.
+ */
 CREATE TABLE ShowCollection (
-  showId TEXT AS ExternalShowId PRIMARY KEY NOT NULL
+  showId TEXT AS ExternalShowId PRIMARY KEY NOT NULL,
+  manualSortIndex INTEGER NOT NULL,
+  addDate TEXT AS Instant NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
 selectShowCollection:
 SELECT * FROM ShowCollection;
 
 insertShow:
-INSERT INTO ShowCollection(showId) VALUES (?);
+INSERT INTO ShowCollection(showId, manualSortIndex) VALUES (?, (SELECT COALESCE(MAX(manualSortIndex) + 1, 0) FROM ShowCollection));
 
 deleteShow:
 DELETE FROM ShowCollection WHERE showId=?;
