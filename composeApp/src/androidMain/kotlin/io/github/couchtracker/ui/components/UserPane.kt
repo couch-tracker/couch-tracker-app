@@ -15,11 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import io.github.couchtracker.db.app.User
 import io.github.couchtracker.db.user.ExternalUserDb
 import io.github.couchtracker.db.user.ManagedUserDb
+import io.github.couchtracker.db.user.ShowCollection
 import io.github.couchtracker.db.user.UserDbResult
 import io.github.couchtracker.db.user.UserDbUtils
 import io.github.couchtracker.db.user.db
 import io.github.couchtracker.db.user.debugSuccessOr
-import io.github.couchtracker.db.user.show.ExternalShowId
 import io.github.couchtracker.tmdb.TmdbShowId
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -30,7 +30,7 @@ fun UserPane(user: User) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var showCollection by remember { mutableStateOf<List<ExternalShowId>>(emptyList()) }
+    var showCollection by remember { mutableStateOf<List<ShowCollection>>(emptyList()) }
     var lastActionStatus by remember { mutableStateOf<UserDbResult<Unit>?>(null) }
     var moveStatus by remember { mutableStateOf<UserDbResult<Unit>?>(null) }
 
@@ -103,11 +103,11 @@ fun UserPane(user: User) {
         )
         Button(
             onClick = {
-                val id = showCollection.randomOrNull()
-                if (id != null) {
+                val item = showCollection.randomOrNull()
+                if (item != null) {
                     coroutineScope.launch {
                         lastActionStatus = userDb.write { db ->
-                            db.showCollectionQueries.deleteShow(id)
+                            db.showCollectionQueries.deleteShow(item.showId)
                         }
                     }
                 }
