@@ -84,6 +84,12 @@ sealed class UserDb : KoinComponent {
         )
     }
 
+    suspend fun ensureDbExists() = write { db ->
+        db.transaction {
+            // We need to execute an empty DB transaction in order to force the creation of the DB in case it doesn't exist
+        }
+    }
+
     /**
      * The result of a [transaction].
      *

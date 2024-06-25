@@ -52,7 +52,7 @@ class ManagedUserDb(private val user: User) : UserDb() {
             val externalDocument = uri.toDocumentFile(context)
 
             // No-op write, just make sure that a database file exists (so we can copy it)
-            val writeResult = write {}
+            val writeResult = ensureDbExists()
             if (writeResult !is UserDbResult.Completed.Success) {
                 Log.e(LOG_TAG, "Unable to write to locally managed DB file! Something's wrong")
                 return@withContext writeResult
