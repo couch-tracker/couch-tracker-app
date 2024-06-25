@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.user
 
 import android.content.ContentResolver
+import java.io.IOException
 
 /**
  * Represents the result of an operation on the user database.
@@ -56,6 +57,17 @@ sealed interface UserDbResult<out T> {
          */
         data class UriCannotBeOpened(
             val exception: Exception,
+            val attemptedOperation: AttemptedOperation,
+        ) : FileError
+
+        /**
+         * Indicates that there was a problem while reading/writing to the database.
+         *
+         * @property exception the exception that was thrown while performing IO on the database file
+         * @property attemptedOperation if the problem occurred trying to read or write
+         */
+        data class InputOutputError(
+            val exception: IOException,
             val attemptedOperation: AttemptedOperation,
         ) : FileError
 

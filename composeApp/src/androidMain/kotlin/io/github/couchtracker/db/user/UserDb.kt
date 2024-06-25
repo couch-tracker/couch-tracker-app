@@ -17,6 +17,7 @@ import org.koin.core.qualifier.named
 import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import kotlin.coroutines.CoroutineContext
 
 typealias DatabaseTransaction<T> = suspend (db: UserData) -> T
@@ -178,16 +179,21 @@ sealed class UserDb : KoinComponent {
                 return UserDbResult.FileError.UriCannotBeOpened(e, operation)
             }
 
-            return try {
-                val resource = get(uri) ?: return UserDbResult.FileError.ContentProviderFailure(operation).also {
+            val resource = try {
+                get(uri) ?: return UserDbResult.FileError.ContentProviderFailure(operation).also {
                     Log.w(LOG_TAG, "Unable to open $uri for $operation. Content provider returned null when opening stream")
                 }
+            } catch (e: FileNotFoundException) {
+                return onOpenError(e)
+            } catch (e: SecurityException) {
+                return onOpenError(e)
+            }
+            return try {
                 resource.use(block)
                 UserDbResult.Completed.Success(Unit)
-            } catch (e: FileNotFoundException) {
-                onOpenError(e)
-            } catch (e: SecurityException) {
-                onOpenError(e)
+            } catch (e: IOException) {
+                Log.w(LOG_TAG, "IO error while executing $operation on $uri", e)
+                UserDbResult.FileError.InputOutputError(e, operation)
             }
         }
     }
