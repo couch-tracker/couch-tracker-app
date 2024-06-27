@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -25,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.documentfile.provider.DocumentFile
 import app.moviebase.tmdb.model.TmdbMovieDetail
@@ -139,6 +142,14 @@ private val exampleMovies = listOf(
     940_721,
     929_590,
     577_922,
+    346_698,
+    786_892,
+    150_540,
+    748_783,
+    297_762,
+    284_053,
+    508_883,
+    787_699,
 ).map { TmdbMovie(TmdbMovieId(it), TmdbLanguage.ENGLISH) }
 
 @Composable
@@ -162,13 +173,13 @@ private fun MoviesSection() {
         is MoviesSectionState.Error -> Text("Error: ${m.message}")
         MoviesSectionState.Loading -> Text("Downloading movies...")
         is MoviesSectionState.Loaded -> {
-            Column {
-                m.movies.forEach { (movie, details) ->
+            LazyColumn {
+                items(m.movies.entries.toList()) { (movie, details) ->
                     Text(
                         details.title,
                         Modifier.clickable {
                             navController.navigateToMovie(movie)
-                        },
+                        }.padding(4.dp),
                     )
                 }
             }

@@ -4,7 +4,6 @@ package io.github.couchtracker.ui.screens.main
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,14 +37,13 @@ import kotlinx.coroutines.launch
 fun MainSection(
     innerPadding: PaddingValues,
     pagerState: PagerState,
-    backgroundColor: Color,
     backgroundImage: Painter,
     tabText: @Composable (page: Int) -> Unit,
     page: @Composable (page: Int) -> Unit,
 ) {
     val cs = rememberCoroutineScope()
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -55,7 +53,6 @@ fun MainSection(
         topBar = {
             BackgroundTopAppBar(
                 scrollBehavior = scrollBehavior,
-                backgroundColor = backgroundColor,
                 image = { modifier ->
                     Image(
                         modifier = modifier,
@@ -64,8 +61,8 @@ fun MainSection(
                         contentScale = ContentScale.Crop,
                     )
                 },
-                appBar = { modifier, colors ->
-                    Column(modifier = modifier) {
+                appBar = { colors ->
+                    Column {
                         TopAppBar(
                             colors = colors,
                             scrollBehavior = scrollBehavior,
@@ -93,7 +90,7 @@ fun MainSection(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top),
         content = { scaffoldInnerPadding ->
             HorizontalPager(
-                modifier = Modifier.fillMaxWidth().background(backgroundColor),
+                modifier = Modifier.fillMaxWidth(),
                 contentPadding = scaffoldInnerPadding,
                 state = pagerState,
             ) { pageIndex ->
