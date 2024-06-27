@@ -10,6 +10,8 @@ output-reports:
 complexity:
   LongParameterList:
     ignoreDefaultParameters: true
+  TooManyFunctions:
+    ignorePrivate: true
 
 formatting:
   ArgumentListWrapping:

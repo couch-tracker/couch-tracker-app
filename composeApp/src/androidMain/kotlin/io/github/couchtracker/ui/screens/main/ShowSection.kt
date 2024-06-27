@@ -10,10 +10,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import io.github.couchtracker.R
-import io.github.couchtracker.ui.backgroundColor
 
 @Composable
 fun ShowSection(innerPadding: PaddingValues) {
@@ -22,7 +20,6 @@ fun ShowSection(innerPadding: PaddingValues) {
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
-        backgroundColor = Color.Red.backgroundColor(),
         backgroundImage = painterResource(id = R.drawable.sunset),
         tabText = { page -> Text(text = ShowTab.entries[page].displayName) },
         page = { page ->

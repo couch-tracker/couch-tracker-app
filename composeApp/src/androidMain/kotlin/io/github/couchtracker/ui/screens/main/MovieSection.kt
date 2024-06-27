@@ -10,10 +10,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import io.github.couchtracker.R
-import io.github.couchtracker.ui.backgroundColor
 
 @Composable
 fun MoviesSection(innerPadding: PaddingValues) {
@@ -22,7 +20,6 @@ fun MoviesSection(innerPadding: PaddingValues) {
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
-        backgroundColor = Color.Blue.backgroundColor(),
         backgroundImage = painterResource(id = R.drawable.aurora_borealis),
         tabText = { page -> Text(text = MovieTab.entries[page].displayName) },
         page = { page ->

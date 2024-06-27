@@ -3,14 +3,15 @@
 package io.github.couchtracker.ui.screens
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -20,15 +21,23 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -40,7 +49,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -73,8 +81,8 @@ import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
-import io.github.couchtracker.ui.backgroundColor
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
+import io.github.couchtracker.ui.generateColorScheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -132,7 +140,7 @@ sealed interface MoviesScreenState {
         val director: List<TmdbCrew>,
         val images: List<TmdbFileImage>,
         val backdrop: ImageRequest?,
-        val palette: Palette?,
+        val colorScheme: ColorScheme,
     ) : MoviesScreenState
 }
 
@@ -161,17 +169,17 @@ fun MovieScreen(movie: TmdbMovie) {
 
             is MoviesScreenState.Loaded -> {
                 val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-                val backgroundColor = state.palette.backgroundColor(MaterialTheme.colorScheme)
-
-                Scaffold(
-                    modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-                    topBar = {
-                        MovieAppBar(state, scrollBehavior, backgroundColor)
-                    },
-                    content = { innerPadding ->
-                        MovieScreenContent(Modifier.background(backgroundColor), innerPadding, state)
-                    },
-                )
+                MaterialTheme(colorScheme = state.colorScheme) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+                        topBar = {
+                            MovieAppBar(state, scrollBehavior)
+                        },
+                        content = { innerPadding ->
+                            MovieScreenContent(Modifier, innerPadding, state)
+                        },
+                    )
+                }
             }
         }
     }
@@ -181,12 +189,10 @@ fun MovieScreen(movie: TmdbMovie) {
 private fun MovieAppBar(
     state: MoviesScreenState.Loaded,
     scrollBehavior: TopAppBarScrollBehavior,
-    backgroundColor: Color,
 ) {
     val navController = LocalNavController.current
     BackgroundTopAppBar(
         scrollBehavior = scrollBehavior,
-        backgroundColor = backgroundColor,
         image = { modifier ->
             AsyncImage(
                 modifier = modifier,
@@ -195,9 +201,8 @@ private fun MovieAppBar(
                 contentScale = ContentScale.Crop,
             )
         },
-        appBar = { modifier, colors ->
+        appBar = { colors ->
             LargeTopAppBar(
-                modifier = modifier,
                 colors = colors,
                 title = {
                     Text(
@@ -230,59 +235,78 @@ private fun MovieScreenContent(
     innerPadding: PaddingValues,
     state: MoviesScreenState.Loaded,
 ) {
-    BoxWithConstraints(modifier) {
-        val width = constraints.maxWidth
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (state.director.isNotEmpty()) {
-                // TODO: translate
-                text("by " + state.director.joinToString { it.name }) { MaterialTheme.typography.titleMedium }
+    LazyColumn(
+        contentPadding = innerPadding,
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (state.director.isNotEmpty()) {
+            // TODO: translate
+            text("by " + state.director.joinToString { it.name }) { MaterialTheme.typography.titleMedium }
+        }
+        tagsComposable(
+            listOfNotNull(
+                state.year?.toString(),
+                state.runtime?.toString(),
+                state.rating?.format(),
+            ) + state.genres.map { it.name },
+        )
+        space()
+        text(state.tagline, maxLines = 1) { MaterialTheme.typography.titleMedium }
+        text(state.overview) { MaterialTheme.typography.bodyMedium }
+        space()
+        if (state.images.isNotEmpty()) {
+            // TODO: translate
+            text("Images", maxLines = 1) { MaterialTheme.typography.titleMedium }
+            item {
+                ImagesSection(state)
             }
-            tagsComposable(
-                listOfNotNull(
-                    state.year?.toString(),
-                    state.runtime?.toString(),
-                    state.rating?.format(),
-                ) + state.genres.map { it.name },
-            )
-            space()
-            text(state.tagline, maxLines = 1) { MaterialTheme.typography.titleMedium }
-            text(state.overview) { MaterialTheme.typography.bodyMedium }
-            space()
-            if (state.images.isNotEmpty()) {
-                // TODO: translate
-                text("Images", maxLines = 1) { MaterialTheme.typography.titleMedium }
-                item {
-                    val scale = LocalDensity.current.run { 1f / 1.dp.toPx() }
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                    ) {
-                        val targetWidth = (width * BACKDROP_FILL_PERCENTAGE).toInt()
-                        val targetHeight = (targetWidth / BACKDROP_ASPECT_RATIO).toInt()
-                        items(state.images) { image ->
-                            val imgWidth = (targetHeight * image.aspectRation).toInt()
-                            val url = TmdbImageUrlBuilder.build(
-                                image.filePath,
-                                TmdbImageType.BACKDROP,
-                                imgWidth,
-                                targetHeight,
-                            )
-                            Surface(shape = MaterialTheme.shapes.small, shadowElevation = 8.dp, tonalElevation = 8.dp) {
-                                AsyncImage(
-                                    url,
-                                    modifier = Modifier
-                                        .width((imgWidth * scale).dp)
-                                        .height((targetHeight * scale).dp),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                )
-                            }
-                        }
-                    }
+        }
+        item {
+            Column(Modifier.padding(16.dp)) {
+                Button({}) { Text("Test button") }
+                OutlinedButton({}) { Text("Test outlined button") }
+                Slider(1 / 2f, {})
+                TextField("Test test field", {})
+                CircularProgressIndicator()
+                LinearProgressIndicator()
+                FloatingActionButton({}) { Icon(Icons.Filled.Favorite, null) }
+                Spacer(Modifier.height(512.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImagesSection(
+    state: MoviesScreenState.Loaded,
+) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val width = constraints.maxWidth
+        val scale = LocalDensity.current.run { 1f / 1.dp.toPx() }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
+            val targetWidth = (width * BACKDROP_FILL_PERCENTAGE).toInt()
+            val targetHeight = (targetWidth / BACKDROP_ASPECT_RATIO).toInt()
+            items(state.images) { image ->
+                val imgWidth = (targetHeight * image.aspectRation).toInt()
+                val url = TmdbImageUrlBuilder.build(
+                    image.filePath,
+                    TmdbImageType.BACKDROP,
+                    imgWidth,
+                    targetHeight,
+                )
+                Surface(shape = MaterialTheme.shapes.small, shadowElevation = 8.dp, tonalElevation = 8.dp) {
+                    AsyncImage(
+                        url,
+                        modifier = Modifier
+                            .width((imgWidth * scale).dp)
+                            .height((targetHeight * scale).dp),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                    )
                 }
             }
         }
@@ -367,7 +391,7 @@ private suspend fun loadMovie(
                 images = images.await().let { imgs ->
                     (imgs.backdrops + imgs.posters).sortedByDescending { it.voteAverage }
                 },
-                palette = palette,
+                colorScheme = palette.generateColorScheme(),
             )
         } catch (e: TmdbException) {
             MoviesScreenState.Error(e.message ?: "Error")
