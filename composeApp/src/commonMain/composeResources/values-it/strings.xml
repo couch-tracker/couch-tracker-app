@@ -1,0 +1,22 @@
+<resources>
+    <string name="back_action">Indietro</string>
+
+    <string name="main_section_home">Home</string>
+    <string name="main_section_shows">Serie</string>
+    <string name="main_section_movies">Film</string>
+
+    <string name="tab_show_timeline">Timeline</string>
+    <string name="tab_show_followed">Seguite</string>
+    <string name="tab_show_up_next">Prossimi</string>
+    <string name="tab_show_calendar">Calendario</string>
+    <string name="tab_show_explore">Esplora</string>
+
+    <string name="tab_movie_timeline">Timeline</string>
+    <string name="tab_movie_followed">Seguiti</string>
+    <string name="tab_movie_up_next">Prossimi</string>
+    <string name="tab_movie_calendar">Calendario</string>
+    <string name="tab_movie_explore">Esplora</string>
+
+    <string name="movie_by_director">di %1$s</string>
+    <string name="section_images">Immagini</string>
+</resources>

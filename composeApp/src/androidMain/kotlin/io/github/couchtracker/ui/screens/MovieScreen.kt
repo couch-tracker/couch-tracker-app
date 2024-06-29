@@ -71,6 +71,10 @@ import app.moviebase.tmdb.model.TmdbGenre
 import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.ImageRequest
+import couch_tracker_app.composeapp.generated.resources.Res
+import couch_tracker_app.composeapp.generated.resources.back_action
+import couch_tracker_app.composeapp.generated.resources.movie_by_director
+import couch_tracker_app.composeapp.generated.resources.section_images
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.user.movie.ExternalMovieId
@@ -83,6 +87,8 @@ import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.utils.formatAndList
+import io.github.couchtracker.utils.str
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -215,8 +221,7 @@ private fun MovieAppBar(
                     IconButton({ navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            // TODO: translate
-                            contentDescription = "Back",
+                            contentDescription = Res.string.back_action.str(),
                         )
                     }
                 },
@@ -241,8 +246,10 @@ private fun MovieScreenContent(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (state.director.isNotEmpty()) {
-            // TODO: translate
-            text("by " + state.director.joinToString { it.name }) { MaterialTheme.typography.titleMedium }
+            val directors = formatAndList(state.director.map { it.name })
+            item {
+                MovieText(Res.string.movie_by_director.str(directors), style = MaterialTheme.typography.titleMedium)
+            }
         }
         tagsComposable(
             listOfNotNull(
@@ -252,12 +259,12 @@ private fun MovieScreenContent(
             ) + state.genres.map { it.name },
         )
         space()
-        text(state.tagline, maxLines = 1) { MaterialTheme.typography.titleMedium }
-        text(state.overview) { MaterialTheme.typography.bodyMedium }
+
+        item { MovieText(state.tagline, maxLines = 1, style = MaterialTheme.typography.titleMedium) }
+        item { MovieText(state.overview, style = MaterialTheme.typography.bodyMedium) }
         space()
         if (state.images.isNotEmpty()) {
-            // TODO: translate
-            text("Images", maxLines = 1) { MaterialTheme.typography.titleMedium }
+            item { MovieText(Res.string.section_images.str(), maxLines = 1, style = MaterialTheme.typography.titleMedium) }
             item {
                 ImagesSection(state)
             }
@@ -318,17 +325,16 @@ private fun LazyListScope.space() = item {
     Spacer(Modifier.padding(4.dp))
 }
 
-private fun LazyListScope.text(text: String?, maxLines: Int = Int.MAX_VALUE, style: @Composable () -> TextStyle) {
+@Composable
+private fun MovieText(text: String?, maxLines: Int = Int.MAX_VALUE, style: TextStyle) {
     if (!text.isNullOrBlank()) {
-        item {
-            Text(
-                text,
-                modifier = Modifier.padding(horizontal = 16.dp),
-                maxLines = maxLines,
-                style = style(),
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            maxLines = maxLines,
+            style = style,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
