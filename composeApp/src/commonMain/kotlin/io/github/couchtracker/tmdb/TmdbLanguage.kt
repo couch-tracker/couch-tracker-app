@@ -1,6 +1,18 @@
 package io.github.couchtracker.tmdb
 
+import android.os.Build
+import android.os.Bundle
+import android.os.Parcelable
+import androidx.navigation.NavType
 import app.cash.sqldelight.ColumnAdapter
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 
 /**
  * A language, compatible with TMDB APIs.
@@ -9,10 +21,25 @@ import app.cash.sqldelight.ColumnAdapter
  * @property language ISO 639-1
  * @property country ISO 3166-1
  */
+@Serializable(with = TmdbLanguage.Serializer::class)
 data class TmdbLanguage(
     val language: String,
     val country: String?,
-) {
+) : Parcelable {
+
+    object Serializer : KSerializer<TmdbLanguage> {
+        override val descriptor = PrimitiveSerialDescriptor("TmdbLanguage", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): TmdbLanguage {
+            return TmdbLanguage.parse(decoder.decodeString())
+        }
+
+        override fun serialize(encoder: Encoder, value: TmdbLanguage) {
+            encoder.encodeString(value.serialize())
+        }
+
+    }
+
     init {
         require(language.length == 2) { "Invalid language '$language'" }
         require(language.all { it in 'a'..'z' }) { "Invalid language '$language'" }
@@ -55,4 +82,23 @@ data class TmdbLanguage(
             }
         }
     }
+}
+
+inline fun <reified T : Parcelable> parcelableType(
+    isNullableAllowed: Boolean = false,
+    json: Json = Json,
+) = object : NavType<T>(isNullableAllowed = isNullableAllowed) {
+    override fun get(bundle: Bundle, key: String) =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            bundle.getParcelable(key, T::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            bundle.getParcelable(key)
+        }
+
+    override fun parseValue(value: String): T = json.decodeFromString(value)
+
+    override fun serializeAsValue(value: T): String = json.encodeToString(value)
+
+    override fun put(bundle: Bundle, key: String, value: T) = bundle.putParcelable(key, value)
 }

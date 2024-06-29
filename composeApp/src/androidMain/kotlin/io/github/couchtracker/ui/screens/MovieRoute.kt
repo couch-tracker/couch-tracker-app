@@ -57,11 +57,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.palette.graphics.Palette
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
@@ -73,13 +70,11 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.db.user.movie.ExternalMovieId
-import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
-import io.github.couchtracker.db.user.movie.UnknownExternalMovieId
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
+import io.github.couchtracker.tmdb.parcelableType
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.generateColorScheme
@@ -87,42 +82,31 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
 import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.typeOf
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-private const val ARGUMENTS_MOVIE_ID = "movieId"
-private const val ARGUMENTS_LANGUAGE = "language"
-
-fun NavController.navigateToMovie(movie: TmdbMovie) {
-    navigate("movie/${movie.id.toExternalId().serialize()}?language=${movie.language}")
-}
+@Serializable
+data class MovieRoute(
+    val id: String,
+    val language: TmdbLanguage,
+)
 
 fun NavGraphBuilder.movieScreen() {
-    composable(
-        "movie/{$ARGUMENTS_MOVIE_ID}?language={$ARGUMENTS_LANGUAGE}",
-        arguments = listOf(
-            navArgument(ARGUMENTS_MOVIE_ID) {
-                type = NavType.StringType
-            },
-            navArgument(ARGUMENTS_LANGUAGE) {
-                type = NavType.StringType
-            },
-        ),
+    composable<MovieRoute>(
+        typeMap = mapOf(typeOf<TmdbLanguage>() to parcelableType<TmdbLanguage>())
     ) { backStackEntry ->
-        // TODO: handle parse errors
-        val args = requireNotNull(backStackEntry.arguments)
-        val movieIdStr = requireNotNull(args.getString(ARGUMENTS_MOVIE_ID))
-        when (val movieId = ExternalMovieId.parse(movieIdStr)) {
-            is TmdbExternalMovieId -> {
-                val languageStr = requireNotNull(args.getString(ARGUMENTS_LANGUAGE))
-                val language = TmdbLanguage.parse(languageStr)
-                MovieScreen(TmdbMovie(movieId.id, language))
-            }
-
-            is UnknownExternalMovieId -> TODO()
-        }
+//        val route = backStackEntry.toRoute<MovieRoute>()
+//        when (val movieId = route.id) {
+//            is TmdbExternalMovieId -> {
+//                MovieScreen(TmdbMovie(movieId.id, route.language))
+//            }
+//
+//            is UnknownExternalMovieId -> TODO()
+//        }
     }
 }
 
@@ -184,6 +168,8 @@ fun MovieScreen(movie: TmdbMovie) {
         }
     }
 }
+
+fun TmdbMovie.toMovieRoute() = MovieRoute(id = "id.toExternalId()", language = language)
 
 @Composable
 private fun MovieAppBar(

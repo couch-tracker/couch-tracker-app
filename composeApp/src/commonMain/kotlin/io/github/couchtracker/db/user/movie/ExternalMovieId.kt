@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.user.movie
 
 import io.github.couchtracker.db.user.ExternalId
+import kotlinx.serialization.Serializable
 
 /**
  * Any external ID representing a movie.
@@ -9,6 +10,7 @@ import io.github.couchtracker.db.user.ExternalId
  *
  * @see ExternalId
  */
+@Serializable
 sealed interface ExternalMovieId : ExternalId {
 
     companion object : ExternalId.SealedInterfacesCompanion<ExternalMovieId>(

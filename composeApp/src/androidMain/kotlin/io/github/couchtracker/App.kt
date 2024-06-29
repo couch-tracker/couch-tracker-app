@@ -12,9 +12,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.ui.screens.main.MainScreen
 import io.github.couchtracker.ui.screens.movieScreen
+import kotlinx.serialization.Serializable
 import org.koin.compose.KoinContext
 
 val LocalNavController = staticCompositionLocalOf<NavController> { error("no default nav controller") }
+
+@Serializable
+object Main
 
 @Composable
 fun App() {
@@ -23,8 +27,8 @@ fun App() {
         MaterialTheme(colorScheme = darkColorScheme()) {
             CompositionLocalProvider(LocalNavController provides navController) {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    NavHost(navController = navController, startDestination = "main") {
-                        composable("main") {
+                    NavHost(navController = navController, startDestination = Main) {
+                        composable<Main> {
                             MainScreen()
                         }
                         movieScreen()

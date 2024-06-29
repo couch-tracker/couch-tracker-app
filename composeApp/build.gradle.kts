@@ -50,8 +50,6 @@ kotlin {
             implementation(libs.sqldelight.android)
             implementation(libs.requery.android)
 
-            implementation(libs.navigation.ui)
-            implementation(libs.navigation.compose)
             implementation(libs.palette)
             implementation(libs.koin.androidx.compose)
 
@@ -72,6 +70,10 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
+
+            // Navigation
+            implementation(libs.navigation.compose)
+            implementation("androidx.navigation:navigation-compose:2.8.0-beta04")
 
             // SQLDelight
             implementation(libs.sqldelight.coroutines)
@@ -150,7 +152,6 @@ android {
 
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
-        debugImplementation(libs.navigation.testing)
     }
 }
 

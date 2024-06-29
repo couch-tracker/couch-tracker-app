@@ -7,8 +7,10 @@ import io.github.couchtracker.db.user.movie.ExternalMovieId
 import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.user.show.ExternalShowId
 import io.github.couchtracker.db.user.show.TmdbExternalShowId
+import kotlinx.serialization.Serializable
 
 @JvmInline
+@Serializable
 value class TmdbMovieId(val value: Int) {
     init {
         requireTmdbId(value)

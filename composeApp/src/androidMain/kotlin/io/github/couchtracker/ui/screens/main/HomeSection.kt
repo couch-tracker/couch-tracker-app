@@ -41,7 +41,7 @@ import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.components.UserPane
-import io.github.couchtracker.ui.screens.navigateToMovie
+import io.github.couchtracker.ui.screens.toMovieRoute
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -178,7 +178,7 @@ private fun MoviesSection() {
                     Text(
                         details.title,
                         Modifier.clickable {
-                            navController.navigateToMovie(movie)
+                            navController.navigate(movie.toMovieRoute())
                         }.padding(4.dp),
                     )
                 }

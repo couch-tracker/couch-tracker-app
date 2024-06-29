@@ -2,8 +2,10 @@ package io.github.couchtracker.db.user.movie
 
 import io.github.couchtracker.db.user.ExternalId
 import io.github.couchtracker.tmdb.TmdbMovieId
+import kotlinx.serialization.Serializable
 
 @JvmInline
+@Serializable
 value class TmdbExternalMovieId(val id: TmdbMovieId) : ExternalMovieId {
 
     override val provider get() = Companion.provider
