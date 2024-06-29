@@ -1,0 +1,22 @@
+<resources>
+    <string name="back_action">Back</string>
+
+    <string name="main_section_home">Home</string>
+    <string name="main_section_shows">Shows</string>
+    <string name="main_section_movies">Movies</string>
+
+    <string name="tab_show_timeline">Timeline</string>
+    <string name="tab_show_followed">Followed</string>
+    <string name="tab_show_up_next">Up next</string>
+    <string name="tab_show_calendar">Calendar</string>
+    <string name="tab_show_explore">Explore</string>
+
+    <string name="tab_movie_timeline">Timeline</string>
+    <string name="tab_movie_followed">Followed</string>
+    <string name="tab_movie_up_next">Up next</string>
+    <string name="tab_movie_calendar">Calendar</string>
+    <string name="tab_movie_explore">Explore</string>
+
+    <string name="movie_by_director">by %1$s</string>
+    <string name="section_images">Images</string>
+</resources>

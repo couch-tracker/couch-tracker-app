@@ -22,7 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import couch_tracker_app.composeapp.generated.resources.Res
+import couch_tracker_app.composeapp.generated.resources.main_section_home
+import couch_tracker_app.composeapp.generated.resources.main_section_movies
+import couch_tracker_app.composeapp.generated.resources.main_section_shows
 import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.utils.str
+import org.jetbrains.compose.resources.StringResource
 
 private val HOME_COLOR_SCHEME = Color.hsv(240f, 1f, 0.5f).generateColorScheme()
 private val SHOW_COLOR_SCHEME = Color.hsv(0f, 1f, 0.5f).generateColorScheme()
@@ -38,8 +44,8 @@ fun MainScreen() {
                 NavigationBar {
                     for (section in Section.entries) {
                         NavigationBarItem(
-                            icon = { Icon(section.icon, contentDescription = section.displayName) },
-                            label = { Text(section.displayName) },
+                            icon = { Icon(section.icon, contentDescription = section.displayName.str()) },
+                            label = { Text(section.displayName.str()) },
                             selected = currentSection == section,
                             onClick = { currentSection = section },
                         )
@@ -59,11 +65,11 @@ fun MainScreen() {
 }
 
 private enum class Section(
-    val displayName: String, // TODO translate
+    val displayName: StringResource,
     val icon: ImageVector,
     val mainColor: ColorScheme,
 ) {
-    HOME("Home", Icons.Filled.Home, HOME_COLOR_SCHEME),
-    SHOWS("Shows", Icons.Filled.Tv, SHOW_COLOR_SCHEME),
-    MOVIES("Movies", Icons.Filled.Movie, MOVIE_COLOR_SCHEME),
+    HOME(Res.string.main_section_home, Icons.Filled.Home, HOME_COLOR_SCHEME),
+    SHOWS(Res.string.main_section_shows, Icons.Filled.Tv, SHOW_COLOR_SCHEME),
+    MOVIES(Res.string.main_section_movies, Icons.Filled.Movie, MOVIE_COLOR_SCHEME),
 }
