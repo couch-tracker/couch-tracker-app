@@ -23,11 +23,13 @@ fun App() {
         MaterialTheme(colorScheme = darkColorScheme()) {
             CompositionLocalProvider(LocalNavController provides navController) {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    NavHost(navController = navController, startDestination = "main") {
-                        composable("main") {
-                            MainScreen()
+                    UserContext {
+                        NavHost(navController = navController, startDestination = "main") {
+                            composable("main") {
+                                MainScreen()
+                            }
+                            movieScreen()
                         }
-                        movieScreen()
                     }
                 }
             }

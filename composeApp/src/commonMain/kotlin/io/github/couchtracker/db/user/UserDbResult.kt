@@ -8,6 +8,8 @@ import java.io.IOException
  */
 sealed interface UserDbResult<out T> {
 
+    sealed interface AnyError : UserDbResult<Nothing>
+
     /**
      * Indicates that the operation completed without any unexpected error from the DB perspective.
      *
@@ -27,15 +29,17 @@ sealed interface UserDbResult<out T> {
          * 1. there is an error in the code
          * 2. the SQLite file we are trying to edit does not conform to the required specifics (e.g. missing table, column, etc.)
          */
-        data class Error(val exception: Exception) : Completed<Nothing>
+        data class Error(val exception: Exception) : Completed<Nothing>, AnyError
     }
+
+    data object InterruptedError : UserDbResult<Nothing>, AnyError
 
     /**
      * Represents some kind of error reading/writing the database file.
      *
      * This can mean either a failure in the [ContentResolver] or because the file is invalid in some way (e.g. not an SQLite file).
      */
-    sealed interface FileError : UserDbResult<Nothing> {
+    sealed interface FileError : UserDbResult<Nothing>, AnyError {
 
         enum class AttemptedOperation { READ, WRITE }
 
@@ -81,16 +85,6 @@ sealed interface UserDbResult<out T> {
 }
 
 /**
- * TODO: remove, for debug only
- */
-fun <T> UserDbResult<T>.debugSuccessOr(fallback: () -> T): T {
-    return when (this) {
-        is UserDbResult.Completed.Success -> result
-        else -> fallback()
-    }
-}
-
-/**
  * Maps the value of a [UserDbResult.Completed.Success] from type [T] to type [R].
  *
  * It [this] is of any other type, returns [this]
@@ -98,8 +92,7 @@ fun <T> UserDbResult<T>.debugSuccessOr(fallback: () -> T): T {
 fun <T, R> UserDbResult<T>.map(block: (T) -> R): UserDbResult<R> {
     return when (this) {
         is UserDbResult.Completed.Success -> UserDbResult.Completed.Success(block(result))
-        is UserDbResult.Completed.Error -> this
-        is UserDbResult.FileError -> this
+        is UserDbResult.AnyError -> this
     }
 }
 
@@ -114,7 +107,6 @@ fun <T, R> UserDbResult<T>.map(block: (T) -> R): UserDbResult<R> {
 inline fun <T> UserDbResult<T>.onError(block: (UserDbResult<Nothing>) -> Unit) {
     when (this) {
         is UserDbResult.Completed.Success -> {}
-        is UserDbResult.Completed.Error -> block(this)
-        is UserDbResult.FileError -> block(this)
+        is UserDbResult.AnyError -> block(this)
     }
 }
