@@ -20,7 +20,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.screens.main.MainScreen
-import io.github.couchtracker.ui.screens.movieScreen
 import org.koin.compose.KoinContext
 import kotlin.math.roundToInt
 
@@ -36,30 +35,31 @@ fun App() {
         MaterialTheme(colorScheme = darkColorScheme()) {
             CompositionLocalProvider(LocalNavController provides navController) {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = "main",
-                        enterTransition = {
-                            val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = LinearOutSlowInEasing)
-                            slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                fadeIn(FADE_ANIMATION_SPEC)
-                        },
-                        exitTransition = {
-                            fadeOut(FADE_ANIMATION_SPEC)
-                        },
-                        popEnterTransition = {
-                            fadeIn(FADE_ANIMATION_SPEC)
-                        },
-                        popExitTransition = {
-                            val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = FastOutLinearInEasing)
-                            slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                    UserContext {
+                        NavHost(
+                            navController = navController,
+                            startDestination = "main",
+                            enterTransition = {
+                                val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = LinearOutSlowInEasing)
+                                slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                                    fadeIn(FADE_ANIMATION_SPEC)
+                            },
+                            exitTransition = {
                                 fadeOut(FADE_ANIMATION_SPEC)
-                        },
-                    ) {
-                        composable("main") {
-                            MainScreen()
+                            },
+                            popEnterTransition = {
+                                fadeIn(FADE_ANIMATION_SPEC)
+                            },
+                            popExitTransition = {
+                                val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = FastOutLinearInEasing)
+                                slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                                    fadeOut(FADE_ANIMATION_SPEC)
+                            },
+                        ) {
+                            composable("main") {
+                                MainScreen()
+                            }
                         }
-                        movieScreen()
                     }
                 }
             }

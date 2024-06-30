@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
@@ -29,15 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.asListState
+import io.github.couchtracker.LocalUserManagerContext
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.db.user.db
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
@@ -68,14 +70,14 @@ fun HomeSection(innerPadding: PaddingValues) {
 }
 
 @Composable
+@Suppress("LongMethod") // TODO: remove this debug composable
 private fun UserSection() {
     val appContext = LocalContext.current.applicationContext
+    val userManager = LocalUserManagerContext.current
     val appDb = koinInject<AppData>()
 
-    val coroutineScope = rememberCoroutineScope()
-    val selectAllUsers = remember { appDb.userQueries.selectAll() }
-    val users by selectAllUsers.asListState()
-    var currentUserId by remember { mutableStateOf<Long?>(null) }
+    val cs = rememberCoroutineScope()
+
     val openDbWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         val document = uri?.let { DocumentFile.fromSingleUri(appContext, uri) }
         if (document != null) {
@@ -89,18 +91,20 @@ private fun UserSection() {
         }
     }
 
-    Text(text = "Current user", fontSize = 30.sp)
-    when (val user = users?.find { it.id == currentUserId }) {
-        null -> Text(text = "No current user", fontStyle = FontStyle.Italic)
-        else -> UserPane(user = user)
-    }
+    Text(text = "Current user: ${userManager.current.user.name}", fontSize = 30.sp)
+    UserPane()
 
     Text(text = "User list", fontSize = 30.sp)
-    when (val userList = users) {
-        null -> Text("Loading...")
-        else -> for (user in userList) {
-            Button(onClick = { currentUserId = user.id }) {
-                Text(text = user.name)
+    for (userInfo in userManager.users) {
+        Row {
+            Button(onClick = { userManager.changeLoggedUser(userInfo.user) }) {
+                Text(text = userInfo.user.name)
+            }
+            Button(onClick = { cs.launch { userInfo.delete(appDb) } }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "delete",
+                )
             }
         }
     }
@@ -119,9 +123,10 @@ private fun UserSection() {
     }
     Button(
         onClick = {
-            for (user in users.orEmpty()) {
-                coroutineScope.launch { user.db().unlink() }
-                appDb.userQueries.delete(user.id)
+            cs.launch {
+                for (userInfo in userManager.users) {
+                    userInfo.delete(appDb)
+                }
             }
         },
     ) {

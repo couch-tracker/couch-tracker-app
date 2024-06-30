@@ -38,6 +38,7 @@ class UserDbResultTest : FunSpec(
             context("onError() is called when there is an error") {
                 withData(
                     UserDbResult.Completed.Error(Exception("")),
+                    UserDbResult.InterruptedError,
                     UserDbResult.FileError.InvalidDatabase,
                     UserDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), AttemptedOperation.WRITE),
                     UserDbResult.FileError.ContentProviderFailure(AttemptedOperation.READ),

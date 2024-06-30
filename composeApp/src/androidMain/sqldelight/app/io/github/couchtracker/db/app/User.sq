@@ -8,6 +8,14 @@ CREATE TABLE User (
   cachedDbLastModified TEXT AS Instant
 );
 
+/**
+ * Insert default user
+ * Should be the same values as found in `delete` statement
+ */
+INSERT INTO User(name, externalFileUri, cachedDbLastModified)
+VALUES ('Default', NULL, NULL);
+
+
 selectAll:
 SELECT *
 FROM User;
@@ -16,8 +24,17 @@ insert:
 INSERT INTO User(name, externalFileUri)
 VALUES (?, ?);
 
-delete:
-DELETE FROM User WHERE id = ?;
+/**
+ * Deletes a user and ensures to add back the default one if the user list would be left empty
+ * Should be the same values as found in the initial INSERT at the top of the file.
+ */
+delete {
+    DELETE FROM User WHERE id = ?;
+
+    INSERT INTO User(name, externalFileUri, cachedDbLastModified)
+    SELECT 'Default', NULL, NULL
+    WHERE NOT EXISTS (SELECT * FROM User LIMIT 1);
+}
 
 setExternalFileUri:
 UPDATE User
@@ -28,3 +45,6 @@ setCachedDbLastModified:
 UPDATE User
 SET cachedDbLastModified = ?
 WHERE id = ?;
+
+getCachedDbLastModified:
+SELECT cachedDbLastModified FROM User WHERE id = ?;
