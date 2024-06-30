@@ -134,7 +134,12 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+
             signingConfig = signingConfigs.getByName("debug") // TODO remove this
         }
     }
@@ -181,7 +186,7 @@ sqldelight {
 
 tasks.register<SqlDelightTmdbCacheDefinitionsGenerator>("generateSqldelightTmdbCacheDefinitions")
 
-tasks.whenTaskAdded {
+tasks.configureEach {
     if (this.name == "generateCommonMainTmdbCacheInterface") {
         dependsOn += "generateSqldelightTmdbCacheDefinitions"
     }

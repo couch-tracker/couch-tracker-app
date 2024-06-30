@@ -12,7 +12,10 @@ androidx-espresso-core = "3.6.0"
 androidx-material = "1.12.0"
 androidx-lifecycle = "2.8.2"
 androidx-test-junit = "1.2.1"
-compose = "1.6.8"
+# Version 1.6.x has some minor binary incompatiblties with androidx-lifecycle 2.8.x.
+# Using 1.7.x allows us to use libraries that are perfectly compatible, which allows to enable build optimisations.
+# See issue https://issuetracker.google.com/issues/336842920
+compose = "1.7.0-beta03"
 compose-plugin = "1.6.11"
 junit = "4.13.2"
 kotlin = "2.0.0"
