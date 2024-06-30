@@ -12,34 +12,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import io.github.couchtracker.db.app.User
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.couchtracker.LocalUserManagerContext
+import io.github.couchtracker.db.app.FullUserDataState
 import io.github.couchtracker.db.user.ExternalUserDb
 import io.github.couchtracker.db.user.ManagedUserDb
-import io.github.couchtracker.db.user.ShowCollection
 import io.github.couchtracker.db.user.UserDbResult
 import io.github.couchtracker.db.user.UserDbUtils
-import io.github.couchtracker.db.user.db
-import io.github.couchtracker.db.user.debugSuccessOr
 import io.github.couchtracker.tmdb.TmdbShowId
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
 @Suppress("LongMethod") // TODO: remove this debug pane
-fun UserPane(user: User) {
+fun UserPane() {
     val context = LocalContext.current
+    val userManager = LocalUserManagerContext.current
+
     val coroutineScope = rememberCoroutineScope()
 
-    var showCollection by remember { mutableStateOf<List<ShowCollection>>(emptyList()) }
+    val userInfo = userManager.current
+    val user = userInfo.user
+    val userData by userInfo.fullUserDataState.collectAsStateWithLifecycle(initialValue = FullUserDataState.Loading)
+
     var lastActionStatus by remember { mutableStateOf<UserDbResult<Unit>?>(null) }
     var moveStatus by remember { mutableStateOf<UserDbResult<Unit>?>(null) }
 
-    val userDb = remember(user) { user.db() }
-
     val takeOwnershipWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(UserDbUtils.MIME_TYPE)) { uri ->
-        if (uri != null && userDb is ManagedUserDb) {
+        if (uri != null && userInfo.db is ManagedUserDb) {
             coroutineScope.launch {
-                moveStatus = userDb.moveToExternalDb(context, uri)
+                moveStatus = userInfo.db.moveToExternalDb(context, uri)
             }
         }
     }
@@ -53,21 +55,25 @@ fun UserPane(user: User) {
         Text("Last action status: $lastActionStatus")
         Text("Last move status: $moveStatus")
 
-        for (show in showCollection) {
-            Text("Show with ID: $show")
+        val showsInCollectionText = "Show IDs in collection: " + when (val data = userData) {
+            is FullUserDataState.NotLoaded -> "Loading..."
+            is FullUserDataState.Error -> "Error: ${data.error}"
+            is FullUserDataState.Loaded -> data.data.showCollection.joinToString { it.showId.value }
         }
+        Text(showsInCollectionText, maxLines = 3)
 
-        when (userDb) {
+        when (userInfo.db) {
             is ManagedUserDb -> {
                 Button(onClick = { takeOwnershipWorkflow.launch("couch-tracker.db") }) {
                     Text("Take ownership of DB")
                 }
             }
+
             is ExternalUserDb -> {
                 Button(
                     onClick = {
                         coroutineScope.launch {
-                            moveStatus = userDb.moveToManagedDb(context)
+                            moveStatus = userInfo.db.moveToManagedDb(context)
                         }
                     },
                 ) {
@@ -79,19 +85,7 @@ fun UserPane(user: User) {
         Button(
             onClick = {
                 coroutineScope.launch {
-                    showCollection = userDb.read { db ->
-                        db.showCollectionQueries.selectShowCollection().executeAsList()
-                    }.debugSuccessOr { emptyList() }
-                }
-            },
-            content = {
-                Text("List shows in collection")
-            },
-        )
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    lastActionStatus = userDb.write { db ->
+                    lastActionStatus = userInfo.write { db ->
                         @Suppress("MagicNumber")
                         db.showCollectionQueries.insertShow(TmdbShowId(Random.nextInt(0, 999_999)).toExternalId())
                     }
@@ -103,11 +97,14 @@ fun UserPane(user: User) {
         )
         Button(
             onClick = {
-                val item = showCollection.randomOrNull()
-                if (item != null) {
-                    coroutineScope.launch {
-                        lastActionStatus = userDb.write { db ->
-                            db.showCollectionQueries.deleteShow(item.showId)
+                val data = userData
+                if (data is FullUserDataState.Loaded) {
+                    val item = data.data.showCollection.randomOrNull()
+                    if (item != null) {
+                        coroutineScope.launch {
+                            lastActionStatus = userInfo.write { db ->
+                                db.showCollectionQueries.deleteShow(item.showId)
+                            }
                         }
                     }
                 }

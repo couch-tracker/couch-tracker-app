@@ -2,9 +2,9 @@ package io.github.couchtracker.db.user
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
-import io.github.couchtracker.db.app.User
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
@@ -22,7 +22,7 @@ import kotlin.coroutines.CoroutineContext
  * it back, when necessary.
  */
 class ExternalUserDb private constructor(
-    private val user: User,
+    private val userId: Long,
     private val cachedDb: DbPath,
     private val externalDb: DocumentFile,
 ) : UserDb() {
@@ -30,10 +30,21 @@ class ExternalUserDb private constructor(
     override suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): UserDbResult<T> {
         // Check if we have an up-to-date cached copy of the database. If not, copy it to internal storage
         val externalLastModified = externalDb.lastModifiedInstant()
-        if (!isCachedDatabaseUpToDate(externalLastModified)) {
-            Log.i(LOG_TAG, "External database is not up to date or doesn't exist, copying to internal storage")
-            externalDb.uri.copyToInternal(cachedDb.file).onError { return it }
-            updateCachedLastModified(externalLastModified)
+        when (isCachedDatabaseUpToDate(externalLastModified)) {
+            null -> {
+                // there was an error in retrieving the last cached date
+                return UserDbResult.InterruptedError
+            }
+
+            true -> {
+                Log.i(LOG_TAG, "Cached database is up to date, no copy needed")
+            }
+
+            false -> {
+                Log.i(LOG_TAG, "Cached database is not up to date or doesn't exist, copying to internal storage")
+                externalDb.uri.copyToInternal(cachedDb.file).onError { return it }
+                updateCachedLastModified(externalLastModified)
+            }
         }
 
         // Execute transaction on cached file
@@ -87,7 +98,7 @@ class ExternalUserDb private constructor(
      */
     private fun updateCachedLastModified(externalLastModified: Instant? = externalDb.lastModifiedInstant()) {
         Log.d(LOG_TAG, "New last modified date of DB: $externalLastModified")
-        appData.userQueries.setCachedDbLastModified(cachedDbLastModified = externalLastModified, id = user.id)
+        appData.userQueries.setCachedDbLastModified(cachedDbLastModified = externalLastModified, id = userId)
     }
 
     /**
@@ -95,13 +106,22 @@ class ExternalUserDb private constructor(
      *
      * Uses [DocumentFile.lastModified] to compare them. If this information is not available it will always return `false`.
      */
-    private fun isCachedDatabaseUpToDate(externalLastModified: Instant?): Boolean {
+    private fun isCachedDatabaseUpToDate(externalLastModified: Instant?): Boolean? {
         if (!cachedDb.file.exists()) {
             Log.d(LOG_TAG, "Cached DB does not exist")
             return false
         }
 
-        val cachedLastModified = user.cachedDbLastModified
+        val lastModifiedResult = appData.userQueries.getCachedDbLastModified(id = userId).executeAsOneOrNull()
+        if (lastModifiedResult == null) {
+            Log.w(
+                LOG_TAG,
+                "Unable to obtain cached DB last modified from database. The user was removed while the transaction was running?",
+            )
+            return null
+        }
+        val cachedLastModified = lastModifiedResult.cachedDbLastModified
+
         Log.d(LOG_TAG, "Cached DB last modified = $cachedLastModified - External DB last modified = $externalLastModified")
 
         // To err on the side of caution, we only return true if the last modified date is EXACTLY the same
@@ -130,11 +150,11 @@ class ExternalUserDb private constructor(
     suspend fun moveToManagedDb(context: Context, coroutineContext: CoroutineContext = Dispatchers.IO): UserDbResult<Unit> {
         return withContext(coroutineContext) {
             // Copies the external DB to internal storage
-            val internalDb = UserDbUtils.getManagedDbNameForUser(context, user.id)
+            val internalDb = UserDbUtils.getManagedDbNameForUser(context, userId)
             externalDb.uri.copyToInternal(internalDb.file).onError { return@withContext it }
 
             // Removes external DB information from the app DB
-            appData.userQueries.setExternalFileUri(externalFileUri = null, cachedDbLastModified = null, id = user.id)
+            appData.userQueries.setExternalFileUri(externalFileUri = null, cachedDbLastModified = null, id = userId)
 
             // Removes any cached copy of the DB
             cleanCached()
@@ -160,19 +180,16 @@ class ExternalUserDb private constructor(
     companion object : KoinComponent {
 
         /**
-         * Creates a new [ExternalUserDb] for the given [user].
+         * Creates a new [ExternalUserDb] for the given data.
          *
          * Fails if the user database is not currently being managed externally.
          */
-        fun of(user: User): ExternalUserDb {
-            val externalFileUri = requireNotNull(user.externalFileUri) {
-                "ExternalUserDb can only be created when the database is currently managed externally"
-            }
+        fun of(userId: Long, externalFileUri: Uri): ExternalUserDb {
             val context = get<Context>()
 
             return ExternalUserDb(
-                user = user,
-                cachedDb = UserDbUtils.getCachedDbNameForUser(context, user.id),
+                userId = userId,
+                cachedDb = UserDbUtils.getCachedDbNameForUser(context, userId),
                 externalDb = externalFileUri.toDocumentFile(context),
             )
         }
