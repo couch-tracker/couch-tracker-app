@@ -1,0 +1,4 @@
+-dontwarn javax.swing.*
+-dontwarn com.intellij.icons.*
+-dontwarn org.slf4j.impl.*
+-dontwarn reactor.blockhound.**
