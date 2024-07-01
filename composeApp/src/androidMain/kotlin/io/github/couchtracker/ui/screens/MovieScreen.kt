@@ -46,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,12 +87,17 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
+import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.ui.screens.main.MOVIE_COLOR_SCHEME
+import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.formatAndList
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import kotlin.coroutines.CoroutineContext
@@ -132,35 +138,33 @@ fun NavGraphBuilder.movieScreen() {
     }
 }
 
-sealed interface MoviesScreenState {
-    data object Loading : MoviesScreenState
-    data class Error(val message: String) : MoviesScreenState
-    data class Loaded(
-        val title: String,
-        val tagline: String,
-        val overview: String,
-        val year: Int?,
-        val runtime: Duration?,
-        val rating: TmdbRating?,
-        val genres: List<TmdbGenre>,
-        val director: List<TmdbCrew>,
-        val images: List<TmdbFileImage>,
-        val backdrop: ImageRequest?,
-        val colorScheme: ColorScheme,
-    ) : MoviesScreenState
-}
+private data class MovieScreenModel(
+    val title: String,
+    val tagline: String,
+    val overview: String,
+    val year: Int?,
+    val runtime: Duration?,
+    val rating: TmdbRating?,
+    val genres: List<TmdbGenre>,
+    val director: List<TmdbCrew>,
+    val images: List<TmdbFileImage>,
+    val backdrop: ImageRequest?,
+    val colorScheme: ColorScheme,
+)
 
 @Composable
 fun MovieScreen(movie: TmdbMovie) {
+    val cs = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenState by remember { mutableStateOf<MoviesScreenState>(MoviesScreenState.Loading) }
+    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel>>(Loadable.Loading) }
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
     ) {
-        LaunchedEffect(movie) {
-            screenState = loadMovie(
+        suspend fun load() {
+            screenModel = Loadable.Loading
+            screenModel = loadMovie(
                 ctx,
                 tmdbCache,
                 movie,
@@ -168,24 +172,32 @@ fun MovieScreen(movie: TmdbMovie) {
                 height = constraints.maxHeight,
             )
         }
+        LaunchedEffect(movie) {
+            load()
+        }
 
-        when (val state = screenState) {
-            is MoviesScreenState.Error -> Text("Error: ${state.message}")
-            MoviesScreenState.Loading -> CircularProgressIndicator()
-
-            is MoviesScreenState.Loaded -> {
-                val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-                MaterialTheme(colorScheme = state.colorScheme) {
-                    Scaffold(
-                        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-                        topBar = {
-                            MovieAppBar(state, scrollBehavior)
-                        },
-                        content = { innerPadding ->
-                            MovieScreenContent(Modifier, innerPadding, state)
-                        },
-                    )
-                }
+        LoadableScreen(
+            data = screenModel,
+            onError = { message ->
+                DefaultErrorScreen(
+                    errorMessage = message,
+                    retry = {
+                        cs.launch { load() }
+                    },
+                )
+            },
+        ) { model ->
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+            MaterialTheme(colorScheme = model.colorScheme) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        MovieAppBar(model, scrollBehavior)
+                    },
+                    content = { innerPadding ->
+                        MovieScreenContent(Modifier, innerPadding, model)
+                    },
+                )
             }
         }
     }
@@ -193,7 +205,7 @@ fun MovieScreen(movie: TmdbMovie) {
 
 @Composable
 private fun MovieAppBar(
-    state: MoviesScreenState.Loaded,
+    model: MovieScreenModel,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val navController = LocalNavController.current
@@ -202,7 +214,7 @@ private fun MovieAppBar(
         image = { modifier ->
             AsyncImage(
                 modifier = modifier,
-                model = state.backdrop,
+                model = model.backdrop,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
             )
@@ -212,7 +224,7 @@ private fun MovieAppBar(
                 colors = colors,
                 title = {
                     Text(
-                        state.title,
+                        model.title,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -238,35 +250,35 @@ private const val BACKDROP_ASPECT_RATIO = 16f / 9
 private fun MovieScreenContent(
     modifier: Modifier,
     innerPadding: PaddingValues,
-    state: MoviesScreenState.Loaded,
+    model: MovieScreenModel,
 ) {
     LazyColumn(
         contentPadding = innerPadding,
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (state.director.isNotEmpty()) {
-            val directors = formatAndList(state.director.map { it.name })
+        if (model.director.isNotEmpty()) {
+            val directors = formatAndList(model.director.map { it.name })
             item {
                 MovieText(Res.string.movie_by_director.str(directors), style = MaterialTheme.typography.titleMedium)
             }
         }
         tagsComposable(
             listOfNotNull(
-                state.year?.toString(),
-                state.runtime?.toString(),
-                state.rating?.format(),
-            ) + state.genres.map { it.name },
+                model.year?.toString(),
+                model.runtime?.toString(),
+                model.rating?.format(),
+            ) + model.genres.map { it.name },
         )
         space()
 
-        item { MovieText(state.tagline, maxLines = 1, style = MaterialTheme.typography.titleMedium) }
-        item { MovieText(state.overview, style = MaterialTheme.typography.bodyMedium) }
+        item { MovieText(model.tagline, maxLines = 1, style = MaterialTheme.typography.titleMedium) }
+        item { MovieText(model.overview, style = MaterialTheme.typography.bodyMedium) }
         space()
-        if (state.images.isNotEmpty()) {
+        if (model.images.isNotEmpty()) {
             item { MovieText(Res.string.section_images.str(), maxLines = 1, style = MaterialTheme.typography.titleMedium) }
             item {
-                ImagesSection(state)
+                ImagesSection(model)
             }
         }
         item {
@@ -285,9 +297,7 @@ private fun MovieScreenContent(
 }
 
 @Composable
-private fun ImagesSection(
-    state: MoviesScreenState.Loaded,
-) {
+private fun ImagesSection(model: MovieScreenModel) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val width = constraints.maxWidth
         val scale = LocalDensity.current.run { 1f / 1.dp.toPx() }
@@ -297,7 +307,7 @@ private fun ImagesSection(
         ) {
             val targetWidth = (width * BACKDROP_FILL_PERCENTAGE).toInt()
             val targetHeight = (targetWidth / BACKDROP_ASPECT_RATIO).toInt()
-            items(state.images) { image ->
+            items(model.images) { image ->
                 val imgWidth = (targetHeight * image.aspectRation).toInt()
                 val url = TmdbImageUrlBuilder.build(
                     image.filePath,
@@ -360,7 +370,7 @@ private suspend fun loadMovie(
     width: Int,
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-): MoviesScreenState = coroutineScope {
+): Loadable<MovieScreenModel> = coroutineScope {
     withContext(coroutineContext) {
         try {
             val credits = async { movie.credits(tmdbCache) }
@@ -368,7 +378,7 @@ private suspend fun loadMovie(
             val details = movie.details(tmdbCache)
             val backdropImage = details.backdropImage
             val backdropImageRequest: ImageRequest?
-            var palette: Palette? = null
+            var colorScheme: ColorScheme = MOVIE_COLOR_SCHEME
             if (backdropImage != null) {
                 val url = TmdbImageUrlBuilder.build(backdropImage, width, height)
                 backdropImageRequest = ImageRequest.Builder(ctx)
@@ -379,28 +389,36 @@ private suspend fun loadMovie(
                     .build()
                 val drawable = ctx.imageLoader.execute(backdropImageRequest).drawable
                 if (drawable != null) {
-                    palette = Palette.Builder(drawable.toBitmap()).generate()
+                    colorScheme = async {
+                        val bitmap = drawable.toBitmap()
+                        bitmap.prepareToDraw()
+                        val palette = Palette.Builder(bitmap).generate()
+                        palette.generateColorScheme()
+                    }.await()
                 }
             } else {
                 backdropImageRequest = null
             }
-            MoviesScreenState.Loaded(
-                title = details.title,
-                tagline = details.tagline,
-                overview = details.overview,
-                year = details.releaseDate?.year,
-                runtime = details.runtime?.minutes,
-                rating = details.rating(),
-                genres = details.genres,
-                director = credits.await().crew.filter { it.job == "Director" },
-                backdrop = backdropImageRequest,
-                images = images.await().let { imgs ->
-                    (imgs.backdrops + imgs.posters).sortedByDescending { it.voteAverage }
-                },
-                colorScheme = palette.generateColorScheme(),
+            Loadable.Loaded(
+                MovieScreenModel(
+                    title = details.title,
+                    tagline = details.tagline,
+                    overview = details.overview,
+                    year = details.releaseDate?.year,
+                    runtime = details.runtime?.minutes,
+                    rating = details.rating(),
+                    genres = details.genres,
+                    director = credits.await().crew.filter { it.job == "Director" },
+                    backdrop = backdropImageRequest,
+                    images = images.await().let { imgs ->
+                        (imgs.backdrops + imgs.posters).sortedByDescending { it.voteAverage }
+                    },
+                    colorScheme = colorScheme,
+                ),
             )
         } catch (e: TmdbException) {
-            MoviesScreenState.Error(e.message ?: "Error")
+            // TODO: translate
+            Loadable.Error(e.message ?: "Error")
         }
     }
 }
