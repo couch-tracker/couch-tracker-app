@@ -30,9 +30,9 @@ import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.utils.str
 import org.jetbrains.compose.resources.StringResource
 
-private val HOME_COLOR_SCHEME = Color.hsv(240f, 1f, 0.5f).generateColorScheme()
-private val SHOW_COLOR_SCHEME = Color.hsv(0f, 1f, 0.5f).generateColorScheme()
-private val MOVIE_COLOR_SCHEME = Color.hsv(180f, 1f, 0.5f).generateColorScheme()
+val HOME_COLOR_SCHEME = Color.hsv(240f, 1f, 0.5f).generateColorScheme()
+val SHOW_COLOR_SCHEME = Color.hsv(0f, 1f, 0.5f).generateColorScheme()
+val MOVIE_COLOR_SCHEME = Color.hsv(180f, 1f, 0.5f).generateColorScheme()
 
 @Composable
 fun MainScreen() {
