@@ -58,10 +58,9 @@ fun <T : Any> LoadableScreen(
     // Animating the appearance of the Loading state
     val state = remember {
         MutableTransitionState(
-            initialState = if (data is Loadable.Loading) {
-                null
-            } else {
-                data
+            initialState = when (data) {
+                is Loadable.Loading -> null
+                else -> data
             },
         )
     }
