@@ -28,3 +28,6 @@ setCachedDbLastModified:
 UPDATE User
 SET cachedDbLastModified = ?
 WHERE id = ?;
+
+getCachedDbLastModified:
+SELECT cachedDbLastModified FROM User WHERE id = ?;

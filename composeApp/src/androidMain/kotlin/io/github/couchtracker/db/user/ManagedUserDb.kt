@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import io.github.couchtracker.db.app.User
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
@@ -18,13 +17,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * The [transaction] function of this class simply opens the DB, performs the operation and closes it.
  */
-class ManagedUserDb(private val user: User) : UserDb() {
-
-    init {
-        require(user.externalFileUri == null) {
-            "ManagedUserDb can only be created when the database is currently managed by the app"
-        }
-    }
+class ManagedUserDb(private val userId: Long) : UserDb() {
 
     override suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): UserDbResult<T> {
         val context = get<Context>()
@@ -63,11 +56,11 @@ class ManagedUserDb(private val user: User) : UserDb() {
             managedDbPath.file.copyToExternal(uri).onError { return@withContext it }
 
             // Make managed DB a cached of the DB
-            managedDbPath.file.renameTo(UserDbUtils.getCachedDbNameForUser(context, user.id).file)
+            managedDbPath.file.renameTo(UserDbUtils.getCachedDbNameForUser(context, userId).file)
 
             // Set external URI
             appData.userQueries.setExternalFileUri(
-                id = user.id,
+                id = userId,
                 externalFileUri = uri,
                 cachedDbLastModified = externalDocument.lastModifiedInstant(),
             )
@@ -89,6 +82,6 @@ class ManagedUserDb(private val user: User) : UserDb() {
     }
 
     private fun dbPath(context: Context): DbPath {
-        return UserDbUtils.getManagedDbNameForUser(context, user.id)
+        return UserDbUtils.getManagedDbNameForUser(context, userId)
     }
 }
