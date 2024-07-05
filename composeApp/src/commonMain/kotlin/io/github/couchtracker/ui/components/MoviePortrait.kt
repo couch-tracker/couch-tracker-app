@@ -16,54 +16,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.ImageRequest
 import io.github.couchtracker.db.tmdbCache.TmdbCache
+import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
+import io.github.couchtracker.tmdb.TmdbMovieId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlin.math.roundToInt
+import app.moviebase.tmdb.model.TmdbMovie as TmdbApiTmdbMovie
 
 private const val POSTER_ASPECT_RATIO = 2f / 3
-
-data class MoviePortraitModel(
-    val movie: TmdbMovie,
-    val title: String,
-    val year: Int?,
-    val poster: ImageRequest?,
-) {
-    companion object {
-        val SUGGESTED_WIDTH = 120.dp
-
-        suspend fun fromTmdbMovie(
-            context: Context,
-            tmdbCache: TmdbCache,
-            movie: TmdbMovie,
-            width: Int,
-        ): MoviePortraitModel {
-            val height = (width * POSTER_ASPECT_RATIO).roundToInt()
-            val details = movie.details(tmdbCache)
-            val poster = details.posterImage
-            val posterImageRequest: ImageRequest?
-            if (poster != null) {
-                val url = TmdbImageUrlBuilder.build(poster, width, height)
-                posterImageRequest = ImageRequest.Builder(context)
-                    .data(url)
-                    .size(width, height)
-                    .build()
-                context.imageLoader.execute(posterImageRequest)
-            } else {
-                posterImageRequest = null
-            }
-            return MoviePortraitModel(
-                movie = movie,
-                title = details.title,
-                year = details.releaseDate?.year,
-                poster = posterImageRequest,
-            )
-        }
-    }
-}
 
 @Composable
 fun MoviePortrait(
@@ -90,4 +59,89 @@ fun MoviePortrait(
         }
         Text(label, textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
     }
+}
+
+data class MoviePortraitModel(
+    val movie: TmdbMovie,
+    val title: String,
+    val year: Int?,
+    val poster: ImageRequest?,
+) {
+    companion object {
+        val SUGGESTED_WIDTH = 120.dp
+
+        suspend fun fromTmdbMovie(
+            context: Context,
+            tmdbCache: TmdbCache,
+            movie: TmdbMovie,
+            width: Int,
+        ): MoviePortraitModel {
+            val details = movie.details(tmdbCache)
+            return MoviePortraitModel(
+                movie = movie,
+                title = details.title,
+                year = details.releaseDate?.year,
+                poster = preparePoster(width, details.posterImage, context),
+            )
+        }
+
+        suspend fun fromApiTmdbMovie(
+            context: Context,
+            movie: TmdbMovie,
+            details: TmdbApiTmdbMovie,
+            width: Int,
+        ): MoviePortraitModel {
+            return MoviePortraitModel(
+                movie = movie,
+                title = details.title,
+                year = details.releaseDate?.year,
+                poster = preparePoster(width, details.posterImage, context),
+            )
+        }
+
+        private suspend fun preparePoster(
+            width: Int,
+            posterImage: TmdbImage?,
+            context: Context,
+        ): ImageRequest? {
+            val height = (width * POSTER_ASPECT_RATIO).roundToInt()
+            return if (posterImage != null) {
+                val url = TmdbImageUrlBuilder.build(posterImage, width, height)
+                ImageRequest.Builder(context)
+                    .data(url)
+                    .size(width, height)
+                    .build()
+                    .also {
+                        context.imageLoader.execute(it)
+                    }
+            } else {
+                null
+            }
+        }
+    }
+}
+
+suspend fun List<TmdbMovie>.toMoviePortraitModels(
+    context: Context,
+    tmdbCache: TmdbCache,
+    width: Int,
+): List<MoviePortraitModel> = coroutineScope {
+    map {
+        async(Dispatchers.IO) {
+            MoviePortraitModel.fromTmdbMovie(context, tmdbCache, it, width)
+        }
+    }.awaitAll()
+}
+
+suspend fun List<TmdbApiTmdbMovie>.toMoviePortraitModels(
+    context: Context,
+    language: TmdbLanguage,
+    width: Int,
+): List<MoviePortraitModel> = coroutineScope {
+    map {
+        val movie = TmdbMovie(TmdbMovieId(it.id), language)
+        async(Dispatchers.IO) {
+            MoviePortraitModel.fromApiTmdbMovie(context, movie, it, width)
+        }
+    }.awaitAll()
 }

@@ -3,18 +3,13 @@ package io.github.couchtracker.ui.screens.main
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
@@ -33,10 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.documentfile.provider.DocumentFile
-import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalUserManagerContext
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.tmdbCache.TmdbCache
@@ -44,13 +37,13 @@ import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
-import io.github.couchtracker.ui.components.MoviePortrait
+import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.ui.components.MovieGrid
 import io.github.couchtracker.ui.components.MoviePortraitModel
 import io.github.couchtracker.ui.components.UserPane
-import io.github.couchtracker.ui.screens.navigateToMovie
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import io.github.couchtracker.ui.components.toMoviePortraitModels
+import io.github.couchtracker.utils.Loadable
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import org.koin.compose.koinInject
@@ -134,12 +127,6 @@ private fun UserSection() {
     }
 }
 
-sealed interface MoviesSectionState {
-    data object Loading : MoviesSectionState
-    data class Error(val message: String) : MoviesSectionState
-    data class Loaded(val movies: List<MoviePortraitModel>) : MoviesSectionState
-}
-
 private val exampleMovies = listOf(
     671,
     526_896,
@@ -164,51 +151,34 @@ private val exampleMovies = listOf(
 
 @Composable
 private fun MoviesSection() {
-    var state by remember { mutableStateOf<MoviesSectionState>(MoviesSectionState.Loading) }
+    val cs = rememberCoroutineScope()
+    var state by remember { mutableStateOf<Loadable<List<MoviePortraitModel>>>(Loadable.Loading) }
     val tmdbCache = koinInject<TmdbCache>()
-    val navController = LocalNavController.current
     val context = LocalContext.current
     val movieMaxW = with(LocalDensity.current) {
         (MoviePortraitModel.SUGGESTED_WIDTH * 2).roundToPx()
     }
-    LaunchedEffect(Unit) {
+
+    suspend fun download() {
+        state = Loadable.Loading
         state = try {
-            coroutineScope {
-                val details = exampleMovies.map { movie ->
-                    async {
-                        MoviePortraitModel.fromTmdbMovie(
-                            context = context,
-                            tmdbCache = tmdbCache,
-                            movie = movie,
-                            width = movieMaxW,
-                        )
-                    }
-                }.awaitAll()
-                MoviesSectionState.Loaded(details)
-            }
+            Loadable.Loaded(exampleMovies.toMoviePortraitModels(context, tmdbCache, movieMaxW))
         } catch (e: TmdbException) {
-            MoviesSectionState.Error(e.message ?: "Error")
+            Loadable.Error(e.message ?: "Error")
         }
     }
-    when (val m = state) {
-        is MoviesSectionState.Error -> Text("Error: ${m.message}")
-        MoviesSectionState.Loading -> Text("Downloading movies...")
-        is MoviesSectionState.Loaded -> {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = MoviePortraitModel.SUGGESTED_WIDTH),
-                contentPadding = PaddingValues(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(m.movies) { movie ->
-                    MoviePortrait(
-                        Modifier.fillMaxWidth(),
-                        movie,
-                    ) {
-                        navController.navigateToMovie(movie.movie)
-                    }
-                }
+
+    LaunchedEffect(Unit) {
+        download()
+    }
+    LoadableScreen(
+        state,
+        onError = { message ->
+            DefaultErrorScreen(message) {
+                cs.launch { download() }
             }
-        }
+        },
+    ) { movies ->
+        MovieGrid(movies)
     }
 }

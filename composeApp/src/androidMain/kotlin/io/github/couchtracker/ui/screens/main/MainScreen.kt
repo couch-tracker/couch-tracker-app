@@ -18,7 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -36,7 +36,7 @@ val MOVIE_COLOR_SCHEME = Color.hsv(180f, 1f, 0.5f).generateColorScheme()
 
 @Composable
 fun MainScreen() {
-    var currentSection by remember { mutableStateOf(Section.HOME) }
+    var currentSection by rememberSaveable { mutableStateOf(Section.HOME) }
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)
     MaterialTheme(colorScheme = currentSection.mainColor) {
         Scaffold(
