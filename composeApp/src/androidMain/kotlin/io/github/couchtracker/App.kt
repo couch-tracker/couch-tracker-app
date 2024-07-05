@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.screens.main.MainScreen
+import io.github.couchtracker.ui.screens.movieScreen
 import org.koin.compose.KoinContext
 import kotlin.math.roundToInt
 
@@ -59,6 +60,7 @@ fun App() {
                             composable("main") {
                                 MainScreen()
                             }
+                            movieScreen()
                         }
                     }
                 }
