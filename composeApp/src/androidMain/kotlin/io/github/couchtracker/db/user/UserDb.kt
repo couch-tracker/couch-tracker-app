@@ -119,7 +119,7 @@ sealed class UserDb : KoinComponent {
         return driver.use {
             val db = UserData(
                 driver = driver,
-                ShowCollectionAdapter = ShowCollection.Adapter(
+                ShowInCollectionAdapter = ShowInCollection.Adapter(
                     showIdAdapter = ExternalShowId.columnAdapter(),
                     addDateAdapter = InstantColumnAdapter,
                 ),

@@ -11,7 +11,7 @@ import kotlin.time.measureTimedValue
 private const val LOG_TAG = "FullUserData"
 
 data class FullUserData(
-    val showCollection: List<ShowCollection>,
+    val showCollection: List<ShowInCollection>,
 ) {
 
     companion object {
@@ -20,7 +20,7 @@ data class FullUserData(
             Log.d(LOG_TAG, "Starting loading full user data")
             val (data, time) = measureTimedValue {
                 FullUserData(
-                    showCollection = db.showCollectionQueries.selectShowCollection().asFlow().mapToList(coroutineContext).first(),
+                    showCollection = db.showInCollectionQueries.selectShowCollection().asFlow().mapToList(coroutineContext).first(),
                 )
             }
             Log.d(LOG_TAG, "Loading full user data took $time")

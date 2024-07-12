@@ -87,7 +87,7 @@ fun UserPane() {
                 coroutineScope.launch {
                     lastActionStatus = userInfo.write { db ->
                         @Suppress("MagicNumber")
-                        db.showCollectionQueries.insertShow(TmdbShowId(Random.nextInt(0, 999_999)).toExternalId())
+                        db.showInCollectionQueries.insertShow(TmdbShowId(Random.nextInt(0, 999_999)).toExternalId())
                     }
                 }
             },
@@ -103,7 +103,7 @@ fun UserPane() {
                     if (item != null) {
                         coroutineScope.launch {
                             lastActionStatus = userInfo.write { db ->
-                                db.showCollectionQueries.deleteShow(item.showId)
+                                db.showInCollectionQueries.deleteShow(item.showId)
                             }
                         }
                     }
