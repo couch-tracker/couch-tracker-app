@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalCoroutinesApi::class)
 
 package io.github.couchtracker.ui.screens.main
 
@@ -7,17 +7,20 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.TmdbDiscover
 import app.moviebase.tmdb.model.TmdbDiscoverMovieSortBy
+import app.moviebase.tmdb.model.TmdbMovie
+import app.moviebase.tmdb.model.TmdbMoviePageResult
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import couch_tracker_app.composeapp.generated.resources.Res
 import couch_tracker_app.composeapp.generated.resources.aurora_borealis
@@ -35,21 +38,38 @@ import io.github.couchtracker.ui.components.MovieGrid
 import io.github.couchtracker.ui.components.MoviePortraitModel
 import io.github.couchtracker.ui.components.toMoviePortraitModels
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
+import kotlin.time.Duration.Companion.seconds
 
 // TODO: do better
 private val LANGUAGE = TmdbLanguage.ENGLISH
 
-@Composable
-fun MoviesSection(innerPadding: PaddingValues) {
-    val context = LocalContext.current
-    val pagerState = rememberPagerState(initialPage = MovieTab.EXPLORE.ordinal) { MovieTab.entries.size }
-    val movieMaxW = with(LocalDensity.current) {
-        (MoviePortraitModel.SUGGESTED_WIDTH * 2).roundToPx()
+class MovieSectionViewModel : ViewModel() {
+    val tabStates: Map<MovieTab, MovieListStateHolder> = MovieTab.entries.associateWith {
+        MovieListStateHolder(viewModelScope, it)
     }
+}
+
+@Composable
+fun MoviesSection(
+    innerPadding: PaddingValues,
+    viewModel: MovieSectionViewModel = viewModel(),
+) {
+    val pagerState = rememberPagerState(initialPage = MovieTab.EXPLORE.ordinal) { MovieTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
@@ -57,81 +77,35 @@ fun MoviesSection(innerPadding: PaddingValues) {
         backgroundImage = painterResource(Res.drawable.aurora_borealis),
         tabText = { page -> Text(text = MovieTab.entries[page].displayName.str()) },
         page = { page ->
-            MovieListComposable { tmdb3 ->
-                val pageResult = when (MovieTab.entries[page]) {
-                    MovieTab.TIMELINE ->
-                        tmdb3.movies.popular(page = 1, LANGUAGE.apiParameter)
-
-                    MovieTab.EXPLORE ->
-                        tmdb3.trending.getTrendingMovies(TmdbTimeWindow.DAY, page = 1, LANGUAGE.apiParameter)
-
-                    MovieTab.FOLLOWED ->
-                        tmdb3.discover.discoverMovie(
-                            page = 1,
-                            language = LANGUAGE.apiParameter,
-                            region = null,
-                            TmdbDiscover.Movie(
-                                sortBy = TmdbDiscoverMovieSortBy.POPULARITY,
-                            ),
-                        )
-
-                    MovieTab.UP_NEXT ->
-                        tmdb3.discover.discoverMovie(
-                            page = 1,
-                            language = LANGUAGE.apiParameter,
-                            region = null,
-                            TmdbDiscover.Movie(
-                                sortBy = TmdbDiscoverMovieSortBy.VOTE_AVERAGE,
-                            ),
-                        )
-
-                    MovieTab.CALENDAR ->
-                        tmdb3.discover.discoverMovie(
-                            page = 1,
-                            language = LANGUAGE.apiParameter,
-                            region = null,
-                            TmdbDiscover.Movie(
-                                sortBy = TmdbDiscoverMovieSortBy.RELEASE_DATE,
-                            ),
-                        )
-                }
-                pageResult
-                    .results
-                    .toMoviePortraitModels(context, LANGUAGE, movieMaxW)
-            }
+            val tab = MovieTab.entries[page]
+            MovieListComposable(viewModel.tabStates.getValue(tab))
         },
     )
 }
 
-// TODO: state isn't saved here. Movies are getting downloaded at every page swipe/screen change
 @Composable
 private fun MovieListComposable(
-    downloadFunction: suspend (Tmdb3) -> List<MoviePortraitModel>,
+    tabState: MovieListStateHolder,
 ) {
+    val context = LocalContext.current
+    val movieMaxW = with(LocalDensity.current) {
+        (MoviePortraitModel.SUGGESTED_WIDTH * 2).roundToPx()
+    }
     val coroutineScope = rememberCoroutineScope()
-    var state by remember { mutableStateOf<Loadable<List<MoviePortraitModel>>>(Loadable.Loading) }
-
-    suspend fun download() {
-        state = Loadable.Loading
-        try {
-            val movies = tmdbDownload { tmdb3 ->
-                downloadFunction(tmdb3)
+    val moviePortraitModelList: Flow<Loadable<List<MoviePortraitModel>>> = remember(tabState) {
+        tabState.moviesFlow.mapLatest { movies ->
+            movies.map {
+                it.toMoviePortraitModels(context, LANGUAGE, movieMaxW)
             }
-            state = Loadable.Loaded(movies)
-        } catch (e: TmdbException) {
-            // TODO: translate
-            state = Loadable.Error(e.message ?: "Error")
         }
     }
-    LaunchedEffect(Unit) {
-        download()
-    }
+    val state by moviePortraitModelList.collectAsStateWithLifecycle(Loadable.Loading)
 
     LoadableScreen(
         state,
         onError = { message ->
             DefaultErrorScreen(message) {
-                coroutineScope.launch { download() }
+                coroutineScope.launch { tabState.retryDownload() }
             }
         },
     ) { movies ->
@@ -139,12 +113,75 @@ private fun MovieListComposable(
     }
 }
 
-private enum class MovieTab(
+enum class MovieTab(
     val displayName: StringResource,
+    val movieDownloader: suspend Tmdb3.() -> TmdbMoviePageResult,
 ) {
-    TIMELINE(Res.string.tab_movie_timeline),
-    EXPLORE(Res.string.tab_movie_explore),
-    FOLLOWED(Res.string.tab_movie_followed),
-    UP_NEXT(Res.string.tab_movie_up_next),
-    CALENDAR(Res.string.tab_movie_calendar),
+    TIMELINE(
+        displayName = Res.string.tab_movie_timeline,
+        movieDownloader = { movies.popular(page = 1, LANGUAGE.apiParameter) },
+    ),
+    EXPLORE(
+        displayName = Res.string.tab_movie_explore,
+        movieDownloader = { trending.getTrendingMovies(TmdbTimeWindow.DAY, page = 1, LANGUAGE.apiParameter) },
+    ),
+    FOLLOWED(
+        displayName = Res.string.tab_movie_followed,
+        movieDownloader = {
+            discover.discoverMovie(
+                page = 1,
+                language = LANGUAGE.apiParameter,
+                region = null,
+                TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.POPULARITY),
+            )
+        },
+    ),
+    UP_NEXT(
+        displayName = Res.string.tab_movie_up_next,
+        movieDownloader = {
+            discover.discoverMovie(
+                page = 1,
+                language = LANGUAGE.apiParameter,
+                region = null,
+                TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.VOTE_AVERAGE),
+            )
+        },
+    ),
+    CALENDAR(
+        displayName = Res.string.tab_movie_calendar,
+        movieDownloader = {
+            discover.discoverMovie(
+                page = 1,
+                language = LANGUAGE.apiParameter,
+                region = null,
+                TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.RELEASE_DATE),
+            )
+        },
+    ),
+}
+
+class MovieListStateHolder(
+    private val cs: CoroutineScope,
+    private val page: MovieTab,
+) {
+    private val tokensFlow = MutableStateFlow(Any())
+    val moviesFlow: SharedFlow<Loadable<List<TmdbMovie>>> = tokensFlow.transformLatest {
+        emit(Loadable.Loading)
+        try {
+            delay(1.seconds)
+            val moviesPage = tmdbDownload { tmdb3 ->
+                page.movieDownloader(tmdb3).results
+            }
+            emit(Loadable.Loaded(moviesPage))
+        } catch (e: TmdbException) {
+            // TODO: translate
+            emit(Loadable.Error(e.message ?: "Error"))
+        }
+    }.shareIn(cs, SharingStarted.Lazily, replay = 1)
+
+    suspend fun retryDownload() {
+        cs.launch {
+            tokensFlow.emit(Any())
+        }.join()
+    }
 }

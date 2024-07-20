@@ -95,6 +95,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)
             implementation(libs.kotest.framework.datatest)
+            implementation(libs.kotest.property)
             implementation(libs.mockk)
         }
     }
