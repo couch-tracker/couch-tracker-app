@@ -19,6 +19,7 @@ compose = "1.7.0-beta03"
 compose-plugin = "1.6.11"
 junit = "4.13.2"
 kotlin = "2.0.0"
+kotlinx-datetime = "0.6.0"
 detekt = "1.23.6"
 sqldelight = "2.0.2"
 kotest = "5.9.1"
@@ -61,6 +62,7 @@ koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bo
 koin-core = { group = "io.insert-koin", name = "koin-core" }
 koin-compose = { group = "io.insert-koin", name = "koin-compose" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 requery-android = { module = "com.github.requery:sqlite-android", version.ref = "requeryAndroid" }
 tmdb-api = { module = "app.moviebase:tmdb-api", version.ref = "tmdb-api" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
