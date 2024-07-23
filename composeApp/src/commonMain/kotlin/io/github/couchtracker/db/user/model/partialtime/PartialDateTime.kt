@@ -1,11 +1,11 @@
-package io.github.couchtracker.db.user.datastruct.partialtime
+package io.github.couchtracker.db.user.model.partialtime
 
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Local
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Local.Date
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Local.DateTime
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Local.Year
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Local.YearMonth
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Zoned
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.Date
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.DateTime
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.Year
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.YearMonth
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Zoned
 import kotlinx.datetime.FixedOffsetTimeZone
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

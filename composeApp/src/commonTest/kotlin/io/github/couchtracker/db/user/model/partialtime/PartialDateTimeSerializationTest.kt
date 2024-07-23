@@ -1,7 +1,7 @@
-package io.github.couchtracker.db.user.datastruct.partialtime
+package io.github.couchtracker.db.user.model.partialtime
 
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Local
-import io.github.couchtracker.db.user.datastruct.partialtime.PartialDateTime.Zoned
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local
+import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Zoned
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.WithDataTestName

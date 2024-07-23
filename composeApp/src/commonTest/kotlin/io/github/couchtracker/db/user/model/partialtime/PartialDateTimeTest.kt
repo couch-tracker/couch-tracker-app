@@ -1,4 +1,4 @@
-package io.github.couchtracker.db.user.datastruct.partialtime
+package io.github.couchtracker.db.user.model.partialtime
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
