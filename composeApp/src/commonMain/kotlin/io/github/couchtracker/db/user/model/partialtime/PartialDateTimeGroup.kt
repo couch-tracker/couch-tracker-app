@@ -1,4 +1,4 @@
-package io.github.couchtracker.db.user.datastruct.partialtime
+package io.github.couchtracker.db.user.model.partialtime
 
 /**
  * When showing a list of objects with an associated [PartialDateTime], they should be split into groups in order to provide a clear UI to
