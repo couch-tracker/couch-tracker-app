@@ -6,14 +6,13 @@ import android.util.Log
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.common.DBCorruptedException
 import io.github.couchtracker.db.common.DbPath
-import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.SqliteDriverFactory
 import io.github.couchtracker.db.user.UserDbResult.FileError.AttemptedOperation
-import io.github.couchtracker.db.user.show.ExternalShowId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import java.io.Closeable
 import java.io.File
@@ -117,13 +116,7 @@ sealed class UserDb : KoinComponent {
     ): UserDbResult<T> {
         val driver = get<SqliteDriverFactory>(named("UserDb")).getDriver(dbPath)
         return driver.use {
-            val db = UserData(
-                driver = driver,
-                ShowInCollectionAdapter = ShowInCollection.Adapter(
-                    showIdAdapter = ExternalShowId.columnAdapter(),
-                    addDateAdapter = InstantColumnAdapter,
-                ),
-            )
+            val db = get<UserData> { parametersOf(driver) }
             try {
                 UserDbResult.Completed.Success(result = block(db))
             } catch (ignored: DBCorruptedException) {
