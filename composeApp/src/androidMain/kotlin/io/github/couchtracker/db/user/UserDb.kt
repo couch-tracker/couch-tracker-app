@@ -6,7 +6,7 @@ import android.util.Log
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.common.DBCorruptedException
 import io.github.couchtracker.db.common.DbPath
-import io.github.couchtracker.db.common.InstantColumnAdapter
+import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.SqliteDriverFactory
 import io.github.couchtracker.db.user.UserDbResult.FileError.AttemptedOperation
 import io.github.couchtracker.db.user.show.ExternalShowId
