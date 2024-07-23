@@ -2,9 +2,9 @@ package io.github.couchtracker.db.app
 
 import io.github.couchtracker.db.common.AndroidSqliteDriverFactory
 import io.github.couchtracker.db.common.DbPath
-import io.github.couchtracker.db.common.InstantColumnAdapter
 import io.github.couchtracker.db.common.SqliteDriverFactory
-import io.github.couchtracker.db.common.UriColumnAdapter
+import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
+import io.github.couchtracker.db.common.adapters.UriColumnAdapter
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module

@@ -4,7 +4,7 @@ import app.cash.sqldelight.async.coroutines.synchronous
 import io.github.couchtracker.db.common.AndroidSqliteDriverFactory
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.common.SqliteDriverFactory
-import io.github.couchtracker.db.common.jsonAdapter
+import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
 import org.koin.core.qualifier.named

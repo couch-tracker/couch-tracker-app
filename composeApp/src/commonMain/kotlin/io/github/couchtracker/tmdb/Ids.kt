@@ -2,7 +2,7 @@ package io.github.couchtracker.tmdb
 
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
-import io.github.couchtracker.db.common.map
+import io.github.couchtracker.db.common.adapters.map
 import io.github.couchtracker.db.user.movie.ExternalMovieId
 import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.user.show.ExternalShowId
