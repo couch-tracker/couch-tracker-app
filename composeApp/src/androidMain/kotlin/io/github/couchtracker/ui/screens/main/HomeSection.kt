@@ -164,6 +164,7 @@ private fun MoviesSection() {
         state = try {
             Loadable.Loaded(exampleMovies.toMoviePortraitModels(context, tmdbCache, movieMaxW))
         } catch (e: TmdbException) {
+            // TODO translate
             Loadable.Error(e.message ?: "Error")
         }
     }
