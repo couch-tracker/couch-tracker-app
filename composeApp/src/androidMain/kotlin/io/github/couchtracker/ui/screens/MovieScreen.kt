@@ -230,7 +230,7 @@ private fun MovieAppBar(
                     )
                 },
                 navigationIcon = {
-                    IconButton({ navController.popBackStack() }) {
+                    IconButton({ navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = Res.string.back_action.str(),

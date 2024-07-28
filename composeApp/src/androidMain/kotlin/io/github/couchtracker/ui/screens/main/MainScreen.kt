@@ -16,12 +16,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import couch_tracker_app.composeapp.generated.resources.Res
 import couch_tracker_app.composeapp.generated.resources.main_section_home
 import couch_tracker_app.composeapp.generated.resources.main_section_movies
@@ -36,9 +36,12 @@ val MOVIE_COLOR_SCHEME = Color.hsv(180f, 1f, 0.5f).generateColorScheme()
 
 @Composable
 fun MainScreen() {
-    var currentSection by rememberSaveable { mutableStateOf(Section.HOME) }
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)
-    MaterialTheme(colorScheme = currentSection.mainColor) {
+    val navController = rememberNavController()
+    val currentSection = navController.currentBackStackEntryAsState().value?.destination?.route?.let { Section.fromId(it) } ?: Section.HOME
+
+    // TODO: animate color changes
+    MaterialTheme(colorScheme = currentSection.colorScheme) {
         Scaffold(
             bottomBar = {
                 NavigationBar {
@@ -47,16 +50,39 @@ fun MainScreen() {
                             icon = { Icon(section.icon, contentDescription = section.displayName.str()) },
                             label = { Text(section.displayName.str()) },
                             selected = currentSection == section,
-                            onClick = { currentSection = section },
+                            onClick = {
+                                navController.navigate(section.id) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
                         )
                     }
                 }
             },
             content = { innerPadding ->
-                when (currentSection) {
-                    Section.HOME -> HomeSection(innerPadding)
-                    Section.SHOWS -> ShowSection(innerPadding)
-                    Section.MOVIES -> MoviesSection(innerPadding)
+                NavHost(
+                    navController = navController,
+                    startDestination = Section.HOME.id,
+                ) {
+                    composable(Section.HOME.id) {
+                        MaterialTheme(colorScheme = Section.HOME.colorScheme) {
+                            HomeSection(innerPadding)
+                        }
+                    }
+                    composable(Section.SHOWS.id) {
+                        MaterialTheme(colorScheme = Section.SHOWS.colorScheme) {
+                            ShowSection(innerPadding)
+                        }
+                    }
+                    composable(Section.MOVIES.id) {
+                        MaterialTheme(colorScheme = Section.MOVIES.colorScheme) {
+                            MoviesSection(innerPadding)
+                        }
+                    }
                 }
             },
             contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(insetTop),
@@ -65,11 +91,17 @@ fun MainScreen() {
 }
 
 private enum class Section(
+    val id: String,
     val displayName: StringResource,
     val icon: ImageVector,
-    val mainColor: ColorScheme,
+    val colorScheme: ColorScheme,
 ) {
-    HOME(Res.string.main_section_home, Icons.Filled.Home, HOME_COLOR_SCHEME),
-    SHOWS(Res.string.main_section_shows, Icons.Filled.Tv, SHOW_COLOR_SCHEME),
-    MOVIES(Res.string.main_section_movies, Icons.Filled.Movie, MOVIE_COLOR_SCHEME),
+    HOME("home", Res.string.main_section_home, Icons.Filled.Home, HOME_COLOR_SCHEME),
+    SHOWS("shows", Res.string.main_section_shows, Icons.Filled.Tv, SHOW_COLOR_SCHEME),
+    MOVIES("movies", Res.string.main_section_movies, Icons.Filled.Movie, MOVIE_COLOR_SCHEME),
+    ;
+
+    companion object {
+        fun fromId(id: String) = entries.single { it.id == id }
+    }
 }

@@ -58,6 +58,7 @@ sqldelight-sqlite-dialect = { module = "app.cash.sqldelight:sqlite-3-38-dialect"
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
 koin-core = { group = "io.insert-koin", name = "koin-core" }
 koin-compose = { group = "io.insert-koin", name = "koin-compose" }
