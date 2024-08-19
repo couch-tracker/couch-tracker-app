@@ -7,6 +7,7 @@ import android.util.Log
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
+import io.github.couchtracker.utils.toCouchTrackerUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.get
@@ -61,7 +62,7 @@ class ManagedUserDb(private val userId: Long) : UserDb() {
             // Set external URI
             appData.userQueries.setExternalFileUri(
                 id = userId,
-                externalFileUri = uri,
+                externalFileUri = uri.toCouchTrackerUri(),
                 cachedDbLastModified = externalDocument.lastModifiedInstant(),
             )
 

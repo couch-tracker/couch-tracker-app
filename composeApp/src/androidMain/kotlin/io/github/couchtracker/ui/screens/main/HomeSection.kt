@@ -44,6 +44,7 @@ import io.github.couchtracker.ui.components.MoviePortraitModel
 import io.github.couchtracker.ui.components.UserPane
 import io.github.couchtracker.ui.components.toMoviePortraitModels
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.toCouchTrackerUri
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import org.koin.compose.koinInject
@@ -79,7 +80,7 @@ private fun UserSection() {
 
             appDb.userQueries.insert(
                 name = "Opened user (${document.name})",
-                externalFileUri = document.uri,
+                externalFileUri = document.uri.toCouchTrackerUri(),
             )
         }
     }

@@ -1,4 +1,4 @@
-import android.net.Uri;
+import io.github.couchtracker.utils.Uri;
 import kotlinx.datetime.Instant;
 
 CREATE TABLE User (
