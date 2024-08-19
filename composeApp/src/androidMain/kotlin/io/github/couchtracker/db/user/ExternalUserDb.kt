@@ -2,12 +2,13 @@ package io.github.couchtracker.db.user
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
+import io.github.couchtracker.utils.Uri
+import io.github.couchtracker.utils.toAndroidUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -190,7 +191,7 @@ class ExternalUserDb private constructor(
             return ExternalUserDb(
                 userId = userId,
                 cachedDb = UserDbUtils.getCachedDbNameForUser(context, userId),
-                externalDb = externalFileUri.toDocumentFile(context),
+                externalDb = externalFileUri.toAndroidUri().toDocumentFile(context),
             )
         }
     }
