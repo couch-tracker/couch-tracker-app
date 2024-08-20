@@ -15,6 +15,7 @@ private data class AndroidPlatformUri(val javaURI: JavaURI) : Uri {
     override val query: String? get() = javaURI.query
     override val fragment: String? get() = javaURI.fragment
 
+    override fun toString() = javaURI.toString()
     override fun serialize() = javaURI.toString()
 }
 
