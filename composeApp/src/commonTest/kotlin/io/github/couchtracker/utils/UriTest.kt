@@ -29,6 +29,7 @@ class UriTest : FunSpec(
                 "I AM NOT AN URI",
                 "  ",
                 "no-scheme-specific-part:",
+                "no-authority://",
             ) {
                 shouldThrow<UriParseException> {
                     parseUri(it)
