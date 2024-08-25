@@ -25,10 +25,16 @@ actual fun parseUri(value: String): Uri = try {
     throw UriParseException(e)
 }
 
+/**
+ * Converts internal URI representation ([io.github.couchtracker.utils.Uri]) to Android URI representation ([android.net.Uri]).
+ */
 fun Uri.toAndroidUri(): AndroidUri {
     return AndroidUri.parse(serialize())
 }
 
-fun AndroidUri.toCouchTrackerUri(): Uri {
+/**
+ * Converts Android URI representation ([android.net.Uri]) to the internal URI representation ([io.github.couchtracker.utils.Uri]).
+ */
+fun AndroidUri.toInternalUri(): Uri {
     return parseUri(toString())
 }
