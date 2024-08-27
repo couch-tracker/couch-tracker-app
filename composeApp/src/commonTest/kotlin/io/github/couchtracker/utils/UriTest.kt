@@ -36,5 +36,19 @@ class UriTest : FunSpec(
                 }
             }
         }
+
+        context("pathSegments()") {
+            withData(
+                nameFn = { it.toString() },
+                "https://example.com" to emptyList(),
+                "https://example.com/" to emptyList(),
+                "https://example.com/abc" to listOf("abc"),
+                "https://example.com/abc/" to listOf("abc"),
+                "https://example.com/abc/xyz" to listOf("abc", "xyz"),
+                "https://example.com/abc//xyz" to listOf("abc", "", "xyz"),
+            ) { (uri, expectedPaths) ->
+                parseUri(uri).pathSegments() shouldBe expectedPaths
+            }
+        }
     },
 )

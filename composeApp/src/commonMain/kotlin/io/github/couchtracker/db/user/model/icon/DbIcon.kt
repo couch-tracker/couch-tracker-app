@@ -33,14 +33,10 @@ sealed interface DbIcon {
         }
 
         private fun fromCouchTrackerUriOrNull(ctUri: CouchTrackerUri): DbIcon? {
-            val path = ctUri.uri.path
-                ?.removePrefix("/")
-                ?.removeSuffix("/")
-                ?.split('/')
-                ?: emptyList()
-            if (path.firstOrNull() == DEFAULT_ICON_PATH) {
-                require(path.size == 2) { "Default icon must have exactly two path segments" }
-                val defaultIconName = path[1]
+            val segments = ctUri.uri.pathSegments()
+            if (segments.firstOrNull() == DEFAULT_ICON_PATH) {
+                require(segments.size == 2) { "Default icon must have exactly two path segments" }
+                val defaultIconName = segments[1]
                 require(defaultIconName.isNotBlank()) { "Default icon name cannot be blank" }
                 return DbDefaultIcon.entries
                     .find { it.id == defaultIconName }
