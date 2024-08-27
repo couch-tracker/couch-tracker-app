@@ -28,3 +28,11 @@ class UriParseException(message: String?, cause: Throwable? = null) : RuntimeExc
 }
 
 expect fun parseUri(value: String): Uri
+
+/**
+ * Encodes the given [value] to be used, as a whole, in a URI query component.
+ *
+ * Warning: this function will not escape `&`, `=` or other similar characters, as this is NOT encoding for
+ * `application/x-www-form-urlencoded`.
+ */
+expect fun encodeUriQuery(value: String): String
