@@ -33,6 +33,9 @@ sealed interface DbIcon {
         }
 
         private fun fromCouchTrackerUriOrNull(ctUri: CouchTrackerUri): DbIcon? {
+            require(ctUri.authority == CouchTrackerUri.Authority.ICON) {
+                "Invalid couch-tracker authority for icon: ${ctUri.authority}"
+            }
             val segments = ctUri.uri.pathSegments()
             if (segments.firstOrNull() == DEFAULT_ICON_PATH) {
                 require(segments.size == 2) { "Default icon must have exactly two path segments" }

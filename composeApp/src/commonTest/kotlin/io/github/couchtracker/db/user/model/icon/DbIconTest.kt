@@ -53,6 +53,17 @@ class DbIconTest : FunSpec(
                     DbIcon.fromUri(uri) shouldBe DbIcon.UnknownDefault(uri)
                 }
             }
+            context("URI with wrong authority fails") {
+                withData(
+                    "couch-tracker://text/home",
+                    "couch-tracker://text/default/home",
+                ) { uriString ->
+                    val uri = CouchTrackerUri(parseUri(uriString))
+                    shouldThrow<IllegalArgumentException> {
+                        DbIcon.fromUri(uri) shouldBe DbIcon.UnknownDefault(uri)
+                    }
+                }
+            }
         }
     },
 )
