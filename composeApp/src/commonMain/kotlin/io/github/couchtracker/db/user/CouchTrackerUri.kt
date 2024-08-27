@@ -26,6 +26,7 @@ value class CouchTrackerUri(val uri: Uri) {
      */
     enum class Authority {
         ICON,
+        TEXT,
         ;
 
         val id = name.lowercase()
