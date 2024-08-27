@@ -12,6 +12,15 @@ interface Uri {
     val fragment: String?
 
     fun serialize(): String
+
+    fun pathSegments(): List<String> {
+        return path
+            ?.removePrefix("/")
+            ?.removeSuffix("/")
+            ?.takeIf { it.isNotEmpty() }
+            ?.split('/')
+            ?: emptyList()
+    }
 }
 
 class UriParseException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause) {
