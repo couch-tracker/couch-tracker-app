@@ -38,3 +38,7 @@ fun Uri.toAndroidUri(): AndroidUri {
 fun AndroidUri.toInternalUri(): Uri {
     return parseUri(toString())
 }
+
+actual fun encodeUriQuery(value: String): String {
+    return JavaURI("scheme", "authority", "/path", value, "fragment").getRawQuery()
+}

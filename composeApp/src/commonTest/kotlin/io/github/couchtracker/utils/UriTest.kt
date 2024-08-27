@@ -50,5 +50,19 @@ class UriTest : FunSpec(
                 parseUri(uri).pathSegments() shouldBe expectedPaths
             }
         }
+
+        context("encodeUriQuery()") {
+            withData(
+                "" to "",
+                " " to "%20",
+                "hello" to "hello",
+                "hello world" to "hello%20world",
+                "hello+world" to "hello+world",
+                "hello/world" to "hello/world",
+                "hello#world" to "hello%23world",
+            ) { (decoded, expected) ->
+                encodeUriQuery(decoded) shouldBe expected
+            }
+        }
     },
 )
