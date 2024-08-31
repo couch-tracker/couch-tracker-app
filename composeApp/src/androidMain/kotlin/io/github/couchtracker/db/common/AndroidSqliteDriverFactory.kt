@@ -31,6 +31,10 @@ class AndroidSqliteDriverFactory(
                     // It will delete the file and later in the process a new empty DB will be created, which is not what we want
                     throw DBCorruptedException()
                 }
+
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    db.setForeignKeyConstraintsEnabled(true)
+                }
             },
         )
     }
