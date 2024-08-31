@@ -1,0 +1,13 @@
+/**
+ * Many-to-many relationship between `WatchedItem`s and `WatchedItemDimensionChoice`s.
+ */
+CREATE TABLE WatchedItemChoice(
+  watchedItemId INTEGER NOT NULL,
+  choice INTEGER NOT NULL,
+  PRIMARY KEY(watchedItemId, choice),
+  FOREIGN KEY(watchedItemId) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY(choice) REFERENCES WatchedItemDimensionChoice(id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+selectAll:
+SELECT * FROM WatchedItemChoice;
