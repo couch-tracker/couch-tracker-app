@@ -1,0 +1,14 @@
+/**
+ * Contains the values for the dimensions of type free text for a single `WatchedItem`.
+ */
+CREATE TABLE WatchedItemFreeText(
+  watchedItemId INTEGER NOT NULL,
+  watchedItemDimension INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  PRIMARY KEY(watchedItemId, watchedItemDimension),
+  FOREIGN KEY(watchedItemId) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY(watchedItemDimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+selectAll:
+SELECT * FROM WatchedItemFreeText;
