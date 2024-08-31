@@ -58,6 +58,7 @@ kotlin {
             // There is no androidUnitTest target
             implementation(libs.kotest.runner.junit5)
             implementation(libs.mockk.android)
+            implementation(libs.sqldelight.jvm)
         }
         commonMain.dependencies {
             // Kotlin stuff
@@ -94,9 +95,11 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotest.assertions.core)
+            implementation(libs.kotest.extensions.koin)
             implementation(libs.kotest.framework.datatest)
             implementation(libs.kotest.property)
             implementation(libs.mockk)
+            implementation(libs.koin.test)
         }
     }
 }

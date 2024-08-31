@@ -71,6 +71,8 @@ style:
   CascadingCallWrapping:
     active: true
   ClassOrdering:
+    excludes:
+      - "**/commonTest/**"
     active: true
   DoubleNegativeLambda:
     active: true
