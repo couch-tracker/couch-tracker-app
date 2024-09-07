@@ -1,12 +1,13 @@
-import io.github.couchtracker.db.user.movie.ExternalMovieId;
+import io.github.couchtracker.db.user.WatchableExternalId;
 import io.github.couchtracker.db.user.model.partialtime.PartialDateTime;
 import kotlinx.datetime.Instant;
 
 /**
  * Saves every movie the user ever watched.
  */
-CREATE TABLE WatchedMovie (
-  movieId TEXT AS ExternalMovieId PRIMARY KEY NOT NULL,
+CREATE TABLE WatchedItem (
+  id INTEGER PRIMARY KEY NOT NULL,
+  itemId TEXT AS WatchableExternalId NOT NULL,
 
   /**
    * The date this entry was added to the DB. Not representative of when the user has watched the movie.
@@ -17,4 +18,4 @@ CREATE TABLE WatchedMovie (
 );
 
 selectAll:
-SELECT * FROM WatchedMovie;
+SELECT * FROM WatchedItem;

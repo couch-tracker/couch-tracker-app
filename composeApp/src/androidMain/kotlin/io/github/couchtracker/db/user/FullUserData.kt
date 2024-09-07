@@ -12,7 +12,7 @@ private const val LOG_TAG = "FullUserData"
 
 data class FullUserData(
     val showCollection: List<ShowInCollection>,
-    val watchedMovies: List<WatchedMovie>,
+    val watchedItems: List<WatchedItem>,
 ) {
 
     companion object {
@@ -22,7 +22,7 @@ data class FullUserData(
             val (data, time) = measureTimedValue {
                 FullUserData(
                     showCollection = db.showInCollectionQueries.selectShowCollection().asFlow().mapToList(coroutineContext).first(),
-                    watchedMovies = db.watchedMovieQueries.selectAll().asFlow().mapToList(coroutineContext).first(),
+                    watchedItems = db.watchedItemQueries.selectAll().asFlow().mapToList(coroutineContext).first(),
                 )
             }
             Log.d(LOG_TAG, "Loading full user data took $time")
