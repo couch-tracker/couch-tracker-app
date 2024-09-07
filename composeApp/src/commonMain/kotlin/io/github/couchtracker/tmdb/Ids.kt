@@ -3,6 +3,8 @@ package io.github.couchtracker.tmdb
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import io.github.couchtracker.db.common.adapters.map
+import io.github.couchtracker.db.user.episode.ExternalEpisodeId
+import io.github.couchtracker.db.user.episode.TmdbExternalEpisodeId
 import io.github.couchtracker.db.user.movie.ExternalMovieId
 import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.user.show.ExternalShowId
@@ -36,6 +38,22 @@ value class TmdbShowId(val value: Int) {
         val COLUMN_ADAPTER: ColumnAdapter<TmdbShowId, Long> = IntColumnAdapter.map(
             encoder = { it.value },
             decoder = { TmdbShowId(it) },
+        )
+    }
+}
+
+@JvmInline
+value class TmdbEpisodeId(val value: Int) {
+    init {
+        requireTmdbId(value)
+    }
+
+    fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
+
+    companion object {
+        val COLUMN_ADAPTER: ColumnAdapter<TmdbEpisodeId, Long> = IntColumnAdapter.map(
+            encoder = { it.value },
+            decoder = { TmdbEpisodeId(it) },
         )
     }
 }

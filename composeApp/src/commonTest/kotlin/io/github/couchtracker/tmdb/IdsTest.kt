@@ -20,5 +20,12 @@ class IdsTest : FunSpec(
                 }
             }
         }
+        context("TmdbEpisodeId") {
+            withData(0, -1) { id ->
+                assertThrows<IllegalArgumentException> {
+                    TmdbShowId(id)
+                }
+            }
+        }
     },
 )
