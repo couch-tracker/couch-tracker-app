@@ -3,6 +3,7 @@ package io.github.couchtracker.db.user
 import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.PartialDateTimeColumnAdapter
 import io.github.couchtracker.db.user.movie.ExternalMovieId
+import io.github.couchtracker.db.common.adapters.columnAdapter
 import io.github.couchtracker.db.user.show.ExternalShowId
 import org.koin.dsl.module
 
