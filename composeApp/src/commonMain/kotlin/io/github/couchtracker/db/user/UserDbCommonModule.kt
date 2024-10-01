@@ -9,6 +9,7 @@ import io.github.couchtracker.db.common.adapters.WatchableExternalIdColumnAdapte
 import io.github.couchtracker.db.common.adapters.columnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.db.common.adapters.jsonSet
+import io.github.couchtracker.db.user.defaultdata.UserDefaultDataHandler
 import io.github.couchtracker.db.user.model.watchedItem.WatchedItemDimensionType
 import io.github.couchtracker.db.user.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.user.show.ExternalShowId
@@ -36,6 +37,8 @@ val UserDbCommonModule = module {
                 nameAdapter = DbTextColumnAdapter,
                 iconAdapter = DbIconColumnAdapter,
             ),
-        )
+        ).also { db ->
+            UserDefaultDataHandler.handle(db)
+        }
     }
 }
