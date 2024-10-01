@@ -18,7 +18,7 @@ val UserDbCommonModule = module {
             WatchedItemAdapter = WatchedItem.Adapter(
                 itemIdAdapter = WatchableExternalIdColumnAdapter,
                 addedAtAdapter = InstantColumnAdapter,
-                watchedAtAdapter = PartialDateTimeColumnAdapter,
+                watchAtAdapter = PartialDateTimeColumnAdapter,
             ),
         )
     }
