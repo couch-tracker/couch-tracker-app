@@ -8,8 +8,8 @@ class DbDefaultTextTest : FunSpec(
     {
         context("id") {
             withData(
-                DbDefaultText.HOME to "home",
-                DbDefaultText.PLANE to "plane",
+                DbDefaultText.PLACE_HOME to "place-home",
+                DbDefaultText.PLACE_PLANE to "place-plane",
             ) { (text, expectedId) ->
                 text.id shouldBe expectedId
             }
