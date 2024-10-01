@@ -5,9 +5,9 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Represents an icon that can be drawn in the app.
+ * Represents a piece of text that can be written in the app.
  *
- * This could be an icon bundled in the app or something externally-provided.
+ * This could be a localized string bundled in the app or something externally-provided.
  */
 sealed interface Text {
 
