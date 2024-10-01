@@ -1,0 +1,13 @@
+<resources>
+    <string name="place">Luogo</string>
+    <string name="place_bus">Bus</string>
+    <string name="place_car">Auto</string>
+    <string name="place_cinema">Cinema</string>
+    <string name="place_friends_house">Casa di un amico</string>
+    <string name="place_home">Casa</string>
+    <string name="place_plane">Aereo</string>
+    <string name="place_school">Scuola</string>
+    <string name="place_train">Treno</string>
+    <string name="place_vacation">Vacanza</string>
+    <string name="place_work">Lavoro</string>
+</resources>

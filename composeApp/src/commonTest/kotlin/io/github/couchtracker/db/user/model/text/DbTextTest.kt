@@ -13,8 +13,8 @@ class DbTextTest : FunSpec(
             context("default text") {
                 context("valid URIs return the correct text") {
                     withData(
-                        "couch-tracker://text/default/home" to DbDefaultText.HOME.toDbText(),
-                        "couch-tracker://text/default/plane" to DbDefaultText.PLANE.toDbText(),
+                        "couch-tracker://text/default/place-home" to DbDefaultText.PLACE_HOME.toDbText(),
+                        "couch-tracker://text/default/place-plane" to DbDefaultText.PLACE_PLANE.toDbText(),
                     ) { (uriString, expectedText) ->
                         val uri = CouchTrackerUri(parseUri(uriString))
                         DbText.fromUri(uri) shouldBe expectedText

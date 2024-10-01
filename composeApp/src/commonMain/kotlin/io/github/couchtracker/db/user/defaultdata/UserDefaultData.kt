@@ -7,4 +7,6 @@ import io.github.couchtracker.db.user.UserData
 /**
  * [DefaultData] implementation for the [UserData] database.
  */
-object UserDefaultData : MultipleDefaultData<UserData>()
+object UserDefaultData : MultipleDefaultData<UserData>(
+    WatchedItemDimensionDefaultData,
+)

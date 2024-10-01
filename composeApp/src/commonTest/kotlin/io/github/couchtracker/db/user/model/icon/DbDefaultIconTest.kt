@@ -8,7 +8,7 @@ class DbDefaultIconTest : FunSpec(
     {
         context("id") {
             withData(
-                DbDefaultIcon.HOME to "home",
+                DbDefaultIcon.HOUSE to "house",
                 DbDefaultIcon.OFFICE_BUILDING to "office-building",
                 DbDefaultIcon.CINEMA to "cinema",
             ) { (icon, expectedId) ->

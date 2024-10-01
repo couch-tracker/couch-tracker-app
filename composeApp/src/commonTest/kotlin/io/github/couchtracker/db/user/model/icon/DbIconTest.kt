@@ -13,7 +13,7 @@ class DbIconTest : FunSpec(
             context("default icon") {
                 context("valid URIs return the correct icon") {
                     withData(
-                        "couch-tracker://icon/default/home" to DbDefaultIcon.HOME.toDbIcon(),
+                        "couch-tracker://icon/default/house" to DbDefaultIcon.HOUSE.toDbIcon(),
                         "couch-tracker://icon/default/cinema" to DbDefaultIcon.CINEMA.toDbIcon(),
                         "couch-tracker://icon/default/office-building" to DbDefaultIcon.OFFICE_BUILDING.toDbIcon(),
                     ) { (uriString, expectedIcon) ->
