@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.ui.screens.navigateToMovie
+import io.github.couchtracker.ui.screens.movie.navigateToMovie
 
 @Composable
 fun MovieGrid(
