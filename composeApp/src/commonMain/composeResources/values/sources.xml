@@ -1,0 +1,8 @@
+<resources>
+    <string name="source">Source</string>
+    <string name="source_cinema">Cinema</string>
+    <string name="source_streaming">Streaming</string>
+    <string name="source_tv">TV</string>
+    <string name="source_physical_media">Physical media</string>
+    <string name="source_digital_media">Digital media</string>
+</resources>

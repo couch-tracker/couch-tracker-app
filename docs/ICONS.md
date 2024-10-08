@@ -18,9 +18,11 @@ List of catalogs that we use:
 
 List of all third-party icons used in the app, and which catalog they are taken from.
 
-| Icon name      | Catalog      | Catalog icon name | 
-|----------------|--------------|-------------------|
-| `screen_users` | `free-icons` | `screen-users`    |
+| Icon name | Catalog      | Catalog icon name | 
+|-----------|--------------|-------------------|
+| `cinema`  | `free-icons` | `screen-users`    |
+| `disc`    | `free-icons` | `compact-disc`    |
+| `stream`  | `free-icons` | `signal-stream`   |
 
 ### Importing a new icon
 
