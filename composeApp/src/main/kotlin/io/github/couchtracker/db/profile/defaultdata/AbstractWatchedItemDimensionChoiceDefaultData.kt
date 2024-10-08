@@ -2,6 +2,7 @@ package io.github.couchtracker.db.profile.defaultdata
 
 import io.github.couchtracker.db.common.defaultdata.DefaultData
 import io.github.couchtracker.db.profile.ProfileData
+import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
 import io.github.couchtracker.db.profile.model.icon.DbDefaultIcon
 import io.github.couchtracker.db.profile.model.text.DbDefaultText
 import io.github.couchtracker.db.profile.model.text.DbText
@@ -35,7 +36,16 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
                 dimension = dimensionId,
             ).executeAsOne()
         }
+
+        for (choice in enableIf()) {
+            db.watchedItemDimensionQueries.insertEnableIf(
+                dimension = dimensionId,
+                choice = choice.id,
+            )
+        }
     }
+
+    protected open fun enableIf(): List<WatchedItemDimensionChoice> = emptyList()
 
     override fun upgradeTo(db: ProfileData, version: Int) {
         // no-op
