@@ -49,3 +49,6 @@ insert:
 INSERT INTO WatchedItemDimension(name, appliesTo, type, manualSortIndex)
 VALUES (?, ?, ?, (SELECT COALESCE(:manualSortIndex, MAX(manualSortIndex) + 1, 0) FROM WatchedItemDimension))
 RETURNING id;
+
+insertEnableIf:
+INSERT INTO WatchedItemDimensionEnableIf(dimension, choice) VALUES (?, ?);
