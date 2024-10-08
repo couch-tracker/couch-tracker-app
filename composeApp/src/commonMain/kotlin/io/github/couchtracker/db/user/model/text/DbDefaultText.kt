@@ -12,6 +12,12 @@ import couch_tracker_app.composeapp.generated.resources.place_school
 import couch_tracker_app.composeapp.generated.resources.place_train
 import couch_tracker_app.composeapp.generated.resources.place_vacation
 import couch_tracker_app.composeapp.generated.resources.place_work
+import couch_tracker_app.composeapp.generated.resources.source
+import couch_tracker_app.composeapp.generated.resources.source_cinema
+import couch_tracker_app.composeapp.generated.resources.source_digital_media
+import couch_tracker_app.composeapp.generated.resources.source_physical_media
+import couch_tracker_app.composeapp.generated.resources.source_streaming
+import couch_tracker_app.composeapp.generated.resources.source_tv
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.toText
 import org.jetbrains.compose.resources.StringResource
@@ -34,6 +40,13 @@ enum class DbDefaultText(val text: Text) {
     PLACE_TRAIN(Res.string.place_train),
     PLACE_VACATION(Res.string.place_vacation),
     PLACE_WORK(Res.string.place_work),
+
+    SOURCE(Res.string.source),
+    SOURCE_CINEMA(Res.string.source_cinema),
+    SOURCE_STREAMING(Res.string.source_streaming),
+    SOURCE_TV(Res.string.source_tv),
+    SOURCE_PHYSICAL_MEDIA(Res.string.source_physical_media),
+    SOURCE_DIGITAL_MEDIA(Res.string.source_digital_media),
     ;
 
     val id = name.lowercase().replace('_', '-')
