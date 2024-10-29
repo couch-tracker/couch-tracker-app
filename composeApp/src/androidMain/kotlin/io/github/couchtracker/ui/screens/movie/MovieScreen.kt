@@ -72,13 +72,13 @@ import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.user.movie.ExternalMovieId
 import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.user.movie.UnknownExternalMovieId
+import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.formatAndList
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject

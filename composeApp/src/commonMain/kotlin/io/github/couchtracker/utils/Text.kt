@@ -9,7 +9,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * This could be a localized string bundled in the app or something externally-provided.
  */
-sealed interface Text {
+interface Text {
 
     @Composable
     fun string(): String
