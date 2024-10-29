@@ -6,10 +6,12 @@ import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.Da
 import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.Year
 import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local.YearMonth
 import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Zoned
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.FixedOffsetTimeZone
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
@@ -48,25 +50,25 @@ import kotlinx.datetime.toInstant
  * multiple factors, deciding whether A <=> B is undecidable in isolation. See [PartialDateTime.sort] for more info.
  * However, both [Local] and [Zoned] implement [Comparable].
  */
-sealed class PartialDateTime {
+sealed interface PartialDateTime {
 
     /**
      * Returns the local part of this instance. For [Local] instance, this is the same object on which this is called
      */
-    abstract val local: Local
+    val local: Local
 
     /**
      * Serializes this object to a string.
      *
      * @see PartialDateTime.parse for parsing the string back to a [PartialDateTime]
      */
-    abstract fun serialize(): String
+    fun serialize(): String
 
     /**
      * Returns in which [PartialDateTimeGroup] the partial date time belongs to. There is also an extension function on the nullable type
      * that returns [PartialDateTimeGroup.Unknown] in that case.
      */
-    abstract fun group(): PartialDateTimeGroup
+    fun group(): PartialDateTimeGroup
 
     /**
      * Interface for companion object that each subclass should implement that defines a [parse] method.
@@ -128,7 +130,44 @@ sealed class PartialDateTime {
      *
      * @see PartialDateTime
      */
-    sealed class Local : PartialDateTime(), Comparable<Local> {
+    sealed interface Local : PartialDateTime, Comparable<Local> {
+
+        sealed interface WithYear : Local {
+            val year: Int
+        }
+
+        sealed interface WithMonth : Local {
+            val month: Month
+        }
+
+        sealed interface WithYearMonth : WithYear, WithMonth
+
+        sealed interface WithDay : Local {
+            val dayOfWeek: DayOfWeek
+            val dayOfMonth: Int
+            val dayOfYear: Int
+        }
+
+        sealed interface WithDate : WithYearMonth, WithDay {
+            val date: LocalDate
+
+            override val year get() = date.year
+            override val month get() = date.month
+            override val dayOfWeek get() = date.dayOfWeek
+            override val dayOfMonth get() = date.dayOfMonth
+            override val dayOfYear get() = date.dayOfYear
+        }
+
+        sealed interface WithTime : Local {
+            val time: LocalTime
+        }
+
+        sealed interface WithDateTime : WithDate, WithTime {
+            val dateTime: LocalDateTime
+
+            override val date get() = dateTime.date
+            override val time get() = dateTime.time
+        }
 
         override val local get() = this
 
@@ -136,12 +175,12 @@ sealed class PartialDateTime {
          * Converts this to an [Instant] using the provided time zone [zone].
          * Partial information is filled in with a default value.
          */
-        abstract fun toInstant(zone: TimeZone): Instant
+        fun toInstant(zone: TimeZone): Instant
 
         /**
          * Represents a whole year, e.g. 2024
          */
-        data class Year(val year: Int) : Local() {
+        data class Year(override val year: Int) : Local, WithYear {
             override fun group() = PartialDateTimeGroup.Year(this)
             override fun serialize() = FORMAT.format {
                 year = this@Year.year
@@ -159,7 +198,7 @@ sealed class PartialDateTime {
         /**
          * Represents a month in a given year, e.g. July 2024
          */
-        data class YearMonth(val year: Int, val month: Month) : Local() {
+        data class YearMonth(override val year: Int, override val month: Month) : Local, WithYearMonth {
             override fun group() = PartialDateTimeGroup.YearMonth(this)
             override fun serialize() = FORMAT.format {
                 year = this@YearMonth.year
@@ -185,7 +224,7 @@ sealed class PartialDateTime {
         /**
          * Represents a full date with no time component, e.g. 15th of July 2024
          */
-        data class Date(val date: LocalDate) : Local() {
+        data class Date(override val date: LocalDate) : Local, WithDate {
             override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(date.year, date.month))
             override fun serialize() = FORMAT.format { setDate(date) }
 
@@ -201,7 +240,7 @@ sealed class PartialDateTime {
         /**
          * Represents a full date and time, e.g. 15:00 15th of July 2024
          */
-        data class DateTime(val dateTime: LocalDateTime) : Local() {
+        data class DateTime(override val dateTime: LocalDateTime) : Local, WithDateTime {
             override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(dateTime.year, dateTime.month))
             override fun serialize() = FORMAT.format { setDateTime(dateTime) }
 
@@ -222,7 +261,7 @@ sealed class PartialDateTime {
         override fun compareTo(other: Local) = LOCAL_COMPARATOR.compare(this, other)
 
         companion object : ICompanionWithParsers<Local>() {
-            override val PARSERS by lazy { listOf(Year::parse, YearMonth::parse, Date::parse, DateTime::parse) }
+            override val PARSERS: List<(String) -> Local> by lazy { listOf(Year::parse, YearMonth::parse, Date::parse, DateTime::parse) }
 
             private val FROM_COMPONENTS: List<(DateTimeComponents) -> Local> by lazy {
                 listOf(
@@ -261,7 +300,7 @@ sealed class PartialDateTime {
     data class Zoned(
         override val local: Local,
         val zone: TimeZone,
-    ) : PartialDateTime(), Comparable<Zoned> {
+    ) : PartialDateTime, Comparable<Zoned> {
 
         override fun group() = local.group()
 
@@ -388,7 +427,7 @@ sealed class PartialDateTime {
          * Upon identical [PartialDateTime], [additionalComparator] is used on the items [T].
          *
          * The algorithm works like this:
-         * - First it splits [Local] and [Zoned] values into two different lists, and sorts the according to their comparator;
+         * - First it splits [Local] and [Zoned] values into two different lists, and sorts them according to their comparator;
          * - Then, the two lists are merged together, sorted according to their local part only.
          *
          * This ensures that the [Local] and [Zoned] are always sorted among themselves.
