@@ -20,4 +20,5 @@
 
     <string name="movie_by_director">di %1$s</string>
     <string name="section_images">Immagini</string>
+    <string name="streaming_provider">Fornitore servizi di streaming</string>
 </resources>

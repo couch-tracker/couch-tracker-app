@@ -20,4 +20,5 @@
 
     <string name="movie_by_director">by %1$s</string>
     <string name="section_images">Images</string>
+    <string name="streaming_provider">Streaming provider</string>
 </resources>

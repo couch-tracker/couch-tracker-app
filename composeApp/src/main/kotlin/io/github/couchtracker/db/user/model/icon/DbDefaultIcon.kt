@@ -39,6 +39,8 @@ enum class DbDefaultIcon(val icon: Icon) {
     TRAIN(Icons.Default.Train),
     VACATION(Icons.Default.BeachAccess),
     VIDEO_FILE(Icons.Default.VideoFile),
+    LOGO_NETFLIX(R.drawable.logo_netflix),
+    LOGO_AMAZON_PRIME_VIDEO(R.drawable.logo_amazon_prime_video),
     ;
 
     val id = name.lowercase().replace('_', '-')

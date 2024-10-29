@@ -23,3 +23,9 @@ insert:
 INSERT INTO WatchedItemDimensionChoice(dimension, name, icon, manualSortIndex)
 VALUES (:dimension, ?, ?, (SELECT COALESCE(MAX(manualSortIndex) + 1, 0) FROM WatchedItemDimensionChoice WHERE dimension = :dimension))
 RETURNING id;
+
+selectByName:
+SELECT c.*
+FROM WatchedItemDimensionChoice c
+INNER JOIN WatchedItemDimension d ON d.id = c.dimension
+WHERE d.name = :dimensionName AND c.name = :choiceName;

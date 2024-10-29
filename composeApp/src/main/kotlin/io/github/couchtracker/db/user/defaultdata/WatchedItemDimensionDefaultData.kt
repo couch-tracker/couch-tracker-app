@@ -7,4 +7,5 @@ object WatchedItemDimensionDefaultData : MultipleDefaultData<UserData>(
     // IMPORTANT: order is significant, the dimensions will be created in this order
     WatchedItemDimensionPlaceDefaultData,
     WatchedItemDimensionSourceDefaultData,
+    WatchedItemDimensionStreamingProviderDefaultData,
 )
