@@ -39,6 +39,17 @@ enum class DbDefaultIcon(val icon: Icon) {
     TRAIN(Icons.Default.Train),
     VACATION(Icons.Default.BeachAccess),
     VIDEO_FILE(Icons.Default.VideoFile),
+
+    // Logos
+    LOGO_APPLE_TV_PLUS(R.drawable.logo_apple_tv_plus),
+    LOGO_CRUNCHYROLL(R.drawable.logo_crunchyroll),
+    LOGO_DISCOVERY_PLUS(R.drawable.logo_discovery_plus),
+    LOGO_DISNEY_PLUS(R.drawable.logo_disney_plus),
+    LOGO_HULU(R.drawable.logo_hulu),
+    LOGO_MAX(R.drawable.logo_max),
+    LOGO_NETFLIX(R.drawable.logo_netflix),
+    LOGO_PARAMOUNT_PLUS(R.drawable.logo_paramount_plus),
+    LOGO_PRIME_VIDEO(R.drawable.logo_prime_video),
     ;
 
     val id = name.lowercase().replace('_', '-')

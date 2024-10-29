@@ -30,6 +30,17 @@ enum class DbDefaultText(val text: Text) {
     SOURCE_PHYSICAL_MEDIA(R.string.source_physical_media),
     SOURCE_DIGITAL_MEDIA(R.string.source_digital_media),
 
+    STREAMING_PROVIDER(R.string.streaming_provider),
+    STREAMING_PROVIDER_APPLE_TV_PLUS(R.string.streaming_provider_apple_tv_plus),
+    STREAMING_PROVIDER_CRUNCHYROLL(R.string.streaming_provider_crunchyroll),
+    STREAMING_PROVIDER_DISCOVERY_PLUS(R.string.streaming_provider_discovery_plus),
+    STREAMING_PROVIDER_DISNEY_PLUS(R.string.streaming_provider_disney_plus),
+    STREAMING_PROVIDER_HULU(R.string.streaming_provider_hulu),
+    STREAMING_PROVIDER_MAX(R.string.streaming_provider_max),
+    STREAMING_PROVIDER_NETFLIX(R.string.streaming_provider_netflix),
+    STREAMING_PROVIDER_PARAMOUNT_PLUS(R.string.streaming_provider_paramount_plus),
+    STREAMING_PROVIDER_PRIME_VIDEO(R.string.streaming_provider_prime_video),
+
     NOTES(R.string.notes),
     ;
 
