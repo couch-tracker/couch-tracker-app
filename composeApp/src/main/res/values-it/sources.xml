@@ -3,6 +3,6 @@
     <string name="source_cinema">Cinema</string>
     <string name="source_streaming">Streaming</string>
     <string name="source_tv">TV</string>
-    <string name="source_physical_media">Media fisico</string>
-    <string name="source_digital_media">Media digitale</string>
+    <string name="source_physical_media">Supporto fisico</string>
+    <string name="source_digital_media">Digitale</string>
 </resources>

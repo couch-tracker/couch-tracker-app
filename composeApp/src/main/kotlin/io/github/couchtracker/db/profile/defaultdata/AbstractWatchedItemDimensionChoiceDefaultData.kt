@@ -4,6 +4,7 @@ import io.github.couchtracker.db.common.defaultdata.DefaultData
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
 import io.github.couchtracker.db.profile.model.icon.DbDefaultIcon
+import io.github.couchtracker.db.profile.model.icon.DbIcon
 import io.github.couchtracker.db.profile.model.text.DbDefaultText
 import io.github.couchtracker.db.profile.model.text.DbText
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionType
@@ -17,9 +18,12 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
 ) : DefaultData<ProfileData> {
 
     protected data class DefaultChoice(
-        val name: DbDefaultText,
-        val icon: DbDefaultIcon,
-    )
+        val name: DbText,
+        val icon: DbIcon,
+    ) {
+        constructor(text: DbDefaultText, icon: DbDefaultIcon) : this(text.toDbText(), icon.toDbIcon())
+        constructor(text: DbText, icon: DbDefaultIcon) : this(text, icon.toDbIcon())
+    }
 
     override fun insert(db: ProfileData) {
         val dimensionId = db.watchedItemDimensionQueries.insert(
@@ -31,13 +35,13 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
 
         for (choice in choices) {
             db.watchedItemDimensionChoiceQueries.insert(
-                name = choice.name.toDbText(),
-                icon = choice.icon.toDbIcon(),
+                name = choice.name,
+                icon = choice.icon,
                 dimension = dimensionId,
             ).executeAsOne()
         }
 
-        for (choice in enableIf()) {
+        for (choice in enableIf(db)) {
             db.watchedItemDimensionQueries.insertEnableIf(
                 dimension = dimensionId,
                 choice = choice.id,
@@ -45,7 +49,7 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
         }
     }
 
-    protected open fun enableIf(): List<WatchedItemDimensionChoice> = emptyList()
+    protected open fun enableIf(db: ProfileData): List<WatchedItemDimensionChoice> = emptyList()
 
     override fun upgradeTo(db: ProfileData, version: Int) {
         // no-op

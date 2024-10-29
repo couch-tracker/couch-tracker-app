@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -356,7 +355,7 @@ private fun WatchedItemSheetScope.ChoiceSection(dimension: WatchedItemDimensionW
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),
-                    leadingIcon = { Icon(choice.icon.icon.painter(), contentDescription = null, modifier = Modifier.size(16.dp)) },
+                    leadingIcon = { Icon(choice.icon.icon.painter(), contentDescription = null, modifier = Modifier.height(16.dp)) },
                     label = { Text(choice.name.text.string()) },
                 )
             }

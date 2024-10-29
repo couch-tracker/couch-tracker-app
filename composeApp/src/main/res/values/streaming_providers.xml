@@ -1,0 +1,12 @@
+<resources>
+    <string name="streaming_provider">Streaming provider</string>
+    <string name="streaming_provider_apple_tv_plus">Apple TV+</string>
+    <string name="streaming_provider_crunchyroll">Crunchyroll</string>
+    <string name="streaming_provider_discovery_plus">Discovery+</string>
+    <string name="streaming_provider_disney_plus">Disney+</string>
+    <string name="streaming_provider_hulu">Hulu</string>
+    <string name="streaming_provider_max">Max</string>
+    <string name="streaming_provider_netflix">Netflix</string>
+    <string name="streaming_provider_paramount_plus">Paramount+</string>
+    <string name="streaming_provider_prime_video">Prime video</string>
+</resources>
