@@ -6,4 +6,5 @@ import io.github.couchtracker.db.user.UserData
 object WatchedItemDimensionDefaultData : MultipleDefaultData<UserData>(
     // IMPORTANT: order is significant, the dimensions will be created in this order
     WatchedItemDimensionPlaceDefaultData,
+    WatchedItemDimensionSourceDefaultData,
 )
