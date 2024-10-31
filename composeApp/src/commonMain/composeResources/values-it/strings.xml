@@ -1,6 +1,9 @@
 <resources>
     <string name="back_action">Indietro</string>
     <string name="retry_action">Riprova</string>
+    <string name="cancel_action">Annulla</string>
+    <string name="continue_action">Continua</string>
+    <string name="skip_action">Salta</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Serie</string>
@@ -20,4 +23,9 @@
 
     <string name="movie_by_director">di %1$s</string>
     <string name="section_images">Immagini</string>
+
+    <string name="date_and_time_dialog_precision">Precision:</string>
+    <string name="date_and_time_precision_year">Anno</string>
+    <string name="date_and_time_precision_month">Mese</string>
+    <string name="date_and_time_precision_date">Giorno</string>
 </resources>
