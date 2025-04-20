@@ -62,7 +62,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import couch_tracker_app.composeapp.generated.resources.Res
 import couch_tracker_app.composeapp.generated.resources.back_action
 import couch_tracker_app.composeapp.generated.resources.movie_by_director
@@ -133,8 +133,8 @@ fun MovieScreen(movie: TmdbMovie) {
                 ctx,
                 tmdbCache,
                 movie,
-                width = constraints.maxWidth,
-                height = constraints.maxHeight,
+                width = this.constraints.maxWidth,
+                height = this.constraints.maxHeight,
             )
         }
         LaunchedEffect(movie) {
@@ -264,7 +264,7 @@ private fun MovieScreenContent(
 @Composable
 private fun ImagesSection(model: MovieScreenModel) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val width = constraints.maxWidth
+        val width = this.constraints.maxWidth
         val scale = LocalDensity.current.run { 1f / 1.dp.toPx() }
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),

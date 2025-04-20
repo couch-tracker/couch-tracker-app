@@ -2,14 +2,15 @@ package io.github.couchtracker.ui.screens.movie
 
 import android.content.Context
 import androidx.compose.material3.ColorScheme
-import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbGenre
-import coil.imageLoader
-import coil.request.ImageRequest
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbMovie
@@ -64,10 +65,10 @@ suspend fun loadMovie(
                     .data(url)
                     .size(width, height)
                     .build()
-                val drawable = ctx.imageLoader.execute(backdropImageRequest).drawable
-                if (drawable != null) {
+                val image = ctx.imageLoader.execute(backdropImageRequest).image
+                if (image != null) {
                     colorScheme = async {
-                        val bitmap = drawable.toBitmap()
+                        val bitmap = image.toBitmap()
                         bitmap.prepareToDraw()
                         val palette = Palette.Builder(bitmap).generate()
                         palette.generateColorScheme()

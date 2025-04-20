@@ -20,8 +20,9 @@ mockk = "1.14.0"
 serialization = "1.8.1"
 navigation = "2.8.9"
 koin-bom = "4.0.4"
-coil = "2.6.0"
+coil = "3.1.0"
 palette = "1.0.0"
+ktor = "3.1.2"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -57,9 +58,10 @@ serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigation" }
-coil = { module = "io.coil-kt:coil", version.ref = "coil" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 palette = { module = "androidx.palette:palette", version.ref = "palette" }
+ktor-client-okttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor"}
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
