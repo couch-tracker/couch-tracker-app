@@ -54,6 +54,8 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.palette)
             implementation(libs.koin.androidx.compose)
+
+            implementation(libs.ktor.client.okttp)
         }
         androidUnitTest.dependencies {
             implementation(libs.kotest.runner.junit5)
@@ -87,8 +89,8 @@ kotlin {
             implementation(libs.koin.compose)
 
             // Coil (image library)
-            implementation(libs.coil)
             implementation(libs.coil.compose)
+            implementation(libs.coil.ktor)
 
             // Other
             implementation(libs.tmdb.api)

@@ -18,9 +18,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
-import coil.compose.AsyncImage
-import coil.imageLoader
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.imageLoader
+import coil3.request.ImageRequest
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
