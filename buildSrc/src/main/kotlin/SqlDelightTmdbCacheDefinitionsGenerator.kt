@@ -94,7 +94,7 @@ private data class SqlFunction(
  */
 open class SqlDelightTmdbCacheDefinitionsGenerator : DefaultTask() {
     /** Where to generate the .sq files */
-    private val sqldelightRoot = File(project.projectDir, "src/androidMain/sqldelight/tmdbCache/io/github/couchtracker/db/tmdbCache")
+    private val sqldelightRoot = File(project.projectDir, "src/main/sqldelight/tmdbCache/io/github/couchtracker/db/tmdbCache")
 
     init {
         group = "io.github.couchtracker"
@@ -103,6 +103,7 @@ open class SqlDelightTmdbCacheDefinitionsGenerator : DefaultTask() {
 
     @TaskAction
     fun run() {
+        sqldelightRoot.mkdirs()
         for (cache in CACHES) {
             val cacheFile = File(sqldelightRoot, "${cache.name}.sq")
             cacheFile.writeText(
