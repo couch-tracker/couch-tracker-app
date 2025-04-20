@@ -55,9 +55,7 @@ kotlin {
             implementation(libs.palette)
             implementation(libs.koin.androidx.compose)
         }
-        // androidUnitTest is not directly available, as it's missing from `KotlinMultiplatformSourceSetConventions`'s interface
-        // see https://youtrack.jetbrains.com/issue/KT-63772
-        sourceSets.getByName("androidUnitTest").dependencies {
+        androidUnitTest.dependencies {
             implementation(libs.kotest.runner.junit5)
             implementation(libs.mockk.android)
             implementation(libs.sqldelight.jvm)
