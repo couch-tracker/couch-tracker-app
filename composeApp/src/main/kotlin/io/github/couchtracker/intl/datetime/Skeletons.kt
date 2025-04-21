@@ -160,6 +160,7 @@ private typealias DateSkeleton = LocalSkeleton<PartialDateTime.Local.WithDate>
 object Skeletons {
     val NUMERIC_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.NUMERIC, DayOfMonthSkeleton.NUMERIC)
     val MEDIUM_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.ABBREVIATED, DayOfMonthSkeleton.NUMERIC)
-    val LONG_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC)
+    val LONG_DATE =
+        listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC, DayOfWeekSkeleton.ABBREVIATED)
     val FULL_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC, DayOfWeekSkeleton.WIDE)
 }

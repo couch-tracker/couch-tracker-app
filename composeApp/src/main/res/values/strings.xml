@@ -1,6 +1,9 @@
 <resources>
     <string name="back_action">Back</string>
     <string name="retry_action">Retry</string>
+    <string name="cancel_action">Cancel</string>
+    <string name="continue_action">Continue</string>
+    <string name="skip_action">Skip</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Shows</string>
@@ -20,4 +23,9 @@
 
     <string name="movie_by_director">by %1$s</string>
     <string name="section_images">Images</string>
+
+    <string name="date_and_time_dialog_precision">Precision:</string>
+    <string name="date_and_time_precision_year">Year</string>
+    <string name="date_and_time_precision_month">Month</string>
+    <string name="date_and_time_precision_date">Date</string>
 </resources>
