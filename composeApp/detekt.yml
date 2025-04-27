@@ -62,6 +62,8 @@ naming:
     ignoreAnnotated: ["Composable"]
   MatchingDeclarationName:
     active: false # Overlaps with formatting > Filename
+  NoNameShadowing:
+    active: false
   TopLevelPropertyNaming:
     constantPattern: "([A-Z][A-Za-z0-9]*|[A-Z][_A-Z0-9]*)"
 

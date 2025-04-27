@@ -1,5 +1,4 @@
 import io.gitlab.arturbosch.detekt.Detekt
-import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -78,6 +77,7 @@ kotlin {
         // Other
         implementation(libs.androidx.documentfile)
         implementation(libs.palette)
+        implementation(libs.preference)
         implementation(libs.tmdb.api)
     }
 

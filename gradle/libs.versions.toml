@@ -19,6 +19,7 @@ ktor = "3.1.2"
 mockk = "1.14.0"
 navigation = "2.8.9"
 palette = "1.0.0"
+preference = "1.1.1"
 requeryAndroid = "3.45.0"
 serialization = "1.8.1"
 sqldelight = "2.0.2"
@@ -51,6 +52,7 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigation" }
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 palette = { module = "androidx.palette:palette", version.ref = "palette" }
+preference = { module = "me.zhanghai.compose.preference:library", version.ref = "preference" }
 requery-android = { module = "com.github.requery:sqlite-android", version.ref = "requeryAndroid" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
