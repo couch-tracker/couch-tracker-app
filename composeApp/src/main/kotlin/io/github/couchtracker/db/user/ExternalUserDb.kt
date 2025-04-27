@@ -24,7 +24,7 @@ import kotlin.coroutines.CoroutineContext
 class ExternalUserDb private constructor(
     private val userId: Long,
     private val cachedDb: DbPath,
-    private val externalDb: DocumentFile,
+    val externalDb: DocumentFile,
 ) : UserDb() {
 
     override suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): UserDbResult<T> {

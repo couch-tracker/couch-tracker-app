@@ -36,6 +36,11 @@ delete {
     WHERE NOT EXISTS (SELECT * FROM User LIMIT 1);
 }
 
+setName:
+UPDATE User
+SET name = ?
+WHERE id = ?;
+
 setExternalFileUri:
 UPDATE User
 SET externalFileUri = ?, cachedDbLastModified = ?

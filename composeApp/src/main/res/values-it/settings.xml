@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings">Impostazioni</string>
+
+    <string name="profiles">Profili</string>
+    <string name="create_profile">Crea profilo</string>
+    <string name="create_profile_summary">Crea un nuovo profilo</string>
+    <string name="profile_name_placeholder">Nome profilo</string>
+    <string name="open_profile">Apri profilo</string>
+    <string name="open_profile_summary">Apri un profilo esistente</string>
+    <string name="profiles_footer">
+        Un profilo è un file che memorizza tutte le tue informazioni, come visioni, liste, ecc.
+        \nPuoi avere più profili.
+        \n
+        \nOgni profilo può essere archiviato nella memoria interna dell\'app o esternamente, ad esempio in un file locale o nel cloud.
+        \nCiò può essere modificato nelle impostazioni di ciascun profilo.
+    </string>
+
+    <string name="profile">Profilo</string>
+    <string name="profile_name">Nome</string>
+    <string name="profile_location">Posizione</string>
+    <string name="unlink_profile">Scollega</string>
+    <string name="unlink_profile_question">Scollegare profilo?</string>
+    <string name="unlink_profile_message">Scollegare un profilo lo rimuove dall\'app, ma non elimina il file associato.</string>
+    <string name="delete_profile">Elimina</string>
+    <string name="delete_profile_question">Eliminare profilo?</string>
+    <string name="delete_profile_message">Eliminare il profilo distruggerà permanentemente tutti i dati ad esso associato.</string>
+    <string name="profile_location_internal_app_storage">Memoria interna dell\'app</string>
+    <string name="move_profile_location_out_of_app_storage">Sposta fuori dalla memoria dell\'app</string>
+    <string name="move_profile_location_out_of_app_storage_message">Stai per spostare il profilo "%1$s" in un file all\'esterno all\'app.\n\nLe modifiche ai tuoi dati saranno sincronizzate con questo file esterno e viceversa, rendendolo la fonte principale.</string>
+    <string name="move_profile_location_to_app_storage">Sposta nella memoria dell\'app</string>
+    <string name="move_profile_location_to_app_storage_message">Stai per spostare il profilo "%1$s" nella memoria interna dell\'app.\n\nIl file esistente non verrà eliminato, ma l\'app non vi accederà più.</string>
+    <string name="move_profile_location_success">Profilo spostato</string>
+    <string name="move_profile_location_success_message">Il profilo è stato spostato correttamente</string>
+    <string name="move_profile_location_error">Errore nello spostamento del profilo</string>
+    <string name="move_profile_location_error_message">C\'è stato un errore nello spostamento del profilo: %1$s</string>
+</resources>

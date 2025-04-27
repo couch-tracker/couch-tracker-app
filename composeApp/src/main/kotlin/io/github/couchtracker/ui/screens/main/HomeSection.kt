@@ -1,20 +1,13 @@
 package io.github.couchtracker.ui.screens.main
 
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
@@ -26,13 +19,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
-import androidx.documentfile.provider.DocumentFile
 import coil3.compose.LocalPlatformContext
+import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalUserManagerContext
-import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
@@ -44,10 +35,9 @@ import io.github.couchtracker.ui.components.MovieGrid
 import io.github.couchtracker.ui.components.MoviePortraitModel
 import io.github.couchtracker.ui.components.UserPane
 import io.github.couchtracker.ui.components.toMoviePortraitModels
+import io.github.couchtracker.ui.screens.settings.Settings
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.toJavaUri
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import org.koin.compose.koinInject
 
 @Composable
@@ -67,66 +57,15 @@ fun HomeSection(innerPadding: PaddingValues) {
 @Composable
 @Suppress("LongMethod") // TODO: remove this debug composable
 private fun UserSection() {
-    val appContext = LocalContext.current.applicationContext
     val userManager = LocalUserManagerContext.current
-    val appDb = koinInject<AppData>()
+    val navController = LocalNavController.current
 
-    val cs = rememberCoroutineScope()
-
-    val openDbWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        val document = uri?.let { DocumentFile.fromSingleUri(appContext, uri) }
-        if (document != null) {
-            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            appContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
-
-            appDb.userQueries.insert(
-                name = "Opened user (${document.name})",
-                externalFileUri = document.uri.toJavaUri(),
-            )
-        }
-    }
-
+    Button(
+        onClick = { navController.navigate(Settings) },
+        content = { Text("Settings") },
+    )
     Text(text = "Current user: ${userManager.current.user.name}", fontSize = 30.sp)
     UserPane()
-
-    Text(text = "User list", fontSize = 30.sp)
-    for (userInfo in userManager.users) {
-        Row {
-            Button(onClick = { userManager.changeLoggedUser(userInfo.user) }) {
-                Text(text = userInfo.user.name)
-            }
-            Button(onClick = { cs.launch { userInfo.delete(appDb) } }) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "delete",
-                )
-            }
-        }
-    }
-    Button(
-        onClick = {
-            appDb.userQueries.insert(
-                name = "Created user (${Clock.System.now()}",
-                externalFileUri = null,
-            )
-        },
-    ) {
-        Text(text = "Add user")
-    }
-    Button(onClick = { openDbWorkflow.launch(arrayOf("*/*")) }) {
-        Text(text = "Open user")
-    }
-    Button(
-        onClick = {
-            cs.launch {
-                for (userInfo in userManager.users) {
-                    userInfo.delete(appDb)
-                }
-            }
-        },
-    ) {
-        Text(text = "Remove all")
-    }
 }
 
 private val exampleMovies = listOf(
