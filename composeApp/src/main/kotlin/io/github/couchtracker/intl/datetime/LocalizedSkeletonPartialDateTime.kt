@@ -1,9 +1,9 @@
 package io.github.couchtracker.intl.datetime
 
 import androidx.compose.ui.text.intl.Locale
-import io.github.couchtracker.db.user.model.partialtime.PartialDateTime
-import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Local
-import io.github.couchtracker.db.user.model.partialtime.PartialDateTime.Zoned
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Zoned
 import io.github.couchtracker.intl.Localized
 import io.github.couchtracker.intl.formatDateTimeSkeleton
 import kotlinx.datetime.TimeZone

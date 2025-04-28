@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalUserManagerContext
+import io.github.couchtracker.LocalProfileManagerContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.ui.Screen
@@ -40,7 +40,7 @@ data object ProfilesSettingsScreen : Screen {
 private fun Content() {
     val appDb = koinInject<AppData>()
     val navController = LocalNavController.current
-    val userManager = LocalUserManagerContext.current
+    val profileManager = LocalProfileManagerContext.current
     val appContext = LocalContext.current.applicationContext
 
     val openDbWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -49,7 +49,7 @@ private fun Content() {
             val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             appContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            appDb.userQueries.insert(
+            appDb.profileQueries.insert(
                 name = document.name ?: document.uri.toString(),
                 externalFileUri = document.uri.toJavaUri(),
             )
@@ -57,12 +57,12 @@ private fun Content() {
     }
 
     BaseSettings(R.string.profiles.str()) {
-        items(userManager.users, key = { it.user.id }) { userInfo ->
+        items(profileManager.profiles, key = { it.profile.id }) { profileInfo ->
             Preference(
                 modifier = Modifier.animateItem(),
-                title = { Text(userInfo.user.name) },
-                summary = { Text("Profile ID: ${userInfo.user.id}") },
-                onClick = { navController.navigate(ProfileSettingsScreen(id = userInfo.user.id)) },
+                title = { Text(profileInfo.profile.name) },
+                summary = { Text("Profile ID: ${profileInfo.profile.id}") },
+                onClick = { navController.navigate(ProfileSettingsScreen(id = profileInfo.profile.id)) },
             )
         }
 
@@ -106,7 +106,7 @@ private fun CreateProfilePreference(modifier: Modifier) {
     if (dialogOpen) {
         ProfileNameDialog(
             initialName = "",
-            onOk = { appDb.userQueries.insert(name = it, externalFileUri = null) },
+            onOk = { appDb.profileQueries.insert(name = it, externalFileUri = null) },
             onDismissRequest = { dialogOpen = false },
         )
     }

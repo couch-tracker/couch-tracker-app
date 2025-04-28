@@ -1,6 +1,6 @@
 package io.github.couchtracker.db.common.adapters
 
-import io.github.couchtracker.db.user.WatchableExternalId
+import io.github.couchtracker.db.profile.WatchableExternalId
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every

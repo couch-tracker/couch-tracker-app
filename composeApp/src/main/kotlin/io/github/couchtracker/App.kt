@@ -37,7 +37,7 @@ fun App() {
         MaterialTheme(colorScheme = darkColorScheme()) {
             CompositionLocalProvider(LocalNavController provides navController) {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    UserContext {
+                    ProfileContext {
                         NavHost(
                             navController = navController,
                             startDestination = "main",

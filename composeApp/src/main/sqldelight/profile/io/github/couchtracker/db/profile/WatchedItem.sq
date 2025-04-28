@@ -1,0 +1,27 @@
+import io.github.couchtracker.db.profile.WatchableExternalId;
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime;
+import kotlinx.datetime.Instant;
+
+/**
+ * Saves every movie the user ever watched.
+ */
+CREATE TABLE WatchedItem (
+  id INTEGER PRIMARY KEY NOT NULL,
+  itemId TEXT AS WatchableExternalId NOT NULL,
+
+  /**
+   * The date this entry was added to the DB. Not representative of when the user has watched the movie.
+   */
+  addedAt TEXT AS Instant NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+
+  /**
+   * The date/time this item has *started* being watched.
+   *
+   * This is different than what some other apps do. For instance, Trakt has a `watchedAt` field, which is the date/time
+   * when a user has *finished* watching something.
+   */
+  watchAt TEXT AS PartialDateTime
+);
+
+selectAll:
+SELECT * FROM WatchedItem;

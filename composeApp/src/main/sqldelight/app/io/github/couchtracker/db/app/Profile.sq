@@ -1,0 +1,55 @@
+import java.net.URI;
+import kotlinx.datetime.Instant;
+
+CREATE TABLE Profile (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  externalFileUri TEXT AS URI,
+  cachedDbLastModified TEXT AS Instant
+);
+
+/**
+ * Insert default profile
+ * Should be the same values as found in `delete` statement
+ */
+INSERT INTO Profile(name, externalFileUri, cachedDbLastModified)
+VALUES ('Default', NULL, NULL);
+
+
+selectAll:
+SELECT *
+FROM Profile;
+
+insert:
+INSERT INTO Profile(name, externalFileUri)
+VALUES (?, ?);
+
+/**
+ * Deletes a profile and ensures to add back the default one if the profile list would be left empty
+ * Should be the same values as found in the initial INSERT at the top of the file.
+ */
+delete {
+    DELETE FROM Profile WHERE id = ?;
+
+    INSERT INTO Profile(name, externalFileUri, cachedDbLastModified)
+    SELECT 'Default', NULL, NULL
+    WHERE NOT EXISTS (SELECT * FROM Profile LIMIT 1);
+}
+
+setName:
+UPDATE Profile
+SET name = ?
+WHERE id = ?;
+
+setExternalFileUri:
+UPDATE Profile
+SET externalFileUri = ?, cachedDbLastModified = ?
+WHERE id = ?;
+
+setCachedDbLastModified:
+UPDATE Profile
+SET cachedDbLastModified = ?
+WHERE id = ?;
+
+getCachedDbLastModified:
+SELECT cachedDbLastModified FROM Profile WHERE id = ?;

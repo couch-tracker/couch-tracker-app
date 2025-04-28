@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
 import coil3.compose.LocalPlatformContext
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalUserManagerContext
+import io.github.couchtracker.LocalProfileManagerContext
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
@@ -33,7 +33,7 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MovieGrid
 import io.github.couchtracker.ui.components.MoviePortraitModel
-import io.github.couchtracker.ui.components.UserPane
+import io.github.couchtracker.ui.components.ProfilePane
 import io.github.couchtracker.ui.components.toMoviePortraitModels
 import io.github.couchtracker.ui.screens.settings.Settings
 import io.github.couchtracker.utils.Loadable
@@ -47,7 +47,7 @@ fun HomeSection(innerPadding: PaddingValues) {
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top),
     ) { scaffoldInnerPadding ->
         Column(Modifier.fillMaxSize().padding(scaffoldInnerPadding)) {
-            UserSection()
+            ProfileSection()
             HorizontalDivider()
             MoviesSection()
         }
@@ -56,16 +56,16 @@ fun HomeSection(innerPadding: PaddingValues) {
 
 @Composable
 @Suppress("LongMethod") // TODO: remove this debug composable
-private fun UserSection() {
-    val userManager = LocalUserManagerContext.current
+private fun ProfileSection() {
+    val profileManager = LocalProfileManagerContext.current
     val navController = LocalNavController.current
 
     Button(
         onClick = { navController.navigate(Settings) },
         content = { Text("Settings") },
     )
-    Text(text = "Current user: ${userManager.current.user.name}", fontSize = 30.sp)
-    UserPane()
+    Text(text = "Current profile: ${profileManager.current.profile.name}", fontSize = 30.sp)
+    ProfilePane()
 }
 
 private val exampleMovies = listOf(
