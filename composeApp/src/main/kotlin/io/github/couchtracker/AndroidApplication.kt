@@ -2,8 +2,8 @@ package io.github.couchtracker
 
 import android.app.Application
 import io.github.couchtracker.db.app.AppDataModule
+import io.github.couchtracker.db.profile.ProfileDbModule
 import io.github.couchtracker.db.tmdbCache.TmdbCacheDbModule
-import io.github.couchtracker.db.user.UserDbModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.logger.AndroidLogger
 import org.koin.core.context.startKoin
@@ -21,7 +21,7 @@ class AndroidApplication : Application() {
 
             modules(
                 AppDataModule,
-                UserDbModule,
+                ProfileDbModule,
                 TmdbCacheDbModule,
             )
         }

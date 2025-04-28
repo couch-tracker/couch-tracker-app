@@ -3,12 +3,12 @@ package io.github.couchtracker.tmdb
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import io.github.couchtracker.db.common.adapters.map
-import io.github.couchtracker.db.user.episode.ExternalEpisodeId
-import io.github.couchtracker.db.user.episode.TmdbExternalEpisodeId
-import io.github.couchtracker.db.user.movie.ExternalMovieId
-import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
-import io.github.couchtracker.db.user.show.ExternalShowId
-import io.github.couchtracker.db.user.show.TmdbExternalShowId
+import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
+import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
+import io.github.couchtracker.db.profile.movie.ExternalMovieId
+import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.show.ExternalShowId
+import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 
 @JvmInline
 value class TmdbMovieId(val value: Int) {

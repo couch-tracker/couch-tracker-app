@@ -18,7 +18,7 @@ val AppDataModule = module {
         val driverFactory = get<SqliteDriverFactory>(named("AppDb"))
         AppData(
             driver = driverFactory.getDriver(DbPath.of(context = get(), "app.db")),
-            UserAdapter = User.Adapter(
+            ProfileAdapter = Profile.Adapter(
                 externalFileUriAdapter = URIColumnAdapter,
                 cachedDbLastModifiedAdapter = InstantColumnAdapter,
             ),

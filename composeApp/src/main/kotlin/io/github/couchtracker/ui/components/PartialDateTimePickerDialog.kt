@@ -34,7 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import io.github.couchtracker.R
-import io.github.couchtracker.db.user.model.partialtime.PartialDateTime
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.intl.datetime.Skeletons
 import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.utils.str

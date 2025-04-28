@@ -1,7 +1,7 @@
 package io.github.couchtracker.db.common.adapters
 
 import app.cash.sqldelight.ColumnAdapter
-import io.github.couchtracker.db.user.WatchableExternalId
+import io.github.couchtracker.db.profile.WatchableExternalId
 
 /**
  * Implementation of a [ColumnAdapter] that allows to save and extract [WatchableExternalId]s in the database.

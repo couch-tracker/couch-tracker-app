@@ -65,10 +65,10 @@ import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.movie.ExternalMovieId
+import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.db.user.movie.ExternalMovieId
-import io.github.couchtracker.db.user.movie.TmdbExternalMovieId
-import io.github.couchtracker.db.user.movie.UnknownExternalMovieId
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie

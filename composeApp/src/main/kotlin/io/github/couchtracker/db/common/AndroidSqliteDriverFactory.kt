@@ -7,7 +7,7 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import io.github.couchtracker.db.user.UserDb
+import io.github.couchtracker.db.profile.ProfileDb
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -26,7 +26,7 @@ class AndroidSqliteDriverFactory(
             factory = RequerySQLiteOpenHelperFactory(),
             callback = object : AndroidSqliteDriver.Callback(schema) {
                 override fun onCorruption(db: SupportSQLiteDatabase) {
-                    Log.e(UserDb.LOG_TAG, "Database $dbPath is corrupted!")
+                    Log.e(ProfileDb.LOG_TAG, "Database $dbPath is corrupted!")
                     // Do not call super.onCorruption() here!
                     // It will delete the file and later in the process a new empty DB will be created, which is not what we want
                     throw DBCorruptedException()

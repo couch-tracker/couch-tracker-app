@@ -146,13 +146,13 @@ android {
 sqldelight {
     val dialect = libs.sqldelight.sqlite.dialect.get().toString()
     databases {
-        // User database schema. This is what we expose to users
-        create("UserData") {
-            packageName.set("io.github.couchtracker.db.user")
-            srcDirs.setFrom("src/main/sqldelight/user")
+        // Profile database schema. This is what we expose to users
+        create("ProfileData") {
+            packageName.set("io.github.couchtracker.db.profile")
+            srcDirs.setFrom("src/main/sqldelight/profile")
             dialect(dialect)
         }
-        // Internal app database. Contains app-only data, like list of users
+        // Internal app database. Contains app-only data, like list of profiles
         create("AppData") {
             packageName.set("io.github.couchtracker.db.app")
             srcDirs.setFrom("src/main/sqldelight/app")

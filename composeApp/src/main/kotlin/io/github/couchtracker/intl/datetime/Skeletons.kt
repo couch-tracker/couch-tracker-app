@@ -1,6 +1,6 @@
 package io.github.couchtracker.intl.datetime
 
-import io.github.couchtracker.db.user.model.partialtime.PartialDateTime
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 
 /**
  * Represents a Unicode CLDR Skeleton.

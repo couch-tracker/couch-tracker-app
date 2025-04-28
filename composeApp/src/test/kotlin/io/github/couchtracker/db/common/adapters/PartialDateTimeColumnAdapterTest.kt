@@ -1,6 +1,6 @@
 package io.github.couchtracker.db.common.adapters
 
-import io.github.couchtracker.db.user.model.partialtime.PartialDateTime
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
