@@ -28,4 +28,11 @@
     <string name="date_and_time_precision_year">Year</string>
     <string name="date_and_time_precision_month">Month</string>
     <string name="date_and_time_precision_date">Date</string>
+
+    <string name="select_time_zone">Select time zone</string>
+    <string name="timezone_category_other">Other</string>
+    <plurals name="timezone_category_subtitle">
+        <item quantity="one">%1$d time zone</item>
+        <item quantity="other">%1$d time zones</item>
+    </plurals>
 </resources>
