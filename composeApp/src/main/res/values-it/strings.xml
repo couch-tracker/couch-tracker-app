@@ -28,4 +28,12 @@
     <string name="date_and_time_precision_year">Anno</string>
     <string name="date_and_time_precision_month">Mese</string>
     <string name="date_and_time_precision_date">Giorno</string>
+
+    <string name="select_time_zone">Seleziona fuso orario</string>
+    <string name="timezone_category_other">Altro</string>
+    <plurals name="timezone_category_subtitle">
+        <item quantity="one">%1$d fuso orario</item>
+        <item quantity="many">%1$d fusi orari</item>
+        <item quantity="other">%1$d fusi orari</item>
+    </plurals>
 </resources>
