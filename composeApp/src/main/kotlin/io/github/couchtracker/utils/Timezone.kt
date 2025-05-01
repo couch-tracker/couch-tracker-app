@@ -15,6 +15,15 @@ sealed interface TimezoneItem {
             }
         }
 
+        fun allTimeZones(): List<Zone> {
+            return items.flatMap {
+                when (it) {
+                    is Zone -> listOf(it)
+                    is Category -> it.allTimeZones()
+                }
+            }
+        }
+
         data class Root(override val items: List<TimezoneItem>) : Category
         data class Uncategorized(override val items: List<TimezoneItem>) : Category
         data class GeographicalArea(val name: String, override val items: List<TimezoneItem>) : Category
