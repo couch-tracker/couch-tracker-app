@@ -10,7 +10,8 @@ import android.graphics.Color as AndroidColor
 private const val MAIN_COLOR_SATURATION = 0.1f
 private const val MAIN_COLOR_VALUE = 1f
 private const val OUTLINE_VALUE = 0.6f
-private const val OUTLINE_VARIANT_VALUE = 0.3f
+private const val OUTLINE_VARIANT_MULTIPLIER = 0.8f
+private const val OUTLINE_VARIANT_MAX = 0.8f
 private const val CONTAINER_VALUE = 0.4f
 private const val SURFACE_VALUE = 0.15f
 private const val BACKGROUND_VALUE = 0.3f
@@ -79,7 +80,7 @@ fun Color.generateColorScheme(): ColorScheme {
         surfaceVariant = surfaceVariant,
         onSurfaceVariant = surfaceVariant.toForeground(),
         outline = primaryBase.changeValue(OUTLINE_VALUE, OUTLINE_VALUE),
-        outlineVariant = primaryBase.changeValue(OUTLINE_VARIANT_VALUE, OUTLINE_VARIANT_VALUE),
+        outlineVariant = primaryBase.changeValue(OUTLINE_VARIANT_MULTIPLIER, 0f, OUTLINE_VARIANT_MAX),
     )
 }
 
@@ -116,12 +117,13 @@ private fun Color.toForeground(): Color {
 private fun Color.changeValue(
     multiplier: Float,
     minValue: Float = 0.0f,
+    maxValue: Float = 1.0f,
 ): Color {
     return edit { h, s, v ->
         Color.hsv(
             hue = h,
             saturation = s.coerceAtMost(1 - multiplier),
-            value = (v * multiplier).coerceIn(minValue, 1f),
+            value = (v * multiplier).coerceIn(minValue, maxValue),
         )
     }
 }

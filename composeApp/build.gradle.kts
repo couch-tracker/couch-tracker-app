@@ -76,6 +76,7 @@ kotlin {
 
         // Other
         implementation(libs.androidx.documentfile)
+        implementation(libs.byteSize)
         implementation(libs.palette)
         implementation(libs.preference)
         implementation(libs.tmdb.api)

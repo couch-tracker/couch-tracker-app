@@ -58,7 +58,6 @@ enum class DatePickerWorkflowStep {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("LongMethod")
 @Composable
 fun PartialDateTimePickerDialog(
     initialDate: PartialDateTime.Local?,

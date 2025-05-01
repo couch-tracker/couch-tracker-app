@@ -3,6 +3,7 @@
     <string name="settings">Impostazioni</string>
 
     <string name="profiles">Profili</string>
+    <string name="profiles_settings">Impostazioni profili</string>
     <string name="create_profile">Crea profilo</string>
     <string name="create_profile_summary">Crea un nuovo profilo</string>
     <string name="profile_name_placeholder">Nome profilo</string>
@@ -19,6 +20,13 @@
     <string name="profile">Profilo</string>
     <string name="profile_name">Nome</string>
     <string name="profile_location">Posizione</string>
+    <string name="profile_last_used">Ultimo utilizzo</string>
+    <string name="profile_last_used_with_date">Ultimo utilizzo: %1$s</string>
+    <string name="profile_last_used_unknown">Sconosciuto</string>
+    <string name="profile_database_size">Dimensione database</string>
+    <string name="profile_database_size_unknown">Sconosciuta</string>
+    <string name="profile_file_name">Nome file</string>
+    <string name="profile_file_name_unknown">Sconosciuto</string>
     <string name="unlink_profile">Scollega</string>
     <string name="unlink_profile_question">Scollegare profilo?</string>
     <string name="unlink_profile_message">Scollegare un profilo lo rimuove dall\'app, ma non elimina il file associato.</string>
@@ -34,4 +42,5 @@
     <string name="move_profile_location_success_message">Il profilo è stato spostato correttamente</string>
     <string name="move_profile_location_error">Errore nello spostamento del profilo</string>
     <string name="move_profile_location_error_message">C\'è stato un errore nello spostamento del profilo: %1$s</string>
+    <string name="switch_profile">Cambia profilo</string>
 </resources>

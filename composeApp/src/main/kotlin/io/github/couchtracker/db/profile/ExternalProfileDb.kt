@@ -27,6 +27,10 @@ class ExternalProfileDb private constructor(
     val externalDb: DocumentFile,
 ) : ProfileDb() {
 
+    override fun size() = externalDb.length().takeIf { it > 0 }
+
+    override fun lastModified() = externalDb.lastModifiedInstant()
+
     override suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): ProfileDbResult<T> {
         // Check if we have an up-to-date cached copy of the database. If not, copy it to internal storage
         val externalLastModified = externalDb.lastModifiedInstant()
