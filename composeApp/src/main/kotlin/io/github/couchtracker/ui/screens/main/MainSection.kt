@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,11 +34,11 @@ import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import kotlinx.coroutines.launch
 
 @Composable
-@Suppress("LongMethod", "LongParameterList") // TODO fix
 fun MainSection(
     innerPadding: PaddingValues,
     pagerState: PagerState,
     backgroundImage: Painter,
+    actions: @Composable RowScope.() -> Unit = {},
     tabText: @Composable (page: Int) -> Unit,
     page: @Composable (page: Int) -> Unit,
 ) {
@@ -67,6 +68,7 @@ fun MainSection(
                             colors = colors,
                             scrollBehavior = scrollBehavior,
                             title = {},
+                            actions = actions,
                         )
                         PrimaryScrollableTabRow(
                             scrollState = scrollState,

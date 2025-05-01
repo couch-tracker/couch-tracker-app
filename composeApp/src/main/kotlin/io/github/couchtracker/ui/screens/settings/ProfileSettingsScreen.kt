@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
+import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LinkOff
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -41,10 +45,12 @@ import io.github.couchtracker.db.profile.ManagedProfileDb
 import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.db.profile.ProfileDbUtils
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.formattedLastModified
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toJavaUri
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import me.saket.bytesize.BinaryByteSize
 import me.zhanghai.compose.preference.Preference
 import org.koin.compose.koinInject
 
@@ -73,15 +79,11 @@ private fun Content(profileInfo: ProfileInfo) {
     BaseSettings(R.string.profile.str()) {
         item("name") { ProfileNamePreference(profileInfo) }
         item("location") { ProfileLocationPreference(profileInfo) }
+        item("file-name") { ProfileFileName(profileInfo) }
+        item("last-used") { ProfileLastUsedPreference(profileInfo) }
+        item("size") { ProfileSizePreference(profileInfo) }
+        item("divider") { HorizontalDivider() }
         item("delete") { DeleteProfilePreference(profileInfo) }
-
-        // TODO remove
-        item("set-active") {
-            Preference(
-                title = { Text("Set as current active profile") },
-                onClick = { profileManager.changeLoggedProfile(profileInfo.profile) },
-            )
-        }
     }
 }
 
@@ -255,6 +257,42 @@ private fun ProfileLocationPreference(profileInfo: ProfileInfo) {
 }
 
 @Composable
+private fun ProfileFileName(profileInfo: ProfileInfo) {
+    when (val db = profileInfo.db) {
+        is ManagedProfileDb -> {}
+        is ExternalProfileDb -> {
+            Preference(
+                icon = { Icon(Icons.Default.Abc, contentDescription = null) },
+                title = { Text(R.string.profile_file_name.str()) },
+                summary = { Text(db.externalDb.name ?: R.string.profile_file_name_unknown.str()) },
+                enabled = false,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileLastUsedPreference(profileInfo: ProfileInfo) {
+    Preference(
+        icon = { Icon(Icons.Default.History, contentDescription = null) },
+        title = { Text(R.string.profile_last_used.str()) },
+        summary = { Text(profileInfo.formattedLastModified()) },
+        enabled = false,
+    )
+}
+
+@Composable
+private fun ProfileSizePreference(profileInfo: ProfileInfo) {
+    val byteSize = profileInfo.db.size()?.let { BinaryByteSize(it) }
+    Preference(
+        icon = { Icon(Icons.Default.Straighten, contentDescription = null) },
+        title = { Text(R.string.profile_database_size.str()) },
+        summary = { Text(byteSize?.toString() ?: R.string.profile_database_size_unknown.str()) },
+        enabled = false,
+    )
+}
+
+@Composable
 private fun DeleteProfilePreference(profileInfo: ProfileInfo) {
     val appDb = koinInject<AppData>()
     val cs = rememberCoroutineScope()
@@ -302,7 +340,10 @@ private fun DeleteProfilePreference(profileInfo: ProfileInfo) {
                     onClick = {
                         cs.launch { profileInfo.delete(appDb) }
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors = when (profileInfo.db) {
+                        is ManagedProfileDb -> ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        is ExternalProfileDb -> ButtonDefaults.textButtonColors()
+                    },
                     content = { Text(text) },
                 )
             },

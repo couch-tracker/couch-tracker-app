@@ -6,6 +6,8 @@
     <string name="skip_action">Salta</string>
     <string name="search_action">Cerca</string>
 
+    <string name="more_options">Più opzioni</string>
+
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Serie</string>
     <string name="main_section_movies">Film</string>

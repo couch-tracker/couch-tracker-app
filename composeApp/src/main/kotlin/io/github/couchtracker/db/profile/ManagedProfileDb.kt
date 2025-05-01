@@ -9,9 +9,13 @@ import io.github.couchtracker.db.toDocumentFile
 import io.github.couchtracker.utils.toAndroidUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.toKotlinInstant
 import org.koin.core.component.get
+import java.io.IOException
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
+import kotlin.io.path.fileSize
+import kotlin.io.path.getLastModifiedTime
 
 /**
  * A [ProfileDb] that is managed internally by the app.
@@ -19,6 +23,18 @@ import kotlin.coroutines.CoroutineContext
  * The [transaction] function of this class simply opens the DB, performs the operation and closes it.
  */
 class ManagedProfileDb(private val profileId: Long) : ProfileDb() {
+
+    override fun size() = try {
+        dbPath(context = get()).file.toPath().fileSize()
+    } catch (ignored: IOException) {
+        null
+    }
+
+    override fun lastModified() = try {
+        dbPath(context = get()).file.toPath().getLastModifiedTime().toInstant().toKotlinInstant()
+    } catch (ignored: IOException) {
+        null
+    }
 
     override suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): ProfileDbResult<T> {
         val context = get<Context>()

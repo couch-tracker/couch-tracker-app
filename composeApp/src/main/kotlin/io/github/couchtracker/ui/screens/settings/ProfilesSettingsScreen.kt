@@ -23,6 +23,7 @@ import io.github.couchtracker.LocalProfileManagerContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.supportingText
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toJavaUri
 import kotlinx.serialization.Serializable
@@ -61,7 +62,7 @@ private fun Content() {
             Preference(
                 modifier = Modifier.animateItem(),
                 title = { Text(profileInfo.profile.name) },
-                summary = { Text("Profile ID: ${profileInfo.profile.id}") },
+                summary = { Text(profileInfo.supportingText()) },
                 onClick = { navController.navigate(ProfileSettingsScreen(id = profileInfo.profile.id)) },
             )
         }

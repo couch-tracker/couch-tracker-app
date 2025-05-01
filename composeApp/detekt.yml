@@ -8,9 +8,13 @@ output-reports:
   active: true
 
 complexity:
+  LongMethod:
+    threshold: 100
   LongParameterList:
+    ignoreAnnotated: ["Composable"]
     ignoreDefaultParameters: true
   TooManyFunctions:
+    thresholdInClasses: 15
     ignorePrivate: true
 
 coroutines:

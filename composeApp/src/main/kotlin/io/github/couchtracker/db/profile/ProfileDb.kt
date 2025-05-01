@@ -10,6 +10,7 @@ import io.github.couchtracker.db.common.SqliteDriverFactory
 import io.github.couchtracker.db.profile.ProfileDbResult.FileError.AttemptedOperation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Instant
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
@@ -35,6 +36,16 @@ sealed class ProfileDb : KoinComponent {
     protected val appData = get<AppData>()
 
     protected abstract suspend fun <T> doTransaction(block: DatabaseTransaction<TransactionResult<T>>): ProfileDbResult<T>
+
+    /**
+     * Size of the file, in bytes. `null` if it's unknown
+     */
+    abstract fun size(): Long?
+
+    /**
+     * [Instant] of when the DB was last written to. `null` if it's unknown
+     */
+    abstract fun lastModified(): Instant?
 
     /**
      * Function that must be called when the associated profile is removed from the app.
@@ -117,8 +128,8 @@ sealed class ProfileDb : KoinComponent {
     ): ProfileDbResult<T> {
         val driver = get<SqliteDriverFactory>(named("ProfileDb")).getDriver(dbPath)
         return driver.use {
-            val db = get<ProfileData> { parametersOf(driver) }
             try {
+                val db = get<ProfileData> { parametersOf(driver) }
                 ProfileDbResult.Completed.Success(result = block(db))
             } catch (ignored: DBCorruptedException) {
                 onCorrupted()
