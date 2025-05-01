@@ -75,9 +75,11 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.ui.components.TimezonePickerDialog
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
 import org.koin.compose.koinInject
 
 private const val ARGUMENTS_MOVIE_ID = "movieId"
@@ -241,6 +243,14 @@ private fun MovieScreenContent(
             item { MovieText(R.string.section_images.str(), maxLines = 1, style = MaterialTheme.typography.titleMedium) }
             item {
                 ImagesSection(model)
+            }
+        }
+        item {
+            var tz: TimeZone? by remember { mutableStateOf(TimeZone.currentSystemDefault()) }
+            var picker by remember { mutableStateOf(false) }
+            Button({ picker = true }) { Text("TZ : $tz") }
+            if (picker) {
+                TimezonePickerDialog(tz, close = { picker = false }, onTimezoneSelected = { tz = it })
             }
         }
         item {
