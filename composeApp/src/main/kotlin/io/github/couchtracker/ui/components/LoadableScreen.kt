@@ -10,30 +10,17 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.github.couchtracker.R
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.str
 
 private const val ANIMATION_DURATION_MS = 300
 private val DEFAULT_INDICATOR_SIZE = 64.dp
@@ -100,21 +87,5 @@ fun DefaultLoadingScreen() {
 
 @Composable
 fun DefaultErrorScreen(errorMessage: String, retry: (() -> Unit)? = null) {
-    Surface {
-        Column(
-            Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(Icons.Filled.Error, contentDescription = null, modifier = Modifier.size(DEFAULT_INDICATOR_SIZE))
-            Spacer(Modifier.height(16.dp))
-            Text(errorMessage, textAlign = TextAlign.Center)
-            if (retry != null) {
-                Spacer(Modifier.height(16.dp))
-                Button(retry) {
-                    Text(R.string.retry_action.str())
-                }
-            }
-        }
-    }
+    ErrorMessageComposable(Modifier.fillMaxSize(), errorMessage, retry)
 }

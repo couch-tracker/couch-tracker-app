@@ -7,6 +7,7 @@
     <string name="search_action">Search</string>
 
     <string name="more_options">More options</string>
+    <string name="error_loading_items">Error loading items</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Shows</string>
