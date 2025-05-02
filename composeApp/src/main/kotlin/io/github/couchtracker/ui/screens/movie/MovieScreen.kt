@@ -143,18 +143,22 @@ fun MovieScreen(movie: TmdbMovie) {
         LoadableScreen(
             data = screenModel,
             onError = { message ->
-                DefaultErrorScreen(
-                    errorMessage = message,
-                    retry = {
-                        cs.launch { load() }
-                    },
-                )
+                Surface {
+                    DefaultErrorScreen(
+                        errorMessage = message,
+                        retry = {
+                            cs.launch { load() }
+                        },
+                    )
+                }
             },
         ) { model ->
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
-                    modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
                         MovieAppBar(model, scrollBehavior)
                     },

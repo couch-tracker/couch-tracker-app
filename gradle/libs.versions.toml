@@ -10,6 +10,7 @@ buildConfig = "5.6.2"
 byte-size = "2.0.0-beta04"
 coil = "3.1.0"
 compose = "1.7.8"
+compose-paging = "3.3.6"
 compose-plugin = "1.7.3"
 detekt = "1.23.8"
 koin-bom = "4.0.4"
@@ -33,6 +34,7 @@ androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-ru
 byteSize = { module = "me.saket.bytesize:bytesize", version.ref = "byte-size" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+compose-paging = { module = "androidx.paging:paging-compose", version.ref = "compose-paging" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }

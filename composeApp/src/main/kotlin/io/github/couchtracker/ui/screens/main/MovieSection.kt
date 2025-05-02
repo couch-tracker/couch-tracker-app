@@ -1,60 +1,45 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalCoroutinesApi::class)
-
 package io.github.couchtracker.ui.screens.main
 
+import android.app.Application
 import androidx.annotation.StringRes
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.cachedIn
+import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.TmdbDiscover
 import app.moviebase.tmdb.model.TmdbDiscoverMovieSortBy
-import app.moviebase.tmdb.model.TmdbMovie
 import app.moviebase.tmdb.model.TmdbMoviePageResult
 import app.moviebase.tmdb.model.TmdbTimeWindow
-import coil3.compose.LocalPlatformContext
+import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
-import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.tmdbDownload
-import io.github.couchtracker.ui.components.DefaultErrorScreen
-import io.github.couchtracker.ui.components.LoadableScreen
-import io.github.couchtracker.ui.components.MovieGrid
-import io.github.couchtracker.ui.components.MoviePortraitModel
+import io.github.couchtracker.tmdb.tmdbPager
+import io.github.couchtracker.ui.ImagePreloadOptions
+import io.github.couchtracker.ui.components.MoviePortrait
+import io.github.couchtracker.ui.components.PaginatedGrid
+import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.toMoviePortraitModels
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.map
+import io.github.couchtracker.ui.screens.movie.navigateToMovie
+import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 // TODO: do better
 private val LANGUAGE = TmdbLanguage.ENGLISH
 
-class MovieSectionViewModel : ViewModel() {
-    val tabStates: Map<MovieTab, MovieListStateHolder> = MovieTab.entries.associateWith {
-        MovieListStateHolder(viewModelScope, it)
+class MovieSectionViewModel(application: Application) : AndroidViewModel(application) {
+    val tabStates: Map<MovieTab, MovieTabState> = MovieTab.entries.associateWith {
+        MovieTabState(viewModelScope, it)
     }
 }
 
@@ -79,52 +64,37 @@ fun MoviesSection(
 
 @Composable
 private fun MovieListComposable(
-    tabState: MovieListStateHolder,
+    tabState: MovieTabState,
 ) {
-    val context = LocalPlatformContext.current
-    val movieMaxW = with(LocalDensity.current) {
-        (MoviePortraitModel.SUGGESTED_WIDTH * 2).roundToPx()
-    }
-    val coroutineScope = rememberCoroutineScope()
-    val moviePortraitModelList: Flow<Loadable<List<MoviePortraitModel>>> = remember(tabState) {
-        tabState.moviesFlow.mapLatest { movies ->
-            movies.map {
-                it.toMoviePortraitModels(context, LANGUAGE, movieMaxW)
-            }
+    val lazyItems = tabState.movieFlow.collectAsLazyPagingItems()
+    val navController = LocalNavController.current
+    PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { movie ->
+        MoviePortrait(Modifier.fillMaxWidth(), movie) {
+            navController.navigateToMovie(it.movie)
         }
-    }
-    val state by moviePortraitModelList.collectAsStateWithLifecycle(Loadable.Loading)
-
-    LoadableScreen(
-        state,
-        onError = { message ->
-            DefaultErrorScreen(message) {
-                coroutineScope.launch { tabState.retryDownload() }
-            }
-        },
-    ) { movies ->
-        MovieGrid(movies)
     }
 }
 
 enum class MovieTab(
     @StringRes
     val displayName: Int,
-    val movieDownloader: suspend Tmdb3.() -> TmdbMoviePageResult,
+    val movieDownloader: suspend Tmdb3.(page: Int) -> TmdbMoviePageResult,
 ) {
     TIMELINE(
         displayName = R.string.tab_movie_timeline,
-        movieDownloader = { movies.popular(page = 1, LANGUAGE.apiParameter) },
+        movieDownloader = { page -> movies.popular(page = page, LANGUAGE.apiParameter) },
     ),
     EXPLORE(
         displayName = R.string.tab_movie_explore,
-        movieDownloader = { trending.getTrendingMovies(TmdbTimeWindow.DAY, page = 1, LANGUAGE.apiParameter) },
+        movieDownloader = { page ->
+            trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, LANGUAGE.apiParameter)
+        },
     ),
     FOLLOWED(
         displayName = R.string.tab_movie_followed,
-        movieDownloader = {
+        movieDownloader = { page ->
             discover.discoverMovie(
-                page = 1,
+                page = page,
                 language = LANGUAGE.apiParameter,
                 region = null,
                 TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.POPULARITY),
@@ -133,9 +103,9 @@ enum class MovieTab(
     ),
     UP_NEXT(
         displayName = R.string.tab_movie_up_next,
-        movieDownloader = {
+        movieDownloader = { page ->
             discover.discoverMovie(
-                page = 1,
+                page = page,
                 language = LANGUAGE.apiParameter,
                 region = null,
                 TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.VOTE_AVERAGE),
@@ -144,9 +114,9 @@ enum class MovieTab(
     ),
     CALENDAR(
         displayName = R.string.tab_movie_calendar,
-        movieDownloader = {
+        movieDownloader = { page ->
             discover.discoverMovie(
-                page = 1,
+                page = page,
                 language = LANGUAGE.apiParameter,
                 region = null,
                 TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.RELEASE_DATE),
@@ -155,28 +125,18 @@ enum class MovieTab(
     ),
 }
 
-class MovieListStateHolder(
-    private val cs: CoroutineScope,
-    private val page: MovieTab,
+class MovieTabState(
+    viewModelScope: CoroutineScope,
+    private val tab: MovieTab,
 ) {
-    private val tokensFlow = MutableStateFlow(Any())
-    val moviesFlow: SharedFlow<Loadable<List<TmdbMovie>>> = tokensFlow.transformLatest {
-        emit(Loadable.Loading)
-        try {
-            delay(1.seconds)
-            val moviesPage = tmdbDownload { tmdb3 ->
-                page.movieDownloader(tmdb3).results
-            }
-            emit(Loadable.Loaded(moviesPage))
-        } catch (e: TmdbException) {
-            // TODO: translate
-            emit(Loadable.Error(e.message ?: "Error"))
-        }
-    }.shareIn(cs, SharingStarted.Lazily, replay = 1)
 
-    suspend fun retryDownload() {
-        cs.launch {
-            tokensFlow.emit(Any())
-        }.join()
-    }
+    private val pager = tmdbPager(
+        downloader = { page ->
+            tab.movieDownloader(this, page)
+        },
+        mapper = { movie ->
+            movie.toMoviePortraitModels(LANGUAGE, ImagePreloadOptions.DoNotPreload)
+        },
+    )
+    val movieFlow = pager.flow.removeDuplicates { it.movie.id.value }.cachedIn(viewModelScope)
 }
