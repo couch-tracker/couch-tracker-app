@@ -79,7 +79,10 @@ private fun AppBarIcons() {
         DropdownMenuItem(
             leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
             text = { Text(R.string.settings.str()) },
-            onClick = { navController.navigate(MainSettingsScreen) },
+            onClick = {
+                expanded = false
+                navController.navigate(MainSettingsScreen)
+            },
         )
     }
     if (switchProfileDialogOpen) {
