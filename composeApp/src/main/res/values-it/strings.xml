@@ -27,7 +27,7 @@
     <string name="movie_by_director">di %1$s</string>
     <string name="section_images">Immagini</string>
 
-    <string name="date_and_time_dialog_precision">Precision:</string>
+    <string name="date_and_time_dialog_precision">Precisione:</string>
     <string name="date_and_time_precision_year">Anno</string>
     <string name="date_and_time_precision_month">Mese</string>
     <string name="date_and_time_precision_date">Giorno</string>
