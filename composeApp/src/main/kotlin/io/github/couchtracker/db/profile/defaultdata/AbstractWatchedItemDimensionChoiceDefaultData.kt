@@ -12,6 +12,7 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
     private val dimensionName: DbText,
     private val appliesTo: Set<WatchedItemType> = WatchedItemType.entries.toSet(),
     private val choices: List<DefaultChoice>,
+    private val type: WatchedItemDimensionType.Choice = WatchedItemDimensionType.Choice.SINGLE,
 ) : DefaultData<ProfileData> {
 
     protected data class DefaultChoice(
@@ -23,7 +24,7 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
         val dimensionId = db.watchedItemDimensionQueries.insert(
             name = dimensionName,
             appliesTo = appliesTo,
-            type = WatchedItemDimensionType.Choice.SINGLE,
+            type = type,
             manualSortIndex = null,
         ).executeAsOne()
 
