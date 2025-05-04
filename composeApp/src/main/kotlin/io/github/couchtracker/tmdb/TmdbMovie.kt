@@ -7,6 +7,7 @@ import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import app.moviebase.tmdb.model.TmdbReleaseDates
 import io.github.couchtracker.db.tmdbCache.TmdbCache
+import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 
 /**
  * Class that represents a TMDB movie.
@@ -59,3 +60,5 @@ data class TmdbMovie(
         },
     )
 }
+
+fun ApiTmdbMovie.toInternalTmdbMovie(language: TmdbLanguage) = TmdbMovie(TmdbMovieId(id), language)

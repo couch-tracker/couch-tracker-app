@@ -13,16 +13,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import io.github.couchtracker.R
+import io.github.couchtracker.ui.components.SearchMediaFilters
+import io.github.couchtracker.ui.components.SearchableMediaType
 import io.github.couchtracker.utils.str
 
 @Composable
-fun ShowSection(innerPadding: PaddingValues) {
+fun ShowSection(
+    innerPadding: PaddingValues,
+    onOpenSearch: (SearchMediaFilters) -> Unit,
+) {
     val pagerState = rememberPagerState(initialPage = ShowTab.UP_NEXT.ordinal) { ShowTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
         backgroundImage = painterResource(R.drawable.sunset),
+        onOpenSearch = { onOpenSearch(setOf(SearchableMediaType.SHOW)) },
         tabText = { page -> Text(text = ShowTab.entries[page].displayName.str()) },
         page = { page ->
             LazyColumn(modifier = Modifier.fillMaxWidth()) {

@@ -16,8 +16,8 @@ import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.generateColorScheme
-import io.github.couchtracker.ui.screens.main.MOVIE_COLOR_SCHEME
 import io.github.couchtracker.utils.Loadable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -56,7 +56,7 @@ suspend fun loadMovie(
             val details = movie.details(tmdbCache)
             val backdropImage = details.backdropImage
             val backdropImageRequest: ImageRequest?
-            var colorScheme: ColorScheme = MOVIE_COLOR_SCHEME
+            var colorScheme: ColorScheme = ColorSchemes.Movie
             if (backdropImage != null) {
                 val url = TmdbImageUrlBuilder.build(backdropImage, width, height)
                 backdropImageRequest = ImageRequest.Builder(ctx)

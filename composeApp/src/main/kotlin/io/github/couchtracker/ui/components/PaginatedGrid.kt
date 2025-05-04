@@ -24,6 +24,9 @@ import kotlin.contracts.contract
 fun <T : Any> PaginatedGrid(
     paginatedItems: LazyPagingItems<T>,
     columns: GridCells,
+    contentPadding: PaddingValues = PaddingValues(8.dp),
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.spacedBy(8.dp),
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(16.dp),
     itemComposable: @Composable (T?) -> Unit,
 ) {
     val globalState = when (paginatedItems.loadState.refresh) {
@@ -37,7 +40,14 @@ fun <T : Any> PaginatedGrid(
             DefaultErrorScreen(it) { paginatedItems.retry() }
         },
     ) {
-        LoadedPaginatedGrid(paginatedItems, columns, itemComposable)
+        LoadedPaginatedGrid(
+            paginatedItems = paginatedItems,
+            columns = columns,
+            contentPadding = contentPadding,
+            horizontalArrangement = horizontalArrangement,
+            verticalArrangement = verticalArrangement,
+            itemComposable = itemComposable,
+        )
     }
 }
 
@@ -50,15 +60,18 @@ private enum class ItemTypes {
 private fun <T : Any> LoadedPaginatedGrid(
     paginatedItems: LazyPagingItems<T>,
     columns: GridCells,
+    contentPadding: PaddingValues,
+    horizontalArrangement: Arrangement.Horizontal,
+    verticalArrangement: Arrangement.Vertical,
     itemComposable: @Composable (T?) -> Unit,
 ) {
     val bottomState = paginatedItems.loadState.append
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
         columns = columns,
-        contentPadding = PaddingValues(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = contentPadding,
+        horizontalArrangement = horizontalArrangement,
+        verticalArrangement = verticalArrangement,
     ) {
         val snapshot = paginatedItems.itemSnapshotList
         items(

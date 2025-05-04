@@ -1,8 +1,8 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
@@ -25,23 +25,29 @@ import io.github.couchtracker.LocalProfileManagerContext
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.ProfilePane
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
+import io.github.couchtracker.ui.components.SearchMediaFilters
+import io.github.couchtracker.ui.components.SearchableMediaType
 import io.github.couchtracker.ui.screens.settings.MainSettingsScreen
 import io.github.couchtracker.utils.str
 
 @Composable
-fun HomeSection(innerPadding: PaddingValues) {
+fun HomeSection(
+    innerPadding: PaddingValues,
+    onOpenSearch: (SearchMediaFilters) -> Unit,
+) {
     val pagerState = rememberPagerState(initialPage = HomeTab.UP_NEXT.ordinal) { HomeTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
         backgroundImage = painterResource(R.drawable.sunset),
+        onOpenSearch = { onOpenSearch(SearchableMediaType.entries.toSet()) },
+        actions = {
+            AppbarMoreMenu()
+        },
         tabText = { page -> Text(text = HomeTab.entries[page].displayName.str()) },
-        actions = { AppBarIcons() },
         page = { page ->
-            Column {
-                ProfileSection()
-            }
+            ProfileSection()
         },
     )
 }
@@ -56,7 +62,7 @@ private enum class HomeTab(@StringRes val displayName: Int) {
 }
 
 @Composable
-private fun AppBarIcons() {
+private fun AppbarMoreMenu() {
     val navController = LocalNavController.current
     var expanded by remember { mutableStateOf(false) }
     var switchProfileDialogOpen by remember { mutableStateOf(false) }
@@ -95,6 +101,15 @@ private fun AppBarIcons() {
 private fun ProfileSection() {
     val profileManager = LocalProfileManagerContext.current
 
-    Text(text = "Current profile: ${profileManager.current.profile.name}", fontSize = 30.sp)
-    ProfilePane()
+    LazyColumn {
+        item("current") {
+            Text(text = "Current profile: ${profileManager.current.profile.name}", fontSize = 30.sp)
+        }
+        item("profile") {
+            ProfilePane()
+        }
+        items(100, key = { it.toString() }) {
+            Text("item $it")
+        }
+    }
 }

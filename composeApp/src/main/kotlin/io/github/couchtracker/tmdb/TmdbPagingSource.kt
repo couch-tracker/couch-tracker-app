@@ -10,7 +10,7 @@ import kotlinx.coroutines.coroutineScope
 
 class TmdbPagingSource<T : Any, O : Any>(
     val downloader: suspend Tmdb3.(page: Int) -> TmdbPageResult<T>,
-    val mapper: suspend (T) -> O,
+    val mapper: suspend (T) -> O?,
 ) : PagingSource<Int, O>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, O> {
@@ -26,7 +26,7 @@ class TmdbPagingSource<T : Any, O : Any>(
             }
             val loadedBefore = (response.page - 1) * TMDB_ITEMS_PER_PAGE
             return LoadResult.Page(
-                data = mapped,
+                data = mapped.filterNotNull(),
                 prevKey = null,
                 nextKey = if (response.page < response.totalPages) response.page + 1 else null,
                 itemsBefore = loadedBefore,
