@@ -7,16 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
-import app.moviebase.tmdb.image.TmdbImage
-import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import coil3.compose.AsyncImage
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
-import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.toInternalTmdbMovie
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
-import io.github.couchtracker.ui.prepareImage
+import io.github.couchtracker.ui.toImageModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -49,7 +47,7 @@ fun MoviePortrait(
         label = {
             val label = when {
                 movie == null -> ""
-                movie.year != null -> "${movie.title} (${movie.year})"
+                movie.year != null -> "${movie.title} (${movie.year})" // TODO translate
                 else -> movie.title
             }
             Text(
@@ -79,7 +77,7 @@ data class MoviePortraitModel(
                 movie = movie,
                 title = details.title,
                 year = details.releaseDate?.year,
-                posterModel = posterModel(details.posterImage, imagePreloadOptions),
+                posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
             )
         }
 
@@ -92,18 +90,8 @@ data class MoviePortraitModel(
                 movie = movie,
                 title = details.title,
                 year = details.releaseDate?.year,
-                posterModel = posterModel(details.posterImage, imagePreloadOptions),
+                posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
             )
-        }
-
-        private suspend fun posterModel(
-            posterImage: TmdbImage?,
-            imagePreloadOptions: ImagePreloadOptions,
-        ): ImageModel? {
-            if (posterImage == null) return null
-            return prepareImage(imagePreloadOptions) { w, h ->
-                TmdbImageUrlBuilder.build(posterImage, w, h)
-            }
         }
     }
 }
@@ -123,6 +111,5 @@ suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions,
 ): MoviePortraitModel {
-    val movie = TmdbMovie(TmdbMovieId(id), language)
-    return MoviePortraitModel.fromApiTmdbMovie(movie, this, imagePreloadOptions)
+    return MoviePortraitModel.fromApiTmdbMovie(toInternalTmdbMovie(language), this, imagePreloadOptions)
 }

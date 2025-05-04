@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.screens.main
 
-import android.app.Application
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.cachedIn
@@ -35,9 +34,9 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 
 // TODO: do better
-private val LANGUAGE = TmdbLanguage.ENGLISH
+val TMDB_LANGUAGE = TmdbLanguage.ENGLISH
 
-class MovieSectionViewModel(application: Application) : AndroidViewModel(application) {
+class MovieSectionViewModel : ViewModel() {
     val tabStates: Map<MovieTab, MovieTabState> = MovieTab.entries.associateWith {
         MovieTabState(viewModelScope, it)
     }
@@ -48,12 +47,20 @@ fun MoviesSection(
     innerPadding: PaddingValues,
     viewModel: MovieSectionViewModel = viewModel(),
 ) {
+    val navController = LocalNavController.current
     val pagerState = rememberPagerState(initialPage = MovieTab.EXPLORE.ordinal) { MovieTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
         backgroundImage = painterResource(R.drawable.aurora_borealis),
+        actions = {
+            MainSectionDefaults.SearchButton(
+                onOpenSearch = {
+                    navController.navigate(SearchScreen(filter = SearchableMediaType.MOVIE))
+                },
+            )
+        },
         tabText = { page -> Text(text = MovieTab.entries[page].displayName.str()) },
         page = { page ->
             val tab = MovieTab.entries[page]
@@ -82,12 +89,12 @@ enum class MovieTab(
 ) {
     TIMELINE(
         displayName = R.string.tab_movie_timeline,
-        movieDownloader = { page -> movies.popular(page = page, LANGUAGE.apiParameter) },
+        movieDownloader = { page -> movies.popular(page = page, TMDB_LANGUAGE.apiParameter) },
     ),
     EXPLORE(
         displayName = R.string.tab_movie_explore,
         movieDownloader = { page ->
-            trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, LANGUAGE.apiParameter)
+            trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
         },
     ),
     FOLLOWED(
@@ -95,7 +102,7 @@ enum class MovieTab(
         movieDownloader = { page ->
             discover.discoverMovie(
                 page = page,
-                language = LANGUAGE.apiParameter,
+                language = TMDB_LANGUAGE.apiParameter,
                 region = null,
                 TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.POPULARITY),
             )
@@ -106,7 +113,7 @@ enum class MovieTab(
         movieDownloader = { page ->
             discover.discoverMovie(
                 page = page,
-                language = LANGUAGE.apiParameter,
+                language = TMDB_LANGUAGE.apiParameter,
                 region = null,
                 TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.VOTE_AVERAGE),
             )
@@ -117,7 +124,7 @@ enum class MovieTab(
         movieDownloader = { page ->
             discover.discoverMovie(
                 page = page,
-                language = LANGUAGE.apiParameter,
+                language = TMDB_LANGUAGE.apiParameter,
                 region = null,
                 TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.RELEASE_DATE),
             )
@@ -135,7 +142,7 @@ class MovieTabState(
             tab.movieDownloader(this, page)
         },
         mapper = { movie ->
-            movie.toMoviePortraitModels(LANGUAGE, ImagePreloadOptions.DoNotPreload)
+            movie.toMoviePortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
         },
     )
     val movieFlow = pager.flow.removeDuplicates { it.movie.id.value }.cachedIn(viewModelScope)

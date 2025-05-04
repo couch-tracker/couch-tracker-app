@@ -1,6 +1,6 @@
 package io.github.couchtracker.tmdb
 
-import app.moviebase.tmdb.model.TmdbMovieDetail
+import app.moviebase.tmdb.model.TmdbRatingItem
 import java.text.NumberFormat
 
 data class TmdbRating(
@@ -18,9 +18,11 @@ data class TmdbRating(
     }.format(average) + "★"
 }
 
-fun TmdbMovieDetail.rating(): TmdbRating? {
-    return if (voteCount > 0) {
-        TmdbRating(voteAverage, voteCount)
+fun TmdbRatingItem.rating(): TmdbRating? {
+    val count = voteCount?.takeIf { it > 0 }
+    val average = voteAverage
+    return if (count != null && average != null) {
+        TmdbRating(average, count)
     } else {
         null
     }

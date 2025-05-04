@@ -44,15 +44,15 @@ fun PortraitComposable(
             shape = MaterialTheme.shapes.small,
             shadowElevation = 8.dp,
             tonalElevation = 8.dp,
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(PortraitComposableDefaults.POSTER_ASPECT_RATIO),
         ) {
-            BoxWithConstraints(Modifier.Companion.fillMaxSize()) {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
                 image(this.constraints.maxWidth, this.constraints.minHeight)
             }
         }
-        Spacer(Modifier.Companion.height(8.dp))
+        Spacer(Modifier.height(8.dp))
         CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleSmall) {
             label()
         }

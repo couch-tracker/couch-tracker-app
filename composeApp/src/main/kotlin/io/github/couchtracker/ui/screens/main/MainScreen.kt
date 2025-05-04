@@ -17,19 +17,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.R
-import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.utils.str
-
-val HOME_COLOR_SCHEME = Color.hsv(240f, 1f, 0.5f).generateColorScheme()
-val SHOW_COLOR_SCHEME = Color.hsv(0f, 1f, 0.5f).generateColorScheme()
-val MOVIE_COLOR_SCHEME = Color.hsv(180f, 1f, 0.5f).generateColorScheme()
 
 @Composable
 fun MainScreen() {
@@ -94,9 +89,9 @@ private enum class Section(
     val icon: ImageVector,
     val colorScheme: ColorScheme,
 ) {
-    HOME("home", R.string.main_section_home, Icons.Filled.Home, HOME_COLOR_SCHEME),
-    SHOWS("shows", R.string.main_section_shows, Icons.Filled.Tv, SHOW_COLOR_SCHEME),
-    MOVIES("movies", R.string.main_section_movies, Icons.Filled.Movie, MOVIE_COLOR_SCHEME),
+    HOME("home", R.string.main_section_home, Icons.Filled.Home, ColorSchemes.Common),
+    SHOWS("shows", R.string.main_section_shows, Icons.Filled.Tv, ColorSchemes.Show),
+    MOVIES("movies", R.string.main_section_movies, Icons.Filled.Movie, ColorSchemes.Movie),
     ;
 
     companion object {
