@@ -5,6 +5,7 @@
     <string name="continue_action">Continue</string>
     <string name="skip_action">Skip</string>
     <string name="search_action">Search</string>
+    <string name="remove_action">Remove</string>
 
     <string name="more_options">More options</string>
     <string name="error_loading_items">Error loading items</string>
@@ -40,4 +41,13 @@
         <item quantity="other">%1$d time zones</item>
     </plurals>
     <string name="timezone_search_placeholder">City, continent, identifier</string>
+    <string name="no_timezone">No timezone</string>
+
+    <string name="watched_movie_time_just_started">Just started</string>
+    <string name="watched_movie_time_just_finished">Just finished</string>
+    <string name="watched_item_time_today">Today</string>
+    <string name="watched_item_time_custom">Custom</string>
+
+    <string name="mark_movie_as_watched">Mark as watched</string>
+    <string name="date_and_time">Date and time</string>
 </resources>

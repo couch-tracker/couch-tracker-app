@@ -5,6 +5,7 @@
     <string name="continue_action">Continua</string>
     <string name="skip_action">Salta</string>
     <string name="search_action">Cerca</string>
+    <string name="remove_action">Rimuovi</string>
 
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
@@ -41,4 +42,13 @@
         <item quantity="other">%1$d fusi orari</item>
     </plurals>
     <string name="timezone_search_placeholder">Città, continente, id</string>
+    <string name="no_timezone">Nessun fuso orario</string>
+
+    <string name="watched_movie_time_just_started">Appena iniziato</string>
+    <string name="watched_movie_time_just_finished">Appena finito</string>
+    <string name="watched_item_time_today">Oggi</string>
+    <string name="watched_item_time_custom">Personalizzato</string>
+
+    <string name="mark_movie_as_watched">Segna come visto</string>
+    <string name="date_and_time">Data e ora</string>
 </resources>
