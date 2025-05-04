@@ -1,6 +1,8 @@
 package io.github.couchtracker.ui
 
 import android.content.Context
+import app.moviebase.tmdb.image.TmdbImage
+import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 
@@ -39,5 +41,13 @@ suspend fun prepareImage(
             SingletonImageLoader.get(options.context).execute(request)
             ImageModel.Preloaded(request)
         }
+    }
+}
+
+suspend fun TmdbImage.toImageModel(
+    imagePreloadOptions: ImagePreloadOptions,
+): ImageModel? {
+    return prepareImage(imagePreloadOptions) { w, h ->
+        TmdbImageUrlBuilder.build(this, w, h)
     }
 }

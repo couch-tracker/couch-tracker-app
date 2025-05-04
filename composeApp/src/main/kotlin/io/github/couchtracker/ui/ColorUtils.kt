@@ -19,7 +19,7 @@ private const val MAX_FOREGROUND_ELEMENT_SATURATION = 0.1f
 private const val HUE_RANGE = 360f
 private const val HUE_COMPLEMENTARY_DISTANCE = 30f
 
-private val DEFAULT_COLOR_SCHEME = darkColorScheme()
+val DEFAULT_COLOR_SCHEME = darkColorScheme()
 private const val DARK_VALUE_THRESHOLD = 0.5f
 
 /**

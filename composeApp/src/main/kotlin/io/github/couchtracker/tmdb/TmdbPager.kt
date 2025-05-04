@@ -13,7 +13,7 @@ const val TMDB_ITEMS_PER_PAGE = 20
 
 fun <T : Any, O : Any> tmdbPager(
     downloader: suspend Tmdb3.(page: Int) -> TmdbPageResult<T>,
-    mapper: suspend (T) -> O,
+    mapper: suspend (T) -> O?,
 ): Pager<Int, O> {
     return Pager(
         config = PagingConfig(

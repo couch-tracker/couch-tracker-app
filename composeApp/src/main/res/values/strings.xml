@@ -50,4 +50,9 @@
 
     <string name="mark_movie_as_watched">Mark as watched</string>
     <string name="date_and_time">Date and time</string>
+    <string name="search_placeholder">Search…</string>
+    <string name="search_filter_movies">Film</string>
+    <string name="search_filter_shows">Serie TV</string>
+    <string name="search_filter_people">Persone</string>
+    <string name="search_no_results">Nessun risultato</string>
 </resources>

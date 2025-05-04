@@ -30,14 +30,22 @@ import io.github.couchtracker.utils.str
 
 @Composable
 fun HomeSection(innerPadding: PaddingValues) {
+    val navController = LocalNavController.current
     val pagerState = rememberPagerState(initialPage = HomeTab.UP_NEXT.ordinal) { HomeTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
         backgroundImage = painterResource(R.drawable.sunset),
+        actions = {
+            MainSectionDefaults.SearchButton(
+                onOpenSearch = {
+                    navController.navigate(SearchScreen(filter = null))
+                },
+            )
+            AppbarMoreMenu()
+        },
         tabText = { page -> Text(text = HomeTab.entries[page].displayName.str()) },
-        actions = { AppBarIcons() },
         page = { page ->
             Column {
                 ProfileSection()
@@ -56,7 +64,7 @@ private enum class HomeTab(@StringRes val displayName: Int) {
 }
 
 @Composable
-private fun AppBarIcons() {
+private fun AppbarMoreMenu() {
     val navController = LocalNavController.current
     var expanded by remember { mutableStateOf(false) }
     var switchProfileDialogOpen by remember { mutableStateOf(false) }

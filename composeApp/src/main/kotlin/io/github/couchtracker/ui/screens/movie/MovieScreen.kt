@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,6 +77,7 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.ui.components.TagsRow
 import io.github.couchtracker.ui.components.TimezonePickerDialog
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemDialog
 import io.github.couchtracker.utils.Loadable
@@ -347,14 +347,7 @@ private fun MovieText(text: String?, maxLines: Int = Int.MAX_VALUE, style: TextS
 private fun LazyListScope.tagsComposable(tags: List<String>) {
     if (tags.isNotEmpty()) {
         item {
-            FlowRow(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                for (tag in tags) {
-                    Text(tag, style = MaterialTheme.typography.labelLarge)
-                }
-            }
+            TagsRow(tags, modifier = Modifier.padding(horizontal = 16.dp))
         }
     }
 }

@@ -19,7 +19,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.ui.AnimationDefaults
+import io.github.couchtracker.ui.screenContent
 import io.github.couchtracker.ui.screens.main.MainScreen
+import io.github.couchtracker.ui.screens.main.SearchScreen
 import io.github.couchtracker.ui.screens.movie.movieScreen
 import io.github.couchtracker.ui.screens.settings.settings
 import org.koin.compose.KoinContext
@@ -61,6 +63,7 @@ fun App() {
                             composable("main") {
                                 MainScreen()
                             }
+                            composable<SearchScreen> { it.screenContent<SearchScreen>() }
                             movieScreen()
                             settings()
                         }
