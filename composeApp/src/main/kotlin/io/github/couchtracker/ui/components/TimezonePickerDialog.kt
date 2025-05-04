@@ -1,10 +1,14 @@
 package io.github.couchtracker.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,6 +30,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,11 +57,11 @@ import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.timezonesTree
 import kotlinx.datetime.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TimezonePickerDialog(
     timezone: TimeZone?,
-    onTimezoneSelected: (TimeZone) -> Unit,
+    onTimezoneSelected: (TimeZone?) -> Unit,
     close: () -> Unit,
 ) {
     val timezonesTreeRoot = remember { TimeZone.timezonesTree() }
@@ -82,6 +87,7 @@ fun TimezonePickerDialog(
                         },
                     )
                     TimeZoneItemsList(
+                        Modifier.weight(1f, fill = false),
                         categoriesStack = categoriesStack,
                         selected = timezone,
                         select = {
@@ -94,6 +100,22 @@ fun TimezonePickerDialog(
                             }
                         },
                     )
+                    FlowRow(
+                        Modifier
+                            .align(Alignment.End)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    ) {
+                        TextButton({ close() }) { Text(R.string.cancel_action.str()) }
+                        TextButton(
+                            {
+                                onTimezoneSelected(null)
+                                close()
+                            },
+                        ) {
+                            Text(R.string.no_timezone.str())
+                        }
+                    }
                 }
             }
         },
@@ -204,13 +226,14 @@ private fun TimeZoneSearchBar(
 
 @Composable
 private fun TimeZoneItemsList(
+    modifier: Modifier,
     categoriesStack: List<TimezoneItem.Category>,
     selected: TimeZone?,
     select: (TimezoneItem) -> Unit,
 ) {
     val timezones = categoriesStack.last().items
     val scrollState = rememberLazyListState()
-    BoxWithConstraints {
+    BoxWithConstraints(modifier) {
         val h = this.constraints.maxHeight
         val avgItemHeight = LocalDensity.current.run { 72.dp.roundToPx() }
         LaunchedEffect(categoriesStack) {

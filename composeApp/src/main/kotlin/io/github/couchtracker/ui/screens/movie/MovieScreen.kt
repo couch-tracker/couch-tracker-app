@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,6 +66,7 @@ import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
@@ -76,11 +78,13 @@ import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.TimezonePickerDialog
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemDialog
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import org.koin.compose.koinInject
+import kotlin.time.Duration.Companion.hours
 
 private const val ARGUMENTS_MOVIE_ID = "movieId"
 private const val ARGUMENTS_LANGUAGE = "language"
@@ -122,6 +126,7 @@ fun MovieScreen(movie: TmdbMovie) {
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel>>(Loadable.Loading) }
+
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
@@ -154,6 +159,7 @@ fun MovieScreen(movie: TmdbMovie) {
             },
         ) { model ->
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+            var showMarkAsWatchedDialog by remember { mutableStateOf(false) }
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
                     modifier = Modifier
@@ -164,6 +170,18 @@ fun MovieScreen(movie: TmdbMovie) {
                     },
                     content = { innerPadding ->
                         MovieScreenContent(Modifier, innerPadding, model)
+                        if (showMarkAsWatchedDialog) {
+                            WatchedItemDialog(
+                                watchedItemType = WatchedItemType.MOVIE,
+                                approximateVideoRuntime = model.runtime ?: 2.hours,
+                                onDismissRequest = { showMarkAsWatchedDialog = false },
+                            )
+                        }
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(onClick = { showMarkAsWatchedDialog = true }) {
+                            Icon(Icons.Filled.Check, contentDescription = R.string.mark_movie_as_watched.str())
+                        }
                     },
                 )
             }
