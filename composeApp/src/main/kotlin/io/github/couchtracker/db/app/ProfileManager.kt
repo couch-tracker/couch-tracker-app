@@ -11,6 +11,7 @@ import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.ManagedProfileDb
 import io.github.couchtracker.db.profile.ProfileDb
 import io.github.couchtracker.db.profile.ProfileDbResult
+import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.requireMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
+
+typealias FullProfileDataState = Loadable<FullProfileData, ProfileDbResult.AnyError>
 
 class ProfileManager(
     initialProfiles: List<Profile>,
@@ -62,21 +65,21 @@ class ProfileManager(
 
     inner class FullProfileDataFlows(initialDb: ProfileDb) {
         val dbFlow = MutableStateFlow(initialDb to Any())
-        val fullProfileDataStateFlow = dbFlow
+        val fullProfileDataStateFlow: SharedFlow<Loadable<FullProfileData, ProfileDbResult.AnyError>> = dbFlow
             .transformLatest { (db) ->
-                emit(FullProfileDataState.Loading)
+                emit(Loadable.Loading)
                 val result = db.read { profileData ->
                     FullProfileData.load(db = profileData)
                 }
                 emit(
                     when (result) {
-                        is ProfileDbResult.Completed.Success -> FullProfileDataState.Loaded(result.result)
-                        is ProfileDbResult.AnyError -> FullProfileDataState.Error(result)
+                        is ProfileDbResult.Completed.Success -> Loadable.Loaded(result.result)
+                        is ProfileDbResult.AnyError -> Loadable.Error(result)
                     },
                 )
             }
             .runningReduce { last, value ->
-                if (value is FullProfileDataState.Loading && last is FullProfileDataState.Loaded) {
+                if (value is Loadable.Loading && last is Loadable.Loaded) {
                     // If value is already loaded, and I'm loading a new value, I don't want to emit a loading
                     // So I'll keep the stale value instead, waiting for the loaded data or an error
                     last
