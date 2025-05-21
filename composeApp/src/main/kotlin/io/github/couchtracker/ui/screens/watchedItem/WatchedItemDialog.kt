@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,8 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -28,11 +32,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.str
-import io.github.couchtracker.utils.toText
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
@@ -46,6 +52,7 @@ fun WatchedItemDialog(
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
     val dateTimeSectionState = rememberDateTimeSectionState()
+    val profileData = LocalFullProfileDataContext.current
 
     DateTimeSectionDialog(dateTimeSectionState)
     ModalBottomSheet(
@@ -63,8 +70,12 @@ fun WatchedItemDialog(
                     Spacer(Modifier.height(16.dp))
                 }
                 dateTimeSection(dateTimeSectionState, watchedItemType, approximateVideoRuntime)
-                fakeSection("Resolution", listOf("4K", "1080p", "720p"))
-                fakeSection("Place", listOf("Plane", "Car", "Camionetta"))
+                for (dimension in profileData.watchedItemDimensions) {
+                    when (dimension) {
+                        is WatchedItemDimensionWrapper.Choice -> choiceSection(dimension)
+                        is WatchedItemDimensionWrapper.FreeText -> freeTextSection(dimension)
+                    }
+                }
                 item {
                     TextButton(
                         onClick = {
@@ -86,8 +97,8 @@ fun WatchedItemDialog(
 @JvmInline
 value class WatchedItemDialogScope(val lazyListScope: LazyListScope) : LazyListScope by lazyListScope
 
-fun WatchedItemDialogScope.section(title: Text, content: @Composable () -> Unit) {
-    item {
+fun WatchedItemDialogScope.section(title: Text, key: Any, content: @Composable () -> Unit) {
+    item(key) {
         Column {
             Text(
                 title.string(),
@@ -100,29 +111,42 @@ fun WatchedItemDialogScope.section(title: Text, content: @Composable () -> Unit)
     }
 }
 
-private fun WatchedItemDialogScope.fakeSection(title: String, items: List<String>) {
-    section(title.toText()) {
-        var selected by remember { mutableStateOf<String?>(null) }
+private fun WatchedItemDialogScope.choiceSection(dimension: WatchedItemDimensionWrapper.Choice) {
+    section(dimension.name.text, key = dimension.id) {
+        var selected by remember { mutableStateOf<WatchedItemDimensionChoice?>(null) }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(items) { item ->
+            items(dimension.choices, key = { it.id }) { choice ->
                 FilterChip(
-                    selected = item == selected,
+                    selected = choice == selected,
                     onClick = {
-                        selected = if (item == selected) {
+                        selected = if (choice == selected) {
                             null
                         } else {
-                            item
+                            choice
                         }
                     },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),
-                    label = { Text(item) },
+                    leadingIcon = { Icon(choice.icon.icon.painter(), contentDescription = null, modifier = Modifier.size(16.dp)) },
+                    label = { Text(choice.name.text.string()) },
                 )
             }
         }
+    }
+}
+
+private fun WatchedItemDialogScope.freeTextSection(dimension: WatchedItemDimensionWrapper.FreeText) {
+    section(dimension.name.text, key = dimension.id) {
+        var text by remember { mutableStateOf("") }
+        OutlinedTextField(
+            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+            value = text,
+            onValueChange = { text = it },
+            minLines = 2,
+        )
     }
 }
