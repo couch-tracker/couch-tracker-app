@@ -76,6 +76,20 @@ fun <T, E> LoadableScreen(
 }
 
 @Composable
+fun <T> LoadableScreen(
+    data: Loadable<T, Nothing>,
+    onLoading: @Composable () -> Unit = { DefaultLoadingScreen() },
+    content: @Composable (value: T) -> Unit,
+) {
+    LoadableScreen(
+        data = data,
+        onError = { error("Error state shouldn't be possible") },
+        onLoading = onLoading,
+        content = content,
+    )
+}
+
+@Composable
 fun DefaultLoadingScreen() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(

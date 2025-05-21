@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Diversity1
 import androidx.compose.material.icons.filled.Flight
-import androidx.compose.material.icons.filled.House
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Train
@@ -30,7 +30,7 @@ enum class DbDefaultIcon(val icon: Icon) {
     CINEMA(R.drawable.screen_users),
     DISC(R.drawable.disc),
     FRIENDS(Icons.Default.Diversity1),
-    HOUSE(Icons.Default.House),
+    HOUSE(Icons.Default.Home),
     LIVE_TV(Icons.Default.LiveTv),
     OFFICE_BUILDING(Icons.Default.CorporateFare),
     PLANE(Icons.Default.Flight),

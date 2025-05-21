@@ -29,6 +29,8 @@ enum class DbDefaultText(val text: Text) {
     SOURCE_TV(R.string.source_tv),
     SOURCE_PHYSICAL_MEDIA(R.string.source_physical_media),
     SOURCE_DIGITAL_MEDIA(R.string.source_digital_media),
+
+    NOTES(R.string.notes),
     ;
 
     val id = name.lowercase().replace('_', '-')

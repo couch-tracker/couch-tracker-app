@@ -74,8 +74,6 @@ data class ProfileSettingsScreen(val id: Long) : Screen {
 
 @Composable
 private fun Content(profileInfo: ProfileInfo) {
-    val profileManager = LocalProfileManagerContext.current
-
     BaseSettings(R.string.profile.str()) {
         item("name") { ProfileNamePreference(profileInfo) }
         item("location") { ProfileLocationPreference(profileInfo) }

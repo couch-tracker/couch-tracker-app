@@ -152,7 +152,7 @@ fun MovieScreen(movie: TmdbMovie) {
                 Surface {
                     DefaultErrorScreen(
                         // TODO: translate
-                        message = exception?.message ?: "Error",
+                        message = exception.message ?: "Error",
                         retry = {
                             cs.launch { load() }
                         },
