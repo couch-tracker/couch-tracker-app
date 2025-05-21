@@ -11,9 +11,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.couchtracker.LocalProfileManagerContext
-import io.github.couchtracker.db.app.FullProfileDataState
 import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.utils.Loadable
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -26,7 +26,7 @@ fun ProfilePane() {
 
     val profileInfo = profileManager.current
     val profile = profileInfo.profile
-    val profileData by profileInfo.fullProfileDataState.collectAsStateWithLifecycle(initialValue = FullProfileDataState.Loading)
+    val profileData by profileInfo.fullProfileDataState.collectAsStateWithLifecycle(initialValue = Loadable.Loading)
 
     var lastActionStatus by remember { mutableStateOf<ProfileDbResult<Unit>?>(null) }
 
@@ -38,9 +38,9 @@ fun ProfilePane() {
         Text("Last action status: $lastActionStatus")
 
         val showsInCollectionText = "Show IDs in collection: " + when (val data = profileData) {
-            is FullProfileDataState.NotLoaded -> "Loading..."
-            is FullProfileDataState.Error -> "Error: ${data.error}"
-            is FullProfileDataState.Loaded -> data.data.showCollection.joinToString { it.showId.value }
+            is Loadable.Loading -> "Loading..."
+            is Loadable.Error -> "Error: ${data.error}"
+            is Loadable.Loaded -> data.value.showCollection.joinToString { it.showId.value }
         }
         Text(showsInCollectionText, maxLines = 3)
 
@@ -60,8 +60,8 @@ fun ProfilePane() {
         Button(
             onClick = {
                 val data = profileData
-                if (data is FullProfileDataState.Loaded) {
-                    val item = data.data.showCollection.randomOrNull()
+                if (data is Loadable.Loaded) {
+                    val item = data.value.showCollection.randomOrNull()
                     if (item != null) {
                         coroutineScope.launch {
                             lastActionStatus = profileInfo.write { db ->
