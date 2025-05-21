@@ -48,7 +48,7 @@ suspend fun loadMovie(
     width: Int,
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-): Loadable<MovieScreenModel> = coroutineScope {
+): Loadable<MovieScreenModel, TmdbException> = coroutineScope {
     withContext(coroutineContext) {
         try {
             val credits = async { movie.credits(tmdbCache) }
@@ -95,8 +95,7 @@ suspend fun loadMovie(
                 ),
             )
         } catch (e: TmdbException) {
-            // TODO: translate
-            Loadable.Error(e.message ?: "Error")
+            Loadable.Error(e)
         }
     }
 }
