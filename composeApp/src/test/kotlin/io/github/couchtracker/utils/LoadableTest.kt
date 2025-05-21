@@ -34,14 +34,14 @@ class LoadableTest : FunSpec(
                 }
             }
             test("Short-circuits Loading") {
-                Loadable.Loading.flatMap<Any?, Nothing> {
+                Loadable.Loading.flatMap<Nothing, Nothing, Nothing> {
                     throw IllegalStateException()
                 } shouldBe Loadable.Loading
             }
             test("Short-circuits Error") {
                 val arbitraryError = ARBITRARY_LOADABLE.filter { it is Loadable.Error }
                 checkAll(arbitraryError) { error ->
-                    error.flatMap<Any?, Nothing> {
+                    error.flatMap<Any?, Nothing, Any?> {
                         throw IllegalStateException()
                     } shouldBe error
                 }
@@ -79,7 +79,7 @@ private val ARBITRARY_FUNCTION_VALUE = listOf<(Any?) -> Any?>(
     { x -> "$x, but worst" },
 ).exhaustive()
 
-private val ARBITRARY_FUNCTION_LOADABLE = listOf<(Any?) -> Loadable<Any?>>(
+private val ARBITRARY_FUNCTION_LOADABLE = listOf<(Any?) -> Loadable<Any?, String>>(
     // Identity
     { x -> Loadable.Loaded(x) },
     // Constants
@@ -94,7 +94,7 @@ private val ARBITRARY_FUNCTION_LOADABLE = listOf<(Any?) -> Loadable<Any?>>(
     { x -> Loadable.Loaded("$x, but worst") },
 ).exhaustive()
 
-private val ARBITRARY_LOADABLE = listOf<Loadable<Any?>>(
+private val ARBITRARY_LOADABLE = listOf<Loadable<Any?, String>>(
     Loadable.Loading,
     Loadable.Error("Example Error A"),
     Loadable.Error("Example Error B"),

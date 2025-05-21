@@ -35,11 +35,11 @@ private val DEFAULT_INDICATOR_SIZE = 64.dp
  *  - it shows up with a delay
  */
 @Composable
-fun <T : Any> LoadableScreen(
-    data: Loadable<T>,
+fun <T, E> LoadableScreen(
+    data: Loadable<T, E>,
+    onError: @Composable (error: E) -> Unit,
     onLoading: @Composable () -> Unit = { DefaultLoadingScreen() },
-    onError: @Composable (message: String) -> Unit = { DefaultErrorScreen(it) },
-    onLoaded: @Composable (value: T) -> Unit,
+    content: @Composable (value: T) -> Unit,
 ) {
     // Animating the appearance of the Loading state
     val state = remember {
@@ -69,8 +69,8 @@ fun <T : Any> LoadableScreen(
         when (content) {
             null -> Spacer(Modifier.fillMaxSize())
             Loadable.Loading -> onLoading()
-            is Loadable.Error -> onError(content.message)
-            is Loadable.Loaded -> onLoaded(content.value)
+            is Loadable.Error -> onError(content.error)
+            is Loadable.Loaded -> content(content.value)
         }
     }
 }
@@ -86,6 +86,6 @@ fun DefaultLoadingScreen() {
 }
 
 @Composable
-fun DefaultErrorScreen(errorMessage: String, retry: (() -> Unit)? = null) {
-    ErrorMessageComposable(Modifier.fillMaxSize(), errorMessage, retry)
+fun DefaultErrorScreen(message: String, retry: (() -> Unit)? = null) {
+    ErrorMessageComposable(Modifier.fillMaxSize(), message, retry)
 }

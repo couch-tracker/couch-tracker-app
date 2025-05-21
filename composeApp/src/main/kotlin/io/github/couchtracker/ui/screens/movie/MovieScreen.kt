@@ -72,6 +72,7 @@ import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
+import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
@@ -125,7 +126,7 @@ fun MovieScreen(movie: TmdbMovie) {
     val cs = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, TmdbException>>(Loadable.Loading) }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -147,10 +148,11 @@ fun MovieScreen(movie: TmdbMovie) {
 
         LoadableScreen(
             data = screenModel,
-            onError = { message ->
+            onError = { exception ->
                 Surface {
                     DefaultErrorScreen(
-                        errorMessage = message,
+                        // TODO: translate
+                        message = exception?.message ?: "Error",
                         retry = {
                             cs.launch { load() }
                         },
