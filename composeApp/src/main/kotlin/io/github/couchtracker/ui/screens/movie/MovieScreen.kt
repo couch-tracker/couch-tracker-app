@@ -48,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -79,7 +80,8 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.TagsRow
 import io.github.couchtracker.ui.components.TimezonePickerDialog
-import io.github.couchtracker.ui.screens.watchedItem.WatchedItemDialog
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
+import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemDialogScaffoldState
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
@@ -123,7 +125,7 @@ fun NavGraphBuilder.movieScreen() {
 
 @Composable
 fun MovieScreen(movie: TmdbMovie) {
-    val cs = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, TmdbException>>(Loadable.Loading) }
@@ -154,38 +156,41 @@ fun MovieScreen(movie: TmdbMovie) {
                         // TODO: translate
                         message = exception.message ?: "Error",
                         retry = {
-                            cs.launch { load() }
+                            coroutineScope.launch { load() }
                         },
                     )
                 }
             },
         ) { model ->
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-            var showMarkAsWatchedDialog by remember { mutableStateOf(false) }
+            val scaffoldState = rememberWatchedItemDialogScaffoldState()
             MaterialTheme(colorScheme = model.colorScheme) {
-                Scaffold(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    topBar = {
-                        MovieAppBar(model, scrollBehavior)
-                    },
-                    content = { innerPadding ->
-                        MovieScreenContent(Modifier, innerPadding, model)
-                        if (showMarkAsWatchedDialog) {
-                            WatchedItemDialog(
-                                watchedItemType = WatchedItemType.MOVIE,
-                                approximateVideoRuntime = model.runtime ?: 2.hours,
-                                onDismissRequest = { showMarkAsWatchedDialog = false },
+                WatchedItemSheetScaffold(
+                    scaffoldState = scaffoldState,
+                    watchedItemType = WatchedItemType.MOVIE,
+                    approximateVideoRuntime = model.runtime ?: 2.hours,
+                ) {
+                    Scaffold(
+                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                        containerColor = Color.Transparent,
+                        topBar = {
+                            MovieAppBar(model, scrollBehavior)
+                        },
+                        content = { innerPadding ->
+                            MovieScreenContent(
+                                innerPadding = innerPadding,
+                                model = model,
                             )
-                        }
-                    },
-                    floatingActionButton = {
-                        FloatingActionButton(onClick = { showMarkAsWatchedDialog = true }) {
-                            Icon(Icons.Filled.Check, contentDescription = R.string.mark_movie_as_watched.str())
-                        }
-                    },
-                )
+                        },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = { scaffoldState.open(coroutineScope) },
+                            ) {
+                                Icon(Icons.Filled.Check, contentDescription = R.string.mark_movie_as_watched.str())
+                            }
+                        },
+                    )
+                }
             }
         }
     }
@@ -236,9 +241,9 @@ private const val BACKDROP_ASPECT_RATIO = 16f / 9
 
 @Composable
 private fun MovieScreenContent(
-    modifier: Modifier,
     innerPadding: PaddingValues,
     model: MovieScreenModel,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         contentPadding = innerPadding,
@@ -286,7 +291,6 @@ private fun MovieScreenContent(
                 CircularProgressIndicator()
                 LinearProgressIndicator()
                 FloatingActionButton({}) { Icon(Icons.Filled.Favorite, null) }
-                Spacer(Modifier.height(512.dp))
             }
         }
     }
