@@ -1,5 +1,6 @@
 package io.github.couchtracker.ui.screens.main
 
+import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -385,6 +386,7 @@ private data class SearchResultItem(
     val navigate: (NavController) -> Unit,
 )
 
+@Keep
 @Serializable
 enum class SearchableMediaType(
     @StringRes val title: Int,
