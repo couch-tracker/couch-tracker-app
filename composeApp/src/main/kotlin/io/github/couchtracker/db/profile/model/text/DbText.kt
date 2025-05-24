@@ -20,14 +20,19 @@ sealed interface DbText {
         override fun toCouchTrackerUri() = CouchTrackerUri.Authority.TEXT.uri("$DEFAULT_TEXT_PATH/${defaultText.id}")
     }
 
-    data class UnknownDefault(val id: String, val originalUri: CouchTrackerUri) : DbText {
+    data class UnknownDefault(val id: String) : DbText {
+
+        init {
+            require(id.isNotEmpty()) { "empty id" }
+        }
+
         override val text get() = id.toText()
-        override fun toCouchTrackerUri() = originalUri
+        override fun toCouchTrackerUri() = CouchTrackerUri.Authority.TEXT.uri("$DEFAULT_TEXT_PATH/${encodeUriComponent(id)}")
     }
 
     data class Custom(val value: String) : DbText {
         override val text get() = value.toText()
-        override fun toCouchTrackerUri() = CouchTrackerUri.Authority.TEXT.uri("$CUSTOM_TEXT_PATH/${encodeUriComponent(value)}")
+        override fun toCouchTrackerUri() = CouchTrackerUri.Authority.TEXT.uri("$CUSTOM_TEXT_PATH?${encodeUriComponent(value)}")
     }
 
     companion object {
@@ -38,6 +43,8 @@ sealed interface DbText {
             require(ctUri.authority == CouchTrackerUri.Authority.TEXT) {
                 "Invalid couch-tracker authority for text: ${ctUri.authority}"
             }
+            require(ctUri.uri.fragment == null) { "Text URIs cannot have fragments" }
+
             val segments = ctUri.uri.pathSegments()
             when (segments.firstOrNull()) {
                 DEFAULT_TEXT_PATH -> {
@@ -47,7 +54,7 @@ sealed interface DbText {
                     return DbDefaultText.entries
                         .find { it.id == defaultTextName }
                         ?.let { Default(it) }
-                        ?: UnknownDefault(defaultTextName, ctUri)
+                        ?: UnknownDefault(defaultTextName)
                 }
 
                 CUSTOM_TEXT_PATH -> {
