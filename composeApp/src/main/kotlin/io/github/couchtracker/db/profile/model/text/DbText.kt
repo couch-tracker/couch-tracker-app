@@ -2,7 +2,7 @@ package io.github.couchtracker.db.profile.model.text
 
 import io.github.couchtracker.db.profile.CouchTrackerUri
 import io.github.couchtracker.utils.Text
-import io.github.couchtracker.utils.encodeUriQuery
+import io.github.couchtracker.utils.encodeUriComponent
 import io.github.couchtracker.utils.pathSegments
 import io.github.couchtracker.utils.toText
 
@@ -27,7 +27,7 @@ sealed interface DbText {
 
     data class Custom(val value: String) : DbText {
         override val text get() = value.toText()
-        override fun toCouchTrackerUri() = CouchTrackerUri.Authority.TEXT.uri("$CUSTOM_TEXT_PATH/${encodeUriQuery(value)}")
+        override fun toCouchTrackerUri() = CouchTrackerUri.Authority.TEXT.uri("$CUSTOM_TEXT_PATH/${encodeUriComponent(value)}")
     }
 
     companion object {

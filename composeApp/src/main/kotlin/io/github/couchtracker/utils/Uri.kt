@@ -28,11 +28,18 @@ fun URI.pathSegments(): List<String> {
 }
 
 /**
- * Encodes the given [value] to be used, as a whole, in a URI query component.
- *
- * Warning: this function will not escape `&`, `=` or other similar characters, as this is NOT encoding for
- * `application/x-www-form-urlencoded`.
+ * Encodes the given [value] to be used, as a whole, in a URI query component, compliant with
+ * [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986).
  */
-fun encodeUriQuery(value: String): String {
-    return URI("scheme", "authority", "/path", value, "fragment").rawQuery
+fun encodeUriComponent(value: String): String {
+    // Unfortunately there is no standard way to escape a URI component in the stdlib
+    // URLEncoder.encode encodes spaces as `+`, so that's not RFC 3986 compliant
+    return buildString {
+        for (char in value) {
+            when {
+                char.isLetterOrDigit() || "-_.~".contains(char) -> append(char)
+                else -> append("%" + char.code.toString(radix = 16).uppercase().padStart(2, '0'))
+            }
+        }
+    }
 }
