@@ -12,7 +12,7 @@ import java.net.URI
 @JvmInline
 value class CouchTrackerUri(val uri: URI) {
 
-    val authority get() = requireNotNull(uri.authorityOrNull())
+    val authority get() = checkNotNull(uri.authorityOrNull())
 
     init {
         require(uri.scheme == SCHEME) { "Invalid schema for couch-tracker URI: ${uri.scheme}" }
