@@ -29,6 +29,7 @@
     <string name="movie_by_director">di %1$s</string>
     <string name="section_images">Immagini</string>
 
+    <string name="date_and_time">Data e ora</string>
     <string name="date_and_time_dialog_precision">Precisione:</string>
     <string name="date_and_time_precision_year">Anno</string>
     <string name="date_and_time_precision_month">Mese</string>
@@ -50,10 +51,13 @@
     <string name="watched_item_time_custom">Personalizzato</string>
 
     <string name="mark_movie_as_watched">Segna come visto</string>
-    <string name="date_and_time">Data e ora</string>
+    <string name="mark_episode_as_watched">Segna come visto</string>
+    <string name="watched_item_scroll_for_more_options">Scorri per più opzioni</string>
+    <string name="create_watched_item">Crea</string>
+
     <string name="search_placeholder">Cerca…</string>
-    <string name="search_filter_movies">Movies</string>
-    <string name="search_filter_shows">Shows</string>
-    <string name="search_filter_people">People</string>
-    <string name="search_no_results">No results</string>
+    <string name="search_filter_movies">Film</string>
+    <string name="search_filter_shows">Serie TV</string>
+    <string name="search_filter_people">Persone</string>
+    <string name="search_no_results">Nessun risultato</string>
 </resources>
