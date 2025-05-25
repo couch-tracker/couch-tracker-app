@@ -17,4 +17,5 @@ object WatchedItemDimensionPlaceDefaultData : AbstractWatchedItemDimensionChoice
         DefaultChoice(DbDefaultText.PLACE_WORK, DbDefaultIcon.OFFICE_BUILDING),
         DefaultChoice(DbDefaultText.PLACE_SCHOOL, DbDefaultIcon.SCHOOL),
     ),
+    isImportant = true,
 )

@@ -12,4 +12,5 @@ object WatchedItemDimensionMovieVersionDefaultData : AbstractWatchedItemDimensio
         DefaultChoice(DbDefaultText.MOVIE_VERSION_DIRECTORS_CUT, DbDefaultIcon.MOVIE_REEL),
         DefaultChoice(DbDefaultText.MOVIE_VERSION_EXTENDED_CUT, DbDefaultIcon.MORE_TIME),
     ),
+    isImportant = true,
 )

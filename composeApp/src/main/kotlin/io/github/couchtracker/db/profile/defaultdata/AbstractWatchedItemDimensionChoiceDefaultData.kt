@@ -15,6 +15,7 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
     private val appliesTo: Set<WatchedItemType> = WatchedItemType.entries.toSet(),
     private val choices: List<DefaultChoice>,
     private val type: WatchedItemDimensionType.Choice = WatchedItemDimensionType.Choice.SINGLE,
+    private val isImportant: Boolean = false,
 ) : DefaultData<ProfileData> {
 
     protected data class DefaultChoice(
@@ -30,6 +31,7 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
             name = dimensionName,
             appliesTo = appliesTo,
             type = type,
+            isImportant = isImportant,
             manualSortIndex = null,
         ).executeAsOne()
 
