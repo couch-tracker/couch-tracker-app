@@ -58,6 +58,20 @@ value class TmdbEpisodeId(val value: Int) {
     }
 }
 
+@JvmInline
+value class TmdbPersonId(val value: Int) {
+    init {
+        requireTmdbId(value)
+    }
+
+    companion object {
+        val COLUMN_ADAPTER: ColumnAdapter<TmdbPersonId, Long> = IntColumnAdapter.map(
+            encoder = { it.value },
+            decoder = { TmdbPersonId(it) },
+        )
+    }
+}
+
 /**
  * Throws [IllegalArgumentException] when the given [id] is not a valid TMDB ID.
  */

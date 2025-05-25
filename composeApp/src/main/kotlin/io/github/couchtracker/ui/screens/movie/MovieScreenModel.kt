@@ -17,6 +17,11 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.ui.ColorSchemes
+import io.github.couchtracker.ui.ImagePreloadOptions
+import io.github.couchtracker.ui.components.CastPortraitModel
+import io.github.couchtracker.ui.components.CrewCompactListItemModel
+import io.github.couchtracker.ui.components.toCastPortraitModel
+import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.utils.Loadable
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +41,8 @@ data class MovieScreenModel(
     val rating: TmdbRating?,
     val genres: List<TmdbGenre>,
     val director: List<TmdbCrew>,
+    val cast: List<CastPortraitModel>,
+    val crew: List<CrewCompactListItemModel>,
     val images: List<TmdbFileImage>,
     val backdrop: ImageRequest?,
     val colorScheme: ColorScheme,
@@ -87,9 +94,11 @@ suspend fun loadMovie(
                     rating = details.rating(),
                     genres = details.genres,
                     director = credits.await().crew.filter { it.job == "Director" },
+                    cast = credits.await().cast.toCastPortraitModel(movie.language, ImagePreloadOptions.DoNotPreload),
+                    crew = credits.await().crew.toCrewCompactListItemModel(movie.language, ImagePreloadOptions.DoNotPreload),
                     backdrop = backdropImageRequest,
-                    images = images.await().let { imgs ->
-                        (imgs.backdrops + imgs.posters).sortedByDescending { it.voteAverage }
+                    images = images.await().let { images ->
+                        (images.backdrops + images.posters).sortedByDescending { it.voteAverage }
                     },
                     colorScheme = colorScheme,
                 ),

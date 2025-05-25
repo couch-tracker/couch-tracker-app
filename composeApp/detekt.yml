@@ -16,6 +16,8 @@ complexity:
   TooManyFunctions:
     thresholdInClasses: 15
     ignorePrivate: true
+  CyclomaticComplexMethod:
+    ignoreSimpleWhenEntries: true
 
 coroutines:
   InjectDispatcher:
