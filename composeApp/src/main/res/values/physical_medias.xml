@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="physical_media_type">Physical media type</string>
+    <string name="physical_media_type_bluray">Blu-ray</string>
+    <string name="physical_media_type_dvd">DVD</string>
+    <string name="physical_media_type_vhs">VHS</string>
+    <string name="physical_media_type_betamax">Betamax</string>
+</resources>

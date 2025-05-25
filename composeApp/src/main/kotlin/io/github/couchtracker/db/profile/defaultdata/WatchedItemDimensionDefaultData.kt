@@ -8,5 +8,6 @@ object WatchedItemDimensionDefaultData : MultipleDefaultData<ProfileData>(
     WatchedItemDimensionPlaceDefaultData,
     WatchedItemDimensionSourceDefaultData,
     WatchedItemDimensionStreamingProviderDefaultData,
+    WatchedItemDimensionPhysicalMediaDefaultData,
     WatchedItemDimensionNotesDefaultData,
 )

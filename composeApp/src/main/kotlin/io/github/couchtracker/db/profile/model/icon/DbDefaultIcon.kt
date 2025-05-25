@@ -42,6 +42,9 @@ enum class DbDefaultIcon(val icon: Icon) {
 
     // Logos
     LOGO_APPLE_TV_PLUS(R.drawable.logo_apple_tv_plus),
+    LOGO_BETAMAX(R.drawable.logo_betamax),
+    LOGO_BLURAY(R.drawable.logo_bluray),
+    LOGO_DVD(R.drawable.logo_dvd),
     LOGO_CRUNCHYROLL(R.drawable.logo_crunchyroll),
     LOGO_DISCOVERY_PLUS(R.drawable.logo_discovery_plus),
     LOGO_DISNEY_PLUS(R.drawable.logo_disney_plus),
@@ -50,6 +53,7 @@ enum class DbDefaultIcon(val icon: Icon) {
     LOGO_NETFLIX(R.drawable.logo_netflix),
     LOGO_PARAMOUNT_PLUS(R.drawable.logo_paramount_plus),
     LOGO_PRIME_VIDEO(R.drawable.logo_prime_video),
+    LOGO_VHS(R.drawable.logo_vhs),
     ;
 
     val id = name.lowercase().replace('_', '-')
