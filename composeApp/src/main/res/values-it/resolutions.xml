@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="resolution">Risoluzione</string>
+    <string name="resolution_sd">SD</string>
+    <string name="resolution_hd">HD</string>
+    <string name="resolution_fhd">FHD</string>
+    <string name="resolution_4k">4K</string>
+    <string name="resolution_8k">8K</string>
+</resources>

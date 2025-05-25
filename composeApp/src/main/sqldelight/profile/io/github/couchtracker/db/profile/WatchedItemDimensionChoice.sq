@@ -10,7 +10,7 @@ CREATE TABLE WatchedItemDimensionChoice(
   id INTEGER PRIMARY KEY NOT NULL,
   dimension INTEGER NOT NULL,
   name TEXT AS DbText NOT NULL,
-  icon TEXT AS DbIcon NOT NULL,
+  icon TEXT AS DbIcon,
   manualSortIndex INTEGER NOT NULL,
 
   FOREIGN KEY(dimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
