@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="movie_version">Versione film</string>
+    <string name="movie_version_theatrical">Cinematografica</string>
+    <string name="movie_version_directors_cut">Del regista</string>
+    <string name="movie_version_extended_cut">Estesa</string>
+</resources>

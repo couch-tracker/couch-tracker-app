@@ -11,9 +11,12 @@ import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material.icons.filled.LiveTv
+import androidx.compose.material.icons.filled.LocalActivity
+import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Tablet
+import androidx.compose.material.icons.filled.Theaters
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.VideoFile
@@ -39,6 +42,9 @@ enum class DbDefaultIcon(val icon: Icon) {
     LAPTOP(Icons.Default.Laptop),
     LIVE_TV(Icons.Default.LiveTv),
     MONITOR(Icons.Outlined.DesktopWindows),
+    MORE_TIME(Icons.Default.MoreTime),
+    MOVIE_REEL(Icons.Default.Theaters),
+    MOVIE_TICKET(Icons.Default.LocalActivity),
     OFFICE_BUILDING(Icons.Default.CorporateFare),
     PLANE(Icons.Default.Flight),
     PROJECTOR(R.drawable.projector),

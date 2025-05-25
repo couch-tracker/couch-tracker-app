@@ -6,6 +6,7 @@ import io.github.couchtracker.db.profile.ProfileData
 object WatchedItemDimensionDefaultData : MultipleDefaultData<ProfileData>(
     // IMPORTANT: order is significant, the dimensions will be created in this order
     WatchedItemDimensionPlaceDefaultData,
+    WatchedItemDimensionMovieVersionDefaultData,
     WatchedItemDimensionSourceDefaultData,
     WatchedItemDimensionStreamingProviderDefaultData,
     WatchedItemDimensionPhysicalMediaDefaultData,

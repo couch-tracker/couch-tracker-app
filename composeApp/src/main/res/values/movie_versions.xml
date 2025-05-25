@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="movie_version">Movie version</string>
+    <string name="movie_version_theatrical">Theatrical</string>
+    <string name="movie_version_directors_cut">Director\'s cut</string>
+    <string name="movie_version_extended_cut">Extended cut</string>
+</resources>

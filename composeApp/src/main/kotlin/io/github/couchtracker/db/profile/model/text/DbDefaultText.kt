@@ -20,6 +20,11 @@ enum class DbDefaultText(val text: Text) {
     DEVICE_TYPE_TV(R.string.device_type_tv),
     DEVICE_TYPE_VR(R.string.device_type_vr),
 
+    MOVIE_VERSION(R.string.movie_version),
+    MOVIE_VERSION_DIRECTORS_CUT(R.string.movie_version_directors_cut),
+    MOVIE_VERSION_EXTENDED_CUT(R.string.movie_version_extended_cut),
+    MOVIE_VERSION_THEATRICAL(R.string.movie_version_theatrical),
+
     PHYSICAL_MEDIA_TYPE(R.string.physical_media_type),
     PHYSICAL_MEDIA_TYPE_BETAMAX(R.string.physical_media_type_betamax),
     PHYSICAL_MEDIA_TYPE_BLURAY(R.string.physical_media_type_bluray),
