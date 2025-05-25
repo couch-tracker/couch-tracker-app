@@ -29,6 +29,13 @@ enum class DbDefaultText(val text: Text) {
     PLACE_VACATION(R.string.place_vacation),
     PLACE_WORK(R.string.place_work),
 
+    RESOLUTION(R.string.resolution),
+    RESOLUTION_4K(R.string.resolution_4k),
+    RESOLUTION_8K(R.string.resolution_8k),
+    RESOLUTION_FHD(R.string.resolution_fhd),
+    RESOLUTION_HD(R.string.resolution_hd),
+    RESOLUTION_SD(R.string.resolution_sd),
+
     SOURCE(R.string.source),
     SOURCE_CINEMA(R.string.source_cinema),
     SOURCE_STREAMING(R.string.source_streaming),

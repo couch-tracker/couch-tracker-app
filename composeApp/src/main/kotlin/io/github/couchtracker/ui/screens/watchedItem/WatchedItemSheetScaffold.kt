@@ -355,7 +355,11 @@ private fun WatchedItemSheetScope.ChoiceSection(dimension: WatchedItemDimensionW
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),
-                    leadingIcon = { Icon(choice.icon.icon.painter(), contentDescription = null, modifier = Modifier.height(16.dp)) },
+                    leadingIcon = {
+                        if (choice.icon != null) {
+                            Icon(choice.icon.icon.painter(), contentDescription = null, modifier = Modifier.height(16.dp))
+                        }
+                    },
                     label = { Text(choice.name.text.string()) },
                 )
             }

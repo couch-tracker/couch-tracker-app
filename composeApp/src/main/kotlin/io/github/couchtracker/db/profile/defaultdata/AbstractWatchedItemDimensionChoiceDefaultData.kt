@@ -19,9 +19,9 @@ abstract class AbstractWatchedItemDimensionChoiceDefaultData protected construct
 
     protected data class DefaultChoice(
         val name: DbText,
-        val icon: DbIcon,
+        val icon: DbIcon?,
     ) {
-        constructor(text: DbDefaultText, icon: DbDefaultIcon) : this(text.toDbText(), icon.toDbIcon())
+        constructor(text: DbDefaultText, icon: DbDefaultIcon?) : this(text.toDbText(), icon?.toDbIcon())
         constructor(text: DbText, icon: DbDefaultIcon) : this(text, icon.toDbIcon())
     }
 
