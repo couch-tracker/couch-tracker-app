@@ -2,6 +2,7 @@
 
 package io.github.couchtracker.ui.screens.watchedItem
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -119,6 +120,11 @@ fun WatchedItemSheetScaffold(
     }
     val innerBottomPadding = with(LocalDensity.current) {
         WindowInsets.systemBars.getBottom(LocalDensity.current).toDp()
+    }
+    BackHandler(enabled = bottomSheetState.currentValue != SheetValue.Hidden) {
+        coroutineScope.launch {
+            bottomSheetState.hide()
+        }
     }
 
     BottomSheetScaffold(
