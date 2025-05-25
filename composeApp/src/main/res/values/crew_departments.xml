@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crew_departments_acting">Acting</string>
+    <string name="crew_departments_actors">Actors</string>
+    <string name="crew_departments_art">Art</string>
+    <string name="crew_departments_camera">Camera</string>
+    <string name="crew_departments_costume_and_make_up">Costume &amp; Make-Up</string>
+    <string name="crew_departments_creator">Creator</string>
+    <string name="crew_departments_crew">Crew</string>
+    <string name="crew_departments_directing">Directing</string>
+    <string name="crew_departments_editing">Editing</string>
+    <string name="crew_departments_lighting">Lighting</string>
+    <string name="crew_departments_production">Production</string>
+    <string name="crew_departments_sound">Sound</string>
+    <string name="crew_departments_visual_effects">Visual Effects</string>
+    <string name="crew_departments_writing">Writing</string>
+</resources>

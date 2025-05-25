@@ -1,8 +1,6 @@
 package io.github.couchtracker.ui.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -113,9 +111,7 @@ private fun <T : Any> LoadedPaginatedGrid(
                     retry = { paginatedItems.retry() },
                 )
             } else {
-                Box(Modifier.animateContentSize()) {
-                    itemComposable(item)
-                }
+                itemComposable(item)
             }
         }
     }

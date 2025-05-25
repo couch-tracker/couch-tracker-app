@@ -1,5 +1,6 @@
 package io.github.couchtracker.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -54,7 +55,9 @@ fun PortraitComposable(
         }
         Spacer(Modifier.height(8.dp))
         CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleSmall) {
-            label()
+            Column(Modifier.animateContentSize(), horizontalAlignment = Alignment.Companion.CenterHorizontally) {
+                label()
+            }
         }
     }
 }

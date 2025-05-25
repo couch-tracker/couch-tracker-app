@@ -86,7 +86,7 @@ fun ProfileSwitcherDialog(
                     }
                     item(key = "settings") {
                         ListItem(
-                            headlineContent = { Text("Profiles settings") },
+                            headlineContent = { Text(R.string.profiles_settings.str()) },
                             leadingContent = { Icon(Icons.Filled.ManageAccounts, contentDescription = null) },
                             modifier = Modifier.clickable {
                                 navController.navigate(ProfilesSettingsScreen)

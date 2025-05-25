@@ -23,10 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -78,6 +75,7 @@ import io.github.couchtracker.tmdb.toInternalTmdbMovie
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
+import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.PaginatedGrid
@@ -316,7 +314,9 @@ private fun SearchResults(results: Flow<PagingData<SearchResultItem>>, lazyGridS
         itemComposable = { SearchResult(it) },
         emptyComposable = {
             MessageComposable(
-                modifier = Modifier.fillMaxSize().padding(contentPadding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding),
                 icon = Icons.Default.SearchOff,
                 message = R.string.search_no_results.str(),
             )
@@ -396,17 +396,17 @@ enum class SearchableMediaType(
     MOVIE(
         title = R.string.search_filter_movies,
         colorScheme = ColorSchemes.Movie,
-        icon = Icons.Default.Movie,
+        icon = PlaceholdersDefaults.MOVIE.icon,
     ),
     SHOW(
         title = R.string.search_filter_shows,
         colorScheme = ColorSchemes.Show,
-        icon = Icons.Default.Tv,
+        icon = PlaceholdersDefaults.SHOW.icon,
     ),
     PERSON(
         title = R.string.search_filter_people,
         colorScheme = ColorSchemes.Common,
-        icon = Icons.Default.Person,
+        icon = PlaceholdersDefaults.PERSON.icon,
     ),
 }
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crew_departments_acting">Recitazione</string>
+    <string name="crew_departments_actors">Attori</string>
+    <string name="crew_departments_art">Arte</string>
+    <string name="crew_departments_camera">Camera</string>
+    <string name="crew_departments_costume_and_make_up">Costumi e Trucco</string>
+    <string name="crew_departments_creator">Creatore</string>
+    <string name="crew_departments_crew">Troupe</string>
+    <string name="crew_departments_directing">Regia</string>
+    <string name="crew_departments_editing">Montaggio</string>
+    <string name="crew_departments_lighting">Illuminazione</string>
+    <string name="crew_departments_production">Produzione</string>
+    <string name="crew_departments_sound">Suono</string>
+    <string name="crew_departments_visual_effects">Effetti Visivi</string>
+    <string name="crew_departments_writing">Sceneggiatura</string></resources>

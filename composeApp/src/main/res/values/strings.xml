@@ -28,6 +28,8 @@
 
     <string name="movie_by_director">by %1$s</string>
     <string name="section_images">Images</string>
+    <string name="section_cast">Cast</string>
+    <string name="section_crew">Crew</string>
 
     <string name="date_and_time">Date and time</string>
     <string name="date_and_time_dialog_precision">Precision:</string>

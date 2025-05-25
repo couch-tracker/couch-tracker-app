@@ -14,8 +14,9 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.toInternalTmdbMovie
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
+import io.github.couchtracker.ui.PlaceholdersDefaults
+import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -41,6 +42,8 @@ fun MoviePortrait(
                         },
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
+                    fallback = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = false),
+                    error = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = true),
                 )
             }
         },
@@ -101,7 +104,7 @@ suspend fun List<TmdbMovie>.toMoviePortraitModels(
     imagePreloadOptions: ImagePreloadOptions,
 ): List<MoviePortraitModel> = coroutineScope {
     map {
-        async(Dispatchers.IO) {
+        async {
             MoviePortraitModel.fromTmdbMovie(tmdbCache, it, imagePreloadOptions)
         }
     }.awaitAll()

@@ -1,5 +1,9 @@
 package io.github.couchtracker.ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -10,6 +14,12 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+
+enum class PlaceholdersDefaults(val icon: ImageVector) {
+    MOVIE(Icons.Default.Movie),
+    SHOW(Icons.Default.Tv),
+    PERSON(Icons.Default.Person),
+}
 
 @Composable
 fun rememberPlaceholderPainter(

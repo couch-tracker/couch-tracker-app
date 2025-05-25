@@ -2,6 +2,7 @@
 
 package io.github.couchtracker.ui.screens.movie
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -20,22 +21,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -76,17 +71,21 @@ import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
+import io.github.couchtracker.ui.components.CastPortrait
+import io.github.couchtracker.ui.components.CastPortraitModel
+import io.github.couchtracker.ui.components.CrewCompactListItem
+import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.TagsRow
-import io.github.couchtracker.ui.components.TimezonePickerDialog
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemDialogScaffoldState
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
 import org.koin.compose.koinInject
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.hours
 
 private const val ARGUMENTS_MOVIE_ID = "movieId"
@@ -179,6 +178,7 @@ fun MovieScreen(movie: TmdbMovie) {
                         content = { innerPadding ->
                             MovieScreenContent(
                                 innerPadding = innerPadding,
+                                totalHeight = constraints.maxHeight,
                                 model = model,
                             )
                         },
@@ -216,9 +216,10 @@ private fun MovieAppBar(
             LargeTopAppBar(
                 colors = colors,
                 title = {
+                    val isExpanded = LocalTextStyle.current == MaterialTheme.typography.headlineMedium
                     Text(
                         model.title,
-                        maxLines = 1,
+                        maxLines = if (isExpanded) 2 else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 },
@@ -236,13 +237,16 @@ private fun MovieAppBar(
     )
 }
 
-private const val BACKDROP_FILL_PERCENTAGE = 0.8
-private const val BACKDROP_ASPECT_RATIO = 16f / 9
+private const val WIDE_COMPONENTS_FILL_PERCENTAGE = 0.75f
+private const val WIDE_COMPONENTS_ASPECT_RATIO = 16f / 9
+private const val COLUMN_COMPONENTS_ASPECT_RATIO = 3f / 2
+private const val ITEMS_PER_COLUMN = 4
 
 @Composable
 private fun MovieScreenContent(
     innerPadding: PaddingValues,
     model: MovieScreenModel,
+    totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -253,7 +257,7 @@ private fun MovieScreenContent(
         if (model.director.isNotEmpty()) {
             val directors = formatAndList(model.director.map { it.name })
             item {
-                MovieText(R.string.movie_by_director.str(directors), style = MaterialTheme.typography.titleMedium)
+                MovieText(R.string.movie_by_director.str(directors))
             }
         }
         tagsComposable(
@@ -265,78 +269,129 @@ private fun MovieScreenContent(
         )
         space()
 
-        item { MovieText(model.tagline, maxLines = 1, style = MaterialTheme.typography.titleMedium) }
+        item { MovieText(model.tagline, maxLines = 1) }
         item { MovieText(model.overview, style = MaterialTheme.typography.bodyMedium) }
         space()
+
         if (model.images.isNotEmpty()) {
-            item { MovieText(R.string.section_images.str(), maxLines = 1, style = MaterialTheme.typography.titleMedium) }
-            item {
-                ImagesSection(model)
-            }
+            item { MovieText(R.string.section_images.str(), maxLines = 1) }
+            item { ImagesSection(model, totalHeight = totalHeight) }
+            space()
         }
-        item {
-            var tz: TimeZone? by remember { mutableStateOf(TimeZone.currentSystemDefault()) }
-            var picker by remember { mutableStateOf(false) }
-            Button({ picker = true }) { Text("TZ : $tz") }
-            if (picker) {
-                TimezonePickerDialog(tz, close = { picker = false }, onTimezoneSelected = { tz = it })
-            }
+
+        if (model.cast.isNotEmpty()) {
+            item { MovieText(R.string.section_cast.str(), maxLines = 1) }
+            item { CastSection(model.cast, totalHeight = totalHeight) }
+            space()
         }
-        item {
-            Column(Modifier.padding(16.dp)) {
-                Button({}) { Text("Test button") }
-                OutlinedButton({}) { Text("Test outlined button") }
-                Slider(1 / 2f, {})
-                TextField("Test test field", {})
-                CircularProgressIndicator()
-                LinearProgressIndicator()
-                FloatingActionButton({}) { Icon(Icons.Filled.Favorite, null) }
-            }
+
+        if (model.crew.isNotEmpty()) {
+            item { MovieText(R.string.section_crew.str(), maxLines = 1) }
+            item { CrewSection(model.crew, totalHeight = totalHeight) }
+            space()
         }
+
+        // To avoid overlaps with the FAB; see FabPrimaryTokens.ContainerHeight and Scaffold.FabSpacing
+        item { Spacer(Modifier.height(56.dp + 16.dp)) }
     }
 }
 
 @Composable
-private fun ImagesSection(model: MovieScreenModel) {
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
+private fun <T> HorizontalListSection(
+    totalHeight: Int,
+    items: List<T>,
+    modifier: Modifier = Modifier,
+    itemComposable: @Composable (T, targetHeightPx: Int) -> Unit,
+) {
+    BoxWithConstraints(modifier.fillMaxWidth()) {
         val width = this.constraints.maxWidth
-        val scale = LocalDensity.current.run { 1f / 1.dp.toPx() }
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
         ) {
-            val targetWidth = (width * BACKDROP_FILL_PERCENTAGE).toInt()
-            val targetHeight = (targetWidth / BACKDROP_ASPECT_RATIO).toInt()
-            items(model.images) { image ->
-                val imgWidth = (targetHeight * image.aspectRation).toInt()
-                val url = TmdbImageUrlBuilder.build(
-                    image.filePath,
-                    TmdbImageType.BACKDROP,
-                    imgWidth,
-                    targetHeight,
-                )
-                Surface(shape = MaterialTheme.shapes.small, shadowElevation = 8.dp, tonalElevation = 8.dp) {
-                    AsyncImage(
-                        url,
-                        modifier = Modifier
-                            .width((imgWidth * scale).dp)
-                            .height((targetHeight * scale).dp),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                    )
-                }
+            val targetHeightPx = (width * WIDE_COMPONENTS_FILL_PERCENTAGE / WIDE_COMPONENTS_ASPECT_RATIO)
+                .coerceAtMost(totalHeight / 2f)
+                .roundToInt()
+            items(items) { item ->
+                itemComposable(item, targetHeightPx)
             }
         }
     }
 }
 
-private fun LazyListScope.space() = item {
-    // Spacing is 8.dp; to achieve a spacing of 28.dp, this needs to be 4.dp
-    Spacer(Modifier.padding(4.dp))
+@Composable
+private fun <T> HorizontalColumnsListSection(
+    totalHeight: Int,
+    items: List<T>,
+    modifier: Modifier = Modifier,
+    itemsPerColumn: Int = ITEMS_PER_COLUMN,
+    itemComposable: @Composable (T) -> Unit,
+) {
+    HorizontalListSection(
+        totalHeight = totalHeight,
+        items = items.chunked(itemsPerColumn),
+        modifier = modifier,
+    ) { itemsInColumn, targetHeight ->
+        val targetWidth = with(LocalDensity.current) {
+            targetHeight.toDp() * COLUMN_COMPONENTS_ASPECT_RATIO
+        }
+        Column(Modifier.width(targetWidth), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            for (item in itemsInColumn) {
+                itemComposable(item)
+            }
+        }
+    }
 }
 
 @Composable
-private fun MovieText(text: String?, maxLines: Int = Int.MAX_VALUE, style: TextStyle) {
+private fun ImagesSection(model: MovieScreenModel, totalHeight: Int) {
+    HorizontalListSection(totalHeight, model.images) { image, targetHeight ->
+        val imgWidth = (targetHeight * image.aspectRation).roundToInt()
+        val url = TmdbImageUrlBuilder.build(
+            image.filePath,
+            TmdbImageType.BACKDROP,
+            imgWidth,
+            targetHeight,
+        )
+        Surface(shape = MaterialTheme.shapes.small, shadowElevation = 8.dp, tonalElevation = 8.dp) {
+            AsyncImage(
+                url,
+                modifier = Modifier
+                    .width(with(LocalDensity.current) { imgWidth.toDp() })
+                    .height(with(LocalDensity.current) { targetHeight.toDp() }),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CastSection(people: List<CastPortraitModel>, totalHeight: Int) {
+    HorizontalListSection(totalHeight, people, modifier = Modifier.animateContentSize()) { person, targetHeight ->
+        val w = with(LocalDensity.current) {
+            targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
+        }
+        CastPortrait(Modifier.width(w), person, onClick = null)
+    }
+}
+
+@Composable
+private fun CrewSection(people: List<CrewCompactListItemModel>, totalHeight: Int) {
+    HorizontalColumnsListSection(
+        totalHeight = totalHeight,
+        items = people,
+    ) { person ->
+        CrewCompactListItem(person)
+    }
+}
+
+private fun LazyListScope.space() = item {
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun MovieText(text: String?, maxLines: Int = Int.MAX_VALUE, style: TextStyle = MaterialTheme.typography.titleMedium) {
     if (!text.isNullOrBlank()) {
         Text(
             text,
