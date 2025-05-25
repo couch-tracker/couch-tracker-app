@@ -2,6 +2,7 @@ import io.github.couchtracker.db.profile.model.icon.DbIcon;
 import io.github.couchtracker.db.profile.model.text.DbText;
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionType;
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType;
+import kotlin.Boolean;
 import kotlin.collections.Set;
 
 /**
@@ -12,6 +13,7 @@ CREATE TABLE WatchedItemDimension(
   name TEXT AS DbText NOT NULL,
   appliesTo TEXT AS Set<WatchedItemType> NOT NULL,
   type TEXT AS WatchedItemDimensionType NOT NULL,
+  isImportant INTEGER AS Boolean NOT NULL,
   manualSortIndex INTEGER NOT NULL
 );
 
@@ -46,8 +48,8 @@ SELECT *
 FROM WatchedItemDimensionEnableIf;
 
 insert:
-INSERT INTO WatchedItemDimension(name, appliesTo, type, manualSortIndex)
-VALUES (?, ?, ?, (SELECT COALESCE(:manualSortIndex, MAX(manualSortIndex) + 1, 0) FROM WatchedItemDimension))
+INSERT INTO WatchedItemDimension(name, appliesTo, type, isImportant, manualSortIndex)
+VALUES (?, ?, ?, ?, (SELECT COALESCE(:manualSortIndex, MAX(manualSortIndex) + 1, 0) FROM WatchedItemDimension))
 RETURNING id;
 
 insertEnableIf:

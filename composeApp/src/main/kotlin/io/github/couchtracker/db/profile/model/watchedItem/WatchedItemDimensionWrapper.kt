@@ -11,6 +11,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
     val id get() = dimension.id
     val name get() = dimension.name
     val appliesTo get() = dimension.appliesTo
+    val isImportant get() = dimension.isImportant
     val manualSortIndex get() = dimension.manualSortIndex
 
     val type: WatchedItemDimensionType

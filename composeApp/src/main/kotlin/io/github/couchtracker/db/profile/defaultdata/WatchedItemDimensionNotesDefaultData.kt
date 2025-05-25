@@ -13,6 +13,7 @@ object WatchedItemDimensionNotesDefaultData : DefaultData<ProfileData> {
             name = DbDefaultText.NOTES.toDbText(),
             appliesTo = WatchedItemType.entries.toSet(),
             type = WatchedItemDimensionType.FreeText,
+            isImportant = false,
             manualSortIndex = null,
         ).executeAsOne()
     }

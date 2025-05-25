@@ -7,10 +7,10 @@ object WatchedItemDimensionDefaultData : MultipleDefaultData<ProfileData>(
     // IMPORTANT: order is significant, the dimensions will be created in this order
     WatchedItemDimensionPlaceDefaultData,
     WatchedItemDimensionMovieVersionDefaultData,
+    WatchedItemDimensionDeviceTypeDefaultData,
     WatchedItemDimensionSourceDefaultData,
     WatchedItemDimensionStreamingProviderDefaultData,
     WatchedItemDimensionPhysicalMediaDefaultData,
     WatchedItemDimensionResolutionDefaultData,
-    WatchedItemDimensionDeviceTypeDefaultData,
     WatchedItemDimensionNotesDefaultData,
 )

@@ -225,7 +225,7 @@ private fun WatchedItemSheetContent(
                         )
                         Spacer(Modifier.height(16.dp))
                         DateTimeSection(dateTimeSectionState, watchedItemType, approximateVideoRuntime)
-                        for (dimension in profileData.watchedItemDimensions.take(1)) {
+                        for (dimension in profileData.watchedItemDimensions.filter { it.isImportant }) {
                             when (dimension) {
                                 is WatchedItemDimensionWrapper.Choice -> ChoiceSection(dimension)
                                 is WatchedItemDimensionWrapper.FreeText -> FreeTextSection(dimension)
@@ -233,7 +233,7 @@ private fun WatchedItemSheetContent(
                         }
                     }
                 }
-                items(profileData.watchedItemDimensions.drop(1), key = { it.id }) { dimension ->
+                items(profileData.watchedItemDimensions.filterNot { it.isImportant }, key = { it.id }) { dimension ->
                     BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight) {
                         when (dimension) {
                             is WatchedItemDimensionWrapper.Choice -> ChoiceSection(dimension)
