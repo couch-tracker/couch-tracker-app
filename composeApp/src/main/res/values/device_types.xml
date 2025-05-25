@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="device_type">Device type</string>
+    <string name="device_type_laptop">Laptop</string>
+    <string name="device_type_monitor">Monitor</string>
+    <string name="device_type_phone">Phone</string>
+    <string name="device_type_projector">Projector</string>
+    <string name="device_type_tablet">Tablet</string>
+    <string name="device_type_tv">TV</string>
+    <string name="device_type_vr">VR headset</string>
+</resources>

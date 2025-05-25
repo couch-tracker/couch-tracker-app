@@ -10,19 +10,22 @@ Some icons are taken from third-parties, in compliance with their license.
 
 List of catalogs that we use:
 
-| Name         | Website                                  | License                                                                     |
-|--------------|------------------------------------------|-----------------------------------------------------------------------------|
-| `free-icons` | https://free-icons.github.io/free-icons/ | [`CC BY 4.0`](https://github.com/free-icons/free-icons/blob/master/LICENSE) |
+| Name               | Website                                  | License                                                                               |
+|--------------------|------------------------------------------|---------------------------------------------------------------------------------------|
+| `free-icons`       | https://free-icons.github.io/free-icons/ | [`CC BY 4.0`](https://github.com/free-icons/free-icons/blob/master/LICENSE)           |
+| `Material Symbols` | https://fonts.google.com/icons/          | [`SIL Open Font` / `Apache` / `Ubuntu Font`](https://developers.google.com/fonts/faq) |
 
 ### Icons
 
 List of all third-party icons used in the app, and which catalog they are taken from.
 
-| Icon name | Catalog      | Catalog icon name | 
-|-----------|--------------|-------------------|
-| `cinema`  | `free-icons` | `screen-users`    |
-| `disc`    | `free-icons` | `compact-disc`    |
-| `stream`  | `free-icons` | `signal-stream`   |
+| Icon name             | Catalog            | Catalog icon name | 
+|-----------------------|--------------------|-------------------|
+| `cinema`              | `free-icons`       | `screen-users`    |
+| `disc`                | `free-icons`       | `compact-disc`    |
+| `projector`           | `free-icons`       | `projector`       |
+| `stream`              | `free-icons`       | `signal-stream`   |
+| `Head Mounted Device` | `Material Symbols` | `vr`              |
 
 ### Importing a new icon
 
