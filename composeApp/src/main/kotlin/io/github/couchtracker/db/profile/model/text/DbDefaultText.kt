@@ -11,6 +11,15 @@ import io.github.couchtracker.utils.Text
  */
 enum class DbDefaultText(val text: Text) {
 
+    DEVICE_TYPE(R.string.device_type),
+    DEVICE_TYPE_LAPTOP(R.string.device_type_laptop),
+    DEVICE_TYPE_MONITOR(R.string.device_type_monitor),
+    DEVICE_TYPE_PHONE(R.string.device_type_phone),
+    DEVICE_TYPE_PROJECTOR(R.string.device_type_projector),
+    DEVICE_TYPE_TABLET(R.string.device_type_tablet),
+    DEVICE_TYPE_TV(R.string.device_type_tv),
+    DEVICE_TYPE_VR(R.string.device_type_vr),
+
     PHYSICAL_MEDIA_TYPE(R.string.physical_media_type),
     PHYSICAL_MEDIA_TYPE_BETAMAX(R.string.physical_media_type_betamax),
     PHYSICAL_MEDIA_TYPE_BLURAY(R.string.physical_media_type_bluray),

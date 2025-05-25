@@ -10,5 +10,6 @@ object WatchedItemDimensionDefaultData : MultipleDefaultData<ProfileData>(
     WatchedItemDimensionStreamingProviderDefaultData,
     WatchedItemDimensionPhysicalMediaDefaultData,
     WatchedItemDimensionResolutionDefaultData,
+    WatchedItemDimensionDeviceTypeDefaultData,
     WatchedItemDimensionNotesDefaultData,
 )
