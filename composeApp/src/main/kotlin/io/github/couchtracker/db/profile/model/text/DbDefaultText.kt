@@ -11,6 +11,12 @@ import io.github.couchtracker.utils.Text
  */
 enum class DbDefaultText(val text: Text) {
 
+    PHYSICAL_MEDIA_TYPE(R.string.physical_media_type),
+    PHYSICAL_MEDIA_TYPE_BETAMAX(R.string.physical_media_type_betamax),
+    PHYSICAL_MEDIA_TYPE_BLURAY(R.string.physical_media_type_bluray),
+    PHYSICAL_MEDIA_TYPE_DVD(R.string.physical_media_type_dvd),
+    PHYSICAL_MEDIA_TYPE_VHS(R.string.physical_media_type_vhs),
+
     PLACE(R.string.place),
     PLACE_BUS(R.string.place_bus),
     PLACE_CAR(R.string.place_car),
