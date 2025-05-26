@@ -6,6 +6,9 @@
     <string name="skip_action">Salta</string>
     <string name="search_action">Cerca</string>
     <string name="remove_action">Rimuovi</string>
+    <string name="create_action">Crea</string>
+    <string name="save_action">Salva</string>
+    <string name="delete_action">Elimina</string>
 
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
@@ -55,7 +58,6 @@
     <string name="mark_movie_as_watched">Segna come visto</string>
     <string name="mark_episode_as_watched">Segna come visto</string>
     <string name="watched_item_scroll_for_more_options">Scorri per più opzioni</string>
-    <string name="create_watched_item">Crea</string>
 
     <string name="search_placeholder">Cerca…</string>
     <string name="search_filter_movies">Film</string>

@@ -25,3 +25,17 @@ CREATE TABLE WatchedItem (
 
 selectAll:
 SELECT * FROM WatchedItem;
+
+insert:
+INSERT INTO WatchedItem(itemId, watchAt)
+VALUES (:itemId, :watchAt)
+RETURNING *;
+
+update:
+UPDATE WatchedItem
+SET watchAt = :watchAt
+WHERE id = :id
+RETURNING *;
+
+delete:
+DELETE FROM WatchedItem WHERE id = :id;

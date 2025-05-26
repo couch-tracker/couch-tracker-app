@@ -3,6 +3,8 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,8 +22,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -31,11 +30,9 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -44,6 +41,7 @@ import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,11 +57,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import io.github.couchtracker.LocalFullProfileDataContext
+import io.github.couchtracker.LocalProfileManagerContext
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
-import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionWrapper
+import io.github.couchtracker.db.profile.ProfileDbResult
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
+import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelections
 import io.github.couchtracker.ui.components.BoxWithScrim
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.str
@@ -73,43 +74,57 @@ import kotlin.time.Duration
 
 object WatchedItemSheetScope
 
-class WatchedItemDialogScaffoldState(
+class WatchedItemSheetScaffoldState(
+    val coroutineScope: CoroutineScope,
     val scaffoldState: BottomSheetScaffoldState,
 ) {
-    /** This boolean is to avoid creating the bottom sheet when not necessary */
-    var createBottomSheet by mutableStateOf(false)
+    var mode: WatchedItemSheetMode? by mutableStateOf(null)
+        private set
 
-    fun open(coroutineScope: CoroutineScope) {
-        createBottomSheet = true
+    // This is needed to differentiate each open request, so that we can create a fresh WatchedItemSheetContent for each of them
+    var openCounter by mutableIntStateOf(0)
+        private set
+
+    fun open(mode: WatchedItemSheetMode) {
+        this.mode = mode
+        openCounter++
         coroutineScope.launch {
             scaffoldState.bottomSheetState.show()
+        }
+    }
+
+    fun close() {
+        coroutineScope.launch {
+            scaffoldState.bottomSheetState.hide()
         }
     }
 }
 
 @Composable
-fun rememberWatchedItemDialogScaffoldState(): WatchedItemDialogScaffoldState {
-    val scaffoldState = rememberBottomSheetScaffoldState(
+fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
+    val coroutineScope = rememberCoroutineScope()
+
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
             skipHiddenState = false,
         ),
     )
-    return remember {
-        WatchedItemDialogScaffoldState(
-            scaffoldState = scaffoldState,
+    return remember(coroutineScope, bottomSheetScaffoldState) {
+        WatchedItemSheetScaffoldState(
+            coroutineScope = coroutineScope,
+            scaffoldState = bottomSheetScaffoldState,
         )
     }
 }
 
 @Composable
 fun WatchedItemSheetScaffold(
-    scaffoldState: WatchedItemDialogScaffoldState,
+    scaffoldState: WatchedItemSheetScaffoldState,
     watchedItemType: WatchedItemType,
     approximateVideoRuntime: Duration,
     content: @Composable () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = scaffoldState.scaffoldState.bottomSheetState
     var headerHeight by remember { mutableIntStateOf(0) }
     var scrollLabelHeight by remember { mutableIntStateOf(0) }
@@ -122,9 +137,7 @@ fun WatchedItemSheetScaffold(
         WindowInsets.systemBars.getBottom(LocalDensity.current).toDp()
     }
     BackHandler(enabled = bottomSheetState.currentValue != SheetValue.Hidden) {
-        coroutineScope.launch {
-            bottomSheetState.hide()
-        }
+        scaffoldState.close()
     }
 
     BottomSheetScaffold(
@@ -142,32 +155,27 @@ fun WatchedItemSheetScaffold(
             }
         },
         sheetContent = {
-            if (scaffoldState.createBottomSheet) {
-                WatchedItemSheetContent(
-                    bottomSheetState = bottomSheetState,
-                    watchedItemType,
-                    approximateVideoRuntime,
-                    onDismissRequest = {
-                        coroutineScope.launch {
-                            bottomSheetState.hide()
-                        }
-                    },
-                    onHeaderHeightChange = { headerHeight = it },
-                    onScrollLabelHeightChange = { scrollLabelHeight = it },
-                    onFooterHeightChange = { footerHeight = it },
-                    innerBottomPadding = innerBottomPadding,
-                )
+            scaffoldState.mode?.let { mode ->
+                key(scaffoldState.openCounter) {
+                    WatchedItemSheetContent(
+                        selections = rememberWatchedItemSelections(watchedItemType, mode = mode),
+                        bottomSheetState = bottomSheetState,
+                        watchedItemType = watchedItemType,
+                        approximateVideoRuntime = approximateVideoRuntime,
+                        onDismissRequest = { scaffoldState.close() },
+                        onHeaderHeightChange = { headerHeight = it },
+                        onScrollLabelHeightChange = { scrollLabelHeight = it },
+                        onFooterHeightChange = { footerHeight = it },
+                        innerBottomPadding = innerBottomPadding,
+                    )
+                }
             }
         },
         content = {
             BoxWithScrim(
                 visible = bottomSheetState.targetValue != SheetValue.Hidden,
                 color = BottomSheetDefaults.ScrimColor,
-                onDismissRequest = {
-                    coroutineScope.launch {
-                        bottomSheetState.hide()
-                    }
-                },
+                onDismissRequest = { scaffoldState.close() },
             ) {
                 content()
             }
@@ -177,7 +185,9 @@ fun WatchedItemSheetScaffold(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("LongMethod")
 private fun WatchedItemSheetContent(
+    selections: WatchedItemSelections,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
     approximateVideoRuntime: Duration,
@@ -187,24 +197,33 @@ private fun WatchedItemSheetContent(
     onFooterHeightChange: (Int) -> Unit,
     innerBottomPadding: Dp,
 ) {
-    val dateTimeSectionState = rememberDateTimeSectionState()
-    val profileData = LocalFullProfileDataContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val currentProfile = LocalProfileManagerContext.current.current
     val showAdvancedOptions = bottomSheetState.targetValue == SheetValue.Expanded
     val lazyListState = rememberLazyListState()
     var titleHeight by remember { mutableIntStateOf(0) }
     var headerHeight by remember { mutableIntStateOf(0) }
     var scrollLabelHeight by remember { mutableIntStateOf(0) }
 
-    DateTimeSectionDialog(dateTimeSectionState)
+    DateTimeSectionDialog(selections.datetime)
 
     LaunchedEffect(showAdvancedOptions) {
         if (!showAdvancedOptions) {
             lazyListState.animateScrollToItem(0)
         }
     }
+
+    @Composable
+    fun WatchedItemSheetScope.DimensionSection(selection: WatchedItemDimensionSelection<*>) {
+        when (selection) {
+            is WatchedItemDimensionSelection.Choice -> ChoiceSection(selection, onSelectionChange = selections::update)
+            is WatchedItemDimensionSelection.FreeText -> FreeTextSection(selection, onSelectionChange = selections::update)
+        }
+    }
+
     BoxWithConstraints {
         val c = this.constraints
-        LazyColumn(state = lazyListState) {
+        LazyColumn(state = lazyListState, modifier = Modifier.animateContentSize()) {
             WatchedItemSheetScope.apply {
                 item {
                     Column(
@@ -224,27 +243,33 @@ private fun WatchedItemSheetContent(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Spacer(Modifier.height(16.dp))
-                        DateTimeSection(dateTimeSectionState, watchedItemType, approximateVideoRuntime)
-                        for (dimension in profileData.watchedItemDimensions.filter { it.isImportant }) {
-                            when (dimension) {
-                                is WatchedItemDimensionWrapper.Choice -> ChoiceSection(dimension)
-                                is WatchedItemDimensionWrapper.FreeText -> FreeTextSection(dimension)
+                        DateTimeSection(selections.datetime, watchedItemType, approximateVideoRuntime)
+                        for (selection in selections.dimensions.filter { it.dimension.isImportant }) {
+                            AnimatedVisibility(visible = selection.dimension.isVisible(selections)) {
+                                DimensionSection(selection)
                             }
                         }
                     }
                 }
-                items(profileData.watchedItemDimensions.filterNot { it.isImportant }, key = { it.id }) { dimension ->
-                    BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight) {
-                        when (dimension) {
-                            is WatchedItemDimensionWrapper.Choice -> ChoiceSection(dimension)
-                            is WatchedItemDimensionWrapper.FreeText -> FreeTextSection(dimension)
+                for (selection in selections.dimensions.filterNot { it.dimension.isImportant }) {
+                    if (selection.dimension.isVisible(selections)) {
+                        item(key = selection.dimension.id) {
+                            BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight, modifier = Modifier.animateItem()) {
+                                DimensionSection(selection)
+                            }
                         }
                     }
                 }
                 // This is just to have an element at the bottom that will take the same size as the other Button
                 item {
                     BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight) {
-                        SaveButton(innerBottomPadding, onDismissRequest = { })
+                        ButtonRow(
+                            mode = selections.sheetMode,
+                            onSave = { error("This save button should never be clicked") },
+                            onDelete = { error("This save button should never be clicked") },
+                            innerBottomPadding = innerBottomPadding,
+                            modifier = Modifier.alpha(0f),
+                        )
                     }
                 }
             }
@@ -260,9 +285,32 @@ private fun WatchedItemSheetContent(
                     scrollLabelHeight = it.size.height
                 },
         )
-        SaveButton(
-            innerBottomPadding,
-            Modifier
+        ButtonRow(
+            mode = selections.sheetMode,
+            onSave = {
+                coroutineScope.launch {
+                    // TODO handle error (toast?)
+                    val result = selections.save(currentProfile)
+                    if (result is ProfileDbResult.Completed.Success) {
+                        onDismissRequest()
+                    } else {
+                        println(result)
+                    }
+                }
+            },
+            onDelete = { watchedItem ->
+                coroutineScope.launch {
+                    // TODO handle error (toast?)
+                    val result = watchedItem.delete(currentProfile)
+                    if (result is ProfileDbResult.Completed.Success) {
+                        onDismissRequest()
+                    } else {
+                        println(result)
+                    }
+                }
+            },
+            innerBottomPadding = innerBottomPadding,
+            modifier = Modifier
                 .align(Alignment.TopCenter)
                 .onPlaced {
                     onFooterHeightChange(it.size.height)
@@ -271,7 +319,7 @@ private fun WatchedItemSheetContent(
                     val naturalTranslation = -bottomSheetState.requireOffset() + c.maxHeight - this.size.height
                     translationY = naturalTranslation.coerceAtLeast(titleHeight.toFloat())
                 },
-        ) { onDismissRequest() }
+        )
     }
 }
 
@@ -295,22 +343,29 @@ private fun ScrollLabel(showAdvancedOptions: Boolean, modifier: Modifier = Modif
 }
 
 @Composable
-private fun BelowScrollLabelContainer(showAdvancedOptions: Boolean, scrollLabelHeight: Int, content: @Composable () -> Unit) {
+private fun BelowScrollLabelContainer(
+    showAdvancedOptions: Boolean,
+    scrollLabelHeight: Int,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     val translationY by animateFloatAsState(
         targetValue = if (showAdvancedOptions) 0f else scrollLabelHeight.toFloat(),
         animationSpec = tween(),
     )
-    Box(
-        Modifier.graphicsLayer {
-            this.translationY = translationY
-        },
-    ) {
+    Box(modifier = modifier.graphicsLayer { this.translationY = translationY }) {
         content()
     }
 }
 
 @Composable
-private fun SaveButton(innerBottomPadding: Dp, modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
+private fun ButtonRow(
+    mode: WatchedItemSheetMode,
+    onSave: () -> Unit,
+    onDelete: (WatchedItemWrapper) -> Unit,
+    innerBottomPadding: Dp,
+    modifier: Modifier = Modifier,
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -319,17 +374,31 @@ private fun SaveButton(innerBottomPadding: Dp, modifier: Modifier = Modifier, on
             .padding(bottom = innerBottomPadding)
             // Intercepting all input events, since this will be on top of other content
             .pointerInput(Unit) { },
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.End),
     ) {
-        Button(onClick = { onDismissRequest() }) {
-            Text(R.string.create_watched_item.str())
+        if (mode is WatchedItemSheetMode.Edit) {
+            OutlinedButton(
+                onClick = { onDelete(mode.watchedItem) },
+                content = {
+                    Text(R.string.delete_profile.str())
+                },
+            )
+        }
+        Button(onClick = onSave) {
+            Text(
+                text = when (mode) {
+                    is WatchedItemSheetMode.Edit -> R.string.save_action.str()
+                    is WatchedItemSheetMode.New -> R.string.create_action.str()
+                },
+            )
         }
     }
 }
 
 @Composable
-fun WatchedItemSheetScope.Section(title: Text, content: @Composable () -> Unit) {
-    Column {
+@Suppress("UnusedReceiverParameter")
+fun WatchedItemSheetScope.Section(title: Text, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Column(modifier = modifier) {
         Text(
             title.string(),
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -337,53 +406,5 @@ fun WatchedItemSheetScope.Section(title: Text, content: @Composable () -> Unit) 
         )
         content()
         Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-private fun WatchedItemSheetScope.ChoiceSection(dimension: WatchedItemDimensionWrapper.Choice) {
-    Section(dimension.name.text) {
-        var selected by remember { mutableStateOf<WatchedItemDimensionChoice?>(null) }
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(dimension.choices, key = { it.id }) { choice ->
-                FilterChip(
-                    selected = choice == selected,
-                    onClick = {
-                        selected = if (choice == selected) {
-                            null
-                        } else {
-                            choice
-                        }
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    ),
-                    leadingIcon = {
-                        if (choice.icon != null) {
-                            Icon(choice.icon.icon.painter(), contentDescription = null, modifier = Modifier.height(16.dp))
-                        }
-                    },
-                    label = { Text(choice.name.text.string()) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun WatchedItemSheetScope.FreeTextSection(dimension: WatchedItemDimensionWrapper.FreeText) {
-    Section(dimension.name.text) {
-        var text by remember { mutableStateOf("") }
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            value = text,
-            onValueChange = { text = it },
-            minLines = 2,
-        )
     }
 }
