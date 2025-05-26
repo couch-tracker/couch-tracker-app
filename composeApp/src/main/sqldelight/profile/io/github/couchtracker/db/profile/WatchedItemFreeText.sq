@@ -2,13 +2,22 @@
  * Contains the values for the dimensions of type free text for a single `WatchedItem`.
  */
 CREATE TABLE WatchedItemFreeText(
-  watchedItemId INTEGER NOT NULL,
+  watchedItem INTEGER NOT NULL,
   watchedItemDimension INTEGER NOT NULL,
   text TEXT NOT NULL,
-  PRIMARY KEY(watchedItemId, watchedItemDimension),
-  FOREIGN KEY(watchedItemId) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  PRIMARY KEY(watchedItem, watchedItemDimension),
+  FOREIGN KEY(watchedItem) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY(watchedItemDimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 selectAll:
 SELECT * FROM WatchedItemFreeText;
+
+delete:
+DELETE FROM WatchedItemFreeText
+WHERE watchedItem = :watchedItem AND watchedItemDimension = :watchedItemDimension;
+
+upsert:
+INSERT INTO WatchedItemFreeText(watchedItem, watchedItemDimension, text)
+VALUES(:watchedItem, :watchedItemDimension, :text)
+ON CONFLICT(watchedItem, watchedItemDimension) DO UPDATE SET text = :text;

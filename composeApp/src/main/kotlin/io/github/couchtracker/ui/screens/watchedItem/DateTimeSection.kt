@@ -28,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,8 +58,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 
-class DateTimeSectionState {
-    var dateTime by mutableStateOf<DateAndTimeValue?>(null)
+class DateTimeSectionState(val initial: PartialDateTime? = null) {
+
+    var dateTime by mutableStateOf(initial?.let { DateAndTimeValue(DateAndTimeSectionChoices.Custom, it) })
     var customDateDialogVisibility by mutableStateOf(HIDDEN)
     var customTimezone by mutableStateOf<TimeZone?>(TimeZone.currentSystemDefault())
 
@@ -149,11 +149,6 @@ sealed interface DateAndTimeSectionChoices {
             }
         }
     }
-}
-
-@Composable
-fun rememberDateTimeSectionState(): DateTimeSectionState {
-    return remember { DateTimeSectionState() }
 }
 
 @Composable

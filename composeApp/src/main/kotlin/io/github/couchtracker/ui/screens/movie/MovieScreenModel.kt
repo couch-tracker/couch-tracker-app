@@ -16,6 +16,7 @@ import coil3.toBitmap
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbMovie
+import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.ui.ColorSchemes
@@ -37,6 +38,7 @@ import kotlin.time.Duration.Companion.minutes
 private const val LOG_TAG = "MovieScreenModel"
 
 data class MovieScreenModel(
+    val id: TmdbMovieId,
     val title: String,
     val tagline: String,
     val overview: String,
@@ -92,6 +94,7 @@ suspend fun loadMovie(
             }
             Loadable.Loaded(
                 MovieScreenModel(
+                    id = movie.id,
                     title = details.title,
                     tagline = details.tagline,
                     overview = details.overview,

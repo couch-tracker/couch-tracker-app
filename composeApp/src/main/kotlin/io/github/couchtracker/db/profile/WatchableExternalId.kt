@@ -44,3 +44,6 @@ sealed interface WatchableExternalId {
         }
     }
 }
+
+fun ExternalMovieId.asWatchable() = WatchableExternalId.Movie(this)
+fun ExternalEpisodeId.asWatchable() = WatchableExternalId.Episode(this)

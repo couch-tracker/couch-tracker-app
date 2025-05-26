@@ -2,12 +2,29 @@
  * Many-to-many relationship between `WatchedItem`s and `WatchedItemDimensionChoice`s.
  */
 CREATE TABLE WatchedItemChoice(
-  watchedItemId INTEGER NOT NULL,
+  watchedItem INTEGER NOT NULL,
   choice INTEGER NOT NULL,
-  PRIMARY KEY(watchedItemId, choice),
-  FOREIGN KEY(watchedItemId) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  PRIMARY KEY(watchedItem, choice),
+  FOREIGN KEY(watchedItem) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY(choice) REFERENCES WatchedItemDimensionChoice(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-selectAll:
-SELECT * FROM WatchedItemChoice;
+selectAllWithDimensionId:
+SELECT c.*, dc.dimension AS watchedItemDimension
+FROM WatchedItemChoice c
+INNER JOIN WatchedItemDimensionChoice dc ON dc.id = c.choice;
+
+delete:
+DELETE FROM WatchedItemChoice WHERE watchedItem = :watchedItem;
+
+deleteForDimension:
+DELETE FROM WatchedItemChoice
+WHERE watchedItem = :watchedItem AND choice IN (
+    SELECT id
+    FROM WatchedItemDimensionChoice
+    WHERE dimension = :dimension
+);
+
+insert:
+INSERT INTO WatchedItemChoice(watchedItem, choice)
+VALUES (:watchedItem, :choice);
