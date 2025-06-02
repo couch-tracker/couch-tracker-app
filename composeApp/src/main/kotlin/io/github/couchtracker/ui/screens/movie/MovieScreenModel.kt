@@ -7,6 +7,7 @@ import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbGenre
+import app.moviebase.tmdb.model.TmdbVideo
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -44,6 +45,7 @@ data class MovieScreenModel(
     val cast: List<CastPortraitModel>,
     val crew: List<CrewCompactListItemModel>,
     val images: List<TmdbFileImage>,
+    val videos: List<TmdbVideo>,
     val backdrop: ImageRequest?,
     val colorScheme: ColorScheme,
 )
@@ -60,6 +62,7 @@ suspend fun loadMovie(
         try {
             val credits = async { movie.credits(tmdbCache) }
             val images = async { movie.images(tmdbCache) }
+            val videos = async { movie.videos(tmdbCache) }
             val details = movie.details(tmdbCache)
             val backdropImage = details.backdropImage
             val backdropImageRequest: ImageRequest?
@@ -100,6 +103,7 @@ suspend fun loadMovie(
                     images = images.await().let { images ->
                         (images.backdrops + images.posters).sortedByDescending { it.voteAverage }
                     },
+                    videos = videos.await(),
                     colorScheme = colorScheme,
                 ),
             )

@@ -6,6 +6,7 @@ import app.moviebase.tmdb.model.TmdbCredits
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import app.moviebase.tmdb.model.TmdbReleaseDates
+import app.moviebase.tmdb.model.TmdbVideo
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 
@@ -45,6 +46,18 @@ data class TmdbMovie(
                 null,
                 listOf(AppendResponse.IMAGES),
             ).images ?: error("images cannot be null")
+        },
+    )
+
+    suspend fun videos(cache: TmdbCache): List<TmdbVideo> = tmdbGetOrDownload(
+        get = { cache.movieVideosCacheQueries.get(id).awaitAsOneOrNull() },
+        put = { cache.movieVideosCacheQueries.put(tmdbId = id, videos = it) },
+        downloader = {
+            it.movies.getDetails(
+                id.value,
+                null,
+                listOf(AppendResponse.VIDEOS),
+            ).videos?.results ?: error("videos cannot be null")
         },
     )
 
