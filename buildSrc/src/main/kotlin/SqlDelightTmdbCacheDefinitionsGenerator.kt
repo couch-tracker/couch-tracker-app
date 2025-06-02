@@ -28,6 +28,11 @@ private val CACHES = listOf(
         key = listOf(MOVIE_ID_COLUMN),
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
     ),
+    SqlTable(
+        name = "MovieVideosCache",
+        key = listOf(MOVIE_ID_COLUMN),
+        value = SqlColumn.text("videos", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbVideo>"),
+    ),
 )
 
 /** Which sql functions to generate */
