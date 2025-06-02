@@ -9,14 +9,23 @@ import java.io.File
 
 class DbPathTest : FunSpec(
     {
-        test("of() works") {
-            val file = File("/some/path")
+        test("appDatabase() works") {
+            val dbFile = File("/some/path/somename.db")
             val context = mockk<Context> {
-                every { getDatabasePath(any()) } returns file
+                every { getDatabasePath("somename") } returns dbFile
             }
-            val path = DbPath.of(context, "somename")
+            val path = DbPath.appDatabase(context, "somename")
             path.name shouldBe "somename"
-            path.file shouldBe file
+            path.file shouldBe dbFile
+        }
+        test("appCache() works") {
+            val appCache = File("/some/path")
+            val context = mockk<Context> {
+                every { cacheDir } returns appCache
+            }
+            val path = DbPath.appCache(context, "somename")
+            path.name shouldBe "somename"
+            path.file shouldBe File(appCache, "somename")
         }
     },
 )

@@ -9,6 +9,7 @@ import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import io.github.couchtracker.db.profile.ProfileDb
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
+import io.requery.android.database.sqlite.SQLiteDatabaseConfiguration
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
@@ -23,7 +24,20 @@ class AndroidSqliteDriverFactory(
             schema = schema,
             context = appContext,
             name = dbPath.name,
-            factory = RequerySQLiteOpenHelperFactory(),
+            factory = RequerySQLiteOpenHelperFactory(
+                listOf(
+                    RequerySQLiteOpenHelperFactory.ConfigurationOptions { configuration ->
+                        SQLiteDatabaseConfiguration(
+                            dbPath.file.absolutePath,
+                            configuration.openFlags,
+                            @Suppress("DEPRECATION")
+                            configuration.customFunctions,
+                            configuration.functions,
+                            configuration.customExtensions,
+                        )
+                    },
+                ),
+            ),
             callback = object : AndroidSqliteDriver.Callback(schema) {
                 override fun onCorruption(db: SupportSQLiteDatabase) {
                     Log.e(ProfileDb.LOG_TAG, "Database $dbPath is corrupted!")

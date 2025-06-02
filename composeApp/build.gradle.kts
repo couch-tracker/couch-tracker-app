@@ -60,7 +60,6 @@ kotlin {
         // Database stuff
         implementation(libs.requery.android)
         implementation(libs.sqldelight.android)
-        implementation(libs.sqldelight.async)
         implementation(libs.sqldelight.coroutines)
         implementation(libs.sqldelight.primitive.adapters)
         implementation(libs.sqldelight.sqlite.dialect)
@@ -164,7 +163,6 @@ sqldelight {
         create("TmdbCache") {
             packageName.set("io.github.couchtracker.db.tmdbCache")
             srcDirs.setFrom("src/main/sqldelight/tmdbCache")
-            generateAsync.set(true)
             dialect(dialect)
         }
     }

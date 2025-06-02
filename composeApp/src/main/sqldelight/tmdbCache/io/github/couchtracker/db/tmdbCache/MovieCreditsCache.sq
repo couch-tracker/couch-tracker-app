@@ -1,15 +1,16 @@
 CREATE TABLE MovieCreditsCache (
     tmdbId INTEGER AS io.github.couchtracker.tmdb.TmdbMovieId NOT NULL,
     credits TEXT AS app.moviebase.tmdb.model.TmdbCredits NOT NULL,
+    lastUpdate TEXT AS kotlinx.datetime.Instant NOT NULL,
     PRIMARY KEY(tmdbId)
 );
 
 get:
-SELECT credits
+SELECT credits, lastUpdate
 FROM MovieCreditsCache
 WHERE tmdbId = ?;
 
 put:
 INSERT INTO MovieCreditsCache
-VALUES (:tmdbId, :credits)
-ON CONFLICT DO UPDATE SET credits = :credits;
+VALUES (:tmdbId, :credits, :lastUpdate)
+ON CONFLICT DO UPDATE SET credits = :credits, lastUpdate = :lastUpdate;
