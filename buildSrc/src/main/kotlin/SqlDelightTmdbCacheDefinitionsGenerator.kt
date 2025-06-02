@@ -38,14 +38,18 @@ private val CACHES = listOf(
 /** Which sql functions to generate */
 private val SQL_FUNCTIONS = listOf(
     SqlFunction("get") { cache ->
-        appendLine("SELECT ${cache.value.name}")
+        appendLine("SELECT ${cache.value.name}, ${cache.lastUpdate.name}")
         appendLine("FROM ${cache.name}")
         appendLine("WHERE " + cache.key.joinToString(" AND ") { "${it.name} = ?" } + ";")
     },
     SqlFunction("put") { cache ->
         appendLine("INSERT INTO ${cache.name}")
-        appendLine("VALUES (${cache.key.joinToString { ":${it.name}" }}, :${cache.value.name})")
-        appendLine("ON CONFLICT DO UPDATE SET ${cache.value.name} = :${cache.value.name};")
+        appendLine("VALUES (${cache.key.joinToString { ":${it.name}" }}, :${cache.value.name}, :${cache.lastUpdate.name})")
+        appendLine(
+            "ON CONFLICT DO UPDATE SET " +
+                "${cache.value.name} = :${cache.value.name}, " +
+                "${cache.lastUpdate.name} = :${cache.lastUpdate.name};",
+        )
     },
 )
 
@@ -73,6 +77,8 @@ private data class SqlTable(
     val key: List<SqlColumn>,
     val value: SqlColumn,
 ) {
+    val lastUpdate = SqlColumn.text("lastUpdate", "kotlinx.datetime.Instant")
+
     init {
         require(key.isNotEmpty())
         require(key.all { !it.nullable })
@@ -84,6 +90,7 @@ private data class SqlTable(
             appendLine("    ${column.columnDefinition()},")
         }
         appendLine("    ${value.columnDefinition()},")
+        appendLine("    ${lastUpdate.columnDefinition()},")
         appendLine("    PRIMARY KEY(${key.joinToString { it.name }})")
         appendLine(");")
     }

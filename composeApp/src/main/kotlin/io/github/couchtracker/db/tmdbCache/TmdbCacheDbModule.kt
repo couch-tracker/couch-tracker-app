@@ -1,9 +1,9 @@
 package io.github.couchtracker.db.tmdbCache
 
-import app.cash.sqldelight.async.coroutines.synchronous
 import io.github.couchtracker.db.common.AndroidSqliteDriverFactory
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.common.SqliteDriverFactory
+import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
@@ -13,33 +13,38 @@ import org.koin.dsl.module
 
 val TmdbCacheDbModule = module {
     factory(named("TmdbCacheDb")) {
-        AndroidSqliteDriverFactory(schema = TmdbCache.Schema.synchronous())
+        AndroidSqliteDriverFactory(schema = TmdbCache.Schema)
     }.bind<SqliteDriverFactory>()
 
     single {
         val driverFactory = get<SqliteDriverFactory>(named("TmdbCacheDb"))
         TmdbCache(
-            driver = driverFactory.getDriver(DbPath.of(get(), "tmdb-cache.db")),
+            driver = driverFactory.getDriver(DbPath.appCache(get(), "tmdb-cache.db")),
             MovieDetailsCacheAdapter = MovieDetailsCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
                 detailsAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
             ),
             MovieReleaseDatesCacheAdapter = MovieReleaseDatesCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 releaseDatesAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
             ),
             MovieCreditsCacheAdapter = MovieCreditsCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 creditsAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
             ),
             MovieImagesCacheAdapter = MovieImagesCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 imagesAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
             ),
             MovieVideosCacheAdapter = MovieVideosCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 videosAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
             ),
         )
     }

@@ -51,13 +51,15 @@ class MetadataItemTest : FunSpec(
             }
         }
         context("setValue()") {
-            test("when value is set") {
+            // Test disabled because of mockk bug: https://github.com/mockk/mockk/issues/1342
+            xtest("when value is set") {
                 val db = mockk<ProfileData>(relaxed = true)
                 val metadataItem = MetadataItem(key = TEST_KEY, columnAdapter)
                 metadataItem.setValue(db, TestData)
                 verify(exactly = 1) { db.metadataQueries.upsert(TEST_KEY, TEST_VALUE) }
             }
-            test("when value is null") {
+            // Test disabled because of mockk bug: https://github.com/mockk/mockk/issues/1342
+            xtest("when value is null") {
                 val db = mockk<ProfileData>(relaxed = true)
                 val metadataItem = MetadataItem(key = TEST_KEY, columnAdapter)
                 metadataItem.setValue(db, null)

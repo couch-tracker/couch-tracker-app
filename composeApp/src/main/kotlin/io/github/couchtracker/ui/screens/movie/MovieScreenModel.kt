@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.movie
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.material3.ColorScheme
 import androidx.palette.graphics.Palette
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
@@ -32,6 +33,8 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+
+private const val LOG_TAG = "MovieScreenModel"
 
 data class MovieScreenModel(
     val title: String,
@@ -108,6 +111,7 @@ suspend fun loadMovie(
                 ),
             )
         } catch (e: TmdbException) {
+            Log.e(LOG_TAG, "Error while loading MovieScreenModel for ${movie.id.toExternalId().serialize()} (${movie.language})", e)
             Loadable.Error(e)
         }
     }

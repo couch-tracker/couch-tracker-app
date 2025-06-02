@@ -15,8 +15,12 @@ import java.io.File
 class DbPath private constructor(val name: String, val file: File) {
 
     companion object {
-        fun of(context: Context, name: String): DbPath {
+        fun appDatabase(context: Context, name: String): DbPath {
             return DbPath(name = name, file = context.getDatabasePath(name))
+        }
+
+        fun appCache(context: Context, name: String): DbPath {
+            return DbPath(name = name, file = File(context.cacheDir, name))
         }
     }
 }

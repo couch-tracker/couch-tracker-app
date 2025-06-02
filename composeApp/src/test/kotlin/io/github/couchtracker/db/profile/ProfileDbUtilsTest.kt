@@ -11,6 +11,7 @@ class ProfileDbUtilsTest : FunSpec(
     {
         val context = mockk<Context> {
             every { getDatabasePath(any()) } returns File("/some/path")
+            every { cacheDir } returns File("/some/path")
         }
         test("getCachedDbNameForProfile()") {
             val dbPath = ProfileDbUtils.getCachedDbNameForProfile(context, 123)

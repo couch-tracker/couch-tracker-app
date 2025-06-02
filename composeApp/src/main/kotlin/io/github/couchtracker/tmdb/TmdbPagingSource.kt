@@ -1,5 +1,6 @@
 package io.github.couchtracker.tmdb
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.moviebase.tmdb.Tmdb3
@@ -8,14 +9,16 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
+private const val LOG_TAG = "TmdbPagingSource"
+
 class TmdbPagingSource<T : Any, O : Any>(
     val downloader: suspend Tmdb3.(page: Int) -> TmdbPageResult<T>,
     val mapper: suspend (T) -> O?,
 ) : PagingSource<Int, O>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, O> {
+        val nextPageNumber = params.key ?: 1
         try {
-            val nextPageNumber = params.key ?: 1
             val response = tmdbDownload { tmdb3 ->
                 tmdb3.downloader(nextPageNumber)
             }
@@ -33,6 +36,7 @@ class TmdbPagingSource<T : Any, O : Any>(
                 itemsAfter = response.totalResults - loadedBefore - response.results.size,
             )
         } catch (e: TmdbException) {
+            Log.w(LOG_TAG, "Error while loading page $nextPageNumber", e)
             return LoadResult.Error(e)
         }
     }
