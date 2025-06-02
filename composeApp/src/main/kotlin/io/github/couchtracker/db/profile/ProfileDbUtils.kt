@@ -18,6 +18,6 @@ object ProfileDbUtils : KoinComponent {
      * Returns the path for the cached location of a profile database that is managed externally.
      */
     fun getCachedDbNameForProfile(context: Context, profileId: Long): DbPath {
-        return DbPath.appDatabase(context, "$profileId.cached.db")
+        return DbPath.appCache(context, "$profileId.cached.db")
     }
 }
