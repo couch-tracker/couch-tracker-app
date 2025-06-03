@@ -277,7 +277,7 @@ private fun CustomDateTimeRow(
         horizontalArrangement = Arrangement.StartSpaceLast,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(Modifier.padding(4.dp)) {
+        Row(Modifier.padding(horizontal = 4.dp)) {
             DateTimePiece(
                 dialogToOpen = DATE,
                 setCustomDialogVisibility = setCustomDialogVisibility,
@@ -297,7 +297,7 @@ private fun CustomDateTimeRow(
                 )
             }
         }
-        Row(Modifier.padding(4.dp)) {
+        Row(Modifier.padding(horizontal = 4.dp)) {
             DateTimePiece(
                 dialogToOpen = TIMEZONE,
                 setCustomDialogVisibility = setCustomDialogVisibility,
