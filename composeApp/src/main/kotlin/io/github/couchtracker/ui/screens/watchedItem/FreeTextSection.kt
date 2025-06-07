@@ -10,6 +10,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionS
 
 @Composable
 fun WatchedItemSheetScope.FreeTextSection(
+    enabled: Boolean,
     selection: WatchedItemDimensionSelection.FreeText,
     onSelectionChange: (WatchedItemDimensionSelection.FreeText) -> Unit,
     modifier: Modifier = Modifier,
@@ -19,6 +20,7 @@ fun WatchedItemSheetScope.FreeTextSection(
             modifier = Modifier.Companion
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
+            enabled = enabled,
             value = selection.value,
             onValueChange = { onSelectionChange(selection.copy(value = it)) },
             minLines = 2,

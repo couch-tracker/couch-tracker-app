@@ -181,9 +181,12 @@ sealed class ProfileDb : KoinComponent {
             get: (Uri) -> T?,
             block: (T) -> Unit,
         ): ProfileDbResult<Unit> {
-            fun onOpenError(e: Exception): ProfileDbResult.FileError.UriCannotBeOpened {
-                Log.w(LOG_TAG, "Unable to open $uri for $operation", e)
-                return ProfileDbResult.FileError.UriCannotBeOpened(e, operation)
+            fun onOpenError(
+                exception: Exception,
+                reason: ProfileDbResult.FileError.UriCannotBeOpened.Reason,
+            ): ProfileDbResult.FileError.UriCannotBeOpened {
+                Log.w(LOG_TAG, "Unable to open $uri for $operation", exception)
+                return ProfileDbResult.FileError.UriCannotBeOpened(exception, reason, operation)
             }
 
             val resource = try {
@@ -191,9 +194,9 @@ sealed class ProfileDb : KoinComponent {
                     Log.w(LOG_TAG, "Unable to open $uri for $operation. Content provider returned null when opening stream")
                 }
             } catch (e: FileNotFoundException) {
-                return onOpenError(e)
+                return onOpenError(e, ProfileDbResult.FileError.UriCannotBeOpened.Reason.FILE_NOT_FOUND)
             } catch (e: SecurityException) {
-                return onOpenError(e)
+                return onOpenError(e, ProfileDbResult.FileError.UriCannotBeOpened.Reason.SECURITY)
             }
             return try {
                 resource.use(block)

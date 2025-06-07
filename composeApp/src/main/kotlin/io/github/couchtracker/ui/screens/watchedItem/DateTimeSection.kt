@@ -192,6 +192,7 @@ fun DateTimeSectionDialog(sectionState: DateTimeSectionState) {
 @Composable
 @OptIn(ExperimentalAnimationApi::class)
 fun WatchedItemSheetScope.DateTimeSection(
+    enabled: Boolean,
     sectionState: DateTimeSectionState,
     watchedItemType: WatchedItemType,
     approximateVideoRuntime: Duration,
@@ -205,6 +206,7 @@ fun WatchedItemSheetScope.DateTimeSection(
         ) { dt ->
             if (dt?.category == DateAndTimeSectionChoices.Custom) {
                 CustomDateTimeRow(
+                    enabled = enabled,
                     selectedDateTime = dt.dateTime,
                     setCustomDialogVisibility = { sectionState.customDateDialogVisibility = it },
                     deselect = { sectionState.dateTime = null },
@@ -216,6 +218,7 @@ fun WatchedItemSheetScope.DateTimeSection(
                 ) {
                     items(DateAndTimeSectionChoices.ofWatchedItemType(watchedItemType)) { category ->
                         FilterChip(
+                            enabled = enabled,
                             selected = category == dt?.category,
                             onClick = {
                                 when (category) {
@@ -242,6 +245,7 @@ fun WatchedItemSheetScope.DateTimeSection(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CustomDateTimeRow(
+    enabled: Boolean,
     selectedDateTime: PartialDateTime,
     setCustomDialogVisibility: (DateTimeSectionState.CustomDateDialogVisibility) -> Unit,
     deselect: () -> Unit,
@@ -274,6 +278,7 @@ private fun CustomDateTimeRow(
     ) {
         Row(Modifier.padding(horizontal = 4.dp)) {
             DateTimePiece(
+                enabled = enabled,
                 dialogToOpen = DATE,
                 setCustomDialogVisibility = setCustomDialogVisibility,
                 text = dateString,
@@ -283,6 +288,7 @@ private fun CustomDateTimeRow(
             )
             if (timeString != null) {
                 DateTimePiece(
+                    enabled = enabled,
                     dialogToOpen = TIME,
                     setCustomDialogVisibility = setCustomDialogVisibility,
                     text = timeString,
@@ -294,6 +300,7 @@ private fun CustomDateTimeRow(
         }
         Row(Modifier.padding(horizontal = 4.dp)) {
             DateTimePiece(
+                enabled = enabled,
                 dialogToOpen = TIMEZONE,
                 setCustomDialogVisibility = setCustomDialogVisibility,
                 text = tzString ?: R.string.no_timezone.str(),
@@ -302,7 +309,7 @@ private fun CustomDateTimeRow(
                 icon = Icons.Default.Public,
             )
         }
-        IconButton(deselect) {
+        IconButton(enabled = enabled, onClick = deselect) {
             Icon(Icons.Default.Close, R.string.remove_action.str())
         }
     }
@@ -310,6 +317,7 @@ private fun CustomDateTimeRow(
 
 @Composable
 private fun DateTimePiece(
+    enabled: Boolean,
     dialogToOpen: DateTimeSectionState.CustomDateDialogVisibility,
     setCustomDialogVisibility: (DateTimeSectionState.CustomDateDialogVisibility) -> Unit,
     text: String,
@@ -327,6 +335,7 @@ private fun DateTimePiece(
         shape = shape.copy(topEnd = ZeroCornerSize, bottomEnd = ZeroCornerSize)
     }
     InputChip(
+        enabled = enabled,
         selected = selected,
         onClick = { setCustomDialogVisibility(dialogToOpen) },
         label = { Text(text) },

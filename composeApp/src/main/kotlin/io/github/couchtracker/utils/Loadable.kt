@@ -1,9 +1,16 @@
 package io.github.couchtracker.utils
 
-sealed interface Loadable<out T, out E> {
+sealed interface Loadable<out T, out E> : Actionable<T, E> {
+
+    /**
+     * Specialization of [Loadable] that doesn't allow the [Loading] state.
+     * This is equivalent of either [Loaded] or [Error].
+     */
+    sealed interface Completed<out T, out E> : Loadable<T, E>
+
     data object Loading : Loadable<Nothing, Nothing>
-    data class Error<E>(val error: E) : Loadable<Nothing, E>
-    data class Loaded<T>(val value: T) : Loadable<T, Nothing>
+    data class Error<E>(val error: E) : Completed<Nothing, E>
+    data class Loaded<T>(val value: T) : Completed<T, Nothing>
 }
 
 /**
