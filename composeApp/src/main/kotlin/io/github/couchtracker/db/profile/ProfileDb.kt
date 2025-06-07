@@ -7,7 +7,8 @@ import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.common.DBCorruptedException
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.common.SqliteDriverFactory
-import io.github.couchtracker.db.profile.ProfileDbResult.FileError.AttemptedOperation
+import io.github.couchtracker.db.profile.ProfileDbError.FileError.AttemptedOperation
+import io.github.couchtracker.utils.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -117,9 +118,9 @@ sealed class ProfileDb : KoinComponent {
     /**
      * Opens the local profile database given by [dbPath] and executes the transaction [block].
      *
-     * Depending on the outcome of [block], it can return [ProfileDbResult.Completed.Success] or [ProfileDbResult.Completed.Error].
+     * If [block] fails, it returns a [ProfileDbError.TransactionError].
      *
-     * If the database file is invalid (e.g. corrupted, file is not a database), [ProfileDbResult.FileError.InvalidDatabase] is returned.
+     * If the database file is invalid (e.g. corrupted, file is not a database), [ProfileDbError.FileError.InvalidDatabase] is returned.
      */
     protected suspend fun <T> openAndUseDatabase(
         dbPath: DbPath,
@@ -130,21 +131,19 @@ sealed class ProfileDb : KoinComponent {
         return driver.use {
             try {
                 val db = get<ProfileData> { parametersOf(driver) }
-                ProfileDbResult.Completed.Success(result = block(db))
+                Result.Value(value = block(db))
             } catch (ignored: DBCorruptedException) {
                 onCorrupted()
-                ProfileDbResult.FileError.InvalidDatabase
+                Result.Error(ProfileDbError.FileError.InvalidDatabase)
             } catch (expected: Exception) {
                 Log.e(LOG_TAG, "Error in profile database transaction", expected)
-                ProfileDbResult.Completed.Error(exception = expected)
+                Result.Error(ProfileDbError.TransactionError(exception = expected))
             }
         }
     }
 
     /**
      * Copies [this] external [URI] document to the internal [file].
-     *
-     * @return `null` on success, non-`null` [ProfileDbResult] if there was an error
      */
     protected fun Uri.copyToInternal(file: File): ProfileDbResult<Unit> {
         Log.d(LOG_TAG, "Copying external file $this to internal $file")
@@ -157,8 +156,6 @@ sealed class ProfileDb : KoinComponent {
 
     /**
      * Copies [this] internal [File] to the external [uri] document.
-     *
-     * @return `null` on success, non-`null` [ProfileDbResult] if there was an error
      */
     protected fun File.copyToExternal(uri: Uri): ProfileDbResult<Unit> {
         Log.d(LOG_TAG, "Copying internal file $this to external $uri")
@@ -181,26 +178,31 @@ sealed class ProfileDb : KoinComponent {
             get: (Uri) -> T?,
             block: (T) -> Unit,
         ): ProfileDbResult<Unit> {
-            fun onOpenError(e: Exception): ProfileDbResult.FileError.UriCannotBeOpened {
-                Log.w(LOG_TAG, "Unable to open $uri for $operation", e)
-                return ProfileDbResult.FileError.UriCannotBeOpened(e, operation)
+            fun onOpenError(
+                exception: Exception,
+                reason: ProfileDbError.FileError.UriCannotBeOpened.Reason,
+            ): Result.Error<ProfileDbError.FileError.UriCannotBeOpened> {
+                Log.w(LOG_TAG, "Unable to open $uri for $operation", exception)
+                return Result.Error(ProfileDbError.FileError.UriCannotBeOpened(exception, reason, operation))
             }
 
             val resource = try {
-                get(uri) ?: return ProfileDbResult.FileError.ContentProviderFailure(operation).also {
-                    Log.w(LOG_TAG, "Unable to open $uri for $operation. Content provider returned null when opening stream")
-                }
+                get(uri) ?: return Result.Error(
+                    ProfileDbError.FileError.ContentProviderFailure(operation).also {
+                        Log.w(LOG_TAG, "Unable to open $uri for $operation. Content provider returned null when opening stream")
+                    },
+                )
             } catch (e: FileNotFoundException) {
-                return onOpenError(e)
+                return onOpenError(e, ProfileDbError.FileError.UriCannotBeOpened.Reason.FILE_NOT_FOUND)
             } catch (e: SecurityException) {
-                return onOpenError(e)
+                return onOpenError(e, ProfileDbError.FileError.UriCannotBeOpened.Reason.SECURITY)
             }
             return try {
                 resource.use(block)
-                ProfileDbResult.Completed.Success(Unit)
+                Result.Value(Unit)
             } catch (e: IOException) {
                 Log.w(LOG_TAG, "IO error while executing $operation on $uri", e)
-                ProfileDbResult.FileError.InputOutputError(e, operation)
+                Result.Error(ProfileDbError.FileError.InputOutputError(e, operation))
             }
         }
     }

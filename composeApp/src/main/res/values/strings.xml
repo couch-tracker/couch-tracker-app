@@ -12,6 +12,20 @@
 
     <string name="more_options">More options</string>
     <string name="error_loading_items">Error loading items</string>
+    <string name="save_failed">Save failed</string>
+    <string name="save_failed_message">Error saving data in your profile. %s</string>
+    <string name="show_exception">Show exception</string>
+    <string name="hide_exception">Hide exception</string>
+    <string name="copy_exception_stacktrace">Copy exceptions stacktrace</string>
+    <string name="db_completed_error">Unexpected database format or programming error.</string>
+    <string name="db_metadata_error">Unable to obtain metadata of profile file.</string>
+    <string name="db_invalid_database_error">The profile file is not a valid SQLite database file.</string>
+    <string name="db_file_error_read">Error while trying to read the profile file. %s</string>
+    <string name="db_file_error_write">Error while trying to write the profile file. %s</string>
+    <string name="db_content_provider_error">Android\'s content provider failed to open the file.</string>
+    <string name="db_cant_open_error_file_not_found">The file doesn\'t exist.</string>
+    <string name="db_cant_open_error_security">The app has not been granted permission to open the file.</string>
+    <string name="db_io_error">An I/O issue has been encountered.</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Shows</string>

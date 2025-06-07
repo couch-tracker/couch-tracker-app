@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
 
 private const val ANIMATION_DURATION_MS = 300
 private val DEFAULT_INDICATOR_SIZE = 64.dp
@@ -69,8 +70,8 @@ fun <T, E> LoadableScreen(
         when (content) {
             null -> Spacer(Modifier.fillMaxSize())
             Loadable.Loading -> onLoading()
-            is Loadable.Error -> onError(content.error)
-            is Loadable.Loaded -> content(content.value)
+            is Result.Error -> onError(content.error)
+            is Result.Value -> content(content.value)
         }
     }
 }

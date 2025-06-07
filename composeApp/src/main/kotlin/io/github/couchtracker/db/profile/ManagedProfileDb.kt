@@ -6,6 +6,9 @@ import android.util.Log
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
+import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.onError
 import io.github.couchtracker.utils.toAndroidUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,7 +55,7 @@ class ManagedProfileDb(private val profileId: Long) : ProfileDb() {
      * This will copy the DB to the external storage in the file located by [uri].
      * The app will start sharing ownership of the DB.
      *
-     * After this function returns [ProfileDbResult.Completed.Success], this class mustn't be used anymore.
+     * After this function returns [Result.Value], this class mustn't be used anymore.
      */
     suspend fun moveToExternalDb(context: Context, uri: URI, coroutineContext: CoroutineContext = Dispatchers.IO): ProfileDbResult<Unit> {
         return withContext(coroutineContext) {
@@ -63,7 +66,7 @@ class ManagedProfileDb(private val profileId: Long) : ProfileDb() {
 
             // No-op write, just make sure that a database file exists (so we can copy it)
             val writeResult = ensureDbExists()
-            if (writeResult !is ProfileDbResult.Completed.Success) {
+            if (writeResult !is Result.Value) {
                 Log.e(LOG_TAG, "Unable to write to locally managed DB file! Something's wrong")
                 return@withContext writeResult
             }
@@ -83,7 +86,7 @@ class ManagedProfileDb(private val profileId: Long) : ProfileDb() {
             )
 
             // Return success
-            ProfileDbResult.Completed.Success(Unit)
+            Result.Value(Unit)
         }
     }
 
