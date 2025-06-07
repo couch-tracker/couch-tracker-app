@@ -12,6 +12,20 @@
 
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
+    <string name="save_failed">Salvataggio fallito</string>
+    <string name="save_failed_message">Errore durante il salvataggio nel profilo. %s</string>
+    <string name="show_exception">Mostra eccezione</string>
+    <string name="hide_exception">Nascondi eccezione</string>
+    <string name="copy_exception_stacktrace">Copia stacktrace eccezione</string>
+    <string name="db_completed_error">Formato database inaspettato o errore di programmazione.</string>
+    <string name="db_metadata_error">Impossibile ottenere i metadati del file del profilo.</string>
+    <string name="db_invalid_database_error">Il file del profilo non è un file SQLite valido.</string>
+    <string name="db_file_error_read">Errore durante la lettura del file del profilo. %s</string>
+    <string name="db_file_error_write">Errore durante la scrittura del file del profilo. %s</string>
+    <string name="db_content_provider_error">Il fornitore di contenuti di Android non è riuscito ad aprire il file.</string>
+    <string name="db_cant_open_error_file_not_found">Il file non esiste.</string>
+    <string name="db_cant_open_error_security">All\'app non è stata concessa l\'autorizzazione per aprire il file.</string>
+    <string name="db_io_error">Si è verificato un problema di I/O.</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Serie</string>

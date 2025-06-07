@@ -27,6 +27,7 @@ import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -92,7 +93,7 @@ suspend fun loadMovie(
             } else {
                 backdropImageRequest = null
             }
-            Loadable.Loaded(
+            Result.Value(
                 MovieScreenModel(
                     id = movie.id,
                     title = details.title,
@@ -115,7 +116,7 @@ suspend fun loadMovie(
             )
         } catch (e: TmdbException) {
             Log.e(LOG_TAG, "Error while loading MovieScreenModel for ${movie.id.toExternalId().serialize()} (${movie.language})", e)
-            Loadable.Error(e)
+            Result.Error(e)
         }
     }
 }

@@ -42,10 +42,12 @@ import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.app.ProfileManager.ProfileInfo
 import io.github.couchtracker.db.profile.ExternalProfileDb
 import io.github.couchtracker.db.profile.ManagedProfileDb
+import io.github.couchtracker.db.profile.ProfileDbError
 import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.db.profile.ProfileDbUtils
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.formattedLastModified
+import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toJavaUri
 import kotlinx.coroutines.launch
@@ -113,12 +115,12 @@ private sealed interface LocationChangeDialogState {
 
     sealed interface Complete : LocationChangeDialogState {
         data object Success : Complete
-        data class Error(val moveStatus: ProfileDbResult.AnyError) : Complete
+        data class Error(val moveStatus: ProfileDbError) : Complete
 
         companion object {
             fun from(result: ProfileDbResult<Unit>) = when (result) {
-                is ProfileDbResult.Completed.Success -> Success
-                is ProfileDbResult.AnyError -> Error(result)
+                is Result.Value -> Success
+                is Result.Error -> Error(result.error)
             }
         }
     }

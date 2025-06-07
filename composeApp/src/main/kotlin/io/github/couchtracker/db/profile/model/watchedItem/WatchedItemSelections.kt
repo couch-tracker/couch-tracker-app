@@ -6,8 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.couchtracker.LocalFullProfileDataContext
-import io.github.couchtracker.db.app.ProfileManager
-import io.github.couchtracker.db.profile.ProfileDbResult
+import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.ui.screens.watchedItem.DateTimeSectionState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 
@@ -24,8 +23,8 @@ class WatchedItemSelections(
         dimensionsMap = dimensionsMap.plus(selection.dimension to selection)
     }
 
-    suspend fun save(profile: ProfileManager.ProfileInfo): ProfileDbResult<Unit> {
-        return profile.write { db ->
+    fun save(db: ProfileData) {
+        db.transaction {
             val watchAt = datetime.dateTime?.dateTime
             val watchedItem = when (sheetMode) {
                 is WatchedItemSheetMode.New -> db.watchedItemQueries.insert(

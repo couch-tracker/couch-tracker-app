@@ -15,6 +15,7 @@ import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
 import org.koin.compose.koinInject
 
 val LocalProfileManagerContext = staticCompositionLocalOf<ProfileManager> { error("no default profile context") }
@@ -30,7 +31,7 @@ fun ProfileContext(content: @Composable () -> Unit) {
     LoadableScreen(
         data = when (profiles.isNullOrEmpty()) {
             true -> Loadable.Loading
-            false -> Loadable.Loaded(profiles)
+            false -> Result.Value(profiles)
         },
     ) { profiles ->
         ProfileContext(profiles = profiles, content = content)

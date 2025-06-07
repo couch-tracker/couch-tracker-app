@@ -7,6 +7,9 @@ import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
+import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.onError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -37,7 +40,7 @@ class ExternalProfileDb private constructor(
         when (isCachedDatabaseUpToDate(externalLastModified)) {
             null -> {
                 // there was an error in retrieving the last cached date
-                return ProfileDbResult.MetadataError
+                return Result.Error(ProfileDbError.MetadataError)
             }
 
             true -> {
@@ -62,10 +65,10 @@ class ExternalProfileDb private constructor(
             block = block,
         )
 
-        if (dbResult is ProfileDbResult.Completed.Success) {
+        if (dbResult is Result.Value) {
             // The transaction completed successfully on the local file
 
-            if (dbResult.result.edited) {
+            if (dbResult.value.edited) {
                 // Check the last modified date of the external file again, as it might have changed while we were running the transaction
                 val currentExternalLastModified = externalDb.lastModifiedInstant()
                 Log.i(LOG_TAG, "Old last modified: $externalLastModified, external last modified: $currentExternalLastModified")
@@ -149,7 +152,7 @@ class ExternalProfileDb private constructor(
      * This will copy the external DB to the internal storage and start managing internally.
      * The app will have full and sole ownership of the DB.
      *
-     * After this function returns [ProfileDbResult.Completed.Success], this class mustn't be used anymore.
+     * After this function returns [Result.Value], this class mustn't be used anymore.
      */
     suspend fun moveToManagedDb(context: Context, coroutineContext: CoroutineContext = Dispatchers.IO): ProfileDbResult<Unit> {
         return withContext(coroutineContext) {
@@ -164,7 +167,7 @@ class ExternalProfileDb private constructor(
             cleanCached()
 
             // Returns success
-            ProfileDbResult.Completed.Success(Unit)
+            Result.Value(Unit)
         }
     }
 

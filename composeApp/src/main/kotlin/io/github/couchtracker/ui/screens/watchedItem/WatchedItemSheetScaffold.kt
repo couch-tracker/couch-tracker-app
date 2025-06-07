@@ -57,16 +57,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import io.github.couchtracker.LocalProfileManagerContext
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelections
 import io.github.couchtracker.ui.components.BoxWithScrim
+import io.github.couchtracker.ui.components.ProfileDbErrorDialog
 import io.github.couchtracker.utils.Text
+import io.github.couchtracker.utils.rememberProfileDbActionState
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -197,8 +197,7 @@ private fun WatchedItemSheetContent(
     onFooterHeightChange: (Int) -> Unit,
     innerBottomPadding: Dp,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val currentProfile = LocalProfileManagerContext.current.current
+    val saveAction = rememberProfileDbActionState<Unit>(onSuccess = { onDismissRequest() })
     val showAdvancedOptions = bottomSheetState.targetValue == SheetValue.Expanded
     val lazyListState = rememberLazyListState()
     var titleHeight by remember { mutableIntStateOf(0) }
@@ -213,15 +212,28 @@ private fun WatchedItemSheetContent(
         }
     }
 
+    val enabled = !saveAction.isLoading
+
     @Composable
     fun WatchedItemSheetScope.DimensionSection(selection: WatchedItemDimensionSelection<*>) {
         when (selection) {
-            is WatchedItemDimensionSelection.Choice -> ChoiceSection(selection, onSelectionChange = selections::update)
-            is WatchedItemDimensionSelection.FreeText -> FreeTextSection(selection, onSelectionChange = selections::update)
+            is WatchedItemDimensionSelection.Choice -> ChoiceSection(
+                enabled = enabled,
+                selection = selection,
+                onSelectionChange = selections::update,
+            )
+
+            is WatchedItemDimensionSelection.FreeText -> FreeTextSection(
+                enabled = enabled,
+                selection = selection,
+                onSelectionChange = selections::update,
+            )
         }
     }
 
     BoxWithConstraints {
+        ProfileDbErrorDialog(saveAction)
+
         val c = this.constraints
         LazyColumn(state = lazyListState, modifier = Modifier.animateContentSize()) {
             WatchedItemSheetScope.apply {
@@ -243,7 +255,7 @@ private fun WatchedItemSheetContent(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Spacer(Modifier.height(16.dp))
-                        DateTimeSection(selections.datetime, watchedItemType, approximateVideoRuntime)
+                        DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, approximateVideoRuntime)
                         for (selection in selections.dimensions.filter { it.dimension.isImportant }) {
                             AnimatedVisibility(visible = selection.dimension.isVisible(selections)) {
                                 DimensionSection(selection)
@@ -264,6 +276,7 @@ private fun WatchedItemSheetContent(
                 item {
                     BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight) {
                         ButtonRow(
+                            enabled = false,
                             mode = selections.sheetMode,
                             onSave = { error("This save button should never be clicked") },
                             onDelete = { error("This save button should never be clicked") },
@@ -286,29 +299,10 @@ private fun WatchedItemSheetContent(
                 },
         )
         ButtonRow(
+            enabled = enabled,
             mode = selections.sheetMode,
-            onSave = {
-                coroutineScope.launch {
-                    // TODO handle error (toast?)
-                    val result = selections.save(currentProfile)
-                    if (result is ProfileDbResult.Completed.Success) {
-                        onDismissRequest()
-                    } else {
-                        println(result)
-                    }
-                }
-            },
-            onDelete = { watchedItem ->
-                coroutineScope.launch {
-                    // TODO handle error (toast?)
-                    val result = watchedItem.delete(currentProfile)
-                    if (result is ProfileDbResult.Completed.Success) {
-                        onDismissRequest()
-                    } else {
-                        println(result)
-                    }
-                }
-            },
+            onSave = { saveAction.execute(selections::save) },
+            onDelete = { watchedItem -> saveAction.execute(watchedItem::delete) },
             innerBottomPadding = innerBottomPadding,
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -360,6 +354,7 @@ private fun BelowScrollLabelContainer(
 
 @Composable
 private fun ButtonRow(
+    enabled: Boolean,
     mode: WatchedItemSheetMode,
     onSave: () -> Unit,
     onDelete: (WatchedItemWrapper) -> Unit,
@@ -378,13 +373,14 @@ private fun ButtonRow(
     ) {
         if (mode is WatchedItemSheetMode.Edit) {
             OutlinedButton(
+                enabled = enabled,
                 onClick = { onDelete(mode.watchedItem) },
                 content = {
                     Text(R.string.delete_profile.str())
                 },
             )
         }
-        Button(onClick = onSave) {
+        Button(enabled = enabled, onClick = onSave) {
             Text(
                 text = when (mode) {
                     is WatchedItemSheetMode.Edit -> R.string.save_action.str()
