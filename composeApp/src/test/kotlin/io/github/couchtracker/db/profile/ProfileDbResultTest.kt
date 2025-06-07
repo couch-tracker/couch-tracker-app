@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.profile
 
 import io.github.couchtracker.db.profile.ProfileDbResult.FileError.AttemptedOperation
+import io.github.couchtracker.db.profile.ProfileDbResult.FileError.UriCannotBeOpened.Reason
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -21,7 +22,7 @@ class ProfileDbResultTest : FunSpec(
                 withData<ProfileDbResult<String>>(
                     ProfileDbResult.Completed.Error(Exception("")),
                     ProfileDbResult.FileError.InvalidDatabase,
-                    ProfileDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), AttemptedOperation.WRITE),
+                    ProfileDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), Reason.FILE_NOT_FOUND, AttemptedOperation.WRITE),
                     ProfileDbResult.FileError.ContentProviderFailure(AttemptedOperation.READ),
                 ) { instance ->
                     instance.map { it.toInt() } shouldBeSameInstanceAs instance
@@ -38,9 +39,9 @@ class ProfileDbResultTest : FunSpec(
             context("onError() is called when there is an error") {
                 withData(
                     ProfileDbResult.Completed.Error(Exception("")),
-                    ProfileDbResult.InterruptedError,
+                    ProfileDbResult.MetadataError,
                     ProfileDbResult.FileError.InvalidDatabase,
-                    ProfileDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), AttemptedOperation.WRITE),
+                    ProfileDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), Reason.SECURITY, AttemptedOperation.WRITE),
                     ProfileDbResult.FileError.ContentProviderFailure(AttemptedOperation.READ),
                 ) { instance ->
                     val onError = spyk<(ProfileDbResult<Nothing>) -> Unit>(@JvmSerializableLambda {})

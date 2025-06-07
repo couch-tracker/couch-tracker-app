@@ -1,8 +1,6 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
-import io.github.couchtracker.db.app.ProfileManager
 import io.github.couchtracker.db.profile.ProfileData
-import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.WatchedItemChoice
 
@@ -19,10 +17,8 @@ data class WatchedItemWrapper(
     val itemId get() = item.itemId
     val watchAt get() = item.watchAt
 
-    suspend fun delete(profile: ProfileManager.ProfileInfo): ProfileDbResult<Unit> {
-        return profile.write { db ->
-            db.watchedItemQueries.delete(item.id)
-        }
+    fun delete(db: ProfileData) {
+        db.watchedItemQueries.delete(item.id)
     }
 
     companion object {

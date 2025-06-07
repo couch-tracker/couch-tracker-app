@@ -10,6 +10,10 @@ sealed interface ProfileDbResult<out T> {
 
     sealed interface AnyError : ProfileDbResult<Nothing>
 
+    sealed interface WithException : ProfileDbResult<Nothing> {
+        val exception: Exception
+    }
+
     /**
      * Indicates that the operation completed without any unexpected error from the DB perspective.
      *
@@ -29,10 +33,13 @@ sealed interface ProfileDbResult<out T> {
          * 1. there is an error in the code
          * 2. the SQLite file we are trying to edit does not conform to the required specifics (e.g. missing table, column, etc.)
          */
-        data class Error(val exception: Exception) : Completed<Nothing>, AnyError
+        data class Error(override val exception: Exception) : Completed<Nothing>, AnyError, WithException
     }
 
-    data object InterruptedError : ProfileDbResult<Nothing>, AnyError
+    /**
+     * This error indicated that there was an error retrieving the metadata of an external file, like the last modified instant.
+     */
+    data object MetadataError : ProfileDbResult<Nothing>, AnyError
 
     /**
      * Represents some kind of error reading/writing the database file.
@@ -57,9 +64,16 @@ sealed interface ProfileDbResult<out T> {
          * @see ContentResolver.openOutputStream
          */
         data class UriCannotBeOpened(
-            val exception: Exception,
+            override val exception: Exception,
+            val reason: Reason,
             val attemptedOperation: AttemptedOperation,
-        ) : FileError
+        ) : FileError, WithException {
+
+            enum class Reason {
+                FILE_NOT_FOUND,
+                SECURITY,
+            }
+        }
 
         /**
          * Indicates that there was a problem while reading/writing to the database.
@@ -68,9 +82,9 @@ sealed interface ProfileDbResult<out T> {
          * @property attemptedOperation if the problem occurred trying to read or write
          */
         data class InputOutputError(
-            val exception: IOException,
+            override val exception: IOException,
             val attemptedOperation: AttemptedOperation,
-        ) : FileError
+        ) : FileError, WithException
 
         /**
          * Indicates that the file selected by the user is not a valid SQLite database, and thus cannot be opened.

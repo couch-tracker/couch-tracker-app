@@ -37,7 +37,7 @@ class ExternalProfileDb private constructor(
         when (isCachedDatabaseUpToDate(externalLastModified)) {
             null -> {
                 // there was an error in retrieving the last cached date
-                return ProfileDbResult.InterruptedError
+                return ProfileDbResult.MetadataError
             }
 
             true -> {

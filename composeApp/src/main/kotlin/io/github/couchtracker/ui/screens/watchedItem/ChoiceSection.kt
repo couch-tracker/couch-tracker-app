@@ -17,6 +17,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionS
 
 @Composable
 fun WatchedItemSheetScope.ChoiceSection(
+    enabled: Boolean,
     selection: WatchedItemDimensionSelection.Choice,
     onSelectionChange: (WatchedItemDimensionSelection.Choice) -> Unit,
     modifier: Modifier = Modifier,
@@ -29,6 +30,7 @@ fun WatchedItemSheetScope.ChoiceSection(
         ) {
             items(dimension.choices, key = { it.id }) { choice ->
                 FilterChip(
+                    enabled = enabled,
                     selected = choice in selection.value,
                     onClick = { onSelectionChange(selection.toggled(choice)) },
                     colors = FilterChipDefaults.filterChipColors(
