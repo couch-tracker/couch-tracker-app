@@ -32,7 +32,10 @@ sealed interface ProfileDbResult<out T> {
         data class Error(val exception: Exception) : Completed<Nothing>, AnyError
     }
 
-    data object InterruptedError : ProfileDbResult<Nothing>, AnyError
+    /**
+     * This error indicated that there was an error retrieving the metadata of an external file, like the last modified instant.
+     */
+    data object MetadataError : ProfileDbResult<Nothing>, AnyError
 
     /**
      * Represents some kind of error reading/writing the database file.

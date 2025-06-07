@@ -38,7 +38,7 @@ class ProfileDbResultTest : FunSpec(
             context("onError() is called when there is an error") {
                 withData(
                     ProfileDbResult.Completed.Error(Exception("")),
-                    ProfileDbResult.InterruptedError,
+                    ProfileDbResult.MetadataError,
                     ProfileDbResult.FileError.InvalidDatabase,
                     ProfileDbResult.FileError.UriCannotBeOpened(FileNotFoundException(), AttemptedOperation.WRITE),
                     ProfileDbResult.FileError.ContentProviderFailure(AttemptedOperation.READ),
