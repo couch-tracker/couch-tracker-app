@@ -3,12 +3,17 @@ package io.github.couchtracker.db.profile.model.watchedItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import io.github.couchtracker.LocalFullProfileDataContext
+import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.ui.screens.watchedItem.DateTimeSectionState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
+import io.github.couchtracker.utils.MapSaverEntry
+import io.github.couchtracker.utils.mapSaver
+import io.github.couchtracker.utils.restoreAny
 
 class WatchedItemSelections(
     val sheetMode: WatchedItemSheetMode,
@@ -43,6 +48,28 @@ class WatchedItemSelections(
             }
         }
     }
+
+    companion object {
+
+        fun saver(fullProfileData: FullProfileData): Saver<WatchedItemSelections, Map<String, Any>> {
+            val sheetModeSaver = WatchedItemSheetMode.saver(fullProfileData)
+            return Saver(
+                save = {
+                    mapOf(
+                        "sheetMode" to with(sheetModeSaver) { save(it.sheetMode) ?: return@Saver null },
+                        "datetime" to it.datetime,
+                    )
+                },
+                restore = {
+                    WatchedItemSelections(
+                        sheetMode = sheetModeSaver.restoreAny(it.getValue("sheetMode")) ?: return@Saver null,
+                        datetime = TODO(),
+                        dimensions = TODO(),
+                    )
+                },
+            )
+        }
+    }
 }
 
 @Composable
@@ -50,7 +77,7 @@ fun rememberWatchedItemSelections(watchedItemType: WatchedItemType, mode: Watche
     val profileData = LocalFullProfileDataContext.current
 
     // TODO make this savable
-    return remember(profileData, watchedItemType, mode) {
+    return rememberSaveable(profileData, watchedItemType, mode) {
         when (mode) {
             is WatchedItemSheetMode.New -> {
                 val dimensions = profileData.watchedItemDimensions

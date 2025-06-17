@@ -12,6 +12,9 @@ plugins {
     alias(libs.plugins.serialization)
 }
 
+// https://chatgpt.com/share/684d3051-f120-8002-ba0a-8c89b592c28fF
+apply(plugin = "kotlin-parcelize")
+
 buildConfig {
     forClass("io.github.couchtracker.tmdb", "TmdbConfig") {
         buildConfigField<String>(

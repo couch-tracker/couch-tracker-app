@@ -1,5 +1,8 @@
 package io.github.couchtracker.db.profile.model.partialtime
 
+import android.os.Parcel
+import android.os.Parcelable
+import androidx.compose.runtime.saveable.Saver
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local.Date
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local.DateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local.Year
@@ -486,6 +489,11 @@ sealed interface PartialDateTime {
         ): Map<PartialDateTimeGroup, List<T>> {
             return sort(items, getPartialDateTime, additionalComparator).groupBy { it.getPartialDateTime().group() }
         }
+
+        fun saver() = Saver<PartialDateTime, String>(
+            save = { it.serialize() },
+            restore = { parse(it) },
+        )
     }
 }
 

@@ -1,13 +1,16 @@
 package io.github.couchtracker.db.profile
 
+import android.os.Parcelable
 import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
+import kotlinx.parcelize.Parcelize
 
 /**
  * Sealed interface that can hold an [ExternalId] that can be watched.
  */
-sealed interface WatchableExternalId {
+@Parcelize
+sealed interface WatchableExternalId : Parcelable {
 
     fun serialize(): String
 

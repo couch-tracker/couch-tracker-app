@@ -55,7 +55,7 @@ class ProfileManager(
                     true -> oldProfileData.db
                     false -> profile.db()
                 }
-                val fullProfileDataFlows = oldProfileData?.fullProfileDataFlows ?: FullProfileDataFlows(initialDb = db)
+                val fullProfileDataFlows = oldProfileData?.fullProfileDataFlows ?: FullProfileDataFlows(profile = profile, initialDb = db)
                 profile.id to ProfileInfo(profile, db, fullProfileDataFlows)
             }
             return ProfilesInfo(
@@ -65,13 +65,13 @@ class ProfileManager(
         }
     }
 
-    inner class FullProfileDataFlows(initialDb: ProfileDb) {
+    inner class FullProfileDataFlows(profile: Profile, initialDb: ProfileDb) {
         val dbFlow = MutableStateFlow(initialDb to Any())
         val fullProfileDataStateFlow: SharedFlow<Loadable<FullProfileData, ProfileDbError>> = dbFlow
             .transformLatest { (db) ->
                 emit(Loadable.Loading)
                 val result = db.read { profileData ->
-                    FullProfileData.load(db = profileData)
+                    FullProfileData.load(profile = profile,  db = profileData)
                 }
                 emit(result)
             }
@@ -126,7 +126,7 @@ class ProfileManager(
         ProfilesInfo(
             profiles = initialProfiles.associate {
                 val db = it.db()
-                it.id to ProfileInfo(profile = it, db = db, fullProfileDataFlows = FullProfileDataFlows(initialDb = db))
+                it.id to ProfileInfo(profile = it, db = db, fullProfileDataFlows = FullProfileDataFlows(profile = it, initialDb = db))
             },
             currentProfileId = initialProfiles.first().id,
         ),

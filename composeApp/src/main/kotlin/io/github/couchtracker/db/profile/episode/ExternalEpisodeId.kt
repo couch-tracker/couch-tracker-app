@@ -1,6 +1,8 @@
 package io.github.couchtracker.db.profile.episode
 
+import android.os.Parcelable
 import io.github.couchtracker.db.profile.ExternalId
+import kotlinx.parcelize.Parcelize
 
 /**
  * Any external ID representing an episode.
@@ -9,7 +11,8 @@ import io.github.couchtracker.db.profile.ExternalId
  *
  * @see ExternalId
  */
-sealed interface ExternalEpisodeId : ExternalId {
+@Parcelize
+sealed interface ExternalEpisodeId : ExternalId, Parcelable {
 
     companion object : ExternalId.SealedInterfacesCompanion<ExternalEpisodeId>(
         inheritors = listOf(TmdbExternalEpisodeId),

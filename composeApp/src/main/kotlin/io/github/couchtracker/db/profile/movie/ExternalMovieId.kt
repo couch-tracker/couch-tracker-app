@@ -1,6 +1,8 @@
 package io.github.couchtracker.db.profile.movie
 
+import android.os.Parcelable
 import io.github.couchtracker.db.profile.ExternalId
+import kotlinx.parcelize.Parcelize
 
 /**
  * Any external ID representing a movie.
@@ -9,7 +11,8 @@ import io.github.couchtracker.db.profile.ExternalId
  *
  * @see ExternalId
  */
-sealed interface ExternalMovieId : ExternalId {
+@Parcelize
+sealed interface ExternalMovieId : ExternalId, Parcelable {
 
     companion object : ExternalId.SealedInterfacesCompanion<ExternalMovieId>(
         inheritors = listOf(TmdbExternalMovieId),
