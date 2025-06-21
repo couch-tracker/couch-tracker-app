@@ -36,10 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalProfileManagerContext
+import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.AppData
-import io.github.couchtracker.db.app.ProfileManager.ProfileInfo
+import io.github.couchtracker.db.app.ProfileInfo
 import io.github.couchtracker.db.profile.ExternalProfileDb
 import io.github.couchtracker.db.profile.ManagedProfileDb
 import io.github.couchtracker.db.profile.ProfileDbError
@@ -64,8 +64,8 @@ data class ProfileSettingsScreen(val id: Long) : Screen() {
     @Composable
     override fun content() {
         val navController = LocalNavController.current
-        val profileManager = LocalProfileManagerContext.current
-        val profileInfo = profileManager.profiles.singleOrNull { it.profile.id == id }
+        val profilesInfo = LocalProfilesContext.current
+        val profileInfo = profilesInfo.profiles[id]
 
         if (profileInfo != null) {
             Content(profileInfo)

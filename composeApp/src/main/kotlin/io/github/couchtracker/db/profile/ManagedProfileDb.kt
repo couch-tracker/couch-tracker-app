@@ -96,8 +96,10 @@ class ManagedProfileDb(private val profileId: Long) : ProfileDb() {
     override suspend fun unlink() {
         val dbPath = dbPath(context)
         Log.i(LOG_TAG, "Deleting internal DB $this")
-        if (dbPath.file.exists() && !dbPath.file.delete()) {
-            error("Unable to delete internal DB file ${dbPath.file}")
+        withContext(Dispatchers.IO) {
+            if (dbPath.file.exists() && !dbPath.file.delete()) {
+                error("Unable to delete internal DB file ${dbPath.file}")
+            }
         }
     }
 

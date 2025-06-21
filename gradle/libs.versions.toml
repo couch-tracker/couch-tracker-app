@@ -4,6 +4,7 @@ android-compileSdk = "35"
 android-minSdk = "26"
 android-targetSdk = "35"
 androidx-activityCompose = "1.10.1"
+androidx-datastore = "1.1.7"
 androidx-documentfile = "1.1.0"
 androidx-lifecycle = "2.9.0"
 buildConfig = "5.6.2"
@@ -29,6 +30,7 @@ tmdb-api = "1.4.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "androidx-datastore" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "androidx-documentfile" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 byteSize = { module = "me.saket.bytesize:bytesize", version.ref = "byte-size" }
