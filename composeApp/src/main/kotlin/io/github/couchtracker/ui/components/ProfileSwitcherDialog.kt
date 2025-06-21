@@ -20,30 +20,36 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalProfileManagerContext
+import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
-import io.github.couchtracker.db.app.ProfileManager
+import io.github.couchtracker.Settings
+import io.github.couchtracker.db.app.ProfileInfo
 import io.github.couchtracker.intl.datetime.Skeletons
 import io.github.couchtracker.intl.datetime.TimeSkeleton
 import io.github.couchtracker.intl.datetime.sum
 import io.github.couchtracker.intl.formatDateTimeSkeleton
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
 import io.github.couchtracker.utils.str
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun ProfileSwitcherDialog(
     close: () -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
-    val profileManager = LocalProfileManagerContext.current
+    val profilesInfo = LocalProfilesContext.current
+    val profiles = profilesInfo.profiles.values.toList()
     val scrollState = rememberLazyListState()
 
     BasicAlertDialog(onDismissRequest = close) {
@@ -64,16 +70,18 @@ fun ProfileSwitcherDialog(
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 LazyColumn(state = scrollState) {
-                    items(profileManager.profiles, key = { it.profile.id }) { profileInfo ->
+                    items(profiles, key = { it.profile.id }) { profileInfo ->
                         ListItem(
                             headlineContent = { Text(profileInfo.profile.name) },
                             supportingContent = { Text(profileInfo.supportingText()) },
                             modifier = Modifier.clickable {
-                                profileManager.changeLoggedProfile(profileInfo.profile)
-                                close()
+                                coroutineScope.launch {
+                                    Settings.CurrentProfileId.set(profileInfo.profile.id)
+                                    close()
+                                }
                             },
                             colors = ListItemDefaults.colors(
-                                containerColor = if (profileManager.current.profile == profileInfo.profile) {
+                                containerColor = if (profilesInfo.current.profile == profileInfo.profile) {
                                     MaterialTheme.colorScheme.primaryContainer
                                 } else {
                                     Color.Transparent
@@ -102,12 +110,12 @@ fun ProfileSwitcherDialog(
 }
 
 @Composable
-fun ProfileManager.ProfileInfo.supportingText(): String {
+fun ProfileInfo.supportingText(): String {
     return R.string.profile_last_used_with_date.str(formattedLastModified())
 }
 
 @Composable
-fun ProfileManager.ProfileInfo.formattedLastModified(): String {
+fun ProfileInfo.formattedLastModified(): String {
     return when (val lastModified = db.lastModified()) {
         null -> R.string.profile_last_used_unknown.str()
         else -> formatDateTimeSkeleton(

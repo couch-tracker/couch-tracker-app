@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import io.github.couchtracker.LocalFullProfileDataContext
-import io.github.couchtracker.LocalProfileManagerContext
+import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.tmdb.TmdbShowId
 import kotlinx.coroutines.launch
@@ -19,11 +19,11 @@ import kotlin.random.Random
 @Composable
 @Suppress("LongMethod") // TODO: remove this debug pane
 fun ProfilePane() {
-    val profileManager = LocalProfileManagerContext.current
+    val profilesInfo = LocalProfilesContext.current
 
     val coroutineScope = rememberCoroutineScope()
 
-    val profileInfo = profileManager.current
+    val profileInfo = profilesInfo.current
     val profile = profileInfo.profile
     val profileData = LocalFullProfileDataContext.current
 

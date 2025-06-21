@@ -34,8 +34,8 @@ val LocalFullProfileDataContext = staticCompositionLocalOf<FullProfileData> { er
 
 @Composable
 fun ProfileDataContext(content: @Composable () -> Unit) {
-    val profileManager = LocalProfileManagerContext.current
-    val fullProfileDataState by profileManager.current.fullProfileDataState.collectAsStateWithLifecycle(initialValue = Loadable.Loading)
+    val profilesInfo = LocalProfilesContext.current
+    val fullProfileDataState by profilesInfo.current.fullProfileDataState.collectAsStateWithLifecycle(initialValue = Loadable.Loading)
 
     LoadableScreen(
         data = fullProfileDataState,

@@ -175,7 +175,9 @@ class ExternalProfileDb private constructor(
      * Removes the locally cached file (if any) and releases the persistent URI permissions for the external DB
      */
     override suspend fun unlink() {
-        cleanCached()
+        withContext(Dispatchers.IO) {
+            cleanCached()
+        }
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
         try {
             context.applicationContext.contentResolver.releasePersistableUriPermission(externalDb.uri, flags)
