@@ -32,7 +32,10 @@ import me.zhanghai.compose.preference.Preference
 import org.koin.compose.koinInject
 
 @Serializable
-data object ProfilesSettingsScreen : Screen {
+data object ProfilesSettingsScreen : Screen() {
+
+    override fun profileDataContext() = false
+
     @Composable
     override fun content() = Content()
 }

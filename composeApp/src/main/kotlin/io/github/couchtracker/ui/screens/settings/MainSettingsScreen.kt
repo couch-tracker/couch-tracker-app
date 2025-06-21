@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.preference
 
 @Serializable
-data object MainSettingsScreen : Screen {
+data object MainSettingsScreen : Screen() {
     @Composable
     override fun content() = Content()
 }

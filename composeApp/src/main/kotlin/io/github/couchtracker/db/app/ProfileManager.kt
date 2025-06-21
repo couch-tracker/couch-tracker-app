@@ -88,7 +88,7 @@ class ProfileManager(
             .shareIn(
                 scope = coroutineScope,
                 replay = 1,
-                started = SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000, replayExpirationMillis = 0),
             )
     }
 

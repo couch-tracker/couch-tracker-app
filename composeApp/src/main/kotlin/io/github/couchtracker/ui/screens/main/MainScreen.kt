@@ -24,10 +24,19 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.ColorSchemes
+import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.utils.str
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object MainScreen : Screen() {
+
+    @Composable
+    override fun content() = Content()
+}
 
 @Composable
-fun MainScreen() {
+private fun Content() {
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)
     val navController = rememberNavController()
     val currentSection = navController.currentBackStackEntryAsState().value?.destination?.route?.let { Section.fromId(it) } ?: Section.HOME

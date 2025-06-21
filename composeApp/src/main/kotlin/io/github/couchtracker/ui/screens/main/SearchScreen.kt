@@ -100,7 +100,7 @@ import kotlin.time.Duration.Companion.milliseconds
 typealias SearchMediaFilters = Set<SearchableMediaType>
 
 @Serializable
-data class SearchScreen(val filter: SearchableMediaType?) : Screen {
+data class SearchScreen(val filter: SearchableMediaType?) : Screen() {
     @Composable
     override fun content() {
         val navController = LocalNavController.current

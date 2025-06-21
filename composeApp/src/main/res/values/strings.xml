@@ -26,6 +26,7 @@
     <string name="db_cant_open_error_file_not_found">The file doesn\'t exist.</string>
     <string name="db_cant_open_error_security">The app has not been granted permission to open the file.</string>
     <string name="db_io_error">An I/O issue has been encountered.</string>
+    <string name="error_opening_profile">Error opening profile</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Shows</string>

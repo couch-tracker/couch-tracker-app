@@ -57,7 +57,10 @@ import me.zhanghai.compose.preference.Preference
 import org.koin.compose.koinInject
 
 @Serializable
-data class ProfileSettingsScreen(val id: Long) : Screen {
+data class ProfileSettingsScreen(val id: Long) : Screen() {
+
+    override fun profileDataContext() = false
+
     @Composable
     override fun content() {
         val navController = LocalNavController.current
