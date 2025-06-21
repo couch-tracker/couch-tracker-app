@@ -16,13 +16,12 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.ui.AnimationDefaults
-import io.github.couchtracker.ui.screenContent
+import io.github.couchtracker.ui.composable
 import io.github.couchtracker.ui.screens.main.MainScreen
 import io.github.couchtracker.ui.screens.main.SearchScreen
-import io.github.couchtracker.ui.screens.movie.movieScreen
+import io.github.couchtracker.ui.screens.movie.MovieScreen
 import io.github.couchtracker.ui.screens.settings.settings
 import org.koin.compose.KoinContext
 import kotlin.math.roundToInt
@@ -39,10 +38,10 @@ fun App() {
         MaterialTheme(colorScheme = darkColorScheme()) {
             CompositionLocalProvider(LocalNavController provides navController) {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    ProfileContext {
+                    ProfileManagerContext {
                         NavHost(
                             navController = navController,
-                            startDestination = "main",
+                            startDestination = MainScreen,
                             enterTransition = {
                                 val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = LinearOutSlowInEasing)
                                 slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
@@ -60,11 +59,9 @@ fun App() {
                                     fadeOut(FADE_ANIMATION_SPEC)
                             },
                         ) {
-                            composable("main") {
-                                MainScreen()
-                            }
-                            composable<SearchScreen> { it.screenContent<SearchScreen>() }
-                            movieScreen()
+                            composable<MainScreen>()
+                            composable<SearchScreen>()
+                            composable<MovieScreen>()
                             settings()
                         }
                     }

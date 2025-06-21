@@ -24,11 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
-import io.github.couchtracker.ui.screenContent
+import io.github.couchtracker.ui.composable
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.LocalPreferenceTheme
@@ -39,9 +38,9 @@ data object Settings
 
 fun NavGraphBuilder.settings() {
     navigation<Settings>(startDestination = MainSettingsScreen) {
-        composable<MainSettingsScreen> { it.screenContent<MainSettingsScreen>() }
-        composable<ProfilesSettingsScreen> { it.screenContent<ProfilesSettingsScreen>() }
-        composable<ProfileSettingsScreen> { it.screenContent<ProfileSettingsScreen>() }
+        composable<MainSettingsScreen>()
+        composable<ProfilesSettingsScreen>()
+        composable<ProfileSettingsScreen>()
     }
 }
 

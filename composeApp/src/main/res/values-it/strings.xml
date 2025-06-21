@@ -26,6 +26,7 @@
     <string name="db_cant_open_error_file_not_found">Il file non esiste.</string>
     <string name="db_cant_open_error_security">All\'app non è stata concessa l\'autorizzazione per aprire il file.</string>
     <string name="db_io_error">Si è verificato un problema di I/O.</string>
+    <string name="error_opening_profile">Errore nell\'apertura del profilo</string>
 
     <string name="main_section_home">Home</string>
     <string name="main_section_shows">Serie</string>

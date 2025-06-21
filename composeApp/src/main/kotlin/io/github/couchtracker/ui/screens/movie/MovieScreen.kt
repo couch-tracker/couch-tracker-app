@@ -56,10 +56,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import coil3.compose.AsyncImage
@@ -87,6 +83,7 @@ import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.ui.components.CastPortrait
 import io.github.couchtracker.ui.components.CastPortraitModel
@@ -102,46 +99,31 @@ import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetSca
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.hours
 
-private const val ARGUMENTS_MOVIE_ID = "movieId"
-private const val ARGUMENTS_LANGUAGE = "language"
-
-fun NavController.navigateToMovie(movie: TmdbMovie) {
-    navigate("movie/${movie.id.toExternalId().serialize()}?language=${movie.language}")
-}
-
-fun NavGraphBuilder.movieScreen() {
-    composable(
-        "movie/{$ARGUMENTS_MOVIE_ID}?language={$ARGUMENTS_LANGUAGE}",
-        arguments = listOf(
-            navArgument(ARGUMENTS_MOVIE_ID) {
-                type = NavType.StringType
-            },
-            navArgument(ARGUMENTS_LANGUAGE) {
-                type = NavType.StringType
-            },
-        ),
-    ) { backStackEntry ->
-        // TODO: handle parse errors
-        val args = requireNotNull(backStackEntry.arguments)
-        val movieIdStr = requireNotNull(args.getString(ARGUMENTS_MOVIE_ID))
-        when (val movieId = ExternalMovieId.parse(movieIdStr)) {
+@Serializable
+data class MovieScreen(val movieId: String, val language: String) : Screen() {
+    @Composable
+    override fun content() {
+        val tmdbMovie = when (val movieId = ExternalMovieId.parse(movieId)) {
             is TmdbExternalMovieId -> {
-                val languageStr = requireNotNull(args.getString(ARGUMENTS_LANGUAGE))
-                val language = TmdbLanguage.parse(languageStr)
-                MovieScreen(TmdbMovie(movieId.id, language))
+                TmdbMovie(movieId.id, TmdbLanguage.parse(language))
             }
-
             is UnknownExternalMovieId -> TODO()
         }
+        Content(tmdbMovie)
     }
 }
 
+fun NavController.navigateToMovie(movie: TmdbMovie) {
+    navigate(MovieScreen(movie.id.toExternalId().serialize(), movie.language.serialize()))
+}
+
 @Composable
-fun MovieScreen(movie: TmdbMovie) {
+private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
