@@ -75,6 +75,7 @@ kotlin {
         implementation(libs.coil.ktor)
 
         // Other
+        implementation(libs.androidx.datastore.preferences)
         implementation(libs.androidx.documentfile)
         implementation(libs.byteSize)
         implementation(libs.palette)

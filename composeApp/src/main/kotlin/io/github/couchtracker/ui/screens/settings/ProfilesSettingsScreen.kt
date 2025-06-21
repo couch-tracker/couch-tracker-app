@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalProfileManagerContext
+import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.ui.Screen
@@ -44,7 +44,7 @@ data object ProfilesSettingsScreen : Screen() {
 private fun Content() {
     val appDb = koinInject<AppData>()
     val navController = LocalNavController.current
-    val profileManager = LocalProfileManagerContext.current
+    val profilesInfo = LocalProfilesContext.current
     val appContext = LocalContext.current.applicationContext
 
     val openDbWorkflow = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -61,7 +61,7 @@ private fun Content() {
     }
 
     BaseSettings(R.string.profiles.str()) {
-        items(profileManager.profiles, key = { it.profile.id }) { profileInfo ->
+        items(profilesInfo.profiles.values.toList(), key = { it.profile.id }) { profileInfo ->
             Preference(
                 modifier = Modifier.animateItem(),
                 title = { Text(profileInfo.profile.name) },

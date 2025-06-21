@@ -21,7 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalProfileManagerContext
+import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.ProfilePane
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
@@ -101,8 +101,8 @@ private fun AppbarMoreMenu() {
 // TODO: remove this debug composable
 @Composable
 private fun ProfileSection() {
-    val profileManager = LocalProfileManagerContext.current
+    val profilesInfo = LocalProfilesContext.current
 
-    Text(text = "Current profile: ${profileManager.current.profile.name}", fontSize = 30.sp)
+    Text(text = "Current profile: ${profilesInfo.current.profile.name}", fontSize = 30.sp)
     ProfilePane()
 }
