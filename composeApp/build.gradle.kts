@@ -47,7 +47,6 @@ kotlin {
         implementation(libs.androidx.activity.compose)
         implementation(libs.androidx.lifecycle.runtime.compose)
         implementation(libs.compose.paging)
-        debugImplementation(libs.compose.ui.tooling)
 
         // Navigation
         implementation(libs.navigation.compose)
