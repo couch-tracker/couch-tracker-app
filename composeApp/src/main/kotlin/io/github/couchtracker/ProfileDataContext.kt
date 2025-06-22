@@ -19,7 +19,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.ProfileDbError
 import io.github.couchtracker.intl.errorMessage
@@ -27,7 +26,6 @@ import io.github.couchtracker.ui.components.ExceptionStackTrace
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
-import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 
 val LocalFullProfileDataContext = staticCompositionLocalOf<FullProfileData> { error("no default profile context") }
@@ -35,10 +33,9 @@ val LocalFullProfileDataContext = staticCompositionLocalOf<FullProfileData> { er
 @Composable
 fun ProfileDataContext(content: @Composable () -> Unit) {
     val profilesInfo = LocalProfilesContext.current
-    val fullProfileDataState by profilesInfo.current.fullProfileDataState.collectAsStateWithLifecycle(initialValue = Loadable.Loading)
 
     LoadableScreen(
-        data = fullProfileDataState,
+        data = profilesInfo.currentFullData,
         onError = { ProfileError(it) },
     ) { fullProfileData ->
         CompositionLocalProvider(LocalFullProfileDataContext provides fullProfileData) {
