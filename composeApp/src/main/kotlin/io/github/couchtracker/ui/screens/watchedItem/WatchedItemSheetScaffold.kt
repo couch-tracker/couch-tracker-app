@@ -61,10 +61,11 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelections
 import io.github.couchtracker.ui.components.BoxWithScrim
+import io.github.couchtracker.ui.components.DelayedActionLoadingIndicator
 import io.github.couchtracker.ui.components.ProfileDbErrorDialog
+import io.github.couchtracker.utils.ProfileDbActionState
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.rememberProfileDbActionState
 import io.github.couchtracker.utils.str
@@ -198,6 +199,7 @@ private fun WatchedItemSheetContent(
     innerBottomPadding: Dp,
 ) {
     val saveAction = rememberProfileDbActionState<Unit>(onSuccess = { onDismissRequest() })
+    val deleteAction = rememberProfileDbActionState<Unit>(onSuccess = { onDismissRequest() })
     val showAdvancedOptions = bottomSheetState.targetValue == SheetValue.Expanded
     val lazyListState = rememberLazyListState()
     var titleHeight by remember { mutableIntStateOf(0) }
@@ -212,7 +214,7 @@ private fun WatchedItemSheetContent(
         }
     }
 
-    val enabled = !saveAction.isLoading
+    val enabled = !saveAction.isLoading && !deleteAction.isLoading
 
     @Composable
     fun WatchedItemSheetScope.DimensionSection(selection: WatchedItemDimensionSelection<*>) {
@@ -276,10 +278,10 @@ private fun WatchedItemSheetContent(
                 item {
                     BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight) {
                         ButtonRow(
-                            enabled = false,
-                            mode = selections.sheetMode,
-                            onSave = { error("This save button should never be clicked") },
-                            onDelete = { error("This save button should never be clicked") },
+                            selections = selections,
+                            saveAction = saveAction,
+                            deleteAction = deleteAction,
+                            enabled = enabled,
                             innerBottomPadding = innerBottomPadding,
                             modifier = Modifier.alpha(0f),
                         )
@@ -299,10 +301,10 @@ private fun WatchedItemSheetContent(
                 },
         )
         ButtonRow(
+            selections = selections,
+            saveAction = saveAction,
+            deleteAction = deleteAction,
             enabled = enabled,
-            mode = selections.sheetMode,
-            onSave = { saveAction.execute(selections::save) },
-            onDelete = { watchedItem -> saveAction.execute(watchedItem::delete) },
             innerBottomPadding = innerBottomPadding,
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -355,12 +357,13 @@ private fun BelowScrollLabelContainer(
 @Composable
 private fun ButtonRow(
     enabled: Boolean,
-    mode: WatchedItemSheetMode,
-    onSave: () -> Unit,
-    onDelete: (WatchedItemWrapper) -> Unit,
+    selections: WatchedItemSelections,
+    saveAction: ProfileDbActionState<Unit>,
+    deleteAction: ProfileDbActionState<Unit>,
     innerBottomPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
+    val mode = selections.sheetMode
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -374,13 +377,18 @@ private fun ButtonRow(
         if (mode is WatchedItemSheetMode.Edit) {
             OutlinedButton(
                 enabled = enabled,
-                onClick = { onDelete(mode.watchedItem) },
+                onClick = { deleteAction.execute { db -> mode.watchedItem.delete(db) } },
                 content = {
+                    DelayedActionLoadingIndicator(action = deleteAction, modifier = Modifier.padding(end = 8.dp))
                     Text(R.string.delete_profile.str())
                 },
             )
         }
-        Button(enabled = enabled, onClick = onSave) {
+        Button(
+            enabled = enabled,
+            onClick = { saveAction.execute(selections::save) },
+        ) {
+            DelayedActionLoadingIndicator(action = saveAction, modifier = Modifier.padding(end = 8.dp))
             Text(
                 text = when (mode) {
                     is WatchedItemSheetMode.Edit -> R.string.save_action.str()
