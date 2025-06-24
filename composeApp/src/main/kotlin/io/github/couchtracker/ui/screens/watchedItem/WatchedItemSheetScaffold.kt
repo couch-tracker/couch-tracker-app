@@ -3,10 +3,15 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +25,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
@@ -59,6 +66,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelections
@@ -385,7 +393,7 @@ private fun ButtonRow(
             )
         }
         Button(
-            enabled = enabled,
+            enabled = enabled && selections.isValid(),
             onClick = { saveAction.execute(selections::save) },
         ) {
             DelayedActionLoadingIndicator(action = saveAction, modifier = Modifier.padding(end = 8.dp))
@@ -401,7 +409,12 @@ private fun ButtonRow(
 
 @Composable
 @Suppress("UnusedReceiverParameter")
-fun WatchedItemSheetScope.Section(title: Text, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun WatchedItemSheetScope.Section(
+    title: Text,
+    validity: WatchedItemDimensionSelectionValidity,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     Column(modifier = modifier) {
         Text(
             title.string(),
@@ -409,6 +422,31 @@ fun WatchedItemSheetScope.Section(title: Text, modifier: Modifier = Modifier, co
             style = MaterialTheme.typography.titleMedium,
         )
         content()
+
+        val transition = updateTransition(validity)
+        transition.AnimatedContent(
+            contentKey = { it is WatchedItemDimensionSelectionValidity.Invalid },
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+        ) { validity ->
+            Box(Modifier.fillMaxWidth()) {
+                if (validity is WatchedItemDimensionSelectionValidity.Invalid) {
+                    Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Error,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 4.dp),
+                            text = validity.message(),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
+                }
+            }
+        }
         Spacer(Modifier.height(16.dp))
     }
 }
