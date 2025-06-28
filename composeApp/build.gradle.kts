@@ -162,7 +162,7 @@ sqldelight {
         // Internal DB containing TMDB cache
         create("TmdbCache") {
             packageName.set("io.github.couchtracker.db.tmdbCache")
-            srcDirs.setFrom("src/main/sqldelight/tmdbCache")
+            srcDirs.setFrom(project.layout.buildDirectory.dir("generated/sqldelight/tmdbCache"))
             dialect(dialect)
         }
     }
