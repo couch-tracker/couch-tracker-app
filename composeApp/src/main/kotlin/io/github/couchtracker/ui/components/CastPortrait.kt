@@ -10,6 +10,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageType
+import app.moviebase.tmdb.model.TmdbAggregateCast
 import app.moviebase.tmdb.model.TmdbCast
 import coil3.compose.AsyncImage
 import io.github.couchtracker.tmdb.TmdbLanguage
@@ -52,14 +53,15 @@ fun CastPortrait(
                 textAlign = TextAlign.Center,
                 minLines = 1,
             )
-            Text(
-                text = person?.character.orEmpty(),
-                textAlign = TextAlign.Center,
-                minLines = 1,
-                // Same style as ListItem's supporting content
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            person?.roles?.forEach { role ->
+                Text(
+                    text = role,
+                    textAlign = TextAlign.Center,
+                    // Same style as ListItem's supporting content
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         },
     )
 }
@@ -68,7 +70,7 @@ data class CastPortraitModel(
     val person: TmdbPerson,
     val name: String,
     val posterModel: ImageModel?,
-    val character: String,
+    val roles: List<String>,
 ) {
     companion object {
 
@@ -80,7 +82,22 @@ data class CastPortraitModel(
             return CastPortraitModel(
                 person = TmdbPerson(TmdbPersonId(cast.id), language),
                 name = cast.name,
-                character = cast.character,
+                roles = listOf(cast.character),
+                posterModel = cast.profilePath?.let { path ->
+                    TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                },
+            )
+        }
+
+        suspend fun fromTmdbAggregateCast(
+            cast: TmdbAggregateCast,
+            language: TmdbLanguage,
+            imagePreloadOptions: ImagePreloadOptions,
+        ): CastPortraitModel {
+            return CastPortraitModel(
+                person = TmdbPerson(TmdbPersonId(cast.id), language),
+                name = cast.name,
+                roles = cast.roles.sortedByDescending { it.episodeCount }.map { it.character },
                 posterModel = cast.profilePath?.let { path ->
                     TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
                 },
@@ -89,6 +106,7 @@ data class CastPortraitModel(
     }
 }
 
+@JvmName("TmdbCast_toCastPortraitModel")
 suspend fun List<TmdbCast>.toCastPortraitModel(
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions,
@@ -96,6 +114,18 @@ suspend fun List<TmdbCast>.toCastPortraitModel(
     map {
         async {
             CastPortraitModel.fromTmdbCast(it, language, imagePreloadOptions)
+        }
+    }.awaitAll()
+}
+
+@JvmName("TmdbAggregateCast_toCastPortraitModel")
+suspend fun List<TmdbAggregateCast>.toCastPortraitModel(
+    language: TmdbLanguage,
+    imagePreloadOptions: ImagePreloadOptions,
+): List<CastPortraitModel> = coroutineScope {
+    map {
+        async {
+            CastPortraitModel.fromTmdbAggregateCast(it, language, imagePreloadOptions)
         }
     }.awaitAll()
 }
