@@ -72,6 +72,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.tmdb.toInternalTmdbMovie
+import io.github.couchtracker.tmdb.toInternalTmdbShow
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
@@ -83,6 +84,7 @@ import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.TagsRow
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.screens.movie.navigateToMovie
+import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.emptyPager
 import io.github.couchtracker.utils.heightWithAspectRatio
@@ -446,7 +448,7 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
             title = name,
             type = SearchableMediaType.SHOW,
             tags = listOfNotNull(firstAirDate?.year?.toString()),
-            navigate = { /* TODO */ },
+            navigate = { it.navigateToShow(toInternalTmdbShow(TMDB_LANGUAGE)) },
         )
     }
 }

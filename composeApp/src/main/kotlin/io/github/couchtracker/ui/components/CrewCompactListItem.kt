@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageType
+import app.moviebase.tmdb.model.TmdbAggregateCrew
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbDepartment
 import coil3.compose.AsyncImage
@@ -93,9 +94,30 @@ data class CrewCompactListItemModel(
                 },
             )
         }
+
+        suspend fun fromTmdbAggregateCrew(
+            crew: List<TmdbAggregateCrew>,
+            language: TmdbLanguage,
+            imagePreloadOptions: ImagePreloadOptions,
+        ): CrewCompactListItemModel {
+            require(crew.isNotEmpty()) { "At least one crew has to be specified." }
+            val base = crew.first()
+            require(crew.all { it.id == base.id })
+            require(crew.all { it.name == base.name })
+            require(crew.all { it.profilePath == base.profilePath })
+            return CrewCompactListItemModel(
+                person = TmdbPerson(TmdbPersonId(base.id), language),
+                name = base.name,
+                departments = crew.mapNotNull { it.department }.toSet(),
+                posterModel = base.profilePath?.let { path ->
+                    TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                },
+            )
+        }
     }
 }
 
+@JvmName("TmdbCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions,
@@ -103,6 +125,18 @@ suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
     groupBy { it.id }.map { (_, crew) ->
         async {
             CrewCompactListItemModel.fromTmdbCrew(crew, language, imagePreloadOptions)
+        }
+    }.awaitAll()
+}
+
+@JvmName("TmdbAggregateCrew_toCrewCompactListItemModel")
+suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
+    language: TmdbLanguage,
+    imagePreloadOptions: ImagePreloadOptions,
+): List<CrewCompactListItemModel> = coroutineScope {
+    groupBy { it.id }.map { (_, crew) ->
+        async {
+            CrewCompactListItemModel.fromTmdbAggregateCrew(crew, language, imagePreloadOptions)
         }
     }.awaitAll()
 }

@@ -45,6 +45,7 @@
     <string name="tab_movie_explore">Esplora</string>
 
     <string name="movie_by_director">di %1$s</string>
+    <string name="show_by_creator">di %1$s</string>
     <string name="section_images">Immagini</string>
     <string name="section_cast">Cast</string>
     <string name="section_crew">Troupe</string>
@@ -79,4 +80,10 @@
     <string name="search_filter_shows">Serie TV</string>
     <string name="search_filter_people">Persone</string>
     <string name="search_no_results">Nessun risultato</string>
+
+    <plurals name="n_episodes">
+        <item quantity="one">%1$d episodio</item>
+        <item quantity="many">%1$d episodi</item>
+        <item quantity="other">%1$d episodi</item>
+    </plurals>
 </resources>

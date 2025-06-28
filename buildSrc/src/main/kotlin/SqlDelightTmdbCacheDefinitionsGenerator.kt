@@ -4,10 +4,12 @@ import java.io.File
 
 /** Common columns */
 private val MOVIE_ID_COLUMN = SqlColumn.int("tmdbId", "io.github.couchtracker.tmdb.TmdbMovieId")
+private val SHOW_ID_COLUMN = SqlColumn.int("tmdbId", "io.github.couchtracker.tmdb.TmdbShowId")
 private val LANGUAGE_COLUMN = SqlColumn.text("language", "io.github.couchtracker.tmdb.TmdbLanguage")
 
 /** Which caches to create */
 private val CACHES = listOf(
+    // Movie
     SqlTable(
         name = "MovieDetailsCache",
         key = listOf(MOVIE_ID_COLUMN, LANGUAGE_COLUMN),
@@ -32,6 +34,22 @@ private val CACHES = listOf(
         name = "MovieVideosCache",
         key = listOf(MOVIE_ID_COLUMN),
         value = SqlColumn.text("videos", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbVideo>"),
+    ),
+    // Show
+    SqlTable(
+        name = "ShowDetailsCache",
+        key = listOf(SHOW_ID_COLUMN, LANGUAGE_COLUMN),
+        value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbShowDetail"),
+    ),
+    SqlTable(
+        name = "ShowImagesCache",
+        key = listOf(SHOW_ID_COLUMN),
+        value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
+    ),
+    SqlTable(
+        name = "ShowAggregateCreditsCache",
+        key = listOf(SHOW_ID_COLUMN),
+        value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbAggregateCredits"),
     ),
 )
 

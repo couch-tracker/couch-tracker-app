@@ -16,7 +16,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import kotlin.math.pow
 
 private const val GRADIENT_STEPS = 16
@@ -39,13 +42,15 @@ fun BackgroundTopAppBar(
         },
     ) {
         image(
-            Modifier.matchParentSize().graphicsLayer {
-                val radius = scrollBehavior.state.collapsedFraction * BACKGROUND_MAX_BLUR.toPx()
-                if (radius > 0) {
-                    this.renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
-                }
-                this.clip = true
-            },
+            Modifier
+                .matchParentSize()
+                .graphicsLayer {
+                    val radius = scrollBehavior.state.collapsedFraction * BACKGROUND_MAX_BLUR.toPx()
+                    if (radius > 0) {
+                        this.renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
+                    }
+                    this.clip = true
+                },
         )
         Box(Modifier.background(createGradientBrush(backgroundColor))) {
             appBar(
@@ -56,6 +61,28 @@ fun BackgroundTopAppBar(
             )
         }
     }
+}
+
+@Composable
+fun BackgroundTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    backdrop: ImageRequest?,
+    appBar: @Composable (TopAppBarColors) -> Unit,
+    backgroundColor: Color = MaterialTheme.colorScheme.background,
+) {
+    BackgroundTopAppBar(
+        scrollBehavior = scrollBehavior,
+        image = { modifier ->
+            AsyncImage(
+                modifier = modifier,
+                model = backdrop,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
+        },
+        appBar = appBar,
+        backgroundColor = backgroundColor,
+    )
 }
 
 private fun createGradientBrush(color: Color): Brush {
