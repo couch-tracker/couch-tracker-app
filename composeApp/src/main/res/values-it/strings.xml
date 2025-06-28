@@ -45,6 +45,7 @@
     <string name="tab_movie_explore">Esplora</string>
 
     <string name="movie_by_director">di %1$s</string>
+    <string name="show_by_creator">by %1$s</string>
     <string name="section_images">Immagini</string>
     <string name="section_cast">Cast</string>
     <string name="section_crew">Troupe</string>
