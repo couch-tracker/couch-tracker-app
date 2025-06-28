@@ -45,6 +45,7 @@
     <string name="tab_movie_explore">Explore</string>
 
     <string name="movie_by_director">by %1$s</string>
+    <string name="show_by_creator">by %1$s</string>
     <string name="section_images">Images</string>
     <string name="section_cast">Cast</string>
     <string name="section_crew">Crew</string>
