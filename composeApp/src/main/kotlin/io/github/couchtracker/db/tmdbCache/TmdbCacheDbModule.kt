@@ -7,6 +7,7 @@ import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.TmdbShowId
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -44,6 +45,22 @@ val TmdbCacheDbModule = module {
             MovieVideosCacheAdapter = MovieVideosCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
                 videosAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            ShowDetailsCacheAdapter = ShowDetailsCache.Adapter(
+                tmdbIdAdapter = TmdbShowId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
+                detailsAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            ShowImagesCacheAdapter = ShowImagesCache.Adapter(
+                tmdbIdAdapter = TmdbShowId.COLUMN_ADAPTER,
+                imagesAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            ShowAggregateCreditsCacheAdapter = ShowAggregateCreditsCache.Adapter(
+                tmdbIdAdapter = TmdbShowId.COLUMN_ADAPTER,
+                creditsAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
         )

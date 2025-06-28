@@ -2,7 +2,6 @@
 
 package io.github.couchtracker.ui.screens.movie
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,31 +11,21 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,18 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import app.moviebase.tmdb.image.TmdbImageType
-import app.moviebase.tmdb.image.TmdbImageUrlBuilder
-import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalFullProfileDataContext
-import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.asWatchable
@@ -84,15 +65,9 @@ import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.BackgroundTopAppBar
-import io.github.couchtracker.ui.components.CastPortrait
-import io.github.couchtracker.ui.components.CastPortraitModel
-import io.github.couchtracker.ui.components.CrewCompactListItem
-import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
-import io.github.couchtracker.ui.components.PortraitComposableDefaults
-import io.github.couchtracker.ui.components.TagsRow
+import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
@@ -101,7 +76,6 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
-import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.hours
 
 @Serializable
@@ -112,6 +86,7 @@ data class MovieScreen(val movieId: String, val language: String) : Screen() {
             is TmdbExternalMovieId -> {
                 TmdbMovie(movieId.id, TmdbLanguage.parse(language))
             }
+
             is UnknownExternalMovieId -> TODO()
         }
         Content(tmdbMovie)
@@ -173,7 +148,7 @@ private fun Content(movie: TmdbMovie) {
                         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                         containerColor = Color.Transparent,
                         topBar = {
-                            MovieAppBar(model, scrollBehavior)
+                            OverviewScreenComponents.Header(model.title, model.backdrop, scrollBehavior)
                         },
                         content = { innerPadding ->
                             MovieScreenContent(
@@ -200,52 +175,6 @@ private fun Content(movie: TmdbMovie) {
 }
 
 @Composable
-private fun MovieAppBar(
-    model: MovieScreenModel,
-    scrollBehavior: TopAppBarScrollBehavior,
-) {
-    val navController = LocalNavController.current
-    BackgroundTopAppBar(
-        scrollBehavior = scrollBehavior,
-        image = { modifier ->
-            AsyncImage(
-                modifier = modifier,
-                model = model.backdrop,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-            )
-        },
-        appBar = { colors ->
-            LargeTopAppBar(
-                colors = colors,
-                title = {
-                    val isExpanded = LocalTextStyle.current == MaterialTheme.typography.headlineMedium
-                    Text(
-                        model.title,
-                        maxLines = if (isExpanded) 2 else 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                navigationIcon = {
-                    IconButton({ navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = R.string.back_action.str(),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    )
-}
-
-private const val WIDE_COMPONENTS_FILL_PERCENTAGE = 0.75f
-private const val WIDE_COMPONENTS_ASPECT_RATIO = 16f / 9
-private const val COLUMN_COMPONENTS_ASPECT_RATIO = 3f / 2
-private const val ITEMS_PER_COLUMN = 4
-
-@Composable
 private fun MovieScreenContent(
     innerPadding: PaddingValues,
     model: MovieScreenModel,
@@ -259,161 +188,28 @@ private fun MovieScreenContent(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (model.director.isNotEmpty()) {
-            val directors = formatAndList(model.director.map { it.name })
-            item {
-                MovieText(R.string.movie_by_director.str(directors))
+        OverviewScreenComponents.run {
+            if (model.director.isNotEmpty()) {
+                val directors = formatAndList(model.director.map { it.name })
+                item {
+                    Text(R.string.movie_by_director.str(directors))
+                }
             }
-        }
-        tagsComposable(
-            listOfNotNull(
-                model.year?.toString(),
-                model.runtime?.toString(),
-                model.rating?.format(),
-            ) + model.genres.map { it.name },
-        )
-        space()
-
-        debugWatchedItemList(fullProfileData, model.id, onEditWatchedItem)
-
-        item { MovieText(model.tagline, maxLines = 1) }
-        item { MovieText(model.overview, style = MaterialTheme.typography.bodyMedium) }
-        space()
-
-        if (model.images.isNotEmpty()) {
-            item { MovieText(R.string.section_images.str(), maxLines = 1) }
-            item { ImagesSection(model, totalHeight = totalHeight) }
-            space()
-        }
-
-        if (model.cast.isNotEmpty()) {
-            item { MovieText(R.string.section_cast.str(), maxLines = 1) }
-            item { CastSection(model.cast, totalHeight = totalHeight) }
-            space()
-        }
-
-        if (model.crew.isNotEmpty()) {
-            item { MovieText(R.string.section_crew.str(), maxLines = 1) }
-            item { CrewSection(model.crew, totalHeight = totalHeight) }
-            space()
-        }
-
-        // To avoid overlaps with the FAB; see FabPrimaryTokens.ContainerHeight and Scaffold.FabSpacing
-        item { Spacer(Modifier.height(56.dp + 16.dp)) }
-    }
-}
-
-@Composable
-private fun <T> HorizontalListSection(
-    totalHeight: Int,
-    items: List<T>,
-    modifier: Modifier = Modifier,
-    itemComposable: @Composable (T, targetHeightPx: Int) -> Unit,
-) {
-    BoxWithConstraints(modifier.fillMaxWidth()) {
-        val width = this.constraints.maxWidth
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-        ) {
-            val targetHeightPx = (width * WIDE_COMPONENTS_FILL_PERCENTAGE / WIDE_COMPONENTS_ASPECT_RATIO)
-                .coerceAtMost(totalHeight / 2f)
-                .roundToInt()
-            items(items) { item ->
-                itemComposable(item, targetHeightPx)
-            }
-        }
-    }
-}
-
-@Composable
-private fun <T> HorizontalColumnsListSection(
-    totalHeight: Int,
-    items: List<T>,
-    modifier: Modifier = Modifier,
-    itemsPerColumn: Int = ITEMS_PER_COLUMN,
-    itemComposable: @Composable (T) -> Unit,
-) {
-    HorizontalListSection(
-        totalHeight = totalHeight,
-        items = items.chunked(itemsPerColumn),
-        modifier = modifier,
-    ) { itemsInColumn, targetHeight ->
-        val targetWidth = with(LocalDensity.current) {
-            targetHeight.toDp() * COLUMN_COMPONENTS_ASPECT_RATIO
-        }
-        Column(Modifier.width(targetWidth), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            for (item in itemsInColumn) {
-                itemComposable(item)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ImagesSection(model: MovieScreenModel, totalHeight: Int) {
-    HorizontalListSection(totalHeight, model.images) { image, targetHeight ->
-        val imgWidth = (targetHeight * image.aspectRation).roundToInt()
-        val url = TmdbImageUrlBuilder.build(
-            image.filePath,
-            TmdbImageType.BACKDROP,
-            imgWidth,
-            targetHeight,
-        )
-        Surface(shape = MaterialTheme.shapes.small, shadowElevation = 8.dp, tonalElevation = 8.dp) {
-            AsyncImage(
-                url,
-                modifier = Modifier
-                    .width(with(LocalDensity.current) { imgWidth.toDp() })
-                    .height(with(LocalDensity.current) { targetHeight.toDp() }),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            tagsComposable(
+                tags = listOfNotNull(
+                    model.year?.toString(),
+                    model.runtime?.toString(),
+                    model.rating?.format(),
+                ) + model.genres.map { it.name },
             )
-        }
-    }
-}
-
-@Composable
-private fun CastSection(people: List<CastPortraitModel>, totalHeight: Int) {
-    HorizontalListSection(totalHeight, people, modifier = Modifier.animateContentSize()) { person, targetHeight ->
-        val w = with(LocalDensity.current) {
-            targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
-        }
-        CastPortrait(Modifier.width(w), person, onClick = null)
-    }
-}
-
-@Composable
-private fun CrewSection(people: List<CrewCompactListItemModel>, totalHeight: Int) {
-    HorizontalColumnsListSection(
-        totalHeight = totalHeight,
-        items = people,
-    ) { person ->
-        CrewCompactListItem(person)
-    }
-}
-
-private fun LazyListScope.space() = item {
-    Spacer(Modifier.height(8.dp))
-}
-
-@Composable
-private fun MovieText(text: String?, maxLines: Int = Int.MAX_VALUE, style: TextStyle = MaterialTheme.typography.titleMedium) {
-    if (!text.isNullOrBlank()) {
-        Text(
-            text,
-            modifier = Modifier.padding(horizontal = 16.dp),
-            maxLines = maxLines,
-            style = style,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-private fun LazyListScope.tagsComposable(tags: List<String>) {
-    if (tags.isNotEmpty()) {
-        item {
-            TagsRow(tags, modifier = Modifier.padding(horizontal = 16.dp))
+            space()
+            debugWatchedItemList(fullProfileData, model.id, onEditWatchedItem)
+            textSection(model.tagline, model.overview)
+            imagesSection(model.images, totalHeight = totalHeight)
+            castSection(model.cast, totalHeight = totalHeight)
+            crewSection(model.crew, totalHeight = totalHeight)
+            // To avoid overlaps with the FAB; see FabPrimaryTokens.ContainerHeight and Scaffold.FabSpacing
+            item { Spacer(Modifier.height(56.dp + 16.dp)) }
         }
     }
 }
@@ -442,8 +238,8 @@ private fun LazyListScope.debugWatchedItemList(
                     },
                 )
                 Column(Modifier.weight(1f)) {
-                    MovieText("Watched at ${localizedDate?.string()}")
-                    MovieText(
+                    OverviewScreenComponents.Text("Watched at ${localizedDate?.string()}")
+                    OverviewScreenComponents.Text(
                         text = item.dimensions
                             .filterIsInstance<WatchedItemDimensionSelection.Choice>()
                             .flatMap { it.value }
