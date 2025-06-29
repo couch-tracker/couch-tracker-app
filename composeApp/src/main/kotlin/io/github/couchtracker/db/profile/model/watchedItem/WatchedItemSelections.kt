@@ -19,6 +19,10 @@ class WatchedItemSelections(
 
     val dimensions get() = dimensionsMap.values
 
+    fun isValid(): Boolean {
+        return dimensions.all { it.validity() is WatchedItemDimensionSelectionValidity.Valid }
+    }
+
     fun update(selection: WatchedItemDimensionSelection<*>) {
         dimensionsMap = dimensionsMap.plus(selection.dimension to selection)
     }

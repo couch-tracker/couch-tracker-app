@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.Skeletons
@@ -197,7 +198,7 @@ fun WatchedItemSheetScope.DateTimeSection(
     watchedItemType: WatchedItemType,
     approximateVideoRuntime: Duration,
 ) {
-    Section(Text.Resource(R.string.date_and_time)) {
+    Section(title = Text.Resource(R.string.date_and_time), validity = WatchedItemDimensionSelectionValidity.Valid) {
         val transition = updateTransition(sectionState.dateTime)
         transition.Crossfade(
             contentKey = { dt ->

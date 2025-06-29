@@ -15,7 +15,7 @@ fun WatchedItemSheetScope.FreeTextSection(
     onSelectionChange: (WatchedItemDimensionSelection.FreeText) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Section(selection.dimension.name.text, modifier = modifier) {
+    Section(title = selection.dimension.name.text, validity = selection.validity(), modifier = modifier) {
         OutlinedTextField(
             modifier = Modifier.Companion
                 .padding(horizontal = 16.dp)

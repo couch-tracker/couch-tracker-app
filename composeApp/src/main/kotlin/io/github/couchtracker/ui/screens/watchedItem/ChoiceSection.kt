@@ -23,7 +23,7 @@ fun WatchedItemSheetScope.ChoiceSection(
     modifier: Modifier = Modifier,
 ) {
     val dimension = selection.dimension
-    Section(dimension.name.text, modifier = modifier) {
+    Section(title = dimension.name.text, validity = selection.validity(), modifier = modifier) {
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -69,6 +69,7 @@
     <string name="watched_movie_time_just_finished">Appena finito</string>
     <string name="watched_item_time_today">Oggi</string>
     <string name="watched_item_time_custom">Personalizzato</string>
+    <string name="too_many_choices_selected">Troppe scelte selezionate, il massmo è %d</string>
 
     <string name="mark_movie_as_watched">Segna come visto</string>
     <string name="mark_episode_as_watched">Segna come visto</string>
