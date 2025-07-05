@@ -23,6 +23,7 @@ import io.github.couchtracker.ui.screens.main.MainScreen
 import io.github.couchtracker.ui.screens.main.SearchScreen
 import io.github.couchtracker.ui.screens.movie.MovieScreen
 import io.github.couchtracker.ui.screens.settings.settings
+import io.github.couchtracker.ui.screens.show.ShowScreen
 import org.koin.compose.KoinContext
 import kotlin.math.roundToInt
 
@@ -62,6 +63,7 @@ fun App() {
                             composable<MainScreen>()
                             composable<SearchScreen>()
                             composable<MovieScreen>()
+                            composable<ShowScreen>()
                             settings()
                         }
                     }
