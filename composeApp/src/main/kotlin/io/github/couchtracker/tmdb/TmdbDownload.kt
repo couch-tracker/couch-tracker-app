@@ -5,12 +5,16 @@ import app.cash.sqldelight.Query
 import app.moviebase.tmdb.Tmdb3
 import io.github.couchtracker.AndroidApplication
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
+import io.github.couchtracker.utils.ApiException
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import kotlinx.io.IOException
+import kotlinx.serialization.SerializationException
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -52,7 +56,7 @@ suspend fun <T : Any> tmdbGetOrDownload(
             Log.d(LOG_TAG, "$entryTag: Entry is expired (age=$age), performing download")
             try {
                 downloadAndSave(downloader, put, coroutineContext)
-            } catch (ignored: TmdbException) {
+            } catch (ignored: ApiException) {
                 Log.w(LOG_TAG, "$entryTag: Download failed, returning a stale entry", ignored)
                 cachedValue.value
             }
@@ -61,7 +65,7 @@ suspend fun <T : Any> tmdbGetOrDownload(
             AndroidApplication.scope.launch {
                 try {
                     downloadAndSave(downloader, put, coroutineContext)
-                } catch (ignored: TmdbException) {
+                } catch (ignored: ApiException) {
                     Log.w(LOG_TAG, "$entryTag: error while prefetching will be ignored", ignored)
                 }
             }
@@ -89,14 +93,22 @@ private suspend fun <T : Any> downloadAndSave(
     return element
 }
 
+/**
+ * @throws ApiException
+ */
+@Suppress("ThrowsCount")
 suspend fun <T> tmdbDownload(
     download: suspend (Tmdb3) -> T,
 ): T {
     try {
         return download(tmdb)
-    } catch (e: CancellationException) {
-        throw e
-    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-        throw TmdbException(e)
+    } catch (e: ClientRequestException) {
+        throw ApiException.ClientError(e.message, e)
+    } catch (e: ResponseException) {
+        throw ApiException.ServerError(e.message, e)
+    } catch (e: IOException) {
+        throw ApiException.IOError(e.message, e)
+    } catch (e: SerializationException) {
+        throw ApiException.DeserializationError(e.message, e)
     }
 }

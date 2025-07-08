@@ -9,7 +9,6 @@ import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbVideo
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbRating
@@ -23,6 +22,7 @@ import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
+import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import kotlinx.coroutines.Dispatchers
@@ -60,43 +60,45 @@ suspend fun loadMovie(
     width: Int,
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-): Loadable<MovieScreenModel, TmdbException> = coroutineScope {
-    withContext(coroutineContext) {
-        try {
-            val credits = async { movie.credits(tmdbCache) }
-            val images = async { movie.images(tmdbCache) }
-            val videos = async { movie.videos(tmdbCache) }
-            val details = movie.details(tmdbCache)
-            val backdrop = async {
-                details.backdropImage.prepareAndExtractColorScheme(
-                    ctx = ctx,
-                    width = width,
-                    height = height,
-                    fallbackColorScheme = ColorSchemes.Movie,
+): Loadable<MovieScreenModel, ApiException> {
+    return try {
+        coroutineScope {
+            withContext(coroutineContext) {
+                val credits = async { movie.credits(tmdbCache) }
+                val images = async { movie.images(tmdbCache) }
+                val videos = async { movie.videos(tmdbCache) }
+                val details = movie.details(tmdbCache)
+                val backdrop = async {
+                    details.backdropImage.prepareAndExtractColorScheme(
+                        ctx = ctx,
+                        width = width,
+                        height = height,
+                        fallbackColorScheme = ColorSchemes.Movie,
+                    )
+                }
+                Result.Value(
+                    MovieScreenModel(
+                        id = movie.id,
+                        title = details.title,
+                        tagline = details.tagline,
+                        overview = details.overview,
+                        year = details.releaseDate?.year,
+                        runtime = details.runtime?.minutes,
+                        rating = details.rating(),
+                        genres = details.genres,
+                        director = credits.await().crew.directors(),
+                        cast = credits.await().cast.toCastPortraitModel(movie.language, ImagePreloadOptions.DoNotPreload),
+                        crew = credits.await().crew.toCrewCompactListItemModel(movie.language, ImagePreloadOptions.DoNotPreload),
+                        backdrop = backdrop.await().first,
+                        images = images.await().linearize(),
+                        videos = videos.await(),
+                        colorScheme = backdrop.await().second,
+                    ),
                 )
             }
-            Result.Value(
-                MovieScreenModel(
-                    id = movie.id,
-                    title = details.title,
-                    tagline = details.tagline,
-                    overview = details.overview,
-                    year = details.releaseDate?.year,
-                    runtime = details.runtime?.minutes,
-                    rating = details.rating(),
-                    genres = details.genres,
-                    director = credits.await().crew.directors(),
-                    cast = credits.await().cast.toCastPortraitModel(movie.language, ImagePreloadOptions.DoNotPreload),
-                    crew = credits.await().crew.toCrewCompactListItemModel(movie.language, ImagePreloadOptions.DoNotPreload),
-                    backdrop = backdrop.await().first,
-                    images = images.await().linearize(),
-                    videos = videos.await(),
-                    colorScheme = backdrop.await().second,
-                ),
-            )
-        } catch (e: TmdbException) {
-            Log.e(LOG_TAG, "Error while loading MovieScreenModel for ${movie.id.toExternalId().serialize()} (${movie.language})", e)
-            Result.Error(e)
         }
+    } catch (e: ApiException) {
+        Log.e(LOG_TAG, "Error while loading MovieScreenModel for ${movie.id.toExternalId().serialize()} (${movie.language})", e)
+        Result.Error(e)
     }
 }

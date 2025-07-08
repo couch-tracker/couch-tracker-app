@@ -32,13 +32,13 @@ import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 import io.github.couchtracker.db.profile.show.UnknownExternalShowId
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
@@ -69,7 +69,7 @@ private fun Content(show: TmdbShow) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<ShowScreenModel, TmdbException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<Loadable<ShowScreenModel, ApiException>>(Loadable.Loading) }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -94,8 +94,8 @@ private fun Content(show: TmdbShow) {
             onError = { exception ->
                 Surface {
                     DefaultErrorScreen(
-                        // TODO: translate
-                        message = exception.message ?: "Error",
+                        errorMessage = exception.title.string(),
+                        errorDetails = exception.details?.string(),
                         retry = {
                             coroutineScope.launch { load() }
                         },

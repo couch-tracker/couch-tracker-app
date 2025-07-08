@@ -12,6 +12,7 @@
 
     <string name="more_options">More options</string>
     <string name="error_loading_items">Error loading items</string>
+    <string name="error_loading_items_x">Error loading items: %1$s</string>
     <string name="save_failed">Save failed</string>
     <string name="save_failed_message">Error saving data in your profile. %s</string>
     <string name="show_exception">Show exception</string>
