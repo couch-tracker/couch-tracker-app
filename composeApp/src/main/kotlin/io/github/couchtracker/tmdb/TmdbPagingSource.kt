@@ -5,6 +5,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.TmdbPageResult
+import io.github.couchtracker.utils.ApiException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -35,7 +36,7 @@ class TmdbPagingSource<T : Any, O : Any>(
                 itemsBefore = loadedBefore,
                 itemsAfter = response.totalResults - loadedBefore - response.results.size,
             )
-        } catch (e: TmdbException) {
+        } catch (e: ApiException) {
             Log.w(LOG_TAG, "Error while loading page $nextPageNumber", e)
             return LoadResult.Error(e)
         }

@@ -8,7 +8,6 @@ import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbShowCreatedBy
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -21,6 +20,7 @@ import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
+import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import kotlinx.coroutines.Dispatchers
@@ -54,40 +54,42 @@ suspend fun loadShow(
     width: Int,
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-): Loadable<ShowScreenModel, TmdbException> = coroutineScope {
-    withContext(coroutineContext) {
-        try {
-            val details = show.details(tmdbCache)
-            val images = async { show.images(tmdbCache) }
-            val aggregateCredits = async { show.aggregateCredits(tmdbCache) }
-            val backdrop = async {
-                details.backdropImage.prepareAndExtractColorScheme(
-                    ctx = ctx,
-                    width = width,
-                    height = height,
-                    fallbackColorScheme = ColorSchemes.Show,
+): Loadable<ShowScreenModel, ApiException> {
+    return try {
+        coroutineScope {
+            withContext(coroutineContext) {
+                val details = show.details(tmdbCache)
+                val images = async { show.images(tmdbCache) }
+                val aggregateCredits = async { show.aggregateCredits(tmdbCache) }
+                val backdrop = async {
+                    details.backdropImage.prepareAndExtractColorScheme(
+                        ctx = ctx,
+                        width = width,
+                        height = height,
+                        fallbackColorScheme = ColorSchemes.Show,
+                    )
+                }
+                Result.Value(
+                    ShowScreenModel(
+                        id = show.id,
+                        name = details.name,
+                        tagline = details.tagline,
+                        overview = details.overview,
+                        year = details.firstAirDate?.year,
+                        rating = details.rating(),
+                        genres = details.genres,
+                        createdBy = details.createdBy.orEmpty(),
+                        cast = aggregateCredits.await().cast.toCastPortraitModel(show.language, ImagePreloadOptions.DoNotPreload),
+                        crew = aggregateCredits.await().crew.toCrewCompactListItemModel(show.language, ImagePreloadOptions.DoNotPreload),
+                        backdrop = backdrop.await().first,
+                        images = images.await().linearize(),
+                        colorScheme = backdrop.await().second,
+                    ),
                 )
             }
-            Result.Value(
-                ShowScreenModel(
-                    id = show.id,
-                    name = details.name,
-                    tagline = details.tagline,
-                    overview = details.overview,
-                    year = details.firstAirDate?.year,
-                    rating = details.rating(),
-                    genres = details.genres,
-                    createdBy = details.createdBy.orEmpty(),
-                    cast = aggregateCredits.await().cast.toCastPortraitModel(show.language, ImagePreloadOptions.DoNotPreload),
-                    crew = aggregateCredits.await().crew.toCrewCompactListItemModel(show.language, ImagePreloadOptions.DoNotPreload),
-                    backdrop = backdrop.await().first,
-                    images = images.await().linearize(),
-                    colorScheme = backdrop.await().second,
-                ),
-            )
-        } catch (e: TmdbException) {
-            Log.e(LOG_TAG, "Error while loading ShowScreenModel for ${show.id.toExternalId().serialize()} (${show.language})", e)
-            Result.Error(e)
         }
+    } catch (e: ApiException) {
+        Log.e(LOG_TAG, "Error while loading ShowScreenModel for ${show.id.toExternalId().serialize()} (${show.language})", e)
+        Result.Error(e)
     }
 }

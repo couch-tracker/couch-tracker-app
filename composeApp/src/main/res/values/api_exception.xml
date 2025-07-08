@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="api_exception_client_error">Client error</string>
+    <string name="api_exception_server_error">Server error</string>
+    <string name="api_exception_io_error">I/O error</string>
+    <string name="api_exception_deserialization_error">Deserialization error</string>
+</resources>

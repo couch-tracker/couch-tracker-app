@@ -12,6 +12,7 @@
 
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
+    <string name="error_loading_items_x">Errore nel caricare gli elementi: %1$s</string>
     <string name="save_failed">Salvataggio fallito</string>
     <string name="save_failed_message">Errore durante il salvataggio nel profilo. %s</string>
     <string name="show_exception">Mostra eccezione</string>

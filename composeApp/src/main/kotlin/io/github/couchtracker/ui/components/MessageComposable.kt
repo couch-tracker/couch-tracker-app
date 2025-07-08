@@ -27,6 +27,7 @@ fun MessageComposable(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     message: String,
+    details: String? = null,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(
@@ -37,6 +38,10 @@ fun MessageComposable(
         Icon(icon, contentDescription = null, Modifier.size(40.dp))
         Spacer(Modifier.height(24.dp))
         Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.headlineSmall)
+        if (details != null) {
+            Spacer(Modifier.height(24.dp))
+            Text(details, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
+        }
         content()
     }
 }
@@ -45,12 +50,14 @@ fun MessageComposable(
 fun ErrorMessageComposable(
     modifier: Modifier = Modifier,
     errorMessage: String,
+    errorDetails: String?,
     retry: (() -> Unit)? = null,
 ) {
     MessageComposable(
         modifier = modifier,
         icon = Icons.Filled.Error,
         message = errorMessage,
+        details = errorDetails,
     ) {
         if (retry != null) {
             Spacer(Modifier.height(24.dp))

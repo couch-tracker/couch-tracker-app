@@ -60,7 +60,6 @@ import io.github.couchtracker.intl.datetime.TimezoneSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
 import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbException
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
@@ -71,6 +70,7 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
+import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
@@ -102,7 +102,7 @@ private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, TmdbException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, ApiException>>(Loadable.Loading) }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -127,8 +127,8 @@ private fun Content(movie: TmdbMovie) {
             onError = { exception ->
                 Surface {
                     DefaultErrorScreen(
-                        // TODO: translate
-                        message = exception.message ?: "Error",
+                        errorMessage = exception.title.string(),
+                        errorDetails = exception.details?.string(),
                         retry = {
                             coroutineScope.launch { load() }
                         },

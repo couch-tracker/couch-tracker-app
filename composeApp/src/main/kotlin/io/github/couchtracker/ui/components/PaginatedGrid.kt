@@ -15,12 +15,15 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import io.github.couchtracker.R
+import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.isLoaded
 import io.github.couchtracker.utils.str
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+
+private typealias ErrorWithDetails = Pair<String, String?>
 
 @Composable
 fun <T : Any> PaginatedGrid(
@@ -33,15 +36,15 @@ fun <T : Any> PaginatedGrid(
     lazyGridState: LazyGridState = rememberLazyGridState(),
     itemComposable: @Composable (T?) -> Unit,
 ) {
-    val globalState = when (paginatedItems.loadState.refresh) {
-        is LoadState.Error -> Result.Error(R.string.error_loading_items.str())
+    val globalState = when (val state = paginatedItems.loadState.refresh) {
+        is LoadState.Error -> Result.Error(state.error.wrap())
         LoadState.Loading -> Loadable.Loading
         is LoadState.NotLoading -> Result.Value(Unit)
     }
     LoadableScreen(
         globalState,
-        onError = {
-            DefaultErrorScreen(it) { paginatedItems.retry() }
+        onError = { (message, details) ->
+            DefaultErrorScreen(errorMessage = message, errorDetails = details, retry = { paginatedItems.retry() })
         },
     ) {
         if (paginatedItems.loadState.isLoaded && paginatedItems.itemSnapshotList.isEmpty() && emptyComposable != null) {
@@ -106,9 +109,11 @@ private fun <T : Any> LoadedPaginatedGrid(
         ) { index ->
             val item = paginatedItems[index]
             if (isErrorView(item, bottomState)) {
+                val wrappedError = bottomState.error.wrap()
                 ErrorMessageComposable(
                     Modifier.fillMaxWidth(),
-                    R.string.error_loading_items.str(),
+                    errorMessage = wrappedError.first,
+                    errorDetails = wrappedError.second,
                     retry = { paginatedItems.retry() },
                 )
             } else {
@@ -125,4 +130,13 @@ private fun <T : Any> isErrorView(item: T?, bottomState: LoadState): Boolean {
         returns(true) implies (item == null)
     }
     return item == null && bottomState is LoadState.Error
+}
+
+@Composable
+private fun Throwable.wrap(): ErrorWithDetails {
+    return if (this is ApiException) {
+        R.string.error_loading_items_x.str(title.string()) to details?.string()
+    } else {
+        R.string.error_loading_items.str() to null
+    }
 }

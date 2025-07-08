@@ -102,6 +102,15 @@ fun DefaultLoadingScreen() {
 }
 
 @Composable
-fun DefaultErrorScreen(message: String, retry: (() -> Unit)? = null) {
-    ErrorMessageComposable(Modifier.fillMaxSize(), message, retry)
+fun DefaultErrorScreen(
+    errorMessage: String,
+    errorDetails: String?,
+    retry: (() -> Unit)? = null,
+) {
+    ErrorMessageComposable(
+        modifier = Modifier.fillMaxSize(),
+        errorMessage = errorMessage,
+        errorDetails = errorDetails,
+        retry = retry,
+    )
 }
