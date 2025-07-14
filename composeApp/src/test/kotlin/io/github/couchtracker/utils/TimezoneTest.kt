@@ -1,30 +1,64 @@
 package io.github.couchtracker.utils
 
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.TimeZone
 
 class TimezoneTest : FunSpec(
     {
-        test("timezonesTree") {
+        context("timezonesTree") {
             val root = TimeZone.timezonesTree()
-            // Has all TZs
-            root.totalItemCount() shouldBe TimeZone.availableZoneIds.size
-            // has the uncategorized node
-            val uncategorized = root.items.single { it is TimezoneItem.Category.Uncategorized } as TimezoneItem.Category.Uncategorized
-            uncategorized.items.shouldNotBeEmpty()
-            root.items.last() shouldBe uncategorized
-            // Has categorized elements
-            val categorized = root.items.filter { it !is TimezoneItem.Category.Uncategorized }
-            // Has Europe
-            val europe = categorized.single {
-                it is TimezoneItem.Category.GeographicalArea && it.name == "Europe"
-            } as TimezoneItem.Category.GeographicalArea
-            // Has Isle of man
-            val tz = TimeZone.of("Europe/Isle_of_Man")
-            val isle = europe.items.single { it is TimezoneItem.Zone && it.timezone == tz } as TimezoneItem.Zone
-            isle.leafName shouldBe "Isle of Man"
+
+            test("has all TZs") {
+                root.countLeafs() shouldBe TimeZone.availableZoneIds.size
+            }
+
+            test("uncategorized") {
+                val uncategorized = withClue("exists") {
+                    root.children
+                        .filterIsInstance<MixedValueTree.Intermediate<TimeZoneCategory, NamedTimezone>>()
+                        .filter { it.value == TimeZoneCategory.Uncategorized }
+                        .shouldBeSingleton()
+                        .single()
+                }
+
+                withClue("has timezones") {
+                    uncategorized.children.shouldNotBeEmpty()
+                }
+
+                withClue("is last element") {
+                    root.children.last() shouldBe uncategorized
+                }
+            }
+            test("categorized") {
+                val categorized = withClue("exist") {
+                    root.children
+                        .filterIsInstance<MixedValueTree.Intermediate<TimeZoneCategory, NamedTimezone>>()
+                        .filter { it.value != TimeZoneCategory.Uncategorized }
+                        .shouldHaveAtLeastSize(2)
+                }
+
+                val europe = withClue("has Europe") {
+                    categorized
+                        .filter { it.value is TimeZoneCategory.GeographicalArea && it.value.name == "Europe" }
+                        .shouldBeSingleton()
+                }.single()
+
+                withClue("has Isle of man") {
+                    val tz = TimeZone.of("Europe/Isle_of_Man")
+                    val isle = europe.children
+                        .filterIsInstance<MixedValueTree.Leaf<NamedTimezone>>()
+                        .filter { it.value.timezone == tz }
+                        .shouldBeSingleton()
+                        .single()
+
+                    isle.value.leafName shouldBe "Isle of Man"
+                }
+            }
         }
     },
 )
