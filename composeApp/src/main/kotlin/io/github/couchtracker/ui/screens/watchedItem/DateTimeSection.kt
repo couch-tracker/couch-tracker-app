@@ -176,11 +176,11 @@ fun DateTimeSectionDialog(sectionState: DateTimeSectionState) {
 
         TIMEZONE -> {
             TimezonePickerDialog(
-                sectionState.customTimezone,
+                timezone = sectionState.customTimezone,
                 onTimezoneSelected = {
                     sectionState.setCustomDate(timeZone = it)
                 },
-                close = {
+                onClose = {
                     sectionState.customDateDialogVisibility = HIDDEN
                 },
             )
