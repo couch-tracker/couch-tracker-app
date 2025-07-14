@@ -180,7 +180,7 @@ fun DateTimeSectionDialog(sectionState: DateTimeSectionState) {
                 onTimezoneSelected = {
                     sectionState.setCustomDate(timeZone = it)
                 },
-                close = {
+                onClose = {
                     sectionState.customDateDialogVisibility = HIDDEN
                 },
             )
