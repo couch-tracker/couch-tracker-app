@@ -142,7 +142,8 @@ private fun Content(movie: TmdbMovie) {
                 WatchedItemSheetScaffold(
                     scaffoldState = scaffoldState,
                     watchedItemType = WatchedItemType.MOVIE,
-                    approximateVideoRuntime = model.runtime ?: 2.hours,
+                    approximateMediaRuntime = model.runtime ?: 2.hours,
+                    mediaLanguages = listOf(model.originalLanguage),
                 ) {
                     Scaffold(
                         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

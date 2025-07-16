@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="audio_language">Lingua audio</string>
+    <string name="subtitle_language">Lingua sottotitoli</string>
     <string name="notes">Note</string>
 </resources>

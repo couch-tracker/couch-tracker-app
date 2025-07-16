@@ -39,6 +39,8 @@ data class WatchedItemWrapper(
                 }
             val freeTexts = db.watchedItemFreeTextQueries.selectAll().executeAsList()
                 .associateBy { it.watchedItem to it.watchedItemDimension }
+            val languages = db.watchedItemLanguageQueries.selectAll().executeAsList()
+                .associateBy { it.watchedItem to it.watchedItemDimension }
 
             return db.watchedItemQueries.selectAll().executeAsList().map { watchedItem ->
                 WatchedItemWrapper(
@@ -47,6 +49,7 @@ data class WatchedItemWrapper(
                         val key = watchedItem.id to dimension.id
                         when (dimension) {
                             is WatchedItemDimensionWrapper.Choice -> dimension.selection(choices[key].orEmpty())
+                            is WatchedItemDimensionWrapper.Language -> dimension.selection(languages[key])
                             is WatchedItemDimensionWrapper.FreeText -> dimension.selection(freeTexts[key])
                         }
                     },

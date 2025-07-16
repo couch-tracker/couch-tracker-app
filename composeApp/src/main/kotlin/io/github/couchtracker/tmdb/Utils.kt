@@ -8,10 +8,13 @@ import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbImages
+import app.moviebase.tmdb.model.TmdbMovieDetail
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.ibm.icu.util.ULocale
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.ui.generateColorScheme
 
 suspend fun TmdbImage?.prepareAndExtractColorScheme(
@@ -48,4 +51,13 @@ fun TmdbImages.linearize(): List<TmdbFileImage> {
 
 fun List<TmdbCrew>.directors(): List<TmdbCrew> {
     return filter { it.job == "Director" }
+}
+
+fun TmdbMovieDetail.language(): Bcp47Language {
+    val allLocales = ULocale.getAvailableLocales()
+    return originCountry
+        .map { ULocale(originalLanguage, it) }
+        .firstOrNull { it in allLocales }
+        ?.let { Bcp47Language(it) }
+        ?: Bcp47Language.of(originalLanguage)
 }

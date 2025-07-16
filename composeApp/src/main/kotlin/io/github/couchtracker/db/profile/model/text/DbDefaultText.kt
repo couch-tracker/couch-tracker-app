@@ -68,6 +68,8 @@ enum class DbDefaultText(val text: Text) {
     STREAMING_PROVIDER_PARAMOUNT_PLUS(R.string.streaming_provider_paramount_plus),
     STREAMING_PROVIDER_PRIME_VIDEO(R.string.streaming_provider_prime_video),
 
+    AUDIO_LANGUAGE(R.string.audio_language),
+    SUBTITLES_LANGUAGE(R.string.subtitle_language),
     NOTES(R.string.notes),
     ;
 

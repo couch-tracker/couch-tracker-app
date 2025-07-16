@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="audio_language">Audio language</string>
+    <string name="subtitle_language">Subtitle language</string>
     <string name="notes">Notes</string>
 </resources>

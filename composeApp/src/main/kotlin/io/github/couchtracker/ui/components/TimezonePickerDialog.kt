@@ -13,7 +13,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.utils.TimeZoneCategory
 import io.github.couchtracker.utils.countLeafs
 import io.github.couchtracker.utils.currentFirstLocale
-import io.github.couchtracker.utils.findLeaf
+import io.github.couchtracker.utils.findLeafValue
 import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.timezonesTree
@@ -27,7 +27,7 @@ fun TimezonePickerDialog(
     onClose: () -> Unit,
 ) {
     val timezonesTreeRoot = remember { TimeZone.timezonesTree() }
-    val selected = timezonesTreeRoot.findLeaf { it.timezone == timezone }
+    val selected = timezonesTreeRoot.findLeafValue { it.timezone == timezone }
 
     TreePickerDialog(
         selected = selected,
