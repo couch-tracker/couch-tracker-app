@@ -1,8 +1,12 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
+import kotlin.collections.minus
+import kotlin.collections.plus
+import kotlin.text.isBlank
 
 /**
  * Represents the value of a specific [WatchedItemDimensionWrapper].
@@ -64,6 +68,37 @@ sealed interface WatchedItemDimensionSelection<T> {
                 Choice(dimension = dimension, value = setOf(choice))
             } else {
                 Choice(dimension = dimension, value = value + choice)
+            }
+        }
+    }
+
+    data class Language(
+        override val dimension: WatchedItemDimensionWrapper.Language,
+        override val value: Bcp47Language?,
+    ) : WatchedItemDimensionSelection<Bcp47Language?> {
+
+        override fun validity() = WatchedItemDimensionSelectionValidity.Valid
+
+        override fun save(db: ProfileData, watchedItem: WatchedItem) {
+            if (value == null) {
+                db.watchedItemLanguageQueries.delete(
+                    watchedItem = watchedItem.id,
+                    watchedItemDimension = dimension.id,
+                )
+            } else {
+                db.watchedItemLanguageQueries.upsert(
+                    watchedItem = watchedItem.id,
+                    watchedItemDimension = dimension.id,
+                    language = value,
+                )
+            }
+        }
+
+        fun toggled(language: Bcp47Language): Language {
+            return if (language == value) {
+                Language(dimension = dimension, value = null)
+            } else {
+                Language(dimension = dimension, value = language)
             }
         }
     }

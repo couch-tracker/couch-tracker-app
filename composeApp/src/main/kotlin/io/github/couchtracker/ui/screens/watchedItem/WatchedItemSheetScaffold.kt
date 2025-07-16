@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
@@ -131,7 +132,8 @@ fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
 fun WatchedItemSheetScaffold(
     scaffoldState: WatchedItemSheetScaffoldState,
     watchedItemType: WatchedItemType,
-    approximateVideoRuntime: Duration,
+    approximateMediaRuntime: Duration,
+    mediaLanguages: List<Bcp47Language>,
     content: @Composable () -> Unit,
 ) {
     val bottomSheetState = scaffoldState.scaffoldState.bottomSheetState
@@ -170,7 +172,8 @@ fun WatchedItemSheetScaffold(
                         selections = rememberWatchedItemSelections(watchedItemType, mode = mode),
                         bottomSheetState = bottomSheetState,
                         watchedItemType = watchedItemType,
-                        approximateVideoRuntime = approximateVideoRuntime,
+                        approximateMediaRuntime = approximateMediaRuntime,
+                        mediaLanguages = mediaLanguages,
                         onDismissRequest = { scaffoldState.close() },
                         onHeaderHeightChange = { headerHeight = it },
                         onScrollLabelHeightChange = { scrollLabelHeight = it },
@@ -199,7 +202,8 @@ private fun WatchedItemSheetContent(
     selections: WatchedItemSelections,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
-    approximateVideoRuntime: Duration,
+    approximateMediaRuntime: Duration,
+    mediaLanguages: List<Bcp47Language>,
     onDismissRequest: () -> Unit,
     onHeaderHeightChange: (Int) -> Unit,
     onScrollLabelHeightChange: (Int) -> Unit,
@@ -229,6 +233,13 @@ private fun WatchedItemSheetContent(
         when (selection) {
             is WatchedItemDimensionSelection.Choice -> ChoiceSection(
                 enabled = enabled,
+                selection = selection,
+                onSelectionChange = selections::update,
+            )
+
+            is WatchedItemDimensionSelection.Language -> LanguageSection(
+                enabled = enabled,
+                mediaLanguages = mediaLanguages,
                 selection = selection,
                 onSelectionChange = selections::update,
             )
@@ -265,7 +276,7 @@ private fun WatchedItemSheetContent(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Spacer(Modifier.height(16.dp))
-                        DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, approximateVideoRuntime)
+                        DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, approximateMediaRuntime)
                         for (selection in selections.dimensions.filter { it.dimension.isImportant }) {
                             AnimatedVisibility(visible = selection.dimension.isVisible(selections)) {
                                 DimensionSection(selection)

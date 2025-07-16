@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.profile
 
 import app.cash.sqldelight.EnumColumnAdapter
+import io.github.couchtracker.db.common.adapters.Bcp47LanguageColumnAdapter
 import io.github.couchtracker.db.common.adapters.DbIconColumnAdapter
 import io.github.couchtracker.db.common.adapters.DbTextColumnAdapter
 import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
@@ -36,6 +37,9 @@ val ProfileDbCommonModule = module {
             WatchedItemDimensionChoiceAdapter = WatchedItemDimensionChoice.Adapter(
                 nameAdapter = DbTextColumnAdapter,
                 iconAdapter = DbIconColumnAdapter,
+            ),
+            WatchedItemLanguageAdapter = WatchedItemLanguage.Adapter(
+                languageAdapter = Bcp47LanguageColumnAdapter,
             ),
         ).also { db ->
             ProfileDefaultDataHandler.handle(db)

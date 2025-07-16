@@ -24,6 +24,10 @@ sealed interface WatchedItemDimensionType {
     }
 
     @Serializable
+    @SerialName("language")
+    data object Language : WatchedItemDimensionType
+
+    @Serializable
     @SerialName("freeText")
     data object FreeText : WatchedItemDimensionType
 }

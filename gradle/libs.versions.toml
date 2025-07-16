@@ -13,6 +13,7 @@ coil = "3.1.0"
 compose-paging = "3.3.6"
 compose-plugin = "1.9.0-alpha02"
 detekt = "1.23.8"
+icu = "77.1"
 koin-bom = "4.0.4"
 kotest = "5.9.1"
 kotlin = "2.1.21"
@@ -37,6 +38,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 compose-paging = { module = "androidx.paging:paging-compose", version.ref = "compose-paging" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
 koin-compose = { group = "io.insert-koin", name = "koin-compose" }
