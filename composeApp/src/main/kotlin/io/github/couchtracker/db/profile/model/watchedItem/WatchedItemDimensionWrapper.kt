@@ -6,6 +6,7 @@ import io.github.couchtracker.db.profile.WatchedItemDimension
 import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
 import io.github.couchtracker.db.profile.WatchedItemDimensionEnableIf
 import io.github.couchtracker.db.profile.WatchedItemFreeText
+import io.github.couchtracker.db.profile.WatchedItemLanguage
 
 /**
  * Wraps a [WatchedItemDimension], providing:
@@ -57,6 +58,30 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
         override fun emptySelection() = WatchedItemDimensionSelection.Choice(dimension = this, value = emptySet())
     }
 
+    data class Language(
+        override val dimension: WatchedItemDimension,
+        override val enableIfs: List<WatchedItemDimensionEnableIf>,
+        override val type: WatchedItemDimensionType.Language,
+    ) : WatchedItemDimensionWrapper {
+
+        override fun emptySelection() = WatchedItemDimensionSelection.Language(dimension = this, value = null)
+
+        /**
+         * Returns a [WatchedItemDimensionSelection.Language] with the language represented by [language] as value.
+         * If [language] is null, an empty selection is returned.
+         */
+        fun selection(language: WatchedItemLanguage?): WatchedItemDimensionSelection.Language {
+            if (language == null) {
+                return emptySelection()
+            }
+            require(language.watchedItemDimension == dimension.id) { "Language of another dimension" }
+            return WatchedItemDimensionSelection.Language(
+                dimension = this,
+                value = language.language,
+            )
+        }
+    }
+
     data class FreeText(
         override val dimension: WatchedItemDimension,
         override val enableIfs: List<WatchedItemDimensionEnableIf>,
@@ -96,7 +121,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
         val enablingChoiceIds = when (this) {
             // If I'm a choice, out of precaution, filter out my own choices
             is Choice -> enableIfs.filterNot { it.choice in choiceIds }
-            is FreeText -> enableIfs
+            else -> enableIfs
         }.map { it.choice }.toSet()
 
         // Detect if there's any of these choices currently selected
@@ -125,6 +150,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
                     )
                 }
 
+                is WatchedItemDimensionType.Language -> Language(dimension, filteredEnableIfs, dimension.type)
                 is WatchedItemDimensionType.FreeText -> FreeText(dimension, filteredEnableIfs, dimension.type)
             }
         }

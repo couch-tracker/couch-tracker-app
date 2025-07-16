@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -55,8 +58,40 @@ import io.github.couchtracker.utils.str
 private typealias CategoriesStack<C, T> = List<MixedValueTree.Internal<C, T>>
 
 /**
+ * If these options are supplied to [TreePickerDialog], each tree branch will compute the suggested items with the [suggestedItems] lambda,
+ * and shown before the full list.
+ *
+ * @param suggestedItems lambda to compute list of suggested items to show in the given tree branch
+ * @param suggestedString composable lambda returning the name of the suggested category (e.g. "Suggested languages")
+ * @param allString composable lambda returning the name of category with all the items, after the suggestions (e.g. "All languages")
+ */
+data class SuggestedOptions<C, T : Any>(
+    val suggestedItems: (MixedValueTree.Internal<C, T>) -> List<MixedValueTree.Leaf<T>>,
+    val suggestedString: @Composable () -> String,
+    val allString: @Composable () -> String,
+)
+
+/**
  * Allows to pick an item out of a tree structure.
  *
+ * @param selected the selected item, or `null` if there's nothing selected
+ * @param onSelect callback with a new selection, or `null` if the user decided to select nothing
+ * @param root root of the tree to show selections for this picker
+ * @param suggestedOptions optional class containing parameters to compute the suggested items for each branch of the tree
+ * @param itemName composable lambda returning the name of the item to show in the list
+ * @param itemFullName optional composable lambda returning a full name for the item, to be used in search results. Defaults to [itemName]
+ * @param itemSupportingName composable lambda optionally returning a string to be used in the supporting text of an item
+ * @param itemKey lambda returning a key to use in a [LazyColumn] for the item
+ * @param itemSearchStrings composable lambda returning a list of strings to be used to match against during the search.
+ * Defaults to both [itemFullName] and [itemSupportingName]
+ * @param categoryName composable lambda returning the name of the category to show in the list
+ * @param categorySupportingName composable lambda optionally returning a string to be used in the supporting text of a category
+ * @param icon the icon to use in the dialog header
+ * @param title the title to use in the dialog header
+ * @param searchPlaceHolder composable lambda returning the placeholder for the search text field
+ * @param nullSelectionButtonText optional lambda returning a string for the dialog button to select a `null` item. If this lambda
+ * is null, the button will not be visible, and users won't be able to select `null`.
+ * @param onClose callback that should close the dialog
  * @param C the type of value held by categories
  * @param T the type of the items
  */
@@ -66,10 +101,13 @@ fun <C, T : Any> TreePickerDialog(
     selected: T?,
     onSelect: (T?) -> Unit,
     root: MixedValueTree.Root<Unit, C, T>,
+    suggestedOptions: SuggestedOptions<C, T>? = null,
     itemName: @Composable (T) -> String,
-    itemFullName: @Composable (T) -> String,
+    itemFullName: @Composable (T) -> String = itemName,
     itemSupportingName: @Composable (T) -> String?,
+    itemTrailingContent: (@Composable (T) -> Unit)? = null,
     itemKey: (T) -> Any,
+    itemSearchStrings: @Composable (T) -> List<String> = { listOfNotNull(itemFullName(it), itemSupportingName(it)) },
     categoryName: @Composable (MixedValueTree.Intermediate<C, T>) -> String,
     categorySupportingName: @Composable (MixedValueTree.Intermediate<C, T>) -> String?,
     icon: @Composable () -> Unit,
@@ -83,7 +121,9 @@ fun <C, T : Any> TreePickerDialog(
         itemName = itemName,
         itemFullName = itemFullName,
         itemSupportingName = itemSupportingName,
+        itemTrailingContent = itemTrailingContent,
         itemKey = itemKey,
+        itemSearchStrings = itemSearchStrings,
         categoryName = categoryName,
         categorySupportingName = categorySupportingName,
         searchPlaceHolder = searchPlaceHolder,
@@ -113,6 +153,7 @@ fun <C, T : Any> TreePickerDialog(
                         )
                         TreePickerDialogItemsList(
                             modifier = Modifier.weight(1f, fill = false),
+                            suggestedOptions = suggestedOptions,
                             categoriesStack = categoriesStack,
                             selected = selected,
                             onSelect = {
@@ -154,11 +195,20 @@ private data class TreePickerContext<C, T : Any>(
     private val itemName: @Composable (T) -> String,
     private val itemSupportingName: @Composable (T) -> String?,
     private val itemFullName: @Composable (T) -> String,
+    val itemTrailingContent: (@Composable (T) -> Unit)?,
     private val itemKey: (T) -> Any,
+    private val itemSearchStrings: @Composable (T) -> List<String>,
     private val categoryName: @Composable (MixedValueTree.Intermediate<C, T>) -> String,
     private val categorySupportingName: @Composable (MixedValueTree.Intermediate<C, T>) -> String?,
     val searchPlaceHolder: @Composable (() -> String),
 ) {
+
+    val MixedValueTree.Leaf<T>.trailingContent
+        get() = itemTrailingContent?.let {
+            @Composable {
+                it(this.value)
+            }
+        }
 
     @Composable
     fun MixedValueTree.NonRoot<C, T>.name(): String {
@@ -178,7 +228,7 @@ private data class TreePickerContext<C, T : Any>(
 
     @Composable
     fun MixedValueTree.Leaf<T>.matches(searchQuery: String): Boolean {
-        return fullName().contains(searchQuery, ignoreCase = true) || supportingName()?.contains(searchQuery, ignoreCase = true) == true
+        return itemSearchStrings(value).any { it.contains(searchQuery, ignoreCase = true) }
     }
 
     @Composable
@@ -304,6 +354,7 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogSearchBar(
     ) {
         val searchResults = categoriesStack.last()
             .allLeafs()
+            .toList()
             .filter { it.matches(searchQuery) }
         TreePickerDialogLinearizedItemList(
             items = searchResults,
@@ -320,12 +371,15 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogSearchBar(
 @Composable
 private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogItemsList(
     modifier: Modifier,
+    suggestedOptions: SuggestedOptions<C, T>?,
     categoriesStack: CategoriesStack<C, T>,
     selected: T?,
     onSelect: (MixedValueTree.NonRoot<C, T>) -> Unit,
 ) {
-    val items = categoriesStack.last().children
+    val node = categoriesStack.last()
+    val items = node.children
     val scrollState = rememberLazyListState()
+
     BoxWithConstraints(modifier) {
         val h = this.constraints.maxHeight
         val avgItemHeight = LocalDensity.current.run { 72.dp.roundToPx() }
@@ -337,6 +391,30 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogItemsList(
             )
         }
         LazyColumn(state = scrollState) {
+            if (suggestedOptions != null) {
+                val suggestedItems = suggestedOptions.suggestedItems(node)
+                if (suggestedItems.isNotEmpty()) {
+                    item("suggested-label") {
+                        ListHeader(suggestedOptions.suggestedString())
+                    }
+                    items(suggestedItems, key = { "suggested-${it.value}" }) { item ->
+                        TreePickerDialogItemListEntry(
+                            item = item,
+                            name = item.name(),
+                            selected = selected,
+                            onSelect = onSelect,
+                        )
+                    }
+                    item(key = "divider") {
+                        HorizontalDivider()
+                    }
+                    item(key = "all-label") {
+                        Spacer(Modifier.size(16.dp))
+                        ListHeader(suggestedOptions.allString())
+                    }
+                }
+            }
+
             items(items) { item ->
                 TreePickerDialogItemListEntry(
                     item = item,
@@ -347,6 +425,15 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogItemsList(
             }
         }
     }
+}
+
+@Composable
+private fun ListHeader(text: String) {
+    Text(
+        text = text,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        style = MaterialTheme.typography.labelLarge,
+    )
 }
 
 @Composable
@@ -375,6 +462,18 @@ private fun <C, T : Any, TN : MixedValueTree.NonRoot<C, T>> TreePickerContext<C,
     selected: T?,
     onSelect: (TN) -> Unit,
 ) {
+    fun MixedValueTree.NonRoot<C, T>.trailingContent(): (@Composable () -> Unit)? {
+        return when (this) {
+            is MixedValueTree.Leaf -> this.trailingContent
+
+            is MixedValueTree.Internal<*, *> -> {
+                @Composable {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                }
+            }
+        }
+    }
+
     ListItem(
         headlineContent = {
             Text(
@@ -383,13 +482,7 @@ private fun <C, T : Any, TN : MixedValueTree.NonRoot<C, T>> TreePickerContext<C,
             )
         },
         supportingContent = item.supportingName()?.let { { Text(text = it) } },
-        trailingContent = if (item is MixedValueTree.Internal<*, *>) {
-            {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-            }
-        } else {
-            null
-        },
+        trailingContent = item.trailingContent(),
         modifier = Modifier.clickable { onSelect(item) },
         colors = ListItemDefaults.colors(
             containerColor = if (item.isSelected(selected)) {

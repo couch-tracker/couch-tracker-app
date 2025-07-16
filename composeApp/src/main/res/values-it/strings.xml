@@ -71,6 +71,7 @@
     <string name="watched_movie_time_just_finished">Appena finito</string>
     <string name="watched_item_time_today">Oggi</string>
     <string name="watched_item_time_custom">Personalizzato</string>
+    <string name="watched_item_language_other">Altra</string>
     <string name="too_many_choices_selected">Troppe scelte selezionate, il massmo è %d</string>
 
     <string name="mark_movie_as_watched">Segna come visto</string>
@@ -88,4 +89,18 @@
         <item quantity="many">%1$d episodi</item>
         <item quantity="other">%1$d episodi</item>
     </plurals>
+
+    <string name="select_language">Seleziona lingua</string>
+    <string name="language_category_special">Lingue speciali</string>
+    <string name="language_no_lingusitc_content_description">Il contenuto non ha nessuna lingua</string>
+    <string name="language_multilanguage_description">Il contenuto ha più di una lingua</string>
+    <string name="language_undetermined_description">La lingua del contenuto è sconosciuta</string>
+    <plurals name="language_category_subtitle">
+        <item quantity="one">%1$d variante</item>
+        <item quantity="many">%1$d varianti</item>
+        <item quantity="other">%1$d varianti</item>
+    </plurals>
+    <string name="language_search_placeholder">Nome, nome originale, id</string>
+    <string name="suggested_languages">Suggerite</string>
+    <string name="all_languages">Tutte le lingue</string>
 </resources>

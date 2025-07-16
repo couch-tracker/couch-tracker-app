@@ -6,6 +6,7 @@ import androidx.compose.runtime.CompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
+import com.ibm.icu.util.ULocale
 import java.util.Locale
 
 val CompositionLocal<Configuration>.currentLocales
@@ -22,3 +23,5 @@ val CompositionLocal<Configuration>.currentFirstLocale
     get(): Locale {
         return checkNotNull(currentLocales.get(0)) { "No locales available" }
     }
+
+fun Locale.toULocale() = ULocale(toString())

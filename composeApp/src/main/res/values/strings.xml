@@ -70,6 +70,7 @@
     <string name="watched_movie_time_just_finished">Just finished</string>
     <string name="watched_item_time_today">Today</string>
     <string name="watched_item_time_custom">Custom</string>
+    <string name="watched_item_language_other">Other</string>
     <string name="too_many_choices_selected">Too many choices selected, the maximum is %d</string>
 
     <string name="mark_movie_as_watched">Mark as watched</string>
@@ -86,4 +87,17 @@
         <item quantity="one">%1$d episode</item>
         <item quantity="other">%1$d episodes</item>
     </plurals>
+
+    <string name="select_language">Select language</string>
+    <string name="language_category_special">Special languages</string>
+    <string name="language_no_lingusitc_content_description">The content has no language</string>
+    <string name="language_multilanguage_description">The content has multiple languages</string>
+    <string name="language_undetermined_description">The language of the content is unknown</string>
+    <plurals name="language_category_subtitle">
+        <item quantity="one">%1$d variant</item>
+        <item quantity="other">%1$d variants</item>
+    </plurals>
+    <string name="language_search_placeholder">Name, original name, identifier</string>
+    <string name="suggested_languages">Suggested</string>
+    <string name="all_languages">All languages</string>
 </resources>
