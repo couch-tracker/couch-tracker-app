@@ -77,6 +77,7 @@ kotlin {
         implementation(libs.androidx.datastore.preferences)
         implementation(libs.androidx.documentfile)
         implementation(libs.byteSize)
+        implementation(libs.icu4j)
         implementation(libs.palette)
         implementation(libs.preference)
         implementation(libs.tmdb.api)

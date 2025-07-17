@@ -1,0 +1,25 @@
+import io.github.couchtracker.db.profile.Bcp47Language;
+
+/**
+ * Contains the values for the dimensions of type language for a single `WatchedItem`.
+ */
+CREATE TABLE WatchedItemLanguage(
+  watchedItem INTEGER NOT NULL,
+  watchedItemDimension INTEGER NOT NULL,
+  language TEXT AS Bcp47Language NOT NULL,
+  PRIMARY KEY(watchedItem, watchedItemDimension),
+  FOREIGN KEY(watchedItem) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY(watchedItemDimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+selectAll:
+SELECT * FROM WatchedItemLanguage;
+
+delete:
+DELETE FROM WatchedItemLanguage
+WHERE watchedItem = :watchedItem AND watchedItemDimension = :watchedItemDimension;
+
+upsert:
+INSERT INTO WatchedItemLanguage(watchedItem, watchedItemDimension, language)
+VALUES(:watchedItem, :watchedItemDimension, :language)
+ON CONFLICT(watchedItem, watchedItemDimension) DO UPDATE SET language = :language;

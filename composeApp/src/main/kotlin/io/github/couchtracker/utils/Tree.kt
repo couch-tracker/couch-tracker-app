@@ -51,11 +51,13 @@ sealed interface MixedValueTree<out R, out I, out V> {
 /**
  * Recursively returns all the leafs in this subtree.
  */
-fun <V> MixedValueTree.Internal<*, V>.allLeafs(): List<MixedValueTree.Leaf<V>> {
-    return children.flatMap {
-        when (it) {
-            is MixedValueTree.Leaf -> listOf(it)
-            is MixedValueTree.Intermediate -> it.allLeafs()
+fun <V> MixedValueTree.Internal<*, V>.allLeafs(): Sequence<MixedValueTree.Leaf<V>> {
+    return sequence {
+        for (child in children) {
+            when (child) {
+                is MixedValueTree.Leaf -> yield(child)
+                is MixedValueTree.Intermediate -> yieldAll(child.allLeafs())
+            }
         }
     }
 }
@@ -69,20 +71,6 @@ fun MixedValueTree.Internal<*, *>.countLeafs(): Int {
     }
 }
 
-fun <V> MixedValueTree.Internal<*, V>.findLeaf(predicate: (V) -> Boolean): V? {
-    for (child in children) {
-        when (child) {
-            is MixedValueTree.Leaf -> if (predicate(child.value)) {
-                return child.value
-            }
-
-            is MixedValueTree.Intermediate<*, V> -> {
-                val found = child.findLeaf(predicate)
-                if (found != null) {
-                    return found
-                }
-            }
-        }
-    }
-    return null
+fun <V> MixedValueTree.Internal<*, V>.findLeafValue(predicate: (V) -> Boolean): V? {
+    return allLeafs().find { predicate(it.value) }?.value
 }

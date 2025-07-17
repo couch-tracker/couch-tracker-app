@@ -8,6 +8,7 @@ import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbVideo
 import coil3.request.ImageRequest
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
@@ -42,6 +43,7 @@ data class MovieScreenModel(
     val overview: String,
     val year: Int?,
     val runtime: Duration?,
+    val originalLanguage: Bcp47Language,
     val rating: TmdbRating?,
     val genres: List<TmdbGenre>,
     val director: List<TmdbCrew>,
@@ -84,6 +86,7 @@ suspend fun loadMovie(
                         overview = details.overview,
                         year = details.releaseDate?.year,
                         runtime = details.runtime?.minutes,
+                        originalLanguage = Bcp47Language.of(details.originalLanguage),
                         rating = details.rating(),
                         genres = details.genres,
                         director = credits.await().crew.directors(),
