@@ -11,7 +11,6 @@ import coil3.request.ImageRequest
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbMovie
-import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.directors
 import io.github.couchtracker.tmdb.language
@@ -38,7 +37,7 @@ import kotlin.time.Duration.Companion.minutes
 private const val LOG_TAG = "MovieScreenModel"
 
 data class MovieScreenModel(
-    val id: TmdbMovieId,
+    val movie: TmdbMovie,
     val title: String,
     val tagline: String,
     val overview: String,
@@ -81,7 +80,7 @@ suspend fun loadMovie(
                 }
                 Result.Value(
                     MovieScreenModel(
-                        id = movie.id,
+                        movie = movie,
                         title = details.title,
                         tagline = details.tagline,
                         overview = details.overview,

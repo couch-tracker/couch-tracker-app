@@ -132,7 +132,7 @@ fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
 fun WatchedItemSheetScaffold(
     scaffoldState: WatchedItemSheetScaffoldState,
     watchedItemType: WatchedItemType,
-    approximateMediaRuntime: Duration,
+    mediaRuntime: Duration?,
     mediaLanguages: List<Bcp47Language>,
     content: @Composable () -> Unit,
 ) {
@@ -172,7 +172,7 @@ fun WatchedItemSheetScaffold(
                         selections = rememberWatchedItemSelections(watchedItemType, mode = mode),
                         bottomSheetState = bottomSheetState,
                         watchedItemType = watchedItemType,
-                        approximateMediaRuntime = approximateMediaRuntime,
+                        mediaRuntime = mediaRuntime,
                         mediaLanguages = mediaLanguages,
                         onDismissRequest = { scaffoldState.close() },
                         onHeaderHeightChange = { headerHeight = it },
@@ -202,7 +202,7 @@ private fun WatchedItemSheetContent(
     selections: WatchedItemSelections,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
-    approximateMediaRuntime: Duration,
+    mediaRuntime: Duration?,
     mediaLanguages: List<Bcp47Language>,
     onDismissRequest: () -> Unit,
     onHeaderHeightChange: (Int) -> Unit,
@@ -211,7 +211,7 @@ private fun WatchedItemSheetContent(
     innerBottomPadding: Dp,
 ) {
     val saveAction = rememberProfileDbActionState<Unit>(onSuccess = { onDismissRequest() })
-    val deleteAction = rememberProfileDbActionState<Unit>(onSuccess = { onDismissRequest() })
+    var showDeleteDialog by remember { mutableStateOf(false) }
     val showAdvancedOptions = bottomSheetState.targetValue == SheetValue.Expanded
     val lazyListState = rememberLazyListState()
     var titleHeight by remember { mutableIntStateOf(0) }
@@ -226,7 +226,7 @@ private fun WatchedItemSheetContent(
         }
     }
 
-    val enabled = !saveAction.isLoading && !deleteAction.isLoading
+    val enabled = !saveAction.isLoading
 
     @Composable
     fun WatchedItemSheetScope.DimensionSection(selection: WatchedItemDimensionSelection<*>) {
@@ -254,6 +254,13 @@ private fun WatchedItemSheetContent(
 
     BoxWithConstraints {
         ProfileDbErrorDialog(saveAction)
+        if (selections.sheetMode is WatchedItemSheetMode.Edit) {
+            DeleteWatchedItemConfirmDialog(
+                watchedItem = if (showDeleteDialog) selections.sheetMode.watchedItem else null,
+                onDismissRequest = { showDeleteDialog = false },
+                onDeleted = { onDismissRequest() },
+            )
+        }
 
         val c = this.constraints
         LazyColumn(state = lazyListState, modifier = Modifier.animateContentSize()) {
@@ -266,9 +273,12 @@ private fun WatchedItemSheetContent(
                         },
                     ) {
                         Text(
-                            when (watchedItemType) {
-                                WatchedItemType.MOVIE -> R.string.mark_movie_as_watched.str()
-                                WatchedItemType.EPISODE -> R.string.mark_episode_as_watched.str()
+                            text = when (selections.sheetMode) {
+                                is WatchedItemSheetMode.Edit -> R.string.edit_viewing.str()
+                                is WatchedItemSheetMode.New -> when (watchedItemType) {
+                                    WatchedItemType.MOVIE -> R.string.mark_movie_as_watched.str()
+                                    WatchedItemType.EPISODE -> R.string.mark_episode_as_watched.str()
+                                }
                             },
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
@@ -276,16 +286,16 @@ private fun WatchedItemSheetContent(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Spacer(Modifier.height(16.dp))
-                        DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, approximateMediaRuntime)
+                        DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, mediaRuntime)
                         for (selection in selections.dimensions.filter { it.dimension.isImportant }) {
-                            AnimatedVisibility(visible = selection.dimension.isVisible(selections)) {
+                            AnimatedVisibility(visible = selection.dimension.isVisible(selections.dimensions)) {
                                 DimensionSection(selection)
                             }
                         }
                     }
                 }
                 for (selection in selections.dimensions.filterNot { it.dimension.isImportant }) {
-                    if (selection.dimension.isVisible(selections)) {
+                    if (selection.dimension.isVisible(selections.dimensions)) {
                         item(key = selection.dimension.id) {
                             BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight, modifier = Modifier.animateItem()) {
                                 DimensionSection(selection)
@@ -299,7 +309,7 @@ private fun WatchedItemSheetContent(
                         ButtonRow(
                             selections = selections,
                             saveAction = saveAction,
-                            deleteAction = deleteAction,
+                            onDelete = { error("This should never be called") },
                             enabled = enabled,
                             innerBottomPadding = innerBottomPadding,
                             modifier = Modifier.alpha(0f),
@@ -322,7 +332,7 @@ private fun WatchedItemSheetContent(
         ButtonRow(
             selections = selections,
             saveAction = saveAction,
-            deleteAction = deleteAction,
+            onDelete = { showDeleteDialog = true },
             enabled = enabled,
             innerBottomPadding = innerBottomPadding,
             modifier = Modifier
@@ -378,7 +388,7 @@ private fun ButtonRow(
     enabled: Boolean,
     selections: WatchedItemSelections,
     saveAction: ProfileDbActionState<Unit>,
-    deleteAction: ProfileDbActionState<Unit>,
+    onDelete: () -> Unit,
     innerBottomPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
@@ -396,11 +406,8 @@ private fun ButtonRow(
         if (mode is WatchedItemSheetMode.Edit) {
             OutlinedButton(
                 enabled = enabled,
-                onClick = { deleteAction.execute { db -> mode.watchedItem.delete(db) } },
-                content = {
-                    DelayedActionLoadingIndicator(action = deleteAction, modifier = Modifier.padding(end = 8.dp))
-                    Text(R.string.delete_profile.str())
-                },
+                onClick = onDelete,
+                content = { Text(R.string.delete_profile.str()) },
             )
         }
         Button(
