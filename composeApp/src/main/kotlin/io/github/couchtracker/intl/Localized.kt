@@ -1,6 +1,7 @@
 package io.github.couchtracker.intl
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.text.intl.Locale
 import io.github.couchtracker.utils.Text
 
@@ -15,5 +16,6 @@ abstract class Localized<out T>(val item: T) : Text {
     abstract fun localize(locale: Locale = Locale.current): String
 
     @Composable
+    @ReadOnlyComposable
     override fun string() = localize()
 }

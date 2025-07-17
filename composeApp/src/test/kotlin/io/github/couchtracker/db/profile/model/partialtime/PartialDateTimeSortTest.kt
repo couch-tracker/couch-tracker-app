@@ -188,26 +188,28 @@ class PartialDateTimeSortTest : FunSpec(
         test("groupAndSort()") {
             data class TestItem(
                 val name: String,
-                val date: PartialDateTime,
+                val date: PartialDateTime?,
             )
 
-            val a = TestItem(name = "aaa", date = PartialDateTime.parse("2023-12-31T23:59:59-18:00"))
-            val b = TestItem(name = "bbb", date = PartialDateTime.parse("2024"))
-            val c = TestItem(name = "ccc", date = PartialDateTime.parse("2024-01"))
-            val d = TestItem(name = "ddd", date = PartialDateTime.parse("2024-01-01"))
-            val e = TestItem(name = "eee", date = PartialDateTime.parse("2024-01-01T12:34:56Z"))
+            val a = TestItem(name = "aaa", date = null)
+            val b = TestItem(name = "bbb", date = PartialDateTime.parse("2023-12-31T23:59:59-18:00"))
+            val c = TestItem(name = "ccc", date = PartialDateTime.parse("2024"))
+            val d = TestItem(name = "ddd", date = PartialDateTime.parse("2024-01"))
+            val e = TestItem(name = "eee", date = PartialDateTime.parse("2024-01-01"))
             val f = TestItem(name = "fff", date = PartialDateTime.parse("2024-01-01T12:34:56Z"))
+            val g = TestItem(name = "ggg", date = PartialDateTime.parse("2024-01-01T12:34:56Z"))
 
             val result = PartialDateTime.sortAndGroup(
-                items = listOf(a, b, c, d, e, f).shuffled(),
+                items = listOf(a, b, c, d, e, f, g).shuffled(),
                 getPartialDateTime = { date },
                 additionalComparator = compareBy { it.name },
             )
 
             result shouldBe mapOf(
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2023, Month.DECEMBER)) to listOf(a),
-                PartialDateTimeGroup.Year(PartialDateTime.Local.Year(2024)) to listOf(b),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2024, Month.JANUARY)) to listOf(c, d, e, f),
+                PartialDateTimeGroup.Unknown to listOf(a),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2023, Month.DECEMBER)) to listOf(b),
+                PartialDateTimeGroup.Year(PartialDateTime.Local.Year(2024)) to listOf(c),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2024, Month.JANUARY)) to listOf(d, e, f, g),
             )
         }
     },

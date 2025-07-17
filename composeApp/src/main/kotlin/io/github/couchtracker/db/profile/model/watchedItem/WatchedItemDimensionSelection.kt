@@ -25,6 +25,11 @@ sealed interface WatchedItemDimensionSelection<T> {
     fun validity(): WatchedItemDimensionSelectionValidity
 
     /**
+     * Returns if the current selection can is empty (i.e. no data in the DB)
+     */
+    fun isEmpty(): Boolean
+
+    /**
      * Saves this selection to the given [db] for the given [watchedItem], which must already exist.
      *
      * Saving unchanged data is permitted, but might have small side effects (e.g. deleting and re-adding the same row)
@@ -44,6 +49,8 @@ sealed interface WatchedItemDimensionSelection<T> {
             }
             return WatchedItemDimensionSelectionValidity.Valid
         }
+
+        override fun isEmpty() = value.isEmpty()
 
         override fun save(db: ProfileData, watchedItem: WatchedItem) {
             db.watchedItemChoiceQueries.transaction {
@@ -79,8 +86,10 @@ sealed interface WatchedItemDimensionSelection<T> {
 
         override fun validity() = WatchedItemDimensionSelectionValidity.Valid
 
+        override fun isEmpty() = value == null
+
         override fun save(db: ProfileData, watchedItem: WatchedItem) {
-            if (value == null) {
+            if (isEmpty()) {
                 db.watchedItemLanguageQueries.delete(
                     watchedItem = watchedItem.id,
                     watchedItemDimension = dimension.id,
@@ -89,7 +98,7 @@ sealed interface WatchedItemDimensionSelection<T> {
                 db.watchedItemLanguageQueries.upsert(
                     watchedItem = watchedItem.id,
                     watchedItemDimension = dimension.id,
-                    language = value,
+                    language = checkNotNull(value),
                 )
             }
         }
@@ -110,8 +119,10 @@ sealed interface WatchedItemDimensionSelection<T> {
 
         override fun validity() = WatchedItemDimensionSelectionValidity.Valid
 
+        override fun isEmpty() = value.isBlank()
+
         override fun save(db: ProfileData, watchedItem: WatchedItem) {
-            if (value.isBlank()) {
+            if (isEmpty()) {
                 db.watchedItemFreeTextQueries.delete(
                     watchedItem = watchedItem.id,
                     watchedItemDimension = dimension.id,

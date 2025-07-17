@@ -9,6 +9,7 @@
     <string name="create_action">Create</string>
     <string name="save_action">Save</string>
     <string name="delete_action">Delete</string>
+    <string name="edit_action">Edit</string>
 
     <string name="more_options">More options</string>
     <string name="error_loading_items">Error loading items</string>
@@ -71,7 +72,20 @@
     <string name="watched_item_time_today">Today</string>
     <string name="watched_item_time_custom">Custom</string>
     <string name="watched_item_language_other">Other</string>
+    <string name="watched_item_no_additional_information">No additional information</string>
+    <string name="watched_item_no_information_available">No information available</string>
     <string name="too_many_choices_selected">Too many choices selected, the maximum is %d</string>
+    <string name="viewing_history">Viewing history</string>
+    <string name="viewing_history_for_x">Viewing history for %1$s</string>
+    <string name="viewing_of_x">Viewing of %1$s</string>
+    <string name="delete_viewing_title">Delete viewing?</string>
+    <string name="delete_viewing_description">The viewing will be permanently deleted from your profile</string>
+    <string name="add_viewing">Add viewing</string>
+    <string name="edit_viewing">Edit viewing</string>
+    <string name="no_viewings">No viewings</string>
+    <string name="watch_date">Watch date</string>
+    <string name="add_date">Add date</string>
+    <string name="unknown_date">Unknown date</string>
 
     <string name="mark_movie_as_watched">Mark as watched</string>
     <string name="mark_episode_as_watched">Mark as watched</string>

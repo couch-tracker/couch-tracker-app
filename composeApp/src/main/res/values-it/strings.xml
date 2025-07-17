@@ -9,6 +9,7 @@
     <string name="create_action">Crea</string>
     <string name="save_action">Salva</string>
     <string name="delete_action">Elimina</string>
+    <string name="edit_action">Modifica</string>
 
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
@@ -23,9 +24,11 @@
     <string name="db_invalid_database_error">Il file del profilo non è un file SQLite valido.</string>
     <string name="db_file_error_read">Errore durante la lettura del file del profilo. %s</string>
     <string name="db_file_error_write">Errore durante la scrittura del file del profilo. %s</string>
-    <string name="db_content_provider_error">Il fornitore di contenuti di Android non è riuscito ad aprire il file.</string>
+    <string name="db_content_provider_error">Il fornitore di contenuti di Android non è riuscito ad aprire il file.
+    </string>
     <string name="db_cant_open_error_file_not_found">Il file non esiste.</string>
-    <string name="db_cant_open_error_security">All\'app non è stata concessa l\'autorizzazione per aprire il file.</string>
+    <string name="db_cant_open_error_security">All\'app non è stata concessa l\'autorizzazione per aprire il file.
+    </string>
     <string name="db_io_error">Si è verificato un problema di I/O.</string>
     <string name="error_opening_profile">Errore nell\'apertura del profilo</string>
 
@@ -72,7 +75,20 @@
     <string name="watched_item_time_today">Oggi</string>
     <string name="watched_item_time_custom">Personalizzato</string>
     <string name="watched_item_language_other">Altra</string>
+    <string name="watched_item_no_additional_information">Nessuna informazione aggiuntiva</string>
+    <string name="watched_item_no_information_available">Nessuna informazione disponibile</string>
     <string name="too_many_choices_selected">Troppe scelte selezionate, il massmo è %d</string>
+    <string name="viewing_history">Cronologia visioni</string>
+    <string name="viewing_history_for_x">Cronologia visioni di %1$s</string>
+    <string name="viewing_of_x">Visione di %1$s</string>
+    <string name="delete_viewing_title">Eliminare visione?</string>
+    <string name="delete_viewing_description">La visione verrà eliminata permanentemente dal profilo</string>
+    <string name="add_viewing">Aggiungi visione</string>
+    <string name="edit_viewing">Modifica visione</string>
+    <string name="no_viewings">Nessuna visione</string>
+    <string name="watch_date">Data di visione</string>
+    <string name="add_date">Data di aggiunta</string>
+    <string name="unknown_date">Data sconosciuta</string>
 
     <string name="mark_movie_as_watched">Segna come visto</string>
     <string name="mark_episode_as_watched">Segna come visto</string>
