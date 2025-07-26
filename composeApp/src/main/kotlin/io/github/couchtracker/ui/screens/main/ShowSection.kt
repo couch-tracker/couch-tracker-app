@@ -49,9 +49,9 @@ private enum class ShowTab(
     @StringRes
     val displayName: Int,
 ) {
-    TIMELINE(R.string.tab_show_timeline),
-    FOLLOWED(R.string.tab_show_followed),
-    UP_NEXT(R.string.tab_show_up_next),
-    CALENDAR(R.string.tab_show_calendar),
-    EXPLORE(R.string.tab_show_explore),
+    TIMELINE(R.string.tab_shows_timeline),
+    FOLLOWED(R.string.tab_shows_followed),
+    UP_NEXT(R.string.tab_shows_up_next),
+    CALENDAR(R.string.tab_shows_calendar),
+    EXPLORE(R.string.tab_shows_explore),
 }

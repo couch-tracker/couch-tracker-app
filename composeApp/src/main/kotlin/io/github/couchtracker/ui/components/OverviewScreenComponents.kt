@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,15 +24,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
@@ -57,34 +65,92 @@ object OverviewScreenComponents {
         title: String,
         backdrop: ImageRequest?,
         scrollBehavior: TopAppBarScrollBehavior,
+        titleReplacement: (@Composable (isExpanded: Boolean) -> Unit)? = null,
     ) {
         val navController = LocalNavController.current
         BackgroundTopAppBar(
             scrollBehavior = scrollBehavior,
             backdrop = backdrop,
             appBar = { colors ->
-                LargeTopAppBar(
-                    colors = colors,
-                    title = {
-                        val isExpanded = LocalTextStyle.current == MaterialTheme.typography.headlineMedium
-                        Text(
-                            title,
-                            maxLines = if (isExpanded) 2 else 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton({ navController.navigateUp() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = R.string.back_action.str(),
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
-                )
+                Column {
+                    LargeTopAppBar(
+                        colors = colors,
+                        title = {
+                            val isExpanded = LocalTextStyle.current == MaterialTheme.typography.headlineMedium
+                            if (titleReplacement != null) {
+                                titleReplacement(isExpanded)
+                            } else {
+                                Text(
+                                    title,
+                                    maxLines = if (isExpanded) 2 else 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton({ navController.navigateUp() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = R.string.back_action.str(),
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
             },
         )
+    }
+
+    @Composable
+    fun HeaderTitleTabRow(
+        pagerState: PagerState,
+        isExpanded: Boolean,
+        tabText: @Composable (Int) -> String,
+        onPageClick: (Int) -> Unit,
+    ) {
+        val titleStyle = LocalTextStyle.current
+        val baseStyle = MaterialTheme.typography.titleMedium
+        val color = MaterialTheme.colorScheme.contentColorFor(MaterialTheme.colorScheme.background)
+        BoxWithConstraints {
+            val widthLimit = this.maxWidth - 96.dp
+            PrimaryScrollableTabRow(
+                selectedTabIndex = pagerState.currentPage,
+                containerColor = Color.Transparent,
+                contentColor = color,
+                divider = {},
+                indicator = {
+                    TabRowDefaults.PrimaryIndicator(
+                        Modifier.tabIndicatorOffset(pagerState.currentPage, matchContentSize = true),
+                        width = Dp.Unspecified,
+                        color = color,
+                    )
+                },
+                edgePadding = 0.dp,
+            ) {
+                for (page in 0..<pagerState.pageCount) {
+                    Tab(
+                        selected = page == pagerState.currentPage,
+                        onClick = { onPageClick(page) },
+                        text = {
+                            val style = if (page == 0 && isExpanded) {
+                                titleStyle
+                            } else {
+                                baseStyle
+                            }
+                            Text(
+                                tabText(page),
+                                modifier = Modifier.widthIn(max = widthLimit),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = style,
+                            )
+                        },
+                    )
+                }
+            }
+        }
     }
 
     @Composable
