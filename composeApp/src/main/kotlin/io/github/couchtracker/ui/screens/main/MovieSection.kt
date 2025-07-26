@@ -88,17 +88,17 @@ enum class MovieTab(
     val movieDownloader: suspend Tmdb3.(page: Int) -> TmdbMoviePageResult,
 ) {
     TIMELINE(
-        displayName = R.string.tab_movie_timeline,
+        displayName = R.string.tab_movies_timeline,
         movieDownloader = { page -> movies.popular(page = page, TMDB_LANGUAGE.apiParameter) },
     ),
     EXPLORE(
-        displayName = R.string.tab_movie_explore,
+        displayName = R.string.tab_movies_explore,
         movieDownloader = { page ->
             trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
         },
     ),
     FOLLOWED(
-        displayName = R.string.tab_movie_followed,
+        displayName = R.string.tab_movies_followed,
         movieDownloader = { page ->
             discover.discoverMovie(
                 page = page,
@@ -109,7 +109,7 @@ enum class MovieTab(
         },
     ),
     UP_NEXT(
-        displayName = R.string.tab_movie_up_next,
+        displayName = R.string.tab_movies_up_next,
         movieDownloader = { page ->
             discover.discoverMovie(
                 page = page,
@@ -120,7 +120,7 @@ enum class MovieTab(
         },
     ),
     CALENDAR(
-        displayName = R.string.tab_movie_calendar,
+        displayName = R.string.tab_movies_calendar,
         movieDownloader = { page ->
             discover.discoverMovie(
                 page = page,

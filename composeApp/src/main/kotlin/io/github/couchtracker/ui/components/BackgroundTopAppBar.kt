@@ -10,6 +10,7 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
@@ -18,9 +19,11 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 private const val GRADIENT_STEPS = 16
 private const val BACKGROUND_START_ALPHA = 0.4f
@@ -75,9 +78,18 @@ fun BackgroundTopAppBar(
         image = { modifier ->
             AsyncImage(
                 modifier = modifier,
+                alignment = Alignment.CenterHorizontally + Alignment.Vertical { size: Int, space: Int ->
+                    val centerAlign = (space - size).coerceAtMost(0).toFloat() / 2f
+                    val halfScroll = (scrollBehavior.state.heightOffset / 2)
+                    lerp(
+                        start = halfScroll,
+                        stop = centerAlign,
+                        fraction = scrollBehavior.state.collapsedFraction,
+                    ).roundToInt()
+                },
                 model = backdrop,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillWidth,
             )
         },
         appBar = appBar,
