@@ -1,8 +1,15 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.WatchedItemChoice
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.db.profile.model.partialtime.PartialDateTimeGroup
+import io.github.couchtracker.intl.datetime.localizedFull
+import io.github.couchtracker.utils.str
 
 /**
  * Wrapper around a [WatchedItem]. It's useful to also capture the values for all dimensions associated with it.
@@ -52,9 +59,42 @@ data class WatchedItemWrapper(
                             is WatchedItemDimensionWrapper.Language -> dimension.selection(languages[key])
                             is WatchedItemDimensionWrapper.FreeText -> dimension.selection(freeTexts[key])
                         }
-                    },
+                    }.sortedBy { it.dimension.manualSortIndex },
                 )
             }
         }
     }
+}
+
+fun Collection<WatchedItemWrapper>.sortDescending(): List<WatchedItemWrapper> {
+    return PartialDateTime.sort(
+        items = this,
+        getPartialDateTime = { watchAt },
+        additionalComparator = compareBy { it.addedAt },
+    ).reversed()
+}
+
+fun Collection<WatchedItemWrapper>.sortAndGroupDescending(): Map<PartialDateTimeGroup, List<WatchedItemWrapper>> {
+    val groups = PartialDateTime.sortAndGroup(
+        items = this,
+        getPartialDateTime = { watchAt },
+        additionalComparator = compareBy { it.addedAt },
+    )
+    return buildMap {
+        for ((group, items) in groups.entries.reversed()) {
+            put(group, items.reversed())
+        }
+    }
+}
+
+@ReadOnlyComposable
+@Composable
+fun WatchedItemWrapper.localizedWatchAt(includeTimeZone: Boolean): String {
+    val watchAt = watchAt
+    if (watchAt == null) {
+        return R.string.unknown_date.str()
+    }
+    val date = if (includeTimeZone) watchAt else watchAt.local
+
+    return date.localizedFull().string()
 }

@@ -1,5 +1,7 @@
 package io.github.couchtracker.db.profile
 
+import com.ibm.icu.text.DisplayContext
+import com.ibm.icu.text.LocaleDisplayNames
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.stripExtensions
 
@@ -29,6 +31,11 @@ value class Bcp47Language(val locale: ULocale) {
     }
 
     override fun toString(): String = locale.toLanguageTag()
+
+    fun getDisplayName(locale: ULocale, capitalization: DisplayContext): String {
+        require(capitalization.type() == DisplayContext.Type.CAPITALIZATION)
+        return LocaleDisplayNames.getInstance(locale, capitalization).localeDisplayName(this.locale)
+    }
 
     companion object {
         fun of(languageTag: String): Bcp47Language {

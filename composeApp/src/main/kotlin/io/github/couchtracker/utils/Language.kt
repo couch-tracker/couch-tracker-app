@@ -50,9 +50,11 @@ sealed interface LanguageItem {
 /**
  * Builds a tree of [Bcp47Language], which are grouped by base language.
  *
- * They are sorted by display name according to [sortLocale].
+ * Each branch is sorted according to the given [comparator].
  */
-fun Bcp47Language.Companion.languageTree(sortLocale: ULocale): MixedValueTree.Root<Unit, LanguageCategory, LanguageItem> {
+fun Bcp47Language.Companion.languageTree(
+    comparator: Comparator<MixedValueTree.NonRoot<LanguageCategory.Language, LanguageItem>>,
+): MixedValueTree.Root<Unit, LanguageCategory, LanguageItem> {
     return MixedValueTree.Root(
         value = Unit,
         children = listOf(
@@ -72,16 +74,13 @@ fun Bcp47Language.Companion.languageTree(sortLocale: ULocale): MixedValueTree.Ro
                     } else {
                         MixedValueTree.Intermediate(
                             value = LanguageCategory.Language(languages.single { it.isLanguageOnly() }),
-                            children = languages.map { MixedValueTree.Leaf(LanguageItem.Normal(it)) },
+                            children = languages
+                                .map { MixedValueTree.Leaf(LanguageItem.Normal(it)) }
+                                .sortedWith(comparator),
                         )
                     }
                 }
-                .sortedBy {
-                    when (it) {
-                        is MixedValueTree.Intermediate -> it.value.language
-                        is MixedValueTree.Leaf -> it.value.language
-                    }.locale.getDisplayName(sortLocale)
-                },
+                .sortedWith(comparator),
         ),
     )
 }

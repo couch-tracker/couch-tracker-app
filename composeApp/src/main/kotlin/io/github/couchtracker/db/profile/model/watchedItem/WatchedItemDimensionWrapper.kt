@@ -111,7 +111,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
     /**
      * Returns whether this dimension should be visible, based on the current [selections].
      */
-    fun isVisible(selections: WatchedItemSelections): Boolean {
+    fun isVisible(dimensionSelections: Collection<WatchedItemDimensionSelection<*>>): Boolean {
         if (enableIfs.isEmpty()) {
             // If there's no enable ifs it means the dimension is always visible
             return true
@@ -125,7 +125,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
         }.map { it.choice }.toSet()
 
         // Detect if there's any of these choices currently selected
-        return selections.dimensions
+        return dimensionSelections
             .filterIsInstance<WatchedItemDimensionSelection.Choice>()
             .any { choiceSelection ->
                 choiceSelection.value.any { it.id in enablingChoiceIds }

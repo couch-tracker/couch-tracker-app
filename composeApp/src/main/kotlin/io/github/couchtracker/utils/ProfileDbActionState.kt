@@ -10,6 +10,7 @@ typealias ProfileDbActionState<T> = ActionState<T, ProfileDbError, ProfileData, 
 @Composable
 fun <T> rememberProfileDbActionState(
     onSuccess: (T) -> Unit = {},
+    onError: (ProfileDbError) -> Unit = {},
 ): ProfileDbActionState<T> {
     val currentProfile = LocalProfilesContext.current.current
 
@@ -18,5 +19,6 @@ fun <T> rememberProfileDbActionState(
             currentProfile.write(block = block)
         },
         onSuccess = onSuccess,
+        onError = onError,
     )
 }

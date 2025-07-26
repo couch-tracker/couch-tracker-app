@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
+import com.ibm.icu.text.DisplayContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.utils.LanguageCategory
@@ -22,8 +23,11 @@ import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toULocale
 
+private val CAPITALIZATION = DisplayContext.CAPITALIZATION_FOR_UI_LIST_OR_MENU
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("SpreadOperator")
 fun LanguagePickerDialog(
     language: Bcp47Language?,
     onLanguageSelected: (Bcp47Language?) -> Unit,
@@ -31,7 +35,17 @@ fun LanguagePickerDialog(
     onClose: () -> Unit,
 ) {
     val userLocale = LocalConfiguration.currentFirstLocale.toULocale()
-    val languagesTreeRoot = remember { Bcp47Language.languageTree(userLocale) }
+
+    val languagesTreeRoot = remember(userLocale) {
+        Bcp47Language.languageTree(
+            compareBy {
+                when (it) {
+                    is MixedValueTree.Intermediate -> it.value.language
+                    is MixedValueTree.Leaf -> it.value.language
+                }.getDisplayName(userLocale, CAPITALIZATION)
+            },
+        )
+    }
     val selected = language?.let { languagesTreeRoot.findLeafValue { it.language isEqualTo language } }
 
     TreePickerDialog(
@@ -53,20 +67,20 @@ fun LanguagePickerDialog(
                 }
             },
         ),
-        itemName = { it.language.locale.getDisplayName(userLocale) },
+        itemName = { it.language.getDisplayName(userLocale, CAPITALIZATION) },
         itemTrailingContent = { Text(it.language.toString()) },
         itemSupportingName = {
             when (it) {
-                is LanguageItem.Normal -> it.language.locale.getDisplayName(it.language.locale)
+                is LanguageItem.Normal -> it.language.getDisplayName(it.language.locale, CAPITALIZATION)
                 is LanguageItem.Special -> it.description.str()
             }
         },
         itemKey = { it.toString() },
         itemSearchStrings = {
             listOfNotNull(
-                it.language.locale.getDisplayName(userLocale),
+                it.language.getDisplayName(userLocale, CAPITALIZATION),
                 when (it) {
-                    is LanguageItem.Normal -> it.language.locale.getDisplayName(it.language.locale)
+                    is LanguageItem.Normal -> it.language.getDisplayName(it.language.locale, CAPITALIZATION)
                     is LanguageItem.Special -> null
                 },
                 it.language.toString(),
@@ -74,7 +88,7 @@ fun LanguagePickerDialog(
         },
         categoryName = {
             when (it.value) {
-                is LanguageCategory.Language -> it.value.language.locale.getDisplayName(userLocale)
+                is LanguageCategory.Language -> it.value.language.getDisplayName(userLocale, CAPITALIZATION)
                 LanguageCategory.Special -> R.string.language_category_special.str()
             }
         },

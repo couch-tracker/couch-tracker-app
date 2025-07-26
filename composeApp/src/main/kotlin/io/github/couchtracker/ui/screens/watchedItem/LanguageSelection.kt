@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import com.ibm.icu.text.DisplayContext
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
@@ -77,7 +78,7 @@ fun WatchedItemSheetScope.LanguageSection(
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),
-                    label = { Text(language.locale.getDisplayName(userLocale)) },
+                    label = { Text(language.getDisplayName(userLocale, DisplayContext.CAPITALIZATION_FOR_STANDALONE)) },
                 )
             }
             item {

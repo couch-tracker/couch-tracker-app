@@ -23,6 +23,7 @@ import kotlinx.datetime.format.alternativeParsing
 import kotlinx.datetime.format.char
 import kotlinx.datetime.format.format
 import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Represents a date/time value that might not have all the components present.
@@ -434,14 +435,15 @@ sealed interface PartialDateTime {
          */
         fun <T> sort(
             items: Iterable<T>,
-            getPartialDateTime: T.() -> PartialDateTime,
+            getPartialDateTime: T.() -> PartialDateTime?,
             additionalComparator: Comparator<T> = compareBy { 0 },
         ): List<T> {
-            data class ItemWithDate(val item: T, val date: PartialDateTime)
+            data class ItemWithDate(val item: T, val date: PartialDateTime?)
 
             val itemsWithDates = items.map { ItemWithDate(item = it, date = it.getPartialDateTime()) }
 
-            val (locals, zoned) = itemsWithDates.partition { it.date is Local }
+            val sortedNulls = itemsWithDates.filter { it.date == null }.map { it.item }.sortedWith(additionalComparator)
+            val (locals, zoned) = itemsWithDates.filter { it.date != null }.partition { it.date is Local }
 
             val sortedLocals = locals
                 .sortedWith(compareBy<ItemWithDate, Local>(LOCAL_COMPARATOR) { it.date as Local }.thenBy(additionalComparator) { it.item })
@@ -452,6 +454,8 @@ sealed interface PartialDateTime {
                 .toCollection(ArrayDeque(zoned.size))
 
             return buildList {
+                addAll(sortedNulls)
+
                 fun pushLocal() = add(sortedLocals.removeFirst().item)
                 fun pushZoned() = add(sortedZoned.removeFirst().item)
 
@@ -481,7 +485,7 @@ sealed interface PartialDateTime {
          */
         fun <T> sortAndGroup(
             items: Iterable<T>,
-            getPartialDateTime: T.() -> PartialDateTime,
+            getPartialDateTime: T.() -> PartialDateTime?,
             additionalComparator: Comparator<T> = compareBy { 0 },
         ): Map<PartialDateTimeGroup, List<T>> {
             return sort(items, getPartialDateTime, additionalComparator).groupBy { it.getPartialDateTime().group() }
@@ -502,4 +506,8 @@ fun PartialDateTime?.group(): PartialDateTimeGroup = when (this) {
  */
 fun List<PartialDateTime>.sort(): List<PartialDateTime> {
     return PartialDateTime.sort(items = this, getPartialDateTime = { this })
+}
+
+fun Instant.toLocalPartialDateTime(timeZone: TimeZone): DateTime {
+    return DateTime(dateTime = this.toLocalDateTime(timeZone))
 }

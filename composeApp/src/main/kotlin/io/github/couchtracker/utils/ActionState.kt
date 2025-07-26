@@ -27,6 +27,7 @@ class ActionState<T, E, I, O>(
     private val state: MutableState<Actionable<T, E>>,
     private val decorator: suspend (block: (I) -> O) -> Result<T, E>,
     private val onSuccess: (T) -> Unit,
+    private val onError: (E) -> Unit,
 ) {
     val current by state
 
@@ -48,8 +49,9 @@ class ActionState<T, E, I, O>(
         coroutineScope.launch {
             val newState = decorator(block)
             state.value = newState
-            if (newState is Result.Value) {
-                onSuccess(newState.value)
+            when (newState) {
+                is Result.Value -> onSuccess(newState.value)
+                is Result.Error -> onError(newState.error)
             }
         }
     }
@@ -65,6 +67,7 @@ class ActionState<T, E, I, O>(
 fun <T, E, I, O> rememberActionState(
     decorator: suspend ((I) -> O) -> Result<T, E>,
     onSuccess: (T) -> Unit = {},
+    onError: (E) -> Unit = {},
 ): ActionState<T, E, I, O> {
     val coroutineScope = rememberCoroutineScope()
     val state = remember { mutableStateOf<Actionable<T, E>>(Actionable.Idle) }
@@ -75,6 +78,7 @@ fun <T, E, I, O> rememberActionState(
             state = state,
             decorator = decorator,
             onSuccess = onSuccess,
+            onError = onError,
         )
     }
 }

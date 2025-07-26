@@ -96,6 +96,12 @@ style:
     # We use a negative lookahead to allow for those classes we know are not on material3 and thus can be imported from material
     # e.g. (?!(Allowed|AlsoAllowed|AnotherAllowed)$)
     forbiddenPatterns: "androidx\\.compose\\.material\\.(?!(icons\\..*)$).+"
+  ForbiddenMethodCall:
+    active: true
+    methods:
+      - value: com.ibm.icu.util.ULocale.getDisplayName
+        reason: ULocale.getDisplayName doesn't allow to select additional options. To format a language, use Bcp47Language.getDisplayName()
+          If you actually need to format a locale (and not a language), use LocaleDisplayNames.getInstance()s with the options you need.
   MagicNumber:
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
