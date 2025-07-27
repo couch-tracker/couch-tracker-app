@@ -109,6 +109,7 @@ private val DEBUG_SHOWS = listOf(
     "Mario" to TmdbShowId(47_319),
     "The Simpsons" to TmdbShowId(456),
     "How I Met Your Mother" to TmdbShowId(1100),
+    "It's Always Sunny in Philadelphia" to TmdbShowId(2710),
     "Watch live" to TmdbShowId(22_980),
 )
 

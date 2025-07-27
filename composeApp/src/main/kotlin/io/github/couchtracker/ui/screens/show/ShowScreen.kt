@@ -4,6 +4,7 @@ package io.github.couchtracker.ui.screens.show
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +50,11 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import me.zhanghai.compose.preference.CheckboxPreference
+import me.zhanghai.compose.preference.LocalPreferenceTheme
+import me.zhanghai.compose.preference.preferenceTheme
 import org.koin.compose.koinInject
+import kotlin.random.Random
 
 @Serializable
 data class ShowScreen(val showId: String, val language: String) : Screen() {
@@ -119,6 +125,12 @@ private fun Content(show: TmdbShow) {
             },
         ) { model ->
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+            var tabBelowAppBar by remember { mutableStateOf(false) }
+            var bigBoiFirst by remember { mutableStateOf(false) }
+            var showNameInTabs by remember { mutableStateOf(true) }
+            var showNameInExpandedTab by remember { mutableStateOf(false) }
+            var showNameInContent by remember { mutableStateOf(true) }
+
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -129,20 +141,54 @@ private fun Content(show: TmdbShow) {
                             backdrop = model.backdrop,
                             scrollBehavior = scrollBehavior,
                             titleReplacement = { isExpanded ->
-                                OverviewScreenComponents.HeaderTitleTabRow(
-                                    pagerState = pagerState,
-                                    isExpanded = isExpanded,
-                                    tabText = { page ->
-                                        when (ShowScreenTab.entries[page]) {
-                                            ShowScreenTab.DETAILS -> model.name
-                                            ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
-                                            ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
-                                        }
-                                    },
-                                    onPageClick = { page ->
-                                        coroutineScope.launch { pagerState.animateScrollToPage(page) }
-                                    },
-                                )
+                                if (!tabBelowAppBar) {
+                                    OverviewScreenComponents.HeaderTitleTabRow(
+                                        pagerState = pagerState,
+                                        bigBoiFirst = bigBoiFirst && isExpanded,
+                                        tabText = { page ->
+                                            when (ShowScreenTab.entries[page]) {
+                                                // TODO
+                                                ShowScreenTab.DETAILS -> if ((isExpanded && showNameInExpandedTab) || (!isExpanded && showNameInTabs)) {
+                                                    model.name
+                                                } else {
+                                                    "Details"
+                                                }
+
+                                                ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
+                                                ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
+                                            }
+                                        },
+                                        onPageClick = { page ->
+                                            coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                                        },
+                                    )
+                                } else {
+                                    OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
+                                }
+                            },
+                            belowAppBar = {
+                                if (tabBelowAppBar) {
+                                    OverviewScreenComponents.HeaderTitleTabRow(
+                                        pagerState = pagerState,
+                                        bigBoiFirst = bigBoiFirst,
+                                        tabText = { page ->
+                                            when (ShowScreenTab.entries[page]) {
+                                                // TODO
+                                                ShowScreenTab.DETAILS -> if (showNameInTabs) {
+                                                    model.name
+                                                } else {
+                                                    "Details"
+                                                }
+
+                                                ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
+                                                ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
+                                            }
+                                        },
+                                        onPageClick = { page ->
+                                            coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                                        },
+                                    )
+                                }
                             },
                         )
                     },
@@ -152,7 +198,18 @@ private fun Content(show: TmdbShow) {
                             totalHeight = constraints.maxHeight,
                             model = model,
                             pagerState = pagerState,
-                        )
+                            showNameInContent = showNameInContent,
+                        ) {
+                            CompositionLocalProvider(LocalPreferenceTheme provides preferenceTheme()) {
+                                Column {
+                                    CheckboxPreference(tabBelowAppBar, { tabBelowAppBar = it }, { Text("Tabs below App Bar") })
+                                    CheckboxPreference(bigBoiFirst, { bigBoiFirst = it }, { Text("Big boi tab") })
+                                    CheckboxPreference(showNameInTabs, { showNameInTabs = it }, { Text("Show name in tab") })
+                                    CheckboxPreference(showNameInExpandedTab, { showNameInExpandedTab = it }, { Text("Show name in expanded tab") })
+                                    CheckboxPreference(showNameInContent, { showNameInContent = it }, { Text("Show name in content") })
+                                }
+                            }
+                        }
                     },
                 )
             }
@@ -166,15 +223,18 @@ private fun ShowScreenContent(
     model: ShowScreenModel,
     totalHeight: Int,
     pagerState: PagerState,
+    showNameInContent: Boolean,
+    controls: @Composable () -> Unit,
 ) {
     HorizontalPager(pagerState, modifier = Modifier.fillMaxSize()) { page ->
         when (ShowScreenTab.entries[page]) {
             ShowScreenTab.VIEWING_HISTORY -> Text(R.string.tab_show_viewing_history.str(), Modifier.padding(innerPadding))
-            ShowScreenTab.SEASONS -> Text(R.string.tab_show_seasons.str(), Modifier.padding(innerPadding))
+            ShowScreenTab.SEASONS -> controls()
             ShowScreenTab.DETAILS -> ShowDetailsContent(
                 innerPadding = innerPadding,
                 model = model,
                 totalHeight = totalHeight,
+                showNameInContent = showNameInContent,
             )
         }
     }
@@ -185,6 +245,7 @@ private fun ShowDetailsContent(
     innerPadding: PaddingValues,
     model: ShowScreenModel,
     totalHeight: Int,
+    showNameInContent: Boolean,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -194,22 +255,27 @@ private fun ShowDetailsContent(
     ) {
         OverviewScreenComponents.run {
             space()
-
-            val createdBy = model.createdBy
-            val tags = listOfNotNull(
-                model.year?.toString(),
-                model.rating?.format(),
-            ) + model.genres.map { it.name }
-            if (createdBy.isNotEmpty() || tags.isNotEmpty()) {
-                if (createdBy.isNotEmpty()) {
-                    val creators = formatAndList(createdBy.map { it.name })
-                    item {
-                        Text(R.string.show_by_creator.str(creators))
+            if (showNameInContent) {
+                item {
+                    Column {
+                        Text(model.name, style = MaterialTheme.typography.headlineMedium)
                     }
                 }
-                tagsComposable(tags = tags)
-                space()
             }
+            if (model.createdBy.isNotEmpty()) {
+                val creators = formatAndList(model.createdBy.map { it.name })
+                item {
+                    Text(R.string.show_by_creator.str(creators))
+                }
+            }
+
+            tagsComposable(
+                tags = listOfNotNull(
+                    model.year?.toString(),
+                    model.rating?.format(),
+                ) + model.genres.map { it.name },
+            )
+            space()
 
             textSection(model.tagline, model.overview)
             imagesSection(model.images, totalHeight = totalHeight)
