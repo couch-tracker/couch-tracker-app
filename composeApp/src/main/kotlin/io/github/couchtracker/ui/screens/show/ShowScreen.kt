@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.couchtracker.R
@@ -135,6 +136,7 @@ private fun Content(show: TmdbShow) {
             var showNameInExpandedTab by remember { mutableStateOf(false) }
             var showNameInContent by remember { mutableStateOf(true) }
             var showNameInExpandedTitle by remember { mutableStateOf(false) }
+            var showByInExpandedTitle by remember { mutableStateOf(false) }
 
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
@@ -146,29 +148,38 @@ private fun Content(show: TmdbShow) {
                             backdrop = model.backdrop,
                             scrollBehavior = scrollBehavior,
                             titleReplacement = { isExpanded ->
-                                if (!tabBelowAppBar) {
-                                    OverviewScreenComponents.HeaderTitleTabRow(
-                                        pagerState = pagerState,
-                                        bigBoiFirst = bigBoiFirst && isExpanded,
-                                        tabText = { page ->
-                                            when (ShowScreenTab.entries[page]) {
-                                                // TODO
-                                                ShowScreenTab.DETAILS -> if ((isExpanded && showNameInExpandedTab) || (!isExpanded && showNameInTabs)) {
-                                                    model.name
-                                                } else {
-                                                    "Details"
-                                                }
+                                Column {
+                                    if (!tabBelowAppBar) {
+                                        OverviewScreenComponents.HeaderTitleTabRow(
+                                            pagerState = pagerState,
+                                            bigBoiFirst = bigBoiFirst && isExpanded,
+                                            tabText = { page ->
+                                                when (ShowScreenTab.entries[page]) {
+                                                    // TODO
+                                                    ShowScreenTab.DETAILS -> if ((isExpanded && showNameInExpandedTab) || (!isExpanded && showNameInTabs)) {
+                                                        model.name
+                                                    } else {
+                                                        "Details"
+                                                    }
 
-                                                ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
-                                                ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
-                                            }
-                                        },
-                                        onPageClick = { page ->
-                                            coroutineScope.launch { pagerState.animateScrollToPage(page) }
-                                        },
-                                    )
-                                } else if (showNameInExpandedTitle || !isExpanded) {
-                                    OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
+                                                    ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
+                                                    ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
+                                                }
+                                            },
+                                            onPageClick = { page ->
+                                                coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                                            },
+                                        )
+                                    } else if (showNameInExpandedTitle || !isExpanded) {
+                                        OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
+                                    }
+                                    if (isExpanded && showByInExpandedTitle && model.createdBy.isNotEmpty()) {
+                                        val creators = formatAndList(model.createdBy.map { it.name })
+                                        Text(
+                                            R.string.show_by_creator.str(creators),
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
                                 }
                             },
                             belowAppBar = {
@@ -204,9 +215,15 @@ private fun Content(show: TmdbShow) {
                             model = model,
                             pagerState = pagerState,
                             showNameInContent = showNameInContent,
+                            showByInContent = !showByInExpandedTitle,
                         ) {
                             CompositionLocalProvider(LocalPreferenceTheme provides preferenceTheme()) {
-                                Column(Modifier.padding(innerPadding).fillMaxSize().verticalScroll(rememberScrollState())) {
+                                Column(
+                                    Modifier
+                                        .padding(innerPadding)
+                                        .fillMaxSize()
+                                        .verticalScroll(rememberScrollState()),
+                                ) {
                                     CheckboxPreference(tabBelowAppBar, { tabBelowAppBar = it }, { Text("Tabs below App Bar") })
                                     CheckboxPreference(bigBoiFirst, { bigBoiFirst = it }, { Text("Big boi tab") })
                                     CheckboxPreference(showNameInTabs, { showNameInTabs = it }, { Text("Show name in tab") })
@@ -221,6 +238,11 @@ private fun Content(show: TmdbShow) {
                                         { showNameInExpandedTitle = it },
                                         { Text("Show name in expanded title") },
                                     )
+                                    CheckboxPreference(
+                                        showByInExpandedTitle,
+                                        { showByInExpandedTitle = it },
+                                        { Text("Show by in expanded title") },
+                                    )
 
                                     Button(
                                         onClick = {
@@ -230,6 +252,7 @@ private fun Content(show: TmdbShow) {
                                             showNameInExpandedTab = false
                                             showNameInContent = true
                                             showNameInExpandedTitle = false
+                                            showByInExpandedTitle = false
                                         },
                                     ) {
                                         Text("Preset 1")
@@ -254,6 +277,7 @@ private fun Content(show: TmdbShow) {
                                             showNameInExpandedTab = true
                                             showNameInContent = false
                                             showNameInExpandedTitle = false
+                                            showByInExpandedTitle = false
                                         },
                                     ) {
                                         Text("Preset 3")
@@ -275,6 +299,7 @@ private fun ShowScreenContent(
     totalHeight: Int,
     pagerState: PagerState,
     showNameInContent: Boolean,
+    showByInContent: Boolean,
     controls: @Composable () -> Unit,
 ) {
     HorizontalPager(pagerState, modifier = Modifier.fillMaxSize()) { page ->
@@ -286,6 +311,7 @@ private fun ShowScreenContent(
                 model = model,
                 totalHeight = totalHeight,
                 showNameInContent = showNameInContent,
+                showByInContent = showByInContent,
             )
         }
     }
@@ -297,6 +323,7 @@ private fun ShowDetailsContent(
     model: ShowScreenModel,
     totalHeight: Int,
     showNameInContent: Boolean,
+    showByInContent: Boolean,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -313,7 +340,7 @@ private fun ShowDetailsContent(
                     }
                 }
             }
-            if (model.createdBy.isNotEmpty()) {
+            if (showByInContent && model.createdBy.isNotEmpty()) {
                 val creators = formatAndList(model.createdBy.map { it.name })
                 item {
                     Text(R.string.show_by_creator.str(creators))
