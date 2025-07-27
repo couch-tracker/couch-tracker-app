@@ -130,6 +130,7 @@ private fun Content(show: TmdbShow) {
             var showNameInTabs by remember { mutableStateOf(true) }
             var showNameInExpandedTab by remember { mutableStateOf(false) }
             var showNameInContent by remember { mutableStateOf(true) }
+            var showNameInExpandedTitle by remember { mutableStateOf(false) }
 
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
@@ -162,7 +163,7 @@ private fun Content(show: TmdbShow) {
                                             coroutineScope.launch { pagerState.animateScrollToPage(page) }
                                         },
                                     )
-                                } else {
+                                } else if(showNameInExpandedTitle || !isExpanded) {
                                     OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
                                 }
                             },
@@ -207,6 +208,7 @@ private fun Content(show: TmdbShow) {
                                     CheckboxPreference(showNameInTabs, { showNameInTabs = it }, { Text("Show name in tab") })
                                     CheckboxPreference(showNameInExpandedTab, { showNameInExpandedTab = it }, { Text("Show name in expanded tab") })
                                     CheckboxPreference(showNameInContent, { showNameInContent = it }, { Text("Show name in content") })
+                                    CheckboxPreference(showNameInExpandedTitle, { showNameInExpandedTitle = it }, { Text("Show name in expanded title") })
                                 }
                             }
                         }
