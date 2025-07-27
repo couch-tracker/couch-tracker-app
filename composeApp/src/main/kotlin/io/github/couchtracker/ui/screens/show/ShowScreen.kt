@@ -2,7 +2,6 @@
 
 package io.github.couchtracker.ui.screens.show
 
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.couchtracker.R
@@ -59,7 +57,6 @@ import me.zhanghai.compose.preference.CheckboxPreference
 import me.zhanghai.compose.preference.LocalPreferenceTheme
 import me.zhanghai.compose.preference.preferenceTheme
 import org.koin.compose.koinInject
-import kotlin.random.Random
 
 @Serializable
 data class ShowScreen(val showId: String, val language: String) : Screen() {
@@ -130,13 +127,32 @@ private fun Content(show: TmdbShow) {
             },
         ) { model ->
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-            var tabBelowAppBar by remember { mutableStateOf(false) }
+            var tabsInExpandedAppBar by remember { mutableStateOf(true) }
+            var tabsInCollapsedAppBar by remember { mutableStateOf(true) }
+            var tabsBelowAppBar by remember { mutableStateOf(false) }
+
+            var titleInExpandedAppBar by remember { mutableStateOf(false) }
+            var titleInCollapsedAppBar by remember { mutableStateOf(false) }
+            var titleInContent by remember { mutableStateOf(true) }
+            var titleInExpandedTab by remember { mutableStateOf(true) }
+            var titleInCollapsedTab by remember { mutableStateOf(true) }
+
             var bigBoiFirst by remember { mutableStateOf(false) }
-            var showNameInTabs by remember { mutableStateOf(true) }
-            var showNameInExpandedTab by remember { mutableStateOf(false) }
-            var showNameInContent by remember { mutableStateOf(true) }
-            var showNameInExpandedTitle by remember { mutableStateOf(false) }
             var showByInExpandedTitle by remember { mutableStateOf(false) }
+            fun preset2(){
+                tabsInExpandedAppBar = false
+                tabsInCollapsedAppBar = false
+                tabsBelowAppBar = true
+
+                bigBoiFirst = false
+
+                titleInExpandedAppBar = true
+                titleInCollapsedAppBar = true
+                titleInExpandedTab = false
+                titleInCollapsedTab = false
+                titleInContent = false
+            }
+            remember { preset2() }
 
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
@@ -149,14 +165,24 @@ private fun Content(show: TmdbShow) {
                             scrollBehavior = scrollBehavior,
                             titleReplacement = { isExpanded ->
                                 Column {
-                                    if (!tabBelowAppBar) {
+                                    if ((isExpanded && titleInExpandedAppBar) || (!isExpanded && titleInCollapsedAppBar)) {
+                                        OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
+                                    }
+                                    if (isExpanded && showByInExpandedTitle && model.createdBy.isNotEmpty()) {
+                                        val creators = formatAndList(model.createdBy.map { it.name })
+                                        Text(
+                                            R.string.show_by_creator.str(creators),
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
+                                    if ((isExpanded && tabsInExpandedAppBar) || (!isExpanded && tabsInCollapsedAppBar)) {
                                         OverviewScreenComponents.HeaderTitleTabRow(
                                             pagerState = pagerState,
                                             bigBoiFirst = bigBoiFirst && isExpanded,
                                             tabText = { page ->
                                                 when (ShowScreenTab.entries[page]) {
                                                     // TODO
-                                                    ShowScreenTab.DETAILS -> if ((isExpanded && showNameInExpandedTab) || (!isExpanded && showNameInTabs)) {
+                                                    ShowScreenTab.DETAILS -> if ((isExpanded && titleInExpandedTab) || (!isExpanded && titleInCollapsedTab)) {
                                                         model.name
                                                     } else {
                                                         "Details"
@@ -170,27 +196,18 @@ private fun Content(show: TmdbShow) {
                                                 coroutineScope.launch { pagerState.animateScrollToPage(page) }
                                             },
                                         )
-                                    } else if (showNameInExpandedTitle || !isExpanded) {
-                                        OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
-                                    }
-                                    if (isExpanded && showByInExpandedTitle && model.createdBy.isNotEmpty()) {
-                                        val creators = formatAndList(model.createdBy.map { it.name })
-                                        Text(
-                                            R.string.show_by_creator.str(creators),
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
                                     }
                                 }
                             },
                             belowAppBar = {
-                                if (tabBelowAppBar) {
+                                if (tabsBelowAppBar) {
                                     OverviewScreenComponents.HeaderTitleTabRow(
                                         pagerState = pagerState,
                                         bigBoiFirst = bigBoiFirst,
                                         tabText = { page ->
                                             when (ShowScreenTab.entries[page]) {
                                                 // TODO
-                                                ShowScreenTab.DETAILS -> if (showNameInTabs) {
+                                                ShowScreenTab.DETAILS -> if (titleInExpandedTab) {
                                                     model.name
                                                 } else {
                                                     "Details"
@@ -214,7 +231,7 @@ private fun Content(show: TmdbShow) {
                             totalHeight = constraints.maxHeight,
                             model = model,
                             pagerState = pagerState,
-                            showNameInContent = showNameInContent,
+                            showNameInContent = titleInContent,
                             showByInContent = !showByInExpandedTitle,
                         ) {
                             CompositionLocalProvider(LocalPreferenceTheme provides preferenceTheme()) {
@@ -224,20 +241,17 @@ private fun Content(show: TmdbShow) {
                                         .fillMaxSize()
                                         .verticalScroll(rememberScrollState()),
                                 ) {
-                                    CheckboxPreference(tabBelowAppBar, { tabBelowAppBar = it }, { Text("Tabs below App Bar") })
+                                    CheckboxPreference(tabsInExpandedAppBar, { tabsInExpandedAppBar = it }, { Text("Tabs in expanded App Bar") })
+                                    CheckboxPreference(tabsInCollapsedAppBar, { tabsInCollapsedAppBar = it }, { Text("Tabs in collapsed App Bar") })
+                                    CheckboxPreference(tabsBelowAppBar, { tabsBelowAppBar = it }, { Text("Tabs below App Bar") })
+
+                                    CheckboxPreference(titleInExpandedAppBar, { titleInExpandedAppBar = it }, { Text("Title in expanded App Bar") })
+                                    CheckboxPreference(titleInCollapsedAppBar, { titleInCollapsedAppBar = it }, { Text("Title in collapsed App Bar") })
+                                    CheckboxPreference(titleInContent, { titleInContent = it }, { Text("Title in content") })
+                                    CheckboxPreference(titleInExpandedTab, { titleInExpandedTab = it }, { Text("Title in expanded tab") })
+                                    CheckboxPreference(titleInCollapsedTab, { titleInCollapsedTab = it }, { Text("Title in collapsed tab") })
+
                                     CheckboxPreference(bigBoiFirst, { bigBoiFirst = it }, { Text("Big boi tab") })
-                                    CheckboxPreference(showNameInTabs, { showNameInTabs = it }, { Text("Show name in tab") })
-                                    CheckboxPreference(
-                                        showNameInExpandedTab,
-                                        { showNameInExpandedTab = it },
-                                        { Text("Show name in expanded tab") },
-                                    )
-                                    CheckboxPreference(showNameInContent, { showNameInContent = it }, { Text("Show name in content") })
-                                    CheckboxPreference(
-                                        showNameInExpandedTitle,
-                                        { showNameInExpandedTitle = it },
-                                        { Text("Show name in expanded title") },
-                                    )
                                     CheckboxPreference(
                                         showByInExpandedTitle,
                                         { showByInExpandedTitle = it },
@@ -246,12 +260,18 @@ private fun Content(show: TmdbShow) {
 
                                     Button(
                                         onClick = {
-                                            tabBelowAppBar = false
+                                            tabsInExpandedAppBar = true
+                                            tabsInCollapsedAppBar = true
+                                            tabsBelowAppBar = false
+
+                                            titleInExpandedAppBar = false
+                                            titleInCollapsedAppBar = false
+                                            titleInExpandedTab = false
+                                            titleInCollapsedTab = true
+                                            titleInContent = true
+
                                             bigBoiFirst = false
-                                            showNameInTabs = true
-                                            showNameInExpandedTab = false
-                                            showNameInContent = true
-                                            showNameInExpandedTitle = false
+
                                             showByInExpandedTitle = false
                                         },
                                     ) {
@@ -259,28 +279,48 @@ private fun Content(show: TmdbShow) {
                                     }
                                     Button(
                                         onClick = {
-                                            tabBelowAppBar = true
-                                            bigBoiFirst = false
-                                            showNameInTabs = false
-                                            showNameInExpandedTab = false
-                                            showNameInContent = false
-                                            showNameInExpandedTitle = true
+                                            preset2()
                                         },
                                     ) {
                                         Text("Preset 2")
                                     }
                                     Button(
                                         onClick = {
-                                            tabBelowAppBar = false
+                                            tabsInExpandedAppBar = true
+                                            tabsInCollapsedAppBar = true
+                                            tabsBelowAppBar = false
+
+                                            titleInExpandedAppBar = false
+                                            titleInCollapsedAppBar = false
+                                            titleInExpandedTab = true
+                                            titleInCollapsedTab = true
+                                            titleInContent = false
+
                                             bigBoiFirst = true
-                                            showNameInTabs = true
-                                            showNameInExpandedTab = true
-                                            showNameInContent = false
-                                            showNameInExpandedTitle = false
+
                                             showByInExpandedTitle = false
                                         },
                                     ) {
                                         Text("Preset 3")
+                                    }
+                                    Button(
+                                        onClick = {
+                                            tabsInExpandedAppBar = true
+                                            tabsInCollapsedAppBar = true
+                                            tabsBelowAppBar = false
+
+                                            titleInExpandedAppBar = true
+                                            titleInCollapsedAppBar = false
+                                            titleInExpandedTab = false
+                                            titleInCollapsedTab = true
+                                            titleInContent = false
+
+                                            bigBoiFirst = false
+
+                                            showByInExpandedTitle = false
+                                        },
+                                    ) {
+                                        Text("Preset 4")
                                     }
                                 }
                             }
