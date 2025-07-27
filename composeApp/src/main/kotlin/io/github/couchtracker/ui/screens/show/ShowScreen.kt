@@ -2,6 +2,7 @@
 
 package io.github.couchtracker.ui.screens.show
 
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -163,7 +167,7 @@ private fun Content(show: TmdbShow) {
                                             coroutineScope.launch { pagerState.animateScrollToPage(page) }
                                         },
                                     )
-                                } else if(showNameInExpandedTitle || !isExpanded) {
+                                } else if (showNameInExpandedTitle || !isExpanded) {
                                     OverviewScreenComponents.HeaderTitle(model.name, isExpanded)
                                 }
                             },
@@ -202,13 +206,58 @@ private fun Content(show: TmdbShow) {
                             showNameInContent = showNameInContent,
                         ) {
                             CompositionLocalProvider(LocalPreferenceTheme provides preferenceTheme()) {
-                                Column {
+                                Column(Modifier.padding(innerPadding).fillMaxSize().verticalScroll(rememberScrollState())) {
                                     CheckboxPreference(tabBelowAppBar, { tabBelowAppBar = it }, { Text("Tabs below App Bar") })
                                     CheckboxPreference(bigBoiFirst, { bigBoiFirst = it }, { Text("Big boi tab") })
                                     CheckboxPreference(showNameInTabs, { showNameInTabs = it }, { Text("Show name in tab") })
-                                    CheckboxPreference(showNameInExpandedTab, { showNameInExpandedTab = it }, { Text("Show name in expanded tab") })
+                                    CheckboxPreference(
+                                        showNameInExpandedTab,
+                                        { showNameInExpandedTab = it },
+                                        { Text("Show name in expanded tab") },
+                                    )
                                     CheckboxPreference(showNameInContent, { showNameInContent = it }, { Text("Show name in content") })
-                                    CheckboxPreference(showNameInExpandedTitle, { showNameInExpandedTitle = it }, { Text("Show name in expanded title") })
+                                    CheckboxPreference(
+                                        showNameInExpandedTitle,
+                                        { showNameInExpandedTitle = it },
+                                        { Text("Show name in expanded title") },
+                                    )
+
+                                    Button(
+                                        onClick = {
+                                            tabBelowAppBar = false
+                                            bigBoiFirst = false
+                                            showNameInTabs = true
+                                            showNameInExpandedTab = false
+                                            showNameInContent = true
+                                            showNameInExpandedTitle = false
+                                        },
+                                    ) {
+                                        Text("Preset 1")
+                                    }
+                                    Button(
+                                        onClick = {
+                                            tabBelowAppBar = true
+                                            bigBoiFirst = false
+                                            showNameInTabs = false
+                                            showNameInExpandedTab = false
+                                            showNameInContent = false
+                                            showNameInExpandedTitle = true
+                                        },
+                                    ) {
+                                        Text("Preset 2")
+                                    }
+                                    Button(
+                                        onClick = {
+                                            tabBelowAppBar = false
+                                            bigBoiFirst = true
+                                            showNameInTabs = true
+                                            showNameInExpandedTab = true
+                                            showNameInContent = false
+                                            showNameInExpandedTitle = false
+                                        },
+                                    ) {
+                                        Text("Preset 3")
+                                    }
                                 }
                             }
                         }
