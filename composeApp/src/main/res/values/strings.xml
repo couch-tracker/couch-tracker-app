@@ -90,6 +90,18 @@
     <string name="watch_date">Watch date</string>
     <string name="add_date">Add date</string>
     <string name="unknown_date">Unknown date</string>
+    <string name="movie_progress_starting_in_less_than_a_minute_ago">Starting in less than a minute</string>
+    <string name="movie_progress_starting_in_x">Starting in %1$s</string>
+    <string name="movie_progress_started_less_than_a_minute_ago">Started less than a minute ago</string>
+    <string name="movie_progress_started_x_ago">Started %1$s ago</string>
+    <string name="movie_progress_less_than_a_minute_left">Less than a minute left</string>
+    <string name="movie_progress_x_left">%1$s left</string>
+    <string name="episode_progress_starting_in_less_than_a_minute_ago">Starting in less than a minute</string>
+    <string name="episode_progress_starting_in_x">Starting in %1$s</string>
+    <string name="episode_progress_started_less_than_a_minute_ago">Started less than a minute ago</string>
+    <string name="episode_progress_started_x_ago">Started %1$s ago</string>
+    <string name="episode_progress_less_than_a_minute_left">Less than a minute left</string>
+    <string name="episode_progress_x_left">%1$s left</string>
 
     <string name="mark_movie_as_watched">Mark as watched</string>
     <string name="mark_episode_as_watched">Mark as watched</string>

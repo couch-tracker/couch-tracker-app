@@ -11,6 +11,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
+import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
@@ -21,7 +22,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 private const val LOG_TAG = "WatchedItemScreenModel"
 
@@ -61,7 +61,7 @@ data class WatchedItemsScreenModel(
                                 id = movie.id.toExternalId().asWatchable(),
                                 itemType = WatchedItemType.MOVIE,
                                 title = details.title,
-                                runtime = details.runtime?.minutes,
+                                runtime = details.runtime(),
                                 originalLanguage = Bcp47Language.of(details.originalLanguage),
                                 backdrop = backdrop.await().first,
                                 colorScheme = backdrop.await().second,
