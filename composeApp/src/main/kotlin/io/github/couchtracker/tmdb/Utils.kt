@@ -16,6 +16,7 @@ import coil3.toBitmap
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.ui.generateColorScheme
+import kotlin.time.Duration.Companion.minutes
 
 suspend fun TmdbImage?.prepareAndExtractColorScheme(
     ctx: Context,
@@ -61,3 +62,5 @@ fun TmdbMovieDetail.language(): Bcp47Language {
         ?.let { Bcp47Language(it) }
         ?: Bcp47Language.of(originalLanguage)
 }
+
+fun TmdbMovieDetail.runtime() = runtime?.takeIf { it > 0 }?.minutes

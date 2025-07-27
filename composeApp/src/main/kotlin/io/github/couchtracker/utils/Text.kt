@@ -27,6 +27,11 @@ interface Text {
         @ReadOnlyComposable
         override fun string() = stringResource(resource)
     }
+
+    data class Lambda(private val lambda: @Composable () -> String) : Text {
+        @Composable
+        override fun string() = lambda()
+    }
 }
 
 fun String.toText() = Text.Literal(this)
