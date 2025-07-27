@@ -17,6 +17,7 @@ import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.linearize
 import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
 import io.github.couchtracker.tmdb.rating
+import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.CastPortraitModel
@@ -85,7 +86,7 @@ suspend fun loadMovie(
                         tagline = details.tagline,
                         overview = details.overview,
                         year = details.releaseDate?.year,
-                        runtime = details.runtime?.minutes,
+                        runtime = details.runtime(),
                         originalLanguage = details.language(),
                         rating = details.rating(),
                         genres = details.genres,

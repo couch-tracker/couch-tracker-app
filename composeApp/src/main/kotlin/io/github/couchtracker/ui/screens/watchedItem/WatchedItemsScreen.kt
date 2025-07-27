@@ -3,7 +3,9 @@ package io.github.couchtracker.ui.screens.watchedItem
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -51,6 +53,7 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
+import kotlin.time.Duration
 
 @Serializable
 data class WatchedItemsScreen(val itemId: String, val language: String?) : Screen() {
@@ -156,6 +159,7 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
                 items(watchedItems) { watchedItem ->
                     WatchedItemListItem(
                         watchedItem = watchedItem,
+                        mediaRuntime = model.runtime,
                         onClick = { watchedItemForInfoDialog = watchedItem },
                     )
                 }
@@ -181,8 +185,10 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
 @Composable
 private fun WatchedItemListItem(
     watchedItem: WatchedItemWrapper,
+    mediaRuntime: Duration?,
     onClick: () -> Unit,
 ) {
+    val progressState by rememberWatchedItemProgressState(watchedItem, mediaRuntime)
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         headlineContent = {
@@ -191,7 +197,12 @@ private fun WatchedItemListItem(
                 style = MaterialTheme.typography.titleMedium,
             )
         },
-        supportingContent = { WatchedItemDimensionSelections(watchedItem.dimensions) },
+        supportingContent = {
+            Column {
+                WatchedItemDimensionSelections(watchedItem.dimensions)
+                WatchedItemProgress(progressState, modifier = Modifier.fillMaxWidth())
+            }
+        },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )
 }
