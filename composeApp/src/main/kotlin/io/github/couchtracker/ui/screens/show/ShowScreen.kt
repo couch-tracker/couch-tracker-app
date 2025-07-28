@@ -2,15 +2,18 @@
 
 package io.github.couchtracker.ui.screens.show
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -24,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.show.ExternalShowId
@@ -64,12 +66,22 @@ fun NavController.navigateToShow(show: TmdbShow) {
     navigate(ShowScreen(show.id.toExternalId().serialize(), show.language.serialize()))
 }
 
+private enum class ShowScreenTab {
+    VIEWING_HISTORY,
+    SEASONS,
+    DETAILS,
+}
+
 @Composable
 private fun Content(show: TmdbShow) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<Loadable<ShowScreenModel, ApiException>>(Loadable.Loading) }
+    val pagerState = rememberPagerState(
+        initialPage = ShowScreenTab.entries.indexOf(ShowScreenTab.DETAILS),
+        pageCount = { ShowScreenTab.entries.size },
+    )
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -109,13 +121,33 @@ private fun Content(show: TmdbShow) {
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     containerColor = MaterialTheme.colorScheme.background,
                     topBar = {
-                        OverviewScreenComponents.Header(model.name, model.backdrop, scrollBehavior)
+                        OverviewScreenComponents.Header(
+                            title = model.name,
+                            backdrop = model.backdrop,
+                            scrollBehavior = scrollBehavior,
+                            belowAppBar = {
+                                OverviewScreenComponents.HeaderTabRow(
+                                    pagerState = pagerState,
+                                    tabText = { page ->
+                                        when (ShowScreenTab.entries[page]) {
+                                            ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
+                                            ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
+                                            ShowScreenTab.DETAILS -> R.string.tab_show_details.str()
+                                        }
+                                    },
+                                    onPageClick = { page ->
+                                        coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                                    },
+                                )
+                            },
+                        )
                     },
                     content = { innerPadding ->
                         ShowScreenContent(
                             innerPadding = innerPadding,
                             totalHeight = constraints.maxHeight,
                             model = model,
+                            pagerState = pagerState,
                         )
                     },
                 )
@@ -129,14 +161,30 @@ private fun ShowScreenContent(
     innerPadding: PaddingValues,
     model: ShowScreenModel,
     totalHeight: Int,
-    modifier: Modifier = Modifier,
+    pagerState: PagerState,
 ) {
-    LazyColumn(
-        contentPadding = innerPadding,
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        OverviewScreenComponents.run {
+    HorizontalPager(pagerState, modifier = Modifier.fillMaxSize()) { page ->
+        when (ShowScreenTab.entries[page]) {
+            ShowScreenTab.DETAILS -> OverviewScreenComponents.ShowDetailsContent(
+                innerPadding = innerPadding,
+                model = model,
+                totalHeight = totalHeight,
+            )
+            ShowScreenTab.SEASONS -> Text(R.string.tab_show_seasons.str(), Modifier.padding(innerPadding))
+            ShowScreenTab.VIEWING_HISTORY -> Text(R.string.tab_show_viewing_history.str(), Modifier.padding(innerPadding))
+        }
+    }
+}
+
+@Composable
+private fun OverviewScreenComponents.ShowDetailsContent(
+    innerPadding: PaddingValues,
+    model: ShowScreenModel,
+    totalHeight: Int,
+) {
+    ContentList(innerPadding) {
+        topSpace()
+        section {
             if (model.createdBy.isNotEmpty()) {
                 val creators = formatAndList(model.createdBy.map { it.name })
                 item {
@@ -149,12 +197,10 @@ private fun ShowScreenContent(
                     model.rating?.format(),
                 ) + model.genres.map { it.name },
             )
-            space()
-            textSection(model.tagline, model.overview)
-            imagesSection(model.images, totalHeight = totalHeight)
-            castSection(model.cast, totalHeight = totalHeight)
-            crewSection(model.crew, totalHeight = totalHeight)
-            bottomSpace()
         }
+        textSection(model.tagline, model.overview)
+        imagesSection(model.images, totalHeight = totalHeight)
+        castSection(model.cast, totalHeight = totalHeight)
+        crewSection(model.crew, totalHeight = totalHeight)
     }
 }

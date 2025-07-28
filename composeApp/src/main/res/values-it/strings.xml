@@ -36,20 +36,24 @@
     <string name="main_section_shows">Serie</string>
     <string name="main_section_movies">Film</string>
 
-    <string name="tab_show_timeline">Timeline</string>
-    <string name="tab_show_followed">Seguite</string>
-    <string name="tab_show_up_next">Prossimi</string>
-    <string name="tab_show_calendar">Calendario</string>
-    <string name="tab_show_explore">Esplora</string>
+    <string name="tab_shows_timeline">Timeline</string>
+    <string name="tab_shows_followed">Seguite</string>
+    <string name="tab_shows_up_next">Prossimi</string>
+    <string name="tab_shows_calendar">Calendario</string>
+    <string name="tab_shows_explore">Esplora</string>
 
-    <string name="tab_movie_timeline">Timeline</string>
-    <string name="tab_movie_followed">Seguiti</string>
-    <string name="tab_movie_up_next">Prossimi</string>
-    <string name="tab_movie_calendar">Calendario</string>
-    <string name="tab_movie_explore">Esplora</string>
+    <string name="tab_show_viewing_history">Cronologia</string>
+    <string name="tab_show_seasons">Stagioni</string>
+    <string name="tab_show_details">Dettagli</string>
 
-    <string name="movie_by_director">di %1$s</string>
-    <string name="show_by_creator">di %1$s</string>
+    <string name="tab_movies_timeline">Timeline</string>
+    <string name="tab_movies_followed">Seguiti</string>
+    <string name="tab_movies_up_next">Prossimi</string>
+    <string name="tab_movies_calendar">Calendario</string>
+    <string name="tab_movies_explore">Esplora</string>
+
+    <string name="movie_by_director">Diretto da %1$s</string>
+    <string name="show_by_creator">Creata da %1$s</string>
     <string name="section_images">Immagini</string>
     <string name="section_cast">Cast</string>
     <string name="section_crew">Troupe</string>

@@ -2,14 +2,12 @@
 
 package io.github.couchtracker.ui.screens.movie
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
@@ -160,7 +158,7 @@ private fun MovieScreenContent(
             )
         },
         content = { innerPadding ->
-            MoviePage(
+            OverviewScreenComponents.MoviePage(
                 modifier = Modifier.floatingToolbarVerticalNestedScroll(
                     expanded = toolbarExpanded,
                     onExpand = { toolbarExpanded = true },
@@ -215,22 +213,18 @@ private fun MovieToolbar(
 }
 
 @Composable
-private fun MoviePage(
+private fun OverviewScreenComponents.MoviePage(
     innerPadding: PaddingValues,
     model: MovieScreenModel,
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        contentPadding = innerPadding,
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        OverviewScreenComponents.run {
+    ContentList(innerPadding, modifier) {
+        section {
             if (model.director.isNotEmpty()) {
-                val directors = formatAndList(model.director.map { it.name })
+                val creators = formatAndList(model.director.map { it.name })
                 item {
-                    Text(R.string.movie_by_director.str(directors))
+                    Text(R.string.movie_by_director.str(creators))
                 }
             }
             tagsComposable(
@@ -240,13 +234,12 @@ private fun MoviePage(
                     model.rating?.format(),
                 ) + model.genres.map { it.name },
             )
-            space()
-            textSection(model.tagline, model.overview)
-            imagesSection(model.images, totalHeight = totalHeight)
-            castSection(model.cast, totalHeight = totalHeight)
-            crewSection(model.crew, totalHeight = totalHeight)
-            // To avoid overlaps with the FAB; see FabPrimaryTokens.ContainerHeight and Scaffold.FabSpacing
-            item { Spacer(Modifier.height(56.dp + 16.dp)) }
         }
+        textSection(model.tagline, model.overview)
+        imagesSection(model.images, totalHeight = totalHeight)
+        castSection(model.cast, totalHeight = totalHeight)
+        crewSection(model.crew, totalHeight = totalHeight)
+        // To avoid overlaps with the FAB; see FabBaselineTokens.ContainerHeight
+        item { Spacer(Modifier.height(56.dp)) }
     }
 }
