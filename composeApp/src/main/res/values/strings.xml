@@ -34,20 +34,24 @@
     <string name="main_section_shows">Shows</string>
     <string name="main_section_movies">Movies</string>
 
-    <string name="tab_show_timeline">Timeline</string>
-    <string name="tab_show_followed">Followed</string>
-    <string name="tab_show_up_next">Up next</string>
-    <string name="tab_show_calendar">Calendar</string>
-    <string name="tab_show_explore">Explore</string>
+    <string name="tab_shows_timeline">Timeline</string>
+    <string name="tab_shows_followed">Followed</string>
+    <string name="tab_shows_up_next">Up next</string>
+    <string name="tab_shows_calendar">Calendar</string>
+    <string name="tab_shows_explore">Explore</string>
 
-    <string name="tab_movie_timeline">Timeline</string>
-    <string name="tab_movie_followed">Followed</string>
-    <string name="tab_movie_up_next">Up next</string>
-    <string name="tab_movie_calendar">Calendar</string>
-    <string name="tab_movie_explore">Explore</string>
+    <string name="tab_show_viewing_history">History</string>
+    <string name="tab_show_seasons">Seasons</string>
+    <string name="tab_show_details">Details</string>
 
-    <string name="movie_by_director">by %1$s</string>
-    <string name="show_by_creator">by %1$s</string>
+    <string name="tab_movies_timeline">Timeline</string>
+    <string name="tab_movies_followed">Followed</string>
+    <string name="tab_movies_up_next">Up next</string>
+    <string name="tab_movies_calendar">Calendar</string>
+    <string name="tab_movies_explore">Explore</string>
+
+    <string name="movie_by_director">Directed by %1$s</string>
+    <string name="show_by_creator">Created by %1$s</string>
     <string name="section_images">Images</string>
     <string name="section_cast">Cast</string>
     <string name="section_crew">Crew</string>

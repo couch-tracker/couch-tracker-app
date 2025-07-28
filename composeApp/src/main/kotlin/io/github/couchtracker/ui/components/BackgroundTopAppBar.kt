@@ -10,6 +10,7 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
@@ -18,9 +19,11 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 private const val GRADIENT_STEPS = 16
 private const val BACKGROUND_START_ALPHA = 0.4f
@@ -73,11 +76,27 @@ fun BackgroundTopAppBar(
     BackgroundTopAppBar(
         scrollBehavior = scrollBehavior,
         image = { modifier ->
+            // The image fills the width of the AppBar, and it's vertically centered, with the constraint of not leaving gaps at the top
             AsyncImage(
                 modifier = modifier,
+                alignment = Alignment.CenterHorizontally + Alignment.Vertical { size: Int, space: Int ->
+                    // Size of the image when the AppBar is expanded
+                    val maxSpace = space - scrollBehavior.state.heightOffset
+                    // Size of the image when the AppBar is collapsed
+                    val minSpace = maxSpace + scrollBehavior.state.heightOffsetLimit
+                    // Image alignment when the AppBar is expanded
+                    val initialAlign = (maxSpace - size).coerceAtMost(0f) / 2f
+                    // Image alignment when the AppBar is collapsed
+                    val finalAlign = (minSpace - size).coerceAtMost(0f) / 2f
+                    lerp(
+                        start = initialAlign,
+                        stop = finalAlign,
+                        fraction = scrollBehavior.state.collapsedFraction,
+                    ).roundToInt()
+                },
                 model = backdrop,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillWidth,
             )
         },
         appBar = appBar,
