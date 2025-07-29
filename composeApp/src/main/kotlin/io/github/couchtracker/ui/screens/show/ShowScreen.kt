@@ -139,22 +139,23 @@ private fun ShowScreenContent(
         OverviewScreenComponents.run {
             if (model.createdBy.isNotEmpty()) {
                 val creators = formatAndList(model.createdBy.map { it.name })
-                item {
+                item("creators") {
                     Text(R.string.show_by_creator.str(creators))
                 }
             }
             tagsComposable(
+                key = "tags",
                 tags = listOfNotNull(
                     model.year?.toString(),
                     model.rating?.format(),
                 ) + model.genres.map { it.name },
             )
-            space()
-            textSection(model.tagline, model.overview)
-            imagesSection(model.images, totalHeight = totalHeight)
-            castSection(model.cast, totalHeight = totalHeight)
-            crewSection(model.crew, totalHeight = totalHeight)
-            bottomSpace()
+            space("space")
+            textSection("overview", model.tagline, model.overview)
+            imagesSection("images", model.images, totalHeight = totalHeight)
+            castSection("cast", model.cast, totalHeight = totalHeight)
+            crewSection("crew", model.crew, totalHeight = totalHeight)
+            bottomSpace("bottom-space")
         }
     }
 }

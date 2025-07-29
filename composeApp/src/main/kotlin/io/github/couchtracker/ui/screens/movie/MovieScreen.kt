@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
@@ -29,7 +31,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +50,7 @@ import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.asWatchable
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
@@ -58,8 +63,12 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemListItem
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemProgress
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemProgressState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
+import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemProgressState
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
@@ -221,6 +230,12 @@ private fun MoviePage(
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
+    val profileData = LocalFullProfileDataContext.current
+    val watchableId = remember(model.movie.id) { model.movie.id.toExternalId().asWatchable() }
+    val progressStates = profileData.watchedItems
+        .filter { it.itemId == watchableId }
+        .associateWith { rememberWatchedItemProgressState(it, model.runtime) }
+
     LazyColumn(
         contentPadding = innerPadding,
         modifier = modifier.fillMaxSize(),
@@ -229,24 +244,44 @@ private fun MoviePage(
         OverviewScreenComponents.run {
             if (model.director.isNotEmpty()) {
                 val directors = formatAndList(model.director.map { it.name })
-                item {
+                item("directors") {
                     Text(R.string.movie_by_director.str(directors))
                 }
             }
             tagsComposable(
+                key = "tags",
                 tags = listOfNotNull(
                     model.year?.toString(),
                     model.runtime?.toString(),
                     model.rating?.format(),
                 ) + model.genres.map { it.name },
             )
-            space()
-            textSection(model.tagline, model.overview)
-            imagesSection(model.images, totalHeight = totalHeight)
-            castSection(model.cast, totalHeight = totalHeight)
-            crewSection(model.crew, totalHeight = totalHeight)
+            space("space")
+            currentlyWatchingSection(progressStates)
+            textSection("overview", model.tagline, model.overview)
+            imagesSection("images", model.images, totalHeight = totalHeight)
+            castSection("cast", model.cast, totalHeight = totalHeight)
+            crewSection("crew", model.crew, totalHeight = totalHeight)
             // To avoid overlaps with the FAB; see FabPrimaryTokens.ContainerHeight and Scaffold.FabSpacing
-            item { Spacer(Modifier.height(56.dp + 16.dp)) }
+            item("bottom-space") { Spacer(Modifier.height(56.dp + 16.dp)) }
+        }
+    }
+}
+
+private fun LazyListScope.currentlyWatchingSection(states: Map<WatchedItemWrapper, State<WatchedItemProgressState>>) {
+    val inProgressItems = states.filterValues { it.value is WatchedItemProgressState.InProgress }
+    if (inProgressItems.isNotEmpty()) {
+        OverviewScreenComponents.run {
+            section("Currently watching", key = "currently-watching") {
+                items(inProgressItems.entries.toList(), key = { it.key.id }) { (watchedItem, progressState) ->
+                    WatchedItemListItem(
+                        modifier = Modifier.animateItem(),
+                        watchedItem = watchedItem,
+                        progressState = progressState.value,
+                        onClick = {},
+                    )
+                }
+            }
         }
     }
 }

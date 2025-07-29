@@ -88,11 +88,16 @@ object OverviewScreenComponents {
     }
 
     @Composable
-    fun Text(text: String?, maxLines: Int = Int.MAX_VALUE, style: TextStyle = MaterialTheme.typography.titleMedium) {
+    fun Text(
+        text: String?,
+        modifier: Modifier = Modifier,
+        maxLines: Int = Int.MAX_VALUE,
+        style: TextStyle = MaterialTheme.typography.titleMedium,
+    ) {
         if (!text.isNullOrBlank()) {
             Text(
-                text,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                text = text,
+                modifier = modifier.padding(horizontal = 16.dp),
                 maxLines = maxLines,
                 style = style,
                 overflow = TextOverflow.Ellipsis,
@@ -100,34 +105,34 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.space() = item {
-        Spacer(Modifier.height(8.dp))
+    fun LazyListScope.space(key: Any) = item(key = key) {
+        Spacer(Modifier.height(8.dp).animateItem())
     }
 
-    fun LazyListScope.bottomSpace() = item {
-        Spacer(Modifier.height(16.dp))
+    fun LazyListScope.bottomSpace(key: Any) = item(key = key) {
+        Spacer(Modifier.height(16.dp).animateItem())
     }
 
-    fun LazyListScope.tagsComposable(tags: List<String>) {
+    fun LazyListScope.tagsComposable(key: Any, tags: List<String>) {
         if (tags.isNotEmpty()) {
-            item {
-                TagsRow(tags, modifier = Modifier.padding(horizontal = 16.dp))
+            item(key = key) {
+                TagsRow(tags, modifier = Modifier.padding(horizontal = 16.dp).animateItem())
             }
         }
     }
 
-    fun LazyListScope.section(title: String, content: () -> Unit) {
-        section(Text.Literal(title), content)
+    fun LazyListScope.section(title: String, key: Any, content: () -> Unit) {
+        section(Text.Literal(title), key, content)
     }
 
-    fun LazyListScope.section(@StringRes title: Int, content: () -> Unit) {
-        section(Text.Resource(title), content)
+    fun LazyListScope.section(@StringRes title: Int, key: Any, content: () -> Unit) {
+        section(Text.Resource(title), key, content)
     }
 
-    fun LazyListScope.section(title: Text, content: () -> Unit) {
-        item { Text(title.string(), maxLines = 1) }
+    fun LazyListScope.section(title: Text, key: Any, content: () -> Unit) {
+        item(key = listOf(key, "title")) { Text(title.string(), maxLines = 1, modifier = Modifier.animateItem()) }
         content()
-        space()
+        space(key = listOf(key, "space"))
     }
 
     @Composable
@@ -177,17 +182,19 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.textSection(title: String, content: String) {
-        section(title) {
-            item { Text(content, style = MaterialTheme.typography.bodyMedium) }
+    fun LazyListScope.textSection(key: Any, title: String, content: String) {
+        section(title, key = key) {
+            item(key = listOf(key, "text")) {
+                Text(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.animateItem())
+            }
         }
     }
 
-    fun LazyListScope.imagesSection(images: List<TmdbFileImage>, totalHeight: Int) {
+    fun LazyListScope.imagesSection(key: Any, images: List<TmdbFileImage>, totalHeight: Int) {
         if (images.isNotEmpty()) {
-            section(R.string.section_images) {
-                item {
-                    HorizontalListSection(totalHeight, images) { image, targetHeight ->
+            section(R.string.section_images, key = key) {
+                item(key = listOf(key, "images")) {
+                    HorizontalListSection(totalHeight, images, modifier = Modifier.animateItem()) { image, targetHeight ->
                         val imgWidth = (targetHeight * image.aspectRation).roundToInt()
                         val url = TmdbImageUrlBuilder.build(
                             image.filePath,
@@ -211,11 +218,15 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.castSection(people: List<CastPortraitModel>, totalHeight: Int) {
+    fun LazyListScope.castSection(key: Any, people: List<CastPortraitModel>, totalHeight: Int) {
         if (people.isNotEmpty()) {
-            section(R.string.section_cast) {
-                item {
-                    HorizontalListSection(totalHeight, people, modifier = Modifier.animateContentSize()) { person, targetHeight ->
+            section(R.string.section_cast, key = key) {
+                item(key = listOf(key, "cast")) {
+                    HorizontalListSection(
+                        totalHeight,
+                        people,
+                        modifier = Modifier.animateContentSize().animateItem(),
+                    ) { person, targetHeight ->
                         val w = with(LocalDensity.current) {
                             targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
                         }
@@ -226,11 +237,12 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.crewSection(people: List<CrewCompactListItemModel>, totalHeight: Int) {
+    fun LazyListScope.crewSection(key: Any, people: List<CrewCompactListItemModel>, totalHeight: Int) {
         if (people.isNotEmpty()) {
-            section(R.string.section_crew) {
-                item {
+            section(R.string.section_crew, key = key) {
+                item(key = listOf(key, "crew")) {
                     HorizontalColumnsListSection(
+                        modifier = Modifier.animateItem(),
                         totalHeight = totalHeight,
                         items = people,
                     ) { person ->

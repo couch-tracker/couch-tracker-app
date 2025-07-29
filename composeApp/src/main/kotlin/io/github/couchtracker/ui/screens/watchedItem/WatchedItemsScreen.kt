@@ -189,8 +189,18 @@ private fun WatchedItemListItem(
     onClick: () -> Unit,
 ) {
     val progressState by rememberWatchedItemProgressState(watchedItem, mediaRuntime)
+    WatchedItemListItem(watchedItem, progressState, onClick)
+}
+
+@Composable
+fun WatchedItemListItem(
+    watchedItem: WatchedItemWrapper,
+    progressState: WatchedItemProgressState,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         headlineContent = {
             Text(
                 text = watchedItem.localizedWatchAt(includeTimeZone = false),

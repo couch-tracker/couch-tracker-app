@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.MeasureFormat
 import io.github.couchtracker.ui.rememberRelativeDurationText
 import io.github.couchtracker.utils.Text
@@ -50,7 +52,7 @@ fun WatchedItemProgress(state: WatchedItemProgressState, modifier: Modifier = Mo
             transitionSpec = { fadeIn() togetherWith fadeOut() },
         ) { progressState ->
             if (progressState is WatchedItemProgressState.CurrentlyWatching) {
-                WatchedItemProgressIndicator(progressState)
+                WatchedItemProgressIndicator(progressState, modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
             }
         }
     }
@@ -118,12 +120,12 @@ private fun WatchedItemFinishEta(progressState: WatchedItemProgressState.Current
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WatchedItemProgressIndicator(progressState: WatchedItemProgressState.CurrentlyWatching) {
+private fun WatchedItemProgressIndicator(progressState: WatchedItemProgressState.CurrentlyWatching, modifier: Modifier) {
     if (progressState.endsAt == null) {
-        LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
+        LinearWavyProgressIndicator(modifier = modifier)
     } else {
         LinearWavyProgressIndicator(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier,
             amplitude = { 1f },
             progress = {
                 val runtime = progressState.endsAt - progressState.startedAt
