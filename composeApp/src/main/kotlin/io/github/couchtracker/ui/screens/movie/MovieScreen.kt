@@ -27,7 +27,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,6 +46,7 @@ import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.asWatchable
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
@@ -56,8 +59,12 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemListItem
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemProgress
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemProgressState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
+import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemProgressState
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
@@ -228,6 +235,7 @@ private fun OverviewScreenComponents.MoviePage(
                 }
             }
             tagsComposable(
+                key = "tags",
                 tags = listOfNotNull(
                     model.year?.toString(),
                     model.runtime?.toString(),
@@ -241,5 +249,23 @@ private fun OverviewScreenComponents.MoviePage(
         crewSection(model.crew, totalHeight = totalHeight)
         // To avoid overlaps with the FAB; see FabBaselineTokens.ContainerHeight
         item { Spacer(Modifier.height(56.dp)) }
+    }
+}
+
+private fun LazyListScope.currentlyWatchingSection(states: Map<WatchedItemWrapper, State<WatchedItemProgressState>>) {
+    val inProgressItems = states.filterValues { it.value is WatchedItemProgressState.InProgress }
+    if (inProgressItems.isNotEmpty()) {
+        OverviewScreenComponents.run {
+            section("Currently watching", key = "currently-watching") {
+                items(inProgressItems.entries.toList(), key = { it.key.id }) { (watchedItem, progressState) ->
+                    WatchedItemListItem(
+                        modifier = Modifier.animateItem(),
+                        watchedItem = watchedItem,
+                        progressState = progressState.value,
+                        onClick = {},
+                    )
+                }
+            }
+        }
     }
 }

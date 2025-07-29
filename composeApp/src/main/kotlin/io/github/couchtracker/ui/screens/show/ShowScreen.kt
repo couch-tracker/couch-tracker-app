@@ -187,11 +187,12 @@ private fun OverviewScreenComponents.ShowDetailsContent(
         section {
             if (model.createdBy.isNotEmpty()) {
                 val creators = formatAndList(model.createdBy.map { it.name })
-                item {
+                item("creators") {
                     Text(R.string.show_by_creator.str(creators))
                 }
             }
             tagsComposable(
+                key = "tags",
                 tags = listOfNotNull(
                     model.year?.toString(),
                     model.rating?.format(),
