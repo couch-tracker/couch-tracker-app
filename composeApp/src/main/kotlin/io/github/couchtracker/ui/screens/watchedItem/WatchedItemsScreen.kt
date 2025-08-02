@@ -3,7 +3,10 @@ package io.github.couchtracker.ui.screens.watchedItem
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -26,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
@@ -36,6 +40,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
+import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
@@ -51,6 +56,7 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
+import kotlin.time.Duration
 
 @Serializable
 data class WatchedItemsScreen(val itemId: String, val language: String?) : Screen() {
@@ -156,6 +162,7 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
                 items(watchedItems) { watchedItem ->
                     WatchedItemListItem(
                         watchedItem = watchedItem,
+                        mediaRuntime = model.runtime,
                         onClick = { watchedItemForInfoDialog = watchedItem },
                     )
                 }
@@ -181,8 +188,10 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
 @Composable
 private fun WatchedItemListItem(
     watchedItem: WatchedItemWrapper,
+    mediaRuntime: Duration?,
     onClick: () -> Unit,
 ) {
+    val progressState = rememberWatchedItemProgressState(watchedItem, mediaRuntime)
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         headlineContent = {
@@ -191,7 +200,16 @@ private fun WatchedItemListItem(
                 style = MaterialTheme.typography.titleMedium,
             )
         },
-        supportingContent = { WatchedItemDimensionSelections(watchedItem.dimensions) },
+        supportingContent = {
+            Column {
+                WatchedItemDimensionSelections(watchedItem.dimensions)
+                WatchedItemProgress(
+                    state = progressState,
+                    type = watchedItem.itemId.type(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                )
+            }
+        },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )
 }

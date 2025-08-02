@@ -93,6 +93,18 @@
     <string name="watch_date">Data di visione</string>
     <string name="add_date">Data di aggiunta</string>
     <string name="unknown_date">Data sconosciuta</string>
+    <string name="movie_progress_starting_in_less_than_a_minute_ago">Inizia fra meno di un minuto</string>
+    <string name="movie_progress_starting_in_x">Inizia in %1$s</string>
+    <string name="movie_progress_started_less_than_a_minute_ago">Iniziato meno di un minuto fa</string>
+    <string name="movie_progress_started_x_ago">Iniziato %1$s fa</string>
+    <string name="movie_progress_less_than_a_minute_left">Meno di un minuto rimanente</string>
+    <string name="movie_progress_x_left">%1$s rimanenti</string>
+    <string name="episode_progress_starting_in_less_than_a_minute_ago">Inizia fra meno di un minuto</string>
+    <string name="episode_progress_starting_in_x">Inizia in %1$s</string>
+    <string name="episode_progress_started_less_than_a_minute_ago">Iniziato meno di un minuto fa</string>
+    <string name="episode_progress_started_x_ago">Iniziato %1$s fa</string>
+    <string name="episode_progress_less_than_a_minute_left">Meno di un minuto rimanente</string>
+    <string name="episode_progress_x_left">%1$s rimanenti</string>
 
     <string name="mark_movie_as_watched">Segna come visto</string>
     <string name="mark_episode_as_watched">Segna come visto</string>

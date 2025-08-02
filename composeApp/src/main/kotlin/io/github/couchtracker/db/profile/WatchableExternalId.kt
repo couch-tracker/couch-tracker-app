@@ -47,3 +47,8 @@ sealed interface WatchableExternalId {
 
 fun ExternalMovieId.asWatchable() = WatchableExternalId.Movie(this)
 fun ExternalEpisodeId.asWatchable() = WatchableExternalId.Episode(this)
+
+fun WatchableExternalId.type() = when (this) {
+    is WatchableExternalId.Episode -> WatchableExternalId.Episode.TYPE
+    is WatchableExternalId.Movie -> WatchableExternalId.Movie.TYPE
+}

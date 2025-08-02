@@ -1,5 +1,7 @@
 package io.github.couchtracker.utils
 
+import com.ibm.icu.util.MeasureUnit
+import com.ibm.icu.util.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
@@ -50,4 +52,14 @@ fun Duration.remainderUntilNextUnitBoundary(unit: DurationUnit): Duration {
     } else {
         (unitNanos - remainderNs).nanoseconds
     }
+}
+
+fun DurationUnit.toIbmIcuTimeUnit(): MeasureUnit = when (this) {
+    DurationUnit.NANOSECONDS -> TimeUnit.NANOSECOND
+    DurationUnit.MICROSECONDS -> TimeUnit.MICROSECOND
+    DurationUnit.MILLISECONDS -> TimeUnit.MILLISECOND
+    DurationUnit.SECONDS -> TimeUnit.SECOND
+    DurationUnit.MINUTES -> TimeUnit.MINUTE
+    DurationUnit.HOURS -> TimeUnit.HOUR
+    DurationUnit.DAYS -> TimeUnit.DAY
 }
