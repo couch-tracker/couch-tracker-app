@@ -2,6 +2,8 @@
 
 package io.github.couchtracker.ui.screens.movie
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,7 +63,11 @@ import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.awaitAsLoadable
+import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -96,14 +102,16 @@ private fun Content(movie: TmdbMovie) {
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
     ) {
-        suspend fun load() {
+        val maxWidth = this.constraints.maxWidth
+        val maxHeight = this.constraints.maxHeight
+        suspend fun CoroutineScope.load() {
             screenModel = Loadable.Loading
             screenModel = loadMovie(
                 ctx,
                 tmdbCache,
                 movie,
-                width = this.constraints.maxWidth,
-                height = this.constraints.maxHeight,
+                width = maxWidth,
+                height = maxHeight,
             )
         }
         LaunchedEffect(movie) {
@@ -219,27 +227,37 @@ private fun OverviewScreenComponents.MoviePage(
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
+    val images = model.images.awaitAsLoadable()
+    val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding, modifier) {
-        section {
-            if (model.director.isNotEmpty()) {
-                val creators = formatAndList(model.director.map { it.name })
-                item {
-                    Text(R.string.movie_by_director.str(creators))
+        section("subtitle") {
+            val director = credits.map { it.director }
+            val tags = listOfNotNull(
+                model.year?.toString(),
+                model.runtime?.toString(),
+                model.rating?.format(),
+            ) + model.genres.map { it.name }
+
+            val hasDirector = director is Result.Value && director.value.isNotEmpty()
+            val hasTags = tags.isNotEmpty()
+            if (hasDirector || hasTags) {
+                item("subtitle-content") {
+                    AnimatedVisibility(hasDirector, enter = expandVertically()) {
+                        val directors = formatAndList((director as? Result.Value)?.value?.map { it.name }.orEmpty())
+                        Paragraph(R.string.movie_by_director.str(directors))
+                    }
+                    SpaceBetweenItems()
+                    if (hasTags) {
+                        TagsComposable(tags = tags)
+                    }
                 }
             }
-            tagsComposable(
-                tags = listOfNotNull(
-                    model.year?.toString(),
-                    model.runtime?.toString(),
-                    model.rating?.format(),
-                ) + model.genres.map { it.name },
-            )
         }
-        textSection(model.tagline, model.overview)
-        imagesSection(model.images, totalHeight = totalHeight)
-        castSection(model.cast, totalHeight = totalHeight)
-        crewSection(model.crew, totalHeight = totalHeight)
+        paragraphSection("overview", model.tagline, model.overview)
+        imagesSection(images, totalHeight = totalHeight)
+        castSection(credits.map { it.cast }, totalHeight = totalHeight)
+        crewSection(credits.map { it.crew }, totalHeight = totalHeight)
         // To avoid overlaps with the FAB; see FabBaselineTokens.ContainerHeight
-        item { Spacer(Modifier.height(56.dp)) }
+        item("fab-spacer") { Spacer(Modifier.height(56.dp)) }
     }
 }

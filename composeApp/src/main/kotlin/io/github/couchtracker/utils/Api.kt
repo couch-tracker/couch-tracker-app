@@ -1,10 +1,16 @@
 package io.github.couchtracker.utils
 
+import android.util.Log
 import io.github.couchtracker.R
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
+import kotlinx.coroutines.Deferred
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
+
+typealias ApiLoadable<T> = Loadable<T, ApiException>
+typealias ApiResult<T> = Result<T, ApiException>
+typealias DeferredApiResult<T> = Deferred<ApiResult<T>>
 
 sealed class ApiException(message: String?, cause: Throwable?) : Exception(message, cause) {
     @Deprecated("Use title instead", ReplaceWith("title.string()"))
@@ -28,5 +34,18 @@ sealed class ApiException(message: String?, cause: Throwable?) : Exception(messa
 
     class DeserializationError(message: String?, override val cause: SerializationException) : ApiException(message, cause) {
         override val title = Text.Resource(R.string.api_exception_deserialization_error)
+    }
+
+    class SimulatedError : ApiException("Simulated error", cause = null) {
+        override val title = Text.Resource(R.string.api_exception_client_error)
+    }
+}
+
+suspend fun <T> runApiCatching(logTag: String?, f: suspend () -> T): ApiResult<T> {
+    return try {
+        Result.Value(f())
+    } catch (e: ApiException) {
+        Log.e(logTag, null, e)
+        Result.Error(e)
     }
 }
