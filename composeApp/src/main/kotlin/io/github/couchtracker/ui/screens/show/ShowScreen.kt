@@ -42,7 +42,10 @@ import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.awaitAsLoadable
+import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -87,14 +90,16 @@ private fun Content(show: TmdbShow) {
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
     ) {
-        suspend fun load() {
+        val maxWidth = this.constraints.maxWidth
+        val maxHeight = this.constraints.maxHeight
+        suspend fun CoroutineScope.load() {
             screenModel = Loadable.Loading
             screenModel = loadShow(
                 ctx,
                 tmdbCache,
                 show,
-                width = this.constraints.maxWidth,
-                height = this.constraints.maxHeight,
+                width = maxWidth,
+                height = maxHeight,
             )
         }
         LaunchedEffect(show) {
@@ -170,6 +175,7 @@ private fun ShowScreenContent(
                 model = model,
                 totalHeight = totalHeight,
             )
+
             ShowScreenTab.SEASONS -> Text(R.string.tab_show_seasons.str(), Modifier.padding(innerPadding))
             ShowScreenTab.VIEWING_HISTORY -> Text(R.string.tab_show_viewing_history.str(), Modifier.padding(innerPadding))
         }
@@ -182,25 +188,33 @@ private fun OverviewScreenComponents.ShowDetailsContent(
     model: ShowScreenModel,
     totalHeight: Int,
 ) {
+    val images = model.images.awaitAsLoadable()
+    val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding) {
         topSpace()
-        section {
-            if (model.createdBy.isNotEmpty()) {
-                val creators = formatAndList(model.createdBy.map { it.name })
-                item {
-                    Text(R.string.show_by_creator.str(creators))
+        section("subtitle") {
+            val hasCreatedBy = model.createdBy.isNotEmpty()
+            val tags = listOfNotNull(
+                model.year?.toString(),
+                model.rating?.format(),
+            ) + model.genres.map { it.name }
+            val hasTags = tags.isNotEmpty()
+            if (hasCreatedBy || hasTags) {
+                item(key = "subtitle-content") {
+                    if (hasCreatedBy) {
+                        val creators = formatAndList(model.createdBy.map { it.name })
+                        Paragraph(R.string.show_by_creator.str(creators))
+                    }
+                    SpaceBetweenItems()
+                    if (hasTags) {
+                        TagsComposable(tags)
+                    }
                 }
             }
-            tagsComposable(
-                tags = listOfNotNull(
-                    model.year?.toString(),
-                    model.rating?.format(),
-                ) + model.genres.map { it.name },
-            )
         }
-        textSection(model.tagline, model.overview)
-        imagesSection(model.images, totalHeight = totalHeight)
-        castSection(model.cast, totalHeight = totalHeight)
-        crewSection(model.crew, totalHeight = totalHeight)
+        paragraphSection("overview", model.tagline, model.overview)
+        imagesSection(images, totalHeight = totalHeight)
+        castSection(credits.map { it.cast }, totalHeight = totalHeight)
+        crewSection(credits.map { it.crew }, totalHeight = totalHeight)
     }
 }

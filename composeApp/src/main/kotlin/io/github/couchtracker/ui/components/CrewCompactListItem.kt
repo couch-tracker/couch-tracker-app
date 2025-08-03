@@ -33,7 +33,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 @Composable
-fun CrewCompactListItem(crew: CrewCompactListItemModel) {
+fun CrewCompactListItem(crew: CrewCompactListItemModel?) {
     CompactListItem(
         leadingContent = {
             Surface(
@@ -43,27 +43,31 @@ fun CrewCompactListItem(crew: CrewCompactListItemModel) {
                 modifier = Modifier.size(40.dp),
             ) {
                 BoxWithConstraints(contentAlignment = Alignment.Companion.BottomStart) {
-                    AsyncImage(
-                        model = crew.posterModel?.getCoilModel(
-                            this.constraints.maxWidth,
-                            this.constraints.maxHeight,
-                        ),
-                        modifier = Modifier.fillMaxSize(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Companion.Crop,
-                        fallback = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = false),
-                        error = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = true),
-                    )
+                    if (crew != null) {
+                        AsyncImage(
+                            model = crew.posterModel?.getCoilModel(
+                                this.constraints.maxWidth,
+                                this.constraints.maxHeight,
+                            ),
+                            modifier = Modifier.fillMaxSize(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Companion.Crop,
+                            fallback = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = false),
+                            error = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = true),
+                        )
+                    }
                 }
             }
         },
-        headlineContent = { Text(crew.name) },
+        headlineContent = { Text(crew?.name.orEmpty()) },
         supportingContent = {
-            Text(
-                text = formatAndList(crew.departments.map { it.title().string() }),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (!crew?.departments.isNullOrEmpty()) {
+                Text(
+                    text = formatAndList(crew.departments.map { it.title().string() }),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         },
     )
 }
@@ -120,7 +124,7 @@ data class CrewCompactListItemModel(
 @JvmName("TmdbCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
     language: TmdbLanguage,
-    imagePreloadOptions: ImagePreloadOptions,
+    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
@@ -132,7 +136,7 @@ suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
 @JvmName("TmdbAggregateCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
     language: TmdbLanguage,
-    imagePreloadOptions: ImagePreloadOptions,
+    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {

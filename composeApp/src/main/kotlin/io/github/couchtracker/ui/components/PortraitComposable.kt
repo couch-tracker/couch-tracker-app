@@ -55,7 +55,7 @@ fun PortraitComposable(
         }
         Spacer(Modifier.height(8.dp))
         CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleSmall) {
-            Column(Modifier.animateContentSize(), horizontalAlignment = Alignment.Companion.CenterHorizontally) {
+            Column(Modifier.fillMaxWidth().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 label()
             }
         }

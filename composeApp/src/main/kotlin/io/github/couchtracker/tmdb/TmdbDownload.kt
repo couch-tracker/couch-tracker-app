@@ -6,6 +6,8 @@ import app.moviebase.tmdb.Tmdb3
 import io.github.couchtracker.AndroidApplication
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.injectApiError
+import io.github.couchtracker.utils.injectCacheMiss
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +50,7 @@ suspend fun <T : Any> tmdbGetOrDownload(
     require(prefetch <= expiration)
     val cachedValue = withContext(coroutineContext) {
         get().executeAsOneOrNull()
-    }
+    }.injectCacheMiss()
     val currentTime = Clock.System.now()
     return if (cachedValue != null) {
         val age = currentTime - cachedValue.lastUpdate
@@ -101,6 +103,7 @@ suspend fun <T> tmdbDownload(
     download: suspend (Tmdb3) -> T,
 ): T {
     try {
+        injectApiError()
         return download(tmdb)
     } catch (e: ClientRequestException) {
         throw ApiException.ClientError(e.message, e)

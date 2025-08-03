@@ -31,7 +31,7 @@ import kotlinx.coroutines.coroutineScope
 fun CastPortrait(
     modifier: Modifier,
     person: CastPortraitModel?,
-    onClick: ((CastPortraitModel) -> Unit)?,
+    onClick: (() -> Unit)?,
 ) {
     PortraitComposable(
         modifier,
@@ -41,7 +41,7 @@ fun CastPortrait(
                     model = person.posterModel?.getCoilModel(w, h),
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable(onClick != null) { onClick?.invoke(person) },
+                        .clickable(onClick != null) { onClick?.invoke() },
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     fallback = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = false),
@@ -55,22 +55,24 @@ fun CastPortrait(
                 textAlign = TextAlign.Center,
                 minLines = 1,
             )
-            person?.roles?.forEach { role ->
+            val subtitleItems = buildList {
+                if (person == null) {
+                    add(null)
+                } else {
+                    addAll(person.roles)
+                    person.episodesCount?.let { episodeCount ->
+                        add(R.plurals.n_episodes.pluralStr(episodeCount, episodeCount))
+                    }
+                }
+            }
+            subtitleItems.forEach { subtitle ->
                 Text(
-                    text = role,
+                    text = subtitle.orEmpty(),
                     textAlign = TextAlign.Center,
                     // Same style as ListItem's supporting content
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            person?.episodesCount?.let { episodeCount ->
-                Text(
-                    text = R.plurals.n_episodes.pluralStr(episodeCount, episodeCount),
-                    textAlign = TextAlign.Center,
-                    // Same style as ListItem's supporting content
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
+                    minLines = 1,
                 )
             }
         },
@@ -122,7 +124,7 @@ data class CastPortraitModel(
 @JvmName("TmdbCast_toCastPortraitModel")
 suspend fun List<TmdbCast>.toCastPortraitModel(
     language: TmdbLanguage,
-    imagePreloadOptions: ImagePreloadOptions,
+    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CastPortraitModel> = coroutineScope {
     map {
         async {
@@ -134,7 +136,7 @@ suspend fun List<TmdbCast>.toCastPortraitModel(
 @JvmName("TmdbAggregateCast_toCastPortraitModel")
 suspend fun List<TmdbAggregateCast>.toCastPortraitModel(
     language: TmdbLanguage,
-    imagePreloadOptions: ImagePreloadOptions,
+    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CastPortraitModel> = coroutineScope {
     map {
         async {
