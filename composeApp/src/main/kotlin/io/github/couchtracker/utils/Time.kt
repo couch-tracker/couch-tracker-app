@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalDateTime
 fun LocalDateTime.roundToSeconds() = LocalDateTime(
     year = year,
     month = month,
-    dayOfMonth = dayOfMonth,
+    day = day,
     hour = hour,
     minute = minute,
     second = second,

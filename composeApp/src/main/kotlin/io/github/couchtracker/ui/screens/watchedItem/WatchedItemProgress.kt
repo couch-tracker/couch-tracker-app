@@ -21,7 +21,7 @@ import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 

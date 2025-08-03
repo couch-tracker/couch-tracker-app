@@ -25,7 +25,6 @@ import io.github.couchtracker.ui.screens.movie.MovieScreen
 import io.github.couchtracker.ui.screens.settings.settings
 import io.github.couchtracker.ui.screens.show.ShowScreen
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemsScreen
-import org.koin.compose.KoinContext
 import kotlin.math.roundToInt
 
 val LocalNavController = staticCompositionLocalOf<NavController> { error("no default nav controller") }
@@ -36,38 +35,36 @@ private val FADE_ANIMATION_SPEC = tween<Float>(AnimationDefaults.ANIMATION_DURAT
 @Composable
 fun App() {
     val navController = rememberNavController()
-    KoinContext {
-        MaterialTheme(colorScheme = darkColorScheme()) {
-            CompositionLocalProvider(LocalNavController provides navController) {
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    ProfilesContext {
-                        NavHost(
-                            navController = navController,
-                            startDestination = MainScreen,
-                            enterTransition = {
-                                val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = LinearOutSlowInEasing)
-                                slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                    fadeIn(FADE_ANIMATION_SPEC)
-                            },
-                            exitTransition = {
-                                fadeOut(FADE_ANIMATION_SPEC)
-                            },
-                            popEnterTransition = {
+    MaterialTheme(colorScheme = darkColorScheme()) {
+        CompositionLocalProvider(LocalNavController provides navController) {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                ProfilesContext {
+                    NavHost(
+                        navController = navController,
+                        startDestination = MainScreen,
+                        enterTransition = {
+                            val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = LinearOutSlowInEasing)
+                            slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
                                 fadeIn(FADE_ANIMATION_SPEC)
-                            },
-                            popExitTransition = {
-                                val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = FastOutLinearInEasing)
-                                slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                    fadeOut(FADE_ANIMATION_SPEC)
-                            },
-                        ) {
-                            composable<MainScreen>()
-                            composable<SearchScreen>()
-                            composable<MovieScreen>()
-                            composable<ShowScreen>()
-                            composable<WatchedItemsScreen>()
-                            settings()
-                        }
+                        },
+                        exitTransition = {
+                            fadeOut(FADE_ANIMATION_SPEC)
+                        },
+                        popEnterTransition = {
+                            fadeIn(FADE_ANIMATION_SPEC)
+                        },
+                        popExitTransition = {
+                            val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = FastOutLinearInEasing)
+                            slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                                fadeOut(FADE_ANIMATION_SPEC)
+                        },
+                    ) {
+                        composable<MainScreen>()
+                        composable<SearchScreen>()
+                        composable<MovieScreen>()
+                        composable<ShowScreen>()
+                        composable<WatchedItemsScreen>()
+                        settings()
                     }
                 }
             }

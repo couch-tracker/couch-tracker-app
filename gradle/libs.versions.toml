@@ -1,30 +1,30 @@
 [versions]
 agp = "8.9.1"
-android-compileSdk = "35"
+android-compileSdk = "36"
 android-minSdk = "26"
-android-targetSdk = "35"
+android-targetSdk = "36"
 androidx-activityCompose = "1.10.1"
 androidx-datastore = "1.1.7"
 androidx-documentfile = "1.1.0"
-androidx-lifecycle = "2.9.0"
-buildConfig = "5.6.2"
-byte-size = "2.0.0-beta04"
-coil = "3.1.0"
+androidx-lifecycle = "2.9.2"
+buildConfig = "5.6.7"
+byte-size = "2.0.0"
+coil = "3.3.0"
 compose-paging = "3.3.6"
 compose-plugin = "1.9.0-alpha03"
 detekt = "1.23.8"
 icu = "77.1"
-koin-bom = "4.0.4"
+koin-bom = "4.1.0"
 kotest = "5.9.1"
-kotlin = "2.1.21"
-kotlinx-datetime = "0.6.2"
-ktor = "3.1.2"
-mockk = "1.14.0"
-navigation = "2.9.0"
+kotlin = "2.2.0"
+kotlinx-datetime = "0.7.1"
+ktor = "3.2.3"
+mockk = "1.14.5"
+navigation = "2.9.3"
 palette = "1.0.0"
-preference = "1.1.1"
-requeryAndroid = "3.45.0"
-serialization = "1.8.1"
+preference = "2.1.0"
+requeryAndroid = "3.49.0"
+serialization = "1.9.0"
 sqldelight = "2.1.0"
 tmdb-api = "1.4.0"
 
@@ -56,7 +56,7 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigation" }
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 palette = { module = "androidx.palette:palette", version.ref = "palette" }
-preference = { module = "me.zhanghai.compose.preference:library", version.ref = "preference" }
+preference = { module = "me.zhanghai.compose.preference:preference", version.ref = "preference" }
 requery-android = { module = "com.github.requery:sqlite-android", version.ref = "requeryAndroid" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }

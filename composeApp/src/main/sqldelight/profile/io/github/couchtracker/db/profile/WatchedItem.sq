@@ -1,6 +1,6 @@
 import io.github.couchtracker.db.profile.WatchableExternalId;
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime;
-import kotlinx.datetime.Instant;
+import kotlin.time.Instant;
 
 /**
  * Saves every movie the user ever watched.

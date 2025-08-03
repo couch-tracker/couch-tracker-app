@@ -53,11 +53,11 @@ import io.github.couchtracker.ui.screens.watchedItem.DateTimeSectionState.Custom
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.roundToSeconds
 import io.github.couchtracker.utils.str
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 class DateTimeSectionState(val initial: PartialDateTime? = null) {
 

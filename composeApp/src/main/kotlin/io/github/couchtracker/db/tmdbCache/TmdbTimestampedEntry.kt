@@ -1,6 +1,6 @@
 package io.github.couchtracker.db.tmdbCache
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class TmdbTimestampedEntry<T>(
     val value: T,

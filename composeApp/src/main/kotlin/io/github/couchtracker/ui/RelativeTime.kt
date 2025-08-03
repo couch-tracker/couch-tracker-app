@@ -15,10 +15,10 @@ import io.github.couchtracker.utils.rememberTickingValue
 import io.github.couchtracker.utils.toIbmIcuTimeUnit
 import io.github.couchtracker.utils.toULocale
 import io.github.couchtracker.utils.unitPart
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import kotlin.time.Instant
 
 data class RelativeDurationFormatter(
     private val omitZeros: Boolean,

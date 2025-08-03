@@ -28,9 +28,9 @@ import io.github.couchtracker.ui.components.LanguagePickerDialog
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toULocale
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 private val USED_LANGUAGES_RECENCY_CUTOFF = 180.days
 private const val SUGGESTED_LANGAUGES_TOP_USED_LIMIT = 3
