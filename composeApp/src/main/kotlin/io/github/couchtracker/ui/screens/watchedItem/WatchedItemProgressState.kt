@@ -8,11 +8,11 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.rememberTickingValue
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 /**
  * Represents the progress state of a [WatchedItem] in the time:

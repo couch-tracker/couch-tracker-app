@@ -3,7 +3,7 @@ package io.github.couchtracker.db.common.adapters
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class InstantColumnAdapterTest : FunSpec(
     {

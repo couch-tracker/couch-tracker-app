@@ -3,8 +3,8 @@ package io.github.couchtracker.db
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.utils.toAndroidUri
-import kotlinx.datetime.Instant
 import java.net.URI
+import kotlin.time.Instant
 
 /**
  * Returns a [DocumentFile] representing [this] single [URI].

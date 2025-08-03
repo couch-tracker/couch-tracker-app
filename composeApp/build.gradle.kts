@@ -25,8 +25,10 @@ buildConfig {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
+        jvmTarget = JvmTarget.JVM_11
         allWarningsAsErrors = true
+        freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
+        freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 
     dependencies {
@@ -36,6 +38,10 @@ kotlin {
         implementation(libs.kotlinx.datetime)
         implementation(libs.serialization.core)
         implementation(libs.serialization.json)
+
+        // AndroidX & other misc Google libs
+        implementation(libs.androidx.datastore.preferences)
+        implementation(libs.androidx.documentfile)
 
         // Compose
         implementation(compose.foundation)
@@ -74,8 +80,6 @@ kotlin {
         implementation(libs.coil.ktor)
 
         // Other
-        implementation(libs.androidx.datastore.preferences)
-        implementation(libs.androidx.documentfile)
         implementation(libs.byteSize)
         implementation(libs.icu4j)
         implementation(libs.palette)
@@ -135,8 +139,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     testOptions.unitTests {
         all {

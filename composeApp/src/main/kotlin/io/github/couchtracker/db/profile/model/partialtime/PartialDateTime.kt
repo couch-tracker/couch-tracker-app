@@ -6,7 +6,6 @@ import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local.YearMonth
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.FixedOffsetTimeZone
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -22,8 +21,10 @@ import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.alternativeParsing
 import kotlinx.datetime.format.char
 import kotlinx.datetime.format.format
+import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 /**
  * Represents a date/time value that might not have all the components present.
@@ -153,7 +154,7 @@ sealed interface PartialDateTime {
             override val year get() = date.year
             override val month get() = date.month
             override val dayOfWeek get() = date.dayOfWeek
-            override val dayOfMonth get() = date.dayOfMonth
+            override val dayOfMonth get() = date.day
             override val dayOfYear get() = date.dayOfYear
         }
 
@@ -185,7 +186,7 @@ sealed interface PartialDateTime {
                 year = this@Year.year
             }
 
-            override fun toInstant(zone: TimeZone) = LocalDate(year, Month.JANUARY, dayOfMonth = 1).atStartOfDayIn(zone)
+            override fun toInstant(zone: TimeZone) = LocalDate(year, Month.JANUARY, day = 1).atStartOfDayIn(zone)
 
             companion object : ICompanionWithFormat<Year>() {
                 override val FORMAT = DateTimeComponents.Format { year(Padding.ZERO) }
@@ -204,7 +205,7 @@ sealed interface PartialDateTime {
                 month = this@YearMonth.month
             }
 
-            override fun toInstant(zone: TimeZone) = LocalDate(year, month, dayOfMonth = 1).atStartOfDayIn(zone)
+            override fun toInstant(zone: TimeZone) = LocalDate(year, month, day = 1).atStartOfDayIn(zone)
 
             companion object : ICompanionWithFormat<YearMonth>() {
                 override val FORMAT = DateTimeComponents.Format {
@@ -377,9 +378,9 @@ sealed interface PartialDateTime {
         }.thenBy {
             when (val local = it.local) {
                 is Year -> 0
-                is YearMonth -> local.month.value
-                is Date -> local.date.month.value
-                is DateTime -> local.dateTime.month.value
+                is YearMonth -> local.month.number
+                is Date -> local.date.month.number
+                is DateTime -> local.dateTime.month.number
             }
         }
 
@@ -388,7 +389,7 @@ sealed interface PartialDateTime {
          */
         private val LOCAL_COMPARATOR: Comparator<PartialDateTime> = LOCAL_YEAR_MONTH_COMPARATOR.thenBy {
             when (val local = it.local) {
-                is Year, is YearMonth -> Int.MIN_VALUE
+                is Year, is YearMonth -> Long.MIN_VALUE
                 is Date -> local.date.toEpochDays()
                 is DateTime -> local.dateTime.date.toEpochDays()
             }

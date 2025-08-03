@@ -12,11 +12,11 @@ import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.onError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Instant
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Instant
 
 /**
  * A [ProfileDb] that is managed in an external file.

@@ -11,7 +11,6 @@ import io.github.couchtracker.db.profile.ProfileDbError.FileError.AttemptedOpera
 import io.github.couchtracker.utils.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Instant
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
@@ -22,6 +21,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Instant
 
 typealias DatabaseTransaction<T> = suspend (db: ProfileData) -> T
 

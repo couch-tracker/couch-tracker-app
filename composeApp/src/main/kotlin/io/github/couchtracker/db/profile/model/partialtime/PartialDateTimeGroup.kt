@@ -1,5 +1,7 @@
 package io.github.couchtracker.db.profile.model.partialtime
 
+import kotlinx.datetime.number
+
 /**
  * When showing a list of objects with an associated [PartialDateTime], they should be split into groups in order to provide a clear UI to
  * the user.
@@ -44,7 +46,7 @@ sealed class PartialDateTimeGroup : Comparable<PartialDateTimeGroup> {
         }.thenBy {
             when (it) {
                 Unknown, is Year -> 0
-                is YearMonth -> it.value.month.value // January is 1, December is 12
+                is YearMonth -> it.value.month.number // January is 1, December is 12
             }
         }
     }

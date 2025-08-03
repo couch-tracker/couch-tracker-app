@@ -95,7 +95,7 @@ private data class SqlTable(
     val key: List<SqlColumn>,
     val value: SqlColumn,
 ) {
-    val lastUpdate = SqlColumn.text("lastUpdate", "kotlinx.datetime.Instant")
+    val lastUpdate = SqlColumn.text("lastUpdate", "kotlin.time.Instant")
 
     init {
         require(key.isNotEmpty())

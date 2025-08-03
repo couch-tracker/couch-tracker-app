@@ -4,11 +4,11 @@ import android.icu.text.ListFormatter
 import android.text.format.DateFormat
 import androidx.compose.ui.text.intl.Locale
 import io.github.couchtracker.intl.datetime.Skeleton
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toJavaZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 fun formatAndList(items: List<String>): String {
     return ListFormatter.getInstance().format(items)

@@ -4,9 +4,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.FixedOffsetTimeZone
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
+import kotlin.time.Instant
 
 class PartialDateTimeTest : FunSpec(
     {

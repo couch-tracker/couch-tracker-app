@@ -28,18 +28,18 @@ private val LOCAL_TEST_CASES = listOf(
     ValidTestCase(
         testName = "Date",
         serialized = "2024-07-01",
-        value = Local.Date(LocalDate(2024, Month.JULY, dayOfMonth = 1)),
+        value = Local.Date(LocalDate(2024, Month.JULY, day = 1)),
     ),
     ValidTestCase(
         testName = "Date and time at hour mark",
         serialized = "2024-07-01T08:00:00",
         otherAcceptedParsableFormats = listOf("2024-07-01T08:00"),
-        value = Local.DateTime(LocalDateTime(2024, Month.JULY, dayOfMonth = 1, hour = 8, minute = 0)),
+        value = Local.DateTime(LocalDateTime(2024, Month.JULY, day = 1, hour = 8, minute = 0)),
     ),
     ValidTestCase(
         testName = "Date and time with minutes and seconds",
         serialized = "2024-07-01T22:12:34",
-        value = Local.DateTime(LocalDateTime(2024, Month.JULY, dayOfMonth = 1, hour = 22, minute = 12, second = 34)),
+        value = Local.DateTime(LocalDateTime(2024, Month.JULY, day = 1, hour = 22, minute = 12, second = 34)),
     ),
 )
 
