@@ -1,36 +1,32 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.sp
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
-import io.github.couchtracker.tmdb.TmdbShow
-import io.github.couchtracker.tmdb.TmdbShowId
-import io.github.couchtracker.ui.components.ProfilePane
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
+import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.screens.settings.MainSettingsScreen
-import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.utils.str
 
 @Composable
@@ -52,20 +48,23 @@ fun HomeSection(innerPadding: PaddingValues) {
         },
         tabText = { page -> Text(text = HomeTab.entries[page].displayName.str()) },
         page = { page ->
-            Column {
-                DebugContent()
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                when (HomeTab.entries[page]) {
+                    HomeTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
+                    HomeTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
+                    HomeTab.EXPLORE -> WipMessageComposable(gitHubIssueId = 128)
+                    HomeTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+                }
             }
         },
     )
 }
 
-// TODO fix
 private enum class HomeTab(@StringRes val displayName: Int) {
-    TIMELINE(R.string.tab_shows_timeline),
-    FOLLOWED(R.string.tab_shows_followed),
-    UP_NEXT(R.string.tab_shows_up_next),
-    CALENDAR(R.string.tab_shows_calendar),
-    EXPLORE(R.string.tab_shows_explore),
+    HISTORY(R.string.tab_home_history),
+    UP_NEXT(R.string.tab_home_up_next),
+    EXPLORE(R.string.tab_home_explore),
+    CALENDAR(R.string.tab_home_calendar),
 }
 
 @Composable
@@ -100,33 +99,5 @@ private fun AppbarMoreMenu() {
     }
     if (switchProfileDialogOpen) {
         ProfileSwitcherDialog(close = { switchProfileDialogOpen = false })
-    }
-}
-
-private val DEBUG_SHOWS = listOf(
-    "Doctor Who" to TmdbShowId(57_243),
-    "Fringe" to TmdbShowId(1705),
-    "Mario" to TmdbShowId(47_319),
-    "The Simpsons" to TmdbShowId(456),
-    "How I Met Your Mother" to TmdbShowId(1100),
-    "It's Always Sunny in Philadelphia" to TmdbShowId(2710),
-    "Watch live" to TmdbShowId(22_980),
-)
-
-// TODO: remove this debug composable
-@Composable
-private fun DebugContent() {
-    val profilesInfo = LocalProfilesContext.current
-    val navController = LocalNavController.current
-
-    Text(text = "Current profile: ${profilesInfo.current.profile.name}", fontSize = 30.sp)
-    ProfilePane()
-
-    Text("Random shows:", style = MaterialTheme.typography.titleMedium)
-    for ((showName, showId) in DEBUG_SHOWS) {
-        Button(
-            onClick = { navController.navigateToShow(TmdbShow(showId, TMDB_LANGUAGE)) },
-            content = { Text(showName) },
-        )
     }
 }
