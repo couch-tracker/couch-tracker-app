@@ -142,4 +142,8 @@
     <string name="language_search_placeholder">Nome, nome originale, id</string>
     <string name="suggested_languages">Suggerite</string>
     <string name="all_languages">Tutte le lingue</string>
+    <string name="language_list">Lista lingue</string>
+    <string name="add_language">Aggiungi lingua</string>
+    <string name="remove_language">Rimuovi lingua</string>
+    <string name="drag_handle">Maniglia</string>
 </resources>

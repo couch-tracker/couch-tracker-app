@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.settings
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -34,6 +35,13 @@ private fun Content() {
                 Icon(Icons.Filled.ManageAccounts, contentDescription = null)
             },
             onClick = { navController.navigate(ProfilesSettingsScreen) },
+        )
+        // TODO move to appropriate section
+        preference(
+            key = "tmdb-languages",
+            icon = { Icon(Icons.Default.Language, contentDescription = null) },
+            title = { Text(R.string.tmdb_languages.str()) },
+            onClick = { navController.navigate(TmdbLanguagesSettingsScreen) },
         )
     }
 }

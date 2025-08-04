@@ -1,13 +1,16 @@
 package io.github.couchtracker.tmdb
 
 import app.cash.sqldelight.ColumnAdapter
+import io.github.couchtracker.db.profile.Bcp47Language
+import io.github.couchtracker.utils.MixedValueTree
+import java.util.Locale
 
 /**
  * A language, compatible with TMDB APIs.
  * Specification is on https://developer.themoviedb.org/docs/languages
  *
  * @property language ISO 639-1
- * @property country ISO 3166-1
+ * @property country ISO 3166-1. Technically TMDB always has a country in its language, but it also supports passing stuff with no country.
  */
 data class TmdbLanguage(
     val language: String,
@@ -22,19 +25,28 @@ data class TmdbLanguage(
         }
     }
 
-    val apiParameter: String
+    val languageTag: String
         get() = if (country != null) {
             "$language-$country"
         } else {
             language
         }
 
-    fun serialize() = apiParameter
+    val apiParameter get() = languageTag
+
+    fun serialize() = languageTag
+
+    fun toBcp47Language() = Bcp47Language.of(languageTag)
 
     override fun toString() = serialize()
 
     companion object {
         val ENGLISH = TmdbLanguage("en", null)
+
+        /**
+         * Language to use if all else fails
+         */
+        val FALLBACK = ENGLISH
 
         val COLUMN_ADAPTER = object : ColumnAdapter<TmdbLanguage, String> {
             override fun decode(databaseValue: String) = parse(databaseValue)
@@ -55,4 +67,40 @@ data class TmdbLanguage(
             }
         }
     }
+}
+
+/**
+ * Converts [this] locale to a [TmdbLanguage].
+ *
+ * If this locale is not representable in a [TmdbLanguage] (e.g. uses ISO 639-2 code), `null` is returned.
+ *
+ * The fact that this method returns, does not guarantee that the returned [TmdbLanguage] is one of TMDB's
+ * [primary translations](https://developer.themoviedb.org/reference/configuration-primary-translations).
+ */
+fun Locale.toTmdbLanguage(): TmdbLanguage? {
+    return TmdbLanguage(
+        language = this.language.takeIf { it.length == 2 }?.lowercase() ?: return null,
+        country = this.country.takeIf { it.length == 2 }?.uppercase(),
+    )
+}
+
+fun List<TmdbLanguage>.languageTree(
+    comparator: Comparator<in MixedValueTree.NonRoot<TmdbLanguage, TmdbLanguage>>,
+): MixedValueTree.Root<Unit, TmdbLanguage, TmdbLanguage> {
+    return MixedValueTree.Root(
+        value = Unit,
+        children = this
+            .groupBy { it.language }
+            .map { (language, tmdbLanguages) ->
+                if (tmdbLanguages.size > 1) {
+                    MixedValueTree.Intermediate(
+                        value = TmdbLanguage(language = language, country = null),
+                        children = tmdbLanguages.map { MixedValueTree.Leaf(it) },
+                    )
+                } else {
+                    MixedValueTree.Leaf(value = tmdbLanguages.single())
+                }
+            }
+            .sortedWith(comparator),
+    )
 }

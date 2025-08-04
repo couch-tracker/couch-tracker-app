@@ -137,4 +137,8 @@
     <string name="language_search_placeholder">Name, original name, identifier</string>
     <string name="suggested_languages">Suggested</string>
     <string name="all_languages">All languages</string>
+    <string name="language_list">Language list</string>
+    <string name="add_language">Add language</string>
+    <string name="remove_language">Remove language</string>
+    <string name="drag_handle">Drag handle</string>
 </resources>

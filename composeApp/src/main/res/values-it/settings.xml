@@ -17,13 +17,6 @@
     <string name="profile_name_placeholder">Nome profilo</string>
     <string name="open_profile">Apri profilo</string>
     <string name="open_profile_summary">Apri un profilo esistente</string>
-    <string name="profiles_footer">
-        Un profilo è un file che memorizza tutte le tue informazioni, come visioni, liste, ecc.
-        \nPuoi avere più profili.
-        \n
-        \nOgni profilo può essere archiviato nella memoria interna dell\'app o esternamente, ad esempio in un file locale o nel cloud.
-        \nCiò può essere modificato nelle impostazioni di ciascun profilo.
-    </string>
 
     <string name="profile">Profilo</string>
     <string name="profile_name">Nome</string>
@@ -51,4 +44,10 @@
     <string name="move_profile_location_error">Errore nello spostamento del profilo</string>
     <string name="move_profile_location_error_message">C\'è stato un errore nello spostamento del profilo: %1$s</string>
     <string name="switch_profile">Cambia profilo</string>
+
+    <string name="tmdb_languages">Lingue TMDB</string>
+    <string name="tmdb_languages_settings_header">Lingue da usare per scaricare i contenuti da The Movie Database (TMDB)</string>
+    <string name="tmdb_languages_settings_footer">I contenuti localizzati verranno mostrati con la prima lingua disponibile</string>
+    <string name="tmdb_languages_limit_reached">Hai raggiunto il numero massimo di lingue impostabili</string>
+    <string name="use_system_languages">Usa lingue di sistema</string>
 </resources>
