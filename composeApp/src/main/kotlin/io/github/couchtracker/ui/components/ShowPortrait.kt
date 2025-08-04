@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.AsyncImage
+import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.toInternalTmdbShow
@@ -16,6 +17,7 @@ import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
+import io.github.couchtracker.utils.str
 import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
 
 @Composable
@@ -46,7 +48,7 @@ fun ShowPortrait(
         label = {
             val label = when {
                 show == null -> ""
-                show.year != null -> "${show.name} (${show.year})" // TODO translate
+                show.year != null -> R.string.item_tile_with_year.str(show.name, show.year)
                 else -> show.name
             }
             Text(

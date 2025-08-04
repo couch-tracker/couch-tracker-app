@@ -174,7 +174,7 @@ private fun ShowScreenContent(
                 model = model,
                 totalHeight = totalHeight,
             )
-            ShowScreenTab.SEASONS -> WipMessageComposable(gitHubIssueId = 81)
+            ShowScreenTab.SEASONS -> WipMessageComposable(gitHubIssueId = 138)
             ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
         }
     }
