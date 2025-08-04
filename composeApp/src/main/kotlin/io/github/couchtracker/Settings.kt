@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.utils.Setting
 
 private val Context.appSettings: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -14,5 +16,17 @@ object Settings {
         dataStore = { appSettings },
         key = longPreferencesKey("currentProfileId"),
         defaultValue = null,
+    )
+
+    val TmdbLanguages = Setting(
+        dataStore = { appSettings },
+        key = stringPreferencesKey("tmdbLanguages"),
+        defaultValue = null,
+        parse = { pref ->
+            pref.split(",").map { TmdbLanguage.parse(it) }.distinct()
+        },
+        serialize = { languages ->
+            languages.joinToString(separator = ",") { it.serialize() }
+        },
     )
 }

@@ -6,8 +6,10 @@ import app.moviebase.tmdb.Tmdb3
 import io.github.couchtracker.AndroidApplication
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.injectApiError
 import io.github.couchtracker.utils.injectCacheMiss
+import io.github.couchtracker.utils.runApiCatching
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +28,7 @@ private const val LOG_TAG = "TmdbDownload"
 private val tmdb = Tmdb3 {
     tmdbApiKey = TmdbConfig.API_KEY
     useTimeout = true
-    maxRetriesOnException = 3
+    maxRequestRetries = 3
 }
 
 val TMDB_CACHE_EXPIRATION_FAST = 1.hours
@@ -113,5 +115,11 @@ suspend fun <T> tmdbDownload(
         throw ApiException.IOError(e.message, e)
     } catch (e: SerializationException) {
         throw ApiException.DeserializationError(e.message, e)
+    }
+}
+
+suspend fun <T> tmdbDownloadResult(logTag: String?, download: suspend (Tmdb3) -> T): ApiResult<T> {
+    return runApiCatching(logTag = logTag) {
+        tmdbDownload(download)
     }
 }

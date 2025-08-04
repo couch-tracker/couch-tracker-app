@@ -5,7 +5,8 @@ package io.github.couchtracker.ui.screens.settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,7 +28,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.ui.SizeAwareLazyListScope
 import io.github.couchtracker.ui.composable
+import io.github.couchtracker.ui.countingElements
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.FooterPreference
@@ -43,6 +46,7 @@ fun NavGraphBuilder.settings() {
         composable<MainSettingsScreen>()
         composable<ProfilesSettingsScreen>()
         composable<ProfileSettingsScreen>()
+        composable<TmdbLanguagesSettingsScreen>()
     }
 }
 
@@ -51,12 +55,15 @@ fun BaseSettings(
     title: String,
     header: String?,
     footer: String?,
-    content: LazyListScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    lazyColumnModifier: Modifier = Modifier,
+    lazyColumnState: LazyListState = rememberLazyListState(),
+    content: SizeAwareLazyListScope.() -> Unit,
 ) {
     val navController = LocalNavController.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = { Text(text = title) },
@@ -77,23 +84,25 @@ fun BaseSettings(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
     ) { contentPadding ->
         CompositionLocalProvider(LocalPreferenceTheme provides preferenceTheme()) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding) {
-                if (header != null) {
-                    item(key = "settings-description") {
-                        Preference(
-                            modifier = Modifier.animateItem(),
-                            title = {},
-                            summary = { Text(header) },
-                        )
+            LazyColumn(modifier = lazyColumnModifier.fillMaxSize(), contentPadding = contentPadding, state = lazyColumnState) {
+                countingElements {
+                    if (header != null) {
+                        item(key = "settings-description") {
+                            Preference(
+                                modifier = Modifier.animateItem(),
+                                title = {},
+                                summary = { Text(header) },
+                            )
+                        }
                     }
-                }
-                content()
-                if (footer != null) {
-                    item("footer") {
-                        FooterPreference(
-                            modifier = Modifier.animateItem(),
-                            summary = { Text(footer) },
-                        )
+                    content()
+                    if (footer != null) {
+                        item("footer") {
+                            FooterPreference(
+                                modifier = Modifier.animateItem(),
+                                summary = { Text(footer) },
+                            )
+                        }
                     }
                 }
             }

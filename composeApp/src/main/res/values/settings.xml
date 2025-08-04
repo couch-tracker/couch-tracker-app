@@ -17,13 +17,6 @@
     <string name="profile_name_placeholder">Profile name</string>
     <string name="open_profile">Open profile</string>
     <string name="open_profile_summary">Open an existing profile</string>
-    <string name="profiles_footer">
-        A profile is a file that stores all your information, like viewings, lists, etc.
-        \nYou can have multiple profiles.
-        \n
-        \nEach profile can be stored either in the internal storage of the app or externally, for instance in a local file or in the cloud.
-        \nThis can be changed in each profile\'s settings.
-    </string>
 
     <string name="profile">Profile</string>
     <string name="profile_name">Name</string>
@@ -51,4 +44,10 @@
     <string name="move_profile_location_error">Error moving profile</string>
     <string name="move_profile_location_error_message">There has been an error moving the profile: %1$s</string>
     <string name="switch_profile">Switch profile</string>
+
+    <string name="tmdb_languages">TMDB languages</string>
+    <string name="tmdb_languages_settings_header">Languages to use when downloading content information from The Movie Database (TMDB)</string>
+    <string name="tmdb_languages_settings_footer">Localized content will be displayed in the first language that is available</string>
+    <string name="tmdb_languages_limit_reached">You\'ve reached the maximum number of languages that can be set</string>
+    <string name="use_system_languages">Use system languages</string>
 </resources>

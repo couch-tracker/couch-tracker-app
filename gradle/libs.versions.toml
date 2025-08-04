@@ -23,10 +23,11 @@ mockk = "1.14.5"
 navigation = "2.9.3"
 palette = "1.0.0"
 preference = "2.1.0"
+reorderable = "2.5.1"
 requeryAndroid = "3.49.0"
 serialization = "1.9.0"
 sqldelight = "2.1.0"
-tmdb-api = "1.4.0"
+tmdb-api = "1.5.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -57,6 +58,7 @@ navigation-testing = { module = "androidx.navigation:navigation-testing", versio
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 palette = { module = "androidx.palette:palette", version.ref = "palette" }
 preference = { module = "me.zhanghai.compose.preference:preference", version.ref = "preference" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 requery-android = { module = "com.github.requery:sqlite-android", version.ref = "requeryAndroid" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }

@@ -84,6 +84,7 @@ kotlin {
         implementation(libs.icu4j)
         implementation(libs.palette)
         implementation(libs.preference)
+        implementation(libs.reorderable)
         implementation(libs.tmdb.api)
     }
 

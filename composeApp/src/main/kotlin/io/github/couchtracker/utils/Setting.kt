@@ -14,14 +14,14 @@ class Setting<K, V : D, D>(
     private val dataStore: Context.() -> DataStore<Preferences>,
     private val key: Preferences.Key<K>,
     private val defaultValue: D,
-    private val serialize: (K) -> V,
-    private val parse: (V) -> K,
+    private val parse: (K) -> V,
+    private val serialize: (V) -> K,
 ) : KoinComponent, Flow<D> {
 
     private val context by inject<Context>()
 
     private val flow: Flow<D> = context.dataStore().data.map { preferences ->
-        preferences[key]?.let { serialize(it) } ?: defaultValue
+        preferences[key]?.let { parse(it) } ?: defaultValue
     }
 
     override suspend fun collect(collector: FlowCollector<D>) = flow.collect(collector)
@@ -31,7 +31,7 @@ class Setting<K, V : D, D>(
      */
     suspend fun set(value: V) {
         context.dataStore().edit { preferences ->
-            preferences[key] = parse(value)
+            preferences[key] = serialize(value)
         }
     }
 
@@ -53,8 +53,8 @@ class Setting<K, V : D, D>(
             dataStore = dataStore,
             key = key,
             defaultValue = defaultValue,
-            serialize = { it },
             parse = { it },
+            serialize = { it },
         )
     }
 }

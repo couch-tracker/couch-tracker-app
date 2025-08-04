@@ -25,3 +25,7 @@ val CompositionLocal<Configuration>.currentFirstLocale
     }
 
 fun Locale.toULocale() = ULocale(toString())
+
+fun LocaleListCompat.toList(): List<Locale> {
+    return List(size()) { i -> checkNotNull(get(i)) }
+}
