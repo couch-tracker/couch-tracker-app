@@ -37,7 +37,7 @@ import kotlinx.coroutines.CoroutineScope
 val TMDB_LANGUAGE = TmdbLanguage.ENGLISH
 
 class MovieSectionViewModel : ViewModel() {
-    val exploreState = ExploreTabState(viewModelScope)
+    val exploreState = MovieExploreTabState(viewModelScope)
 }
 
 @Composable
@@ -76,7 +76,7 @@ fun MoviesSection(
 
 @Composable
 private fun MovieListComposable(
-    tabState: ExploreTabState,
+    tabState: MovieExploreTabState,
 ) {
     val lazyItems = tabState.movieFlow.collectAsLazyPagingItems()
     val navController = LocalNavController.current
@@ -98,7 +98,7 @@ enum class MovieTab(
     CALENDAR(R.string.tab_movies_calendar),
 }
 
-class ExploreTabState(viewModelScope: CoroutineScope) {
+class MovieExploreTabState(viewModelScope: CoroutineScope) {
 
     private val pager = tmdbPager(
         downloader = { page ->
