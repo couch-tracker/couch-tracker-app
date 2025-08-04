@@ -1,12 +1,15 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.ViewModel
@@ -14,10 +17,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
-import app.moviebase.tmdb.Tmdb3
-import app.moviebase.tmdb.model.TmdbDiscover
-import app.moviebase.tmdb.model.TmdbDiscoverMovieSortBy
-import app.moviebase.tmdb.model.TmdbMoviePageResult
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
@@ -27,6 +26,7 @@ import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.MoviePortrait
 import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
+import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.components.toMoviePortraitModels
 import io.github.couchtracker.ui.screens.movie.navigateToMovie
 import io.github.couchtracker.utils.removeDuplicates
@@ -37,9 +37,7 @@ import kotlinx.coroutines.CoroutineScope
 val TMDB_LANGUAGE = TmdbLanguage.ENGLISH
 
 class MovieSectionViewModel : ViewModel() {
-    val tabStates: Map<MovieTab, MovieTabState> = MovieTab.entries.associateWith {
-        MovieTabState(viewModelScope, it)
-    }
+    val exploreState = ExploreTabState(viewModelScope)
 }
 
 @Composable
@@ -63,15 +61,22 @@ fun MoviesSection(
         },
         tabText = { page -> Text(text = MovieTab.entries[page].displayName.str()) },
         page = { page ->
-            val tab = MovieTab.entries[page]
-            MovieListComposable(viewModel.tabStates.getValue(tab))
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                when (MovieTab.entries[page]) {
+                    MovieTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
+                    MovieTab.EXPLORE -> MovieListComposable(viewModel.exploreState)
+                    MovieTab.WATCHLIST -> WipMessageComposable(gitHubIssueId = 130)
+                    MovieTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
+                    MovieTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+                }
+            }
         },
     )
 }
 
 @Composable
 private fun MovieListComposable(
-    tabState: MovieTabState,
+    tabState: ExploreTabState,
 ) {
     val lazyItems = tabState.movieFlow.collectAsLazyPagingItems()
     val navController = LocalNavController.current
@@ -85,61 +90,19 @@ private fun MovieListComposable(
 enum class MovieTab(
     @StringRes
     val displayName: Int,
-    val movieDownloader: suspend Tmdb3.(page: Int) -> TmdbMoviePageResult,
 ) {
-    TIMELINE(
-        displayName = R.string.tab_movies_timeline,
-        movieDownloader = { page -> movies.popular(page = page, TMDB_LANGUAGE.apiParameter) },
-    ),
-    EXPLORE(
-        displayName = R.string.tab_movies_explore,
-        movieDownloader = { page ->
-            trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
-        },
-    ),
-    FOLLOWED(
-        displayName = R.string.tab_movies_followed,
-        movieDownloader = { page ->
-            discover.discoverMovie(
-                page = page,
-                language = TMDB_LANGUAGE.apiParameter,
-                region = null,
-                TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.POPULARITY),
-            )
-        },
-    ),
-    UP_NEXT(
-        displayName = R.string.tab_movies_up_next,
-        movieDownloader = { page ->
-            discover.discoverMovie(
-                page = page,
-                language = TMDB_LANGUAGE.apiParameter,
-                region = null,
-                TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.VOTE_AVERAGE),
-            )
-        },
-    ),
-    CALENDAR(
-        displayName = R.string.tab_movies_calendar,
-        movieDownloader = { page ->
-            discover.discoverMovie(
-                page = page,
-                language = TMDB_LANGUAGE.apiParameter,
-                region = null,
-                TmdbDiscover.Movie(sortBy = TmdbDiscoverMovieSortBy.RELEASE_DATE),
-            )
-        },
-    ),
+    HISTORY(R.string.tab_movies_history),
+    EXPLORE(R.string.tab_movies_explore),
+    WATCHLIST(R.string.tab_movies_watchlist),
+    UP_NEXT(R.string.tab_movies_up_next),
+    CALENDAR(R.string.tab_movies_calendar),
 }
 
-class MovieTabState(
-    viewModelScope: CoroutineScope,
-    private val tab: MovieTab,
-) {
+class ExploreTabState(viewModelScope: CoroutineScope) {
 
     private val pager = tmdbPager(
         downloader = { page ->
-            tab.movieDownloader(this, page)
+            trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
         },
         mapper = { movie ->
             movie.toMoviePortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)

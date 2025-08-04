@@ -36,8 +36,13 @@
     <string name="main_section_shows">Serie</string>
     <string name="main_section_movies">Film</string>
 
-    <string name="tab_shows_timeline">Timeline</string>
-    <string name="tab_shows_followed">Seguite</string>
+    <string name="tab_home_history">Cronologia</string>
+    <string name="tab_home_up_next">Prossimi</string>
+    <string name="tab_home_explore">Esplora</string>
+    <string name="tab_home_calendar">Calendario</string>
+
+    <string name="tab_shows_history">Cronologia</string>
+    <string name="tab_shows_watchlist">Watchlist</string>
     <string name="tab_shows_up_next">Prossimi</string>
     <string name="tab_shows_calendar">Calendario</string>
     <string name="tab_shows_explore">Esplora</string>
@@ -46,8 +51,8 @@
     <string name="tab_show_seasons">Stagioni</string>
     <string name="tab_show_details">Dettagli</string>
 
-    <string name="tab_movies_timeline">Timeline</string>
-    <string name="tab_movies_followed">Seguiti</string>
+    <string name="tab_movies_history">Cronologia</string>
+    <string name="tab_movies_watchlist">Watchlist</string>
     <string name="tab_movies_up_next">Prossimi</string>
     <string name="tab_movies_calendar">Calendario</string>
     <string name="tab_movies_explore">Esplora</string>

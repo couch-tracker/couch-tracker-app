@@ -34,8 +34,13 @@
     <string name="main_section_shows">Shows</string>
     <string name="main_section_movies">Movies</string>
 
-    <string name="tab_shows_timeline">Timeline</string>
-    <string name="tab_shows_followed">Followed</string>
+    <string name="tab_home_history">History</string>
+    <string name="tab_home_up_next">Up next</string>
+    <string name="tab_home_explore">Explore</string>
+    <string name="tab_home_calendar">Calendar</string>
+
+    <string name="tab_shows_history">History</string>
+    <string name="tab_shows_watchlist">Watchlist</string>
     <string name="tab_shows_up_next">Up next</string>
     <string name="tab_shows_calendar">Calendar</string>
     <string name="tab_shows_explore">Explore</string>
@@ -44,8 +49,8 @@
     <string name="tab_show_seasons">Seasons</string>
     <string name="tab_show_details">Details</string>
 
-    <string name="tab_movies_timeline">Timeline</string>
-    <string name="tab_movies_followed">Followed</string>
+    <string name="tab_movies_history">History</string>
+    <string name="tab_movies_watchlist">Watchlist</string>
     <string name="tab_movies_up_next">Up next</string>
     <string name="tab_movies_calendar">Calendar</string>
     <string name="tab_movies_explore">Explore</string>

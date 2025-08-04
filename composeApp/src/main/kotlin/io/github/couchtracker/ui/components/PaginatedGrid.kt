@@ -111,7 +111,7 @@ private fun <T : Any> LoadedPaginatedGrid(
             if (isErrorView(item, bottomState)) {
                 val wrappedError = bottomState.error.wrap()
                 ErrorMessageComposable(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     errorMessage = wrappedError.first,
                     errorDetails = wrappedError.second,
                     retry = { paginatedItems.retry() },
