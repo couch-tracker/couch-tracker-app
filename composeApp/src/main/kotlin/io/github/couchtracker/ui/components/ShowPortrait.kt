@@ -9,81 +9,81 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.AsyncImage
 import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbMovie
-import io.github.couchtracker.tmdb.toInternalTmdbMovie
+import io.github.couchtracker.tmdb.TmdbShow
+import io.github.couchtracker.tmdb.toInternalTmdbShow
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
-import app.moviebase.tmdb.model.TmdbMovie as TmdbApiTmdbMovie
+import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
 
 @Composable
-fun MoviePortrait(
+fun ShowPortrait(
     modifier: Modifier,
-    /** A nullable movie will render a placeholder */
-    movie: MoviePortraitModel?,
-    onClick: (MoviePortraitModel) -> Unit,
+    /** A nullable show will render a placeholder */
+    show: ShowPortraitModel?,
+    onClick: (ShowPortraitModel) -> Unit,
 ) {
     PortraitComposable(
         modifier,
         image = { w, h ->
-            if (movie != null) {
+            if (show != null) {
                 AsyncImage(
-                    model = movie.posterModel?.getCoilModel(w, h),
+                    model = show.posterModel?.getCoilModel(w, h),
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            onClick(movie)
+                            onClick(show)
                         },
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    fallback = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = false),
-                    error = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = true),
+                    fallback = rememberPlaceholderPainter(PlaceholdersDefaults.SHOW.icon, isError = false),
+                    error = rememberPlaceholderPainter(PlaceholdersDefaults.SHOW.icon, isError = true),
                 )
             }
         },
         label = {
             val label = when {
-                movie == null -> ""
-                movie.year != null -> "${movie.title} (${movie.year})" // TODO translate
-                else -> movie.title
+                show == null -> ""
+                show.year != null -> "${show.name} (${show.year})" // TODO translate
+                else -> show.name
             }
             Text(
                 label,
                 textAlign = TextAlign.Center,
-                minLines = if (movie == null) 2 else 1,
+                minLines = if (show == null) 2 else 1,
             )
         },
     )
 }
 
-data class MoviePortraitModel(
-    val movie: TmdbMovie,
-    val title: String,
+data class ShowPortraitModel(
+    val show: TmdbShow,
+    val name: String,
     val year: Int?,
     val posterModel: ImageModel?,
 ) {
     companion object {
 
-        suspend fun fromApiTmdbMovie(
-            movie: TmdbMovie,
-            details: TmdbApiTmdbMovie,
+        suspend fun fromApiTmdbShow(
+            show: TmdbShow,
+            details: TmdbApiTmdbShow,
             imagePreloadOptions: ImagePreloadOptions,
-        ): MoviePortraitModel {
-            return MoviePortraitModel(
-                movie = movie,
-                title = details.title,
-                year = details.releaseDate?.year,
+        ): ShowPortraitModel {
+            return ShowPortraitModel(
+                show = show,
+                name = details.name,
+                year = details.firstAirDate?.year,
                 posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
             )
         }
     }
 }
 
-suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(
+suspend fun TmdbApiTmdbShow.toShowPortraitModels(
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions,
-): MoviePortraitModel {
-    return MoviePortraitModel.fromApiTmdbMovie(toInternalTmdbMovie(language), this, imagePreloadOptions)
+): ShowPortraitModel {
+    return ShowPortraitModel.fromApiTmdbShow(toInternalTmdbShow(language), this, imagePreloadOptions)
 }
