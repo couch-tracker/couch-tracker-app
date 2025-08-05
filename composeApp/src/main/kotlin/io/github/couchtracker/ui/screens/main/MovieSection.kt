@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,7 +50,7 @@ fun MoviesSection(
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
-        backgroundImage = painterResource(R.drawable.aurora_borealis),
+        imageModel = R.drawable.aurora_borealis,
         actions = {
             MainSectionDefaults.SearchButton(
                 onOpenSearch = {

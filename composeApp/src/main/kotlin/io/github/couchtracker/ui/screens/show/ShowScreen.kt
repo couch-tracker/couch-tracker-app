@@ -11,6 +11,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -41,6 +43,7 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
@@ -92,7 +95,9 @@ private fun Content(show: TmdbShow) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
         suspend fun CoroutineScope.load() {
-            screenModel = Loadable.Loading
+            if (screenModel is Result.Error) {
+                screenModel = Loadable.Loading
+            }
             screenModel = loadShow(
                 ctx,
                 tmdbCache,
@@ -120,6 +125,14 @@ private fun Content(show: TmdbShow) {
             },
         ) { model ->
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+            val snackbarHostState = remember { SnackbarHostState() }
+            OverviewScreenComponents.ShowSnackbarOnErrorEffect(
+                snackbarHostState = snackbarHostState,
+                state = model.allDeferred,
+                onRetry = {
+                    coroutineScope.launch { load() }
+                },
+            )
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -146,6 +159,7 @@ private fun Content(show: TmdbShow) {
                             },
                         )
                     },
+                    snackbarHost = { SnackbarHost(snackbarHostState) },
                     content = { innerPadding ->
                         ShowScreenContent(
                             innerPadding = innerPadding,

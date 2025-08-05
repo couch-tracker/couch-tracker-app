@@ -17,9 +17,24 @@ sealed interface ImageModel {
     val aspectRatio: Float?
     fun getCoilModel(width: Int, height: Int): Any?
 
-    data class Url(override val aspectRatio: Float?, val urlProvider: (width: Int, height: Int) -> String) : ImageModel {
+    data class TmdbImage(override val aspectRatio: Float?, val tmdbImage: app.moviebase.tmdb.image.TmdbImage) : ImageModel {
         override fun getCoilModel(width: Int, height: Int): Any? {
-            return urlProvider(width, height)
+            return TmdbImageUrlBuilder.build(tmdbImage, width, height)
+        }
+    }
+
+    data class TmdbFileImage(
+        override val aspectRatio: Float?,
+        val tmdbImage: app.moviebase.tmdb.model.TmdbFileImage,
+        val type: TmdbImageType,
+    ) : ImageModel {
+        override fun getCoilModel(width: Int, height: Int): Any? {
+            return TmdbImageUrlBuilder.build(
+                imagePath = tmdbImage.filePath,
+                type = type,
+                width = width,
+                height = height,
+            )
         }
     }
 
@@ -31,19 +46,18 @@ sealed interface ImageModel {
 }
 
 suspend fun prepareImage(
-    aspectRatio: Float?,
+    baseModel: ImageModel,
     options: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
-    urlProvider: (width: Int, height: Int) -> String,
 ): ImageModel {
     return when (options) {
-        ImagePreloadOptions.DoNotPreload -> ImageModel.Url(aspectRatio, urlProvider)
+        ImagePreloadOptions.DoNotPreload -> baseModel
         is ImagePreloadOptions.Preload -> {
             val request = ImageRequest.Builder(options.context)
-                .data(urlProvider(options.width, options.height))
+                .data(baseModel.getCoilModel(options.width, options.height))
                 .size(options.width, options.height)
                 .build()
             val result = SingletonImageLoader.get(options.context).execute(request)
-            val aspectRatio = result.image?.let { it.width.toFloat() / it.height } ?: aspectRatio
+            val aspectRatio = result.image?.let { it.width.toFloat() / it.height } ?: baseModel.aspectRatio
             ImageModel.Preloaded(aspectRatio, request)
         }
     }
@@ -52,21 +66,18 @@ suspend fun prepareImage(
 suspend fun TmdbImage.toImageModel(
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): ImageModel {
-    return prepareImage(null, imagePreloadOptions) { w, h ->
-        TmdbImageUrlBuilder.build(this, w, h)
-    }
+    return prepareImage(
+        baseModel = ImageModel.TmdbImage(null, this),
+        options = imagePreloadOptions,
+    )
 }
 
 suspend fun TmdbFileImage.toImageModel(
     type: TmdbImageType,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): ImageModel {
-    return prepareImage(aspectRation, imagePreloadOptions) { w, h ->
-        TmdbImageUrlBuilder.build(
-            imagePath = filePath,
-            type = type,
-            width = w,
-            height = h,
-        )
-    }
+    return prepareImage(
+        baseModel = ImageModel.TmdbFileImage(null, this, type),
+        options = imagePreloadOptions,
+    )
 }

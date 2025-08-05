@@ -3,7 +3,6 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,9 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.utils.str
@@ -43,7 +42,7 @@ import kotlinx.coroutines.launch
 fun MainSection(
     innerPadding: PaddingValues,
     pagerState: PagerState,
-    backgroundImage: Painter,
+    imageModel: Any?,
     actions: @Composable RowScope.() -> Unit = {},
     tabText: @Composable (page: Int) -> Unit,
     page: @Composable (page: Int) -> Unit,
@@ -61,9 +60,9 @@ fun MainSection(
             BackgroundTopAppBar(
                 scrollBehavior = scrollBehavior,
                 image = { modifier ->
-                    Image(
+                    AsyncImage(
                         modifier = modifier,
-                        painter = backgroundImage,
+                        model = imageModel,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                     )

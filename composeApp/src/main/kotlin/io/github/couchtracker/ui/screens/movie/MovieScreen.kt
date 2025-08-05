@@ -25,6 +25,7 @@ import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -105,7 +106,9 @@ private fun Content(movie: TmdbMovie) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
         suspend fun CoroutineScope.load() {
-            screenModel = Loadable.Loading
+            if (screenModel is Result.Error) {
+                screenModel = Loadable.Loading
+            }
             screenModel = loadMovie(
                 ctx,
                 tmdbCache,
@@ -132,7 +135,13 @@ private fun Content(movie: TmdbMovie) {
                 }
             },
         ) { model ->
-            MovieScreenContent(model = model, totalHeight = constraints.maxHeight)
+            MovieScreenContent(
+                model = model,
+                totalHeight = constraints.maxHeight,
+                reloadMovie = {
+                    coroutineScope.launch { load() }
+                },
+            )
         }
     }
 }
@@ -142,10 +151,18 @@ private fun Content(movie: TmdbMovie) {
 private fun MovieScreenContent(
     model: MovieScreenModel,
     totalHeight: Int,
+    reloadMovie: () -> Unit,
 ) {
     val toolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(FloatingToolbarExitDirection.Bottom)
     val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    OverviewScreenComponents.ShowSnackbarOnErrorEffect(
+        snackbarHostState = snackbarHostState,
+        state = model.allDeferred,
+        onRetry = { reloadMovie() },
+    )
 
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
@@ -165,6 +182,7 @@ private fun MovieScreenContent(
                 },
             )
         },
+        snackbarHostState = snackbarHostState,
         content = { innerPadding ->
             OverviewScreenComponents.MoviePage(
                 modifier = Modifier.floatingToolbarVerticalNestedScroll(
