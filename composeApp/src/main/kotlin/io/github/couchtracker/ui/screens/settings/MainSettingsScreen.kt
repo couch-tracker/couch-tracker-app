@@ -11,6 +11,7 @@ import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.preference
+import me.zhanghai.compose.preference.preferenceCategory
 
 @Serializable
 data object MainSettingsScreen : Screen() {
@@ -21,7 +22,11 @@ data object MainSettingsScreen : Screen() {
 @Composable
 private fun Content() {
     val navController = LocalNavController.current
-    BaseSettings(R.string.settings.str()) {
+    BaseSettings(R.string.settings.str(), header = null, footer = null) {
+        preferenceCategory(
+            key = "app-category",
+            title = { Text(R.string.app_settings.str()) },
+        )
         preference(
             key = "profiles",
             title = { Text(R.string.profiles.str()) },

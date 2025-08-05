@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.outlined.FileOpen
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,8 +26,8 @@ import io.github.couchtracker.ui.components.supportingText
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toJavaUri
 import kotlinx.serialization.Serializable
-import me.zhanghai.compose.preference.FooterPreference
 import me.zhanghai.compose.preference.Preference
+import me.zhanghai.compose.preference.PreferenceCategory
 import org.koin.compose.koinInject
 
 @Serializable
@@ -60,7 +59,17 @@ private fun Content() {
         }
     }
 
-    BaseSettings(R.string.profiles.str()) {
+    BaseSettings(
+        title = R.string.profiles.str(),
+        header = R.string.profiles_settings_header.str(),
+        footer = R.string.profiles_settings_footer.str(),
+    ) {
+        item("profile-list") {
+            PreferenceCategory(
+                modifier = Modifier.animateItem(),
+                title = { Text(R.string.profile_list.str()) },
+            )
+        }
         items(profilesInfo.profiles.values.toList(), key = { it.profile.id }) { profileInfo ->
             Preference(
                 modifier = Modifier.animateItem(),
@@ -70,7 +79,12 @@ private fun Content() {
             )
         }
 
-        item("divider") { HorizontalDivider(modifier = Modifier.animateItem()) }
+        item("profile-add") {
+            PreferenceCategory(
+                modifier = Modifier.animateItem(),
+                title = { Text(R.string.add_profile.str()) },
+            )
+        }
         item("create") { CreateProfilePreference(modifier = Modifier.animateItem()) }
 
         item("open") {
@@ -82,13 +96,6 @@ private fun Content() {
                 onClick = {
                     openDbWorkflow.launch(arrayOf("*/*"))
                 },
-            )
-        }
-
-        item("footer") {
-            FooterPreference(
-                modifier = Modifier.animateItem(),
-                summary = { Text(R.string.profiles_footer.str()) },
             )
         }
     }

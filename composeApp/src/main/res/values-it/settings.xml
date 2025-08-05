@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings">Impostazioni</string>
+    <string name="app_settings">Impostazioni app</string>
 
     <string name="profiles">Profili</string>
+    <string name="profile_list">Lista profili</string>
     <string name="profiles_settings">Impostazioni profili</string>
+    <string name="profiles_settings_header">
+        Un profilo è un file che memorizza tutte le tue informazioni, come cronologia visioni, liste, ecc.
+        \nPuoi avere più profili.
+    </string>
+    <string name="profiles_settings_footer">Ogni profilo può essere archiviato nella memoria interna dell\'app o esternamente, ad esempio in un file locale o nel cloud</string>
+    <string name="add_profile">Aggiungi profilo</string>
     <string name="create_profile">Crea profilo</string>
     <string name="create_profile_summary">Crea un nuovo profilo</string>
     <string name="profile_name_placeholder">Nome profilo</string>

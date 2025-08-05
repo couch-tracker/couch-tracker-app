@@ -80,7 +80,11 @@ data class ProfileSettingsScreen(val id: Long) : Screen() {
 
 @Composable
 private fun Content(profileInfo: ProfileInfo) {
-    BaseSettings(R.string.profile.str()) {
+    BaseSettings(
+        title = R.string.profile.str(),
+        header = R.string.profiles_settings_header.str(),
+        footer = R.string.profiles_settings_footer.str(),
+    ) {
         item("name") { ProfileNamePreference(profileInfo) }
         item("location") { ProfileLocationPreference(profileInfo) }
         item("file-name") { ProfileFileName(profileInfo) }
