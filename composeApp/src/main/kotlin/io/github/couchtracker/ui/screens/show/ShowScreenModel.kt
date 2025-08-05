@@ -46,6 +46,8 @@ data class ShowScreenModel(
     val backdrop: ImageRequest?,
     val colorScheme: ColorScheme,
 ) {
+    val allDeferred: Set<DeferredApiResult<*>> = setOf(credits, images)
+
     data class Credits(
         val cast: List<CastPortraitModel>,
         val crew: List<CrewCompactListItemModel>,

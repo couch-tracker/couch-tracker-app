@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
@@ -37,7 +36,7 @@ fun HomeSection(innerPadding: PaddingValues) {
     MainSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
-        backgroundImage = painterResource(R.drawable.sunset),
+        imageModel = R.drawable.sunset,
         actions = {
             MainSectionDefaults.SearchButton(
                 onOpenSearch = {

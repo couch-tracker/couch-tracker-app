@@ -51,6 +51,8 @@ data class MovieScreenModel(
     val backdrop: ImageRequest?,
     val colorScheme: ColorScheme,
 ) {
+    val allDeferred: Set<DeferredApiResult<*>> = setOf(credits, images)
+
     data class Credits(
         val director: List<TmdbCrew>,
         val cast: List<CastPortraitModel>,

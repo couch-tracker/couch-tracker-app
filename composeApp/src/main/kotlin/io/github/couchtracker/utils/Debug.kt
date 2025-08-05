@@ -6,9 +6,9 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val INJECT_ERRORS = false
 
-private const val MAX_DELAY_MS = 10_000
-private const val ERROR_PROBABILITY = 0.2f
-private const val CACHE_MISS_CHANCE = 0.5f
+private const val MAX_DELAY_MS = 3_000
+private const val ERROR_PROBABILITY = 0.25f
+private const val CACHE_MISS_CHANCE = 0.25f
 
 /**
  * @throws ApiException

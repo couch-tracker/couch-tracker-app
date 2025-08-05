@@ -31,6 +31,7 @@
     </string>
     <string name="db_io_error">Si è verificato un problema di I/O.</string>
     <string name="error_opening_profile">Errore nell\'apertura del profilo</string>
+    <string name="error_loading_data">Errore nel caricare i dati</string>
 
     <string name="item_tile_with_year">%1$s (%2$d)</string>
 

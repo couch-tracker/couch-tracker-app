@@ -34,6 +34,9 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
@@ -41,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,10 +63,13 @@ import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.SizeAwareLazyListScope
 import io.github.couchtracker.ui.countingElements
 import io.github.couchtracker.utils.ApiLoadable
+import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.Text
+import io.github.couchtracker.utils.emitAsFlow
 import io.github.couchtracker.utils.str
+import kotlinx.coroutines.flow.any
 import kotlin.math.roundToInt
 
 @Suppress("TooManyFunctions")
@@ -167,6 +174,32 @@ object OverviewScreenComponents {
     }
 
     @Composable
+    fun ShowSnackbarOnErrorEffect(
+        snackbarHostState: SnackbarHostState,
+        state: Set<DeferredApiResult<*>>,
+        onRetry: () -> Unit,
+        retryMessage: String = R.string.error_loading_data.str(),
+        retryAction: String = R.string.retry_action.str(),
+    ) {
+        LaunchedEffect(snackbarHostState, state, onRetry, retryMessage, retryAction) {
+            if (state.emitAsFlow().any { it is Result.Error }) {
+                val result = snackbarHostState.showSnackbar(
+                    retryMessage,
+                    actionLabel = retryAction,
+                    duration = SnackbarDuration.Indefinite,
+                    withDismissAction = true,
+                )
+                when (result) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> {
+                        onRetry()
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
     fun Paragraph(
         text: String?,
         modifier: Modifier = Modifier,
@@ -215,8 +248,8 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.bottomSpace() = item(key = "bottom-spacer", contentType = "spacer") {
-        // Same as the top space for symmetry
-        Spacer(Modifier.height(24.dp))
+        // Plus the lazy list spacing is 96
+        Spacer(Modifier.height(92.dp))
     }
 
     fun LazyListScope.section(sectionKey: String, title: String?, content: SizeAwareLazyListScope.() -> Unit) {

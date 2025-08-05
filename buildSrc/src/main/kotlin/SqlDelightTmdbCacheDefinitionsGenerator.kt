@@ -130,6 +130,7 @@ open class SqlDelightTmdbCacheDefinitionsGenerator : DefaultTask() {
     init {
         group = "io.github.couchtracker"
         description = "Generates the SqlDelight definitions for local the Tmdb Cache"
+        outputs.dir(sqldelightRoot)
     }
 
     @TaskAction

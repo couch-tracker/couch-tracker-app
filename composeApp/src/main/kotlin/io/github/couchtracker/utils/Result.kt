@@ -54,7 +54,7 @@ inline fun <T, E> Result<T, E>.onError(block: (Result.Error<E>) -> Unit) {
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun <T, E> Deferred<Result<T, E>>.awaitAsLoadable(): Loadable<T, E> {
-    var ret: Loadable<T, E> by remember {
+    var ret: Loadable<T, E> by remember(this) {
         val initialValue = try {
             this.getCompleted()
         } catch (_: IllegalStateException) {
