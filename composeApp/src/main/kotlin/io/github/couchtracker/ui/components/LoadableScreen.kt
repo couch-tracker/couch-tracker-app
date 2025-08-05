@@ -85,7 +85,7 @@ fun <T> LoadableScreen(
 ) {
     LoadableScreen(
         data = data,
-        onError = { error("Error state shouldn't be possible") },
+        onError = { x: Nothing -> x },
         onLoading = onLoading,
         content = content,
     )

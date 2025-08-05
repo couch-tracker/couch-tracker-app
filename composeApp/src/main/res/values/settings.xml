@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings">Settings</string>
+    <string name="app_settings">App settings</string>
 
     <string name="profiles">Profiles</string>
+    <string name="profile_list">Profile list</string>
     <string name="profiles_settings">Profiles settings</string>
+    <string name="profiles_settings_header">
+        A profile is a file that stores all your information, like viewing history, lists, etc.
+        \nYou can have multiple profiles.
+    </string>
+    <string name="profiles_settings_footer">Each profile can be stored either in the internal storage of the app or externally, for instance in a local file or in the cloud</string>
+    <string name="add_profile">Add profile</string>
     <string name="create_profile">Create profile</string>
     <string name="create_profile_summary">Create a new profile</string>
     <string name="profile_name_placeholder">Profile name</string>
