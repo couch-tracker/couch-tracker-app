@@ -34,7 +34,9 @@ import io.github.couchtracker.R
 import io.github.couchtracker.Settings
 import io.github.couchtracker.db.profile.toLossyBcp47Language
 import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbLanguages
 import io.github.couchtracker.tmdb.languageTree
+import io.github.couchtracker.tmdb.orDefault
 import io.github.couchtracker.tmdb.tmdbDownloadResult
 import io.github.couchtracker.tmdb.toTmdbLanguage
 import io.github.couchtracker.ui.Screen
@@ -63,13 +65,9 @@ import me.zhanghai.compose.preference.SwitchPreference
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import sh.calvin.reorderable.rememberReorderableLazyListState
-import kotlin.collections.orEmpty
-import kotlin.collections.plus
-import kotlin.collections.toMutableList
 
 private const val LOG_TAG = "TmdbLanguagesSettingsScreen"
 private val CAPITALIZATION = DisplayContext.CAPITALIZATION_FOR_UI_LIST_OR_MENU
-private const val MAX_LANGUAGES = 5
 
 @Serializable
 data object TmdbLanguagesSettingsScreen : Screen() {
@@ -120,14 +118,8 @@ private fun Content() {
 @Composable
 private fun LoadedContent(
     allTmdbLanguages: List<TmdbLanguage>,
-    settingsTmdbLanguages: List<TmdbLanguage>?,
+    settingsTmdbLanguages: TmdbLanguages?,
 ) {
-    val systemLanguages = LocalConfiguration.currentLocales.toList()
-        .mapNotNull { it.toTmdbLanguage() }
-        .ifEmpty { listOf(TmdbLanguage.FALLBACK) }
-        .distinct()
-        .take(MAX_LANGUAGES)
-
     var settingsTmdbLanguages by rememberWriteThroughAsyncMutableState(
         asyncValue = settingsTmdbLanguages,
         setValue = {
@@ -138,19 +130,15 @@ private fun LoadedContent(
             }
         },
     )
-    val actualLanguages = settingsTmdbLanguages ?: systemLanguages
+    val actualLanguages = settingsTmdbLanguages.orDefault()
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(
         lazyListState = lazyListState,
         onMove = { from, to ->
-            settingsTmdbLanguages?.let {
-                settingsTmdbLanguages = it.toMutableList().apply {
-                    add(
-                        index = to.index - NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST,
-                        element = removeAt(from.index - NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST),
-                    )
-                }
-            }
+            settingsTmdbLanguages = settingsTmdbLanguages?.withMovedItem(
+                fromIndex = from.index - NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST,
+                toIndex = to.index - NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST,
+            )
         },
     )
 
@@ -166,7 +154,7 @@ private fun LoadedContent(
                 modifier = Modifier.animateItem(),
                 value = !enableCustomLanguages,
                 onValueChange = {
-                    settingsTmdbLanguages = if (it) null else systemLanguages
+                    settingsTmdbLanguages = if (it) null else actualLanguages
                 },
                 title = { Text(R.string.use_system_languages.str()) },
             )
@@ -182,33 +170,24 @@ private fun LoadedContent(
             languages = actualLanguages,
             enabled = enableCustomLanguages,
             reorderableState = reorderableState,
-            onLanguageDeleted = { lang ->
-                settingsTmdbLanguages?.takeIf { it.size > 1 }?.let {
-                    settingsTmdbLanguages = it - lang
-                }
-            },
+            onLanguageDeleted = { settingsTmdbLanguages = settingsTmdbLanguages?.tryMinus(it) },
         )
         addLanguage(
-            allTmdbLanguages = allTmdbLanguages - settingsTmdbLanguages.orEmpty(),
+            languages = actualLanguages,
+            allTmdbLanguages = allTmdbLanguages,
             enabled = enableCustomLanguages,
-            suggestedLanguages = systemLanguages - settingsTmdbLanguages.orEmpty(),
-            reachedMax = settingsTmdbLanguages.orEmpty().size >= MAX_LANGUAGES,
-            onLanguageSelected = { lang ->
-                settingsTmdbLanguages?.let {
-                    settingsTmdbLanguages = (it + lang).distinct()
-                }
-            },
+            onLanguageSelected = { settingsTmdbLanguages = settingsTmdbLanguages?.tryPlus(it) },
         )
     }
 }
 
 private fun LazyListScope.languages(
-    languages: List<TmdbLanguage>,
+    languages: TmdbLanguages,
     enabled: Boolean,
     reorderableState: ReorderableLazyListState,
     onLanguageDeleted: (TmdbLanguage) -> Unit,
 ) {
-    items(languages, key = { it.toString() }) { language ->
+    items(languages.languages, key = { it.toString() }) { language ->
         val bcp47Language = language.toBcp47Language()
         val systemLanguage = LocalConfiguration.currentFirstLocale.toULocale().toLossyBcp47Language()
         ReorderableItem(
@@ -246,14 +225,19 @@ private fun LazyListScope.languages(
 }
 
 private fun LazyListScope.addLanguage(
+    languages: TmdbLanguages,
     allTmdbLanguages: List<TmdbLanguage>,
-    suggestedLanguages: List<TmdbLanguage>,
     enabled: Boolean,
-    reachedMax: Boolean,
     onLanguageSelected: (TmdbLanguage) -> Unit,
 ) {
     item("add-language") {
+        val systemLanguages = LocalConfiguration.currentLocales.toList()
+            .mapNotNull { it.toTmdbLanguage() }
+            .distinct()
+        val reachedMax = languages.isMaxLanguages()
+
         var pickerOpen by remember { mutableStateOf(false) }
+
         Preference(
             modifier = Modifier.animateItem(),
             enabled = enabled,
@@ -273,13 +257,13 @@ private fun LazyListScope.addLanguage(
 
         if (pickerOpen) {
             TmdbLanguagePickerDialog(
-                allTmdbLanguages = allTmdbLanguages,
+                allTmdbLanguages = allTmdbLanguages - languages.languages,
                 onLanguageSelected = {
                     if (it != null) {
                         onLanguageSelected(it)
                     }
                 },
-                suggestedLanguages = suggestedLanguages,
+                suggestedLanguages = systemLanguages - languages.languages,
                 onClose = { pickerOpen = false },
             )
         }
