@@ -34,8 +34,9 @@ import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 import io.github.couchtracker.db.profile.show.UnknownExternalShowId
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbLanguagesLoader
 import io.github.couchtracker.tmdb.TmdbShow
+import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -53,22 +54,21 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
 
 @Serializable
-data class ShowScreen(val showId: String, val language: String) : Screen() {
+data class ShowScreen(val showId: String) : Screen() {
     @Composable
     override fun content() {
-        val tmdbShow = when (val showId = ExternalShowId.parse(this@ShowScreen.showId)) {
-            is TmdbExternalShowId -> {
-                TmdbShow(showId.id, TmdbLanguage.parse(language))
+        when (val showId = ExternalShowId.parse(this@ShowScreen.showId)) {
+            is TmdbExternalShowId -> TmdbLanguagesLoader { languages ->
+                Content(TmdbShow(showId.id, languages))
             }
 
             is UnknownExternalShowId -> TODO()
         }
-        Content(tmdbShow)
     }
 }
 
-fun NavController.navigateToShow(show: TmdbShow) {
-    navigate(ShowScreen(show.id.toExternalId().serialize(), show.language.serialize()))
+fun NavController.navigateToShow(id: TmdbShowId) {
+    navigate(ShowScreen(id.toExternalId().serialize()))
 }
 
 private enum class ShowScreenTab {

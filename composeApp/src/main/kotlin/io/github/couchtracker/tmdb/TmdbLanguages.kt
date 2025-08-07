@@ -1,9 +1,22 @@
 package io.github.couchtracker.tmdb
 
+import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.core.os.LocaleListCompat
+import io.github.couchtracker.Settings
+import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
 import io.github.couchtracker.utils.currentLocales
 import io.github.couchtracker.utils.toList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import org.koin.core.context.GlobalContext
+import java.util.Locale
 import kotlin.collections.distinct
 import kotlin.collections.ifEmpty
 import kotlin.collections.take
@@ -54,9 +67,8 @@ value class TmdbLanguages(val languages: List<TmdbLanguage>) {
     }
 }
 
-@Composable
-private fun rememberSystemTmdbLanguages(): TmdbLanguages {
-    return LocalConfiguration.currentLocales.toList()
+private fun LocaleListCompat.toTmdbLanguages(): TmdbLanguages {
+    return toList()
         .mapNotNull { it.toTmdbLanguage() }
         .ifEmpty { listOf(TmdbLanguage.FALLBACK) }
         .distinct()
@@ -66,6 +78,26 @@ private fun rememberSystemTmdbLanguages(): TmdbLanguages {
 
 @Composable
 fun TmdbLanguages?.orDefault(): TmdbLanguages {
-    val systemTmdbLanguages = rememberSystemTmdbLanguages()
+    val systemTmdbLanguages = LocalConfiguration.currentLocales.toTmdbLanguages()
     return this ?: systemTmdbLanguages
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun Flow<TmdbLanguages?>.orDefault(): Flow<TmdbLanguages> {
+    return flatMapLatest { languages ->
+        if (languages != null) {
+            flowOf(languages)
+        } else {
+            GlobalContext.get().get<Flow<LocaleListCompat>>().map { it.toTmdbLanguages() }
+        }
+    }
+}
+
+@Composable
+fun TmdbLanguagesLoader(block: @Composable (TmdbLanguages) -> Unit) {
+    val settingLanguages by Settings.TmdbLanguages.collectAsLoadableWithLifecycle()
+
+    LoadableScreen(settingLanguages) {
+        block(it.orDefault())
+    }
 }

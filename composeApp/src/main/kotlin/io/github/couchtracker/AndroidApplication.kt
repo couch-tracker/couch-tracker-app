@@ -10,18 +10,26 @@ import coil3.size.Precision
 import io.github.couchtracker.db.app.AppDataModule
 import io.github.couchtracker.db.profile.ProfileDbModule
 import io.github.couchtracker.db.tmdbCache.TmdbCacheDbModule
+import io.github.couchtracker.utils.currentLocalesFlow
 import kotlinx.coroutines.MainScope
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.logger.AndroidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
+import org.koin.dsl.module
 
 private const val IMAGE_CACHE_PERCENT = 0.5
 
 class AndroidApplication : Application(), SingletonImageLoader.Factory {
 
+    val currentLocaleFlow = currentLocalesFlow()
+
     override fun onCreate() {
         super.onCreate()
+
+        val appModule = module {
+            single { currentLocaleFlow }
+        }
 
         startKoin {
             logger(AndroidLogger(Level.DEBUG))
@@ -29,6 +37,7 @@ class AndroidApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@AndroidApplication)
 
             modules(
+                appModule,
                 AppDataModule,
                 ProfileDbModule,
                 TmdbCacheDbModule,

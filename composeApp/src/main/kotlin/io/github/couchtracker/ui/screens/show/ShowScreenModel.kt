@@ -74,8 +74,8 @@ suspend fun CoroutineScope.loadShow(
             runApiCatching(LOG_TAG) {
                 val credits = show.aggregateCredits(tmdbCache)
                 ShowScreenModel.Credits(
-                    cast = credits.cast.toCastPortraitModel(show.language),
-                    crew = credits.crew.toCrewCompactListItemModel(show.language),
+                    cast = credits.cast.toCastPortraitModel(),
+                    crew = credits.crew.toCrewCompactListItemModel(),
                 )
             }
         }

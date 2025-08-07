@@ -4,6 +4,7 @@ import android.util.Log
 import app.cash.sqldelight.Query
 import app.moviebase.tmdb.Tmdb3
 import io.github.couchtracker.AndroidApplication
+import io.github.couchtracker.db.tmdbCache.TmdbLocalizedTimestampedEntry
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.ApiResult
@@ -13,6 +14,12 @@ import io.github.couchtracker.utils.runApiCatching
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -35,6 +42,44 @@ val TMDB_CACHE_EXPIRATION_FAST = 1.hours
 val TMDB_CACHE_EXPIRATION_DEFAULT = 1.days
 const val TMDB_CACHE_PREFETCH_THRESHOLD = 0.5
 
+@Suppress("LongParameterList")
+suspend fun <T : Any> tmdbGetOrDownload(
+    languages: TmdbLanguages,
+    tryNextLanguage: (T) -> Boolean,
+    entryTag: (TmdbLanguage) -> String,
+    get: (TmdbLanguage) -> Query<TmdbTimestampedEntry<T>>,
+    put: (TmdbLocalizedTimestampedEntry<T>) -> Unit,
+    downloader: suspend Tmdb3.(TmdbLanguage) -> T,
+    expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
+    prefetch: Duration = expiration * TMDB_CACHE_PREFETCH_THRESHOLD,
+    coroutineContext: CoroutineContext = Dispatchers.IO,
+): T {
+    lateinit var first: T
+
+    return languages.languages
+        .asFlow()
+        .map { language ->
+            tmdbGetOrDownload(
+                entryTag = "$entryTag-$language",
+                get = { get(language) },
+                put = { put(it.localized(language)) },
+                downloader = { downloader(language) },
+                expiration = expiration,
+                prefetch = prefetch,
+                coroutineContext = coroutineContext,
+            )
+        }
+        .withIndex()
+        .onEach { (i, item) ->
+            if (i == 0) {
+                first = item
+            }
+        }
+        .map { it.value }
+        .firstOrNull { !tryNextLanguage(it) }
+        ?: first
+}
+
 /**
  * Utility function to handle cached downloads towards TMDB.
  *
@@ -44,7 +89,7 @@ suspend fun <T : Any> tmdbGetOrDownload(
     entryTag: String,
     get: () -> Query<TmdbTimestampedEntry<T>>,
     put: (TmdbTimestampedEntry<T>) -> Unit,
-    downloader: suspend (Tmdb3) -> T,
+    downloader: suspend Tmdb3.() -> T,
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     prefetch: Duration = expiration * TMDB_CACHE_PREFETCH_THRESHOLD,
     coroutineContext: CoroutineContext = Dispatchers.IO,

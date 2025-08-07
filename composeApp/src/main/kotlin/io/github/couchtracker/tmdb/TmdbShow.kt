@@ -15,26 +15,23 @@ import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
  */
 data class TmdbShow(
     val id: TmdbShowId,
-    val language: TmdbLanguage,
+    val languages: TmdbLanguages,
 ) {
     suspend fun details(cache: TmdbCache): TmdbShowDetail = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-details",
-        get = { cache.showDetailsCacheQueries.get(id, language, ::TmdbTimestampedEntry) },
-        put = { cache.showDetailsCacheQueries.put(tmdbId = id, language = language, details = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.show.getDetails(
-                showId = id.value,
-                language = language.apiParameter,
-            )
-        },
+        languages = languages,
+        tryNextLanguage = { it.overview.isBlank() && it.tagline.isBlank() },
+        entryTag = { lang -> "${id.toExternalId().serialize()}-$lang-details" },
+        get = { lang -> cache.showDetailsCacheQueries.get(tmdbId = id, language = lang, mapper = ::TmdbTimestampedEntry) },
+        put = { cache.showDetailsCacheQueries.put(tmdbId = id, language = it.language, details = it.value, lastUpdate = it.lastUpdate) },
+        downloader = { lang -> show.getDetails(showId = id.value, language = lang.apiParameter) },
     )
 
     suspend fun images(cache: TmdbCache): TmdbImages = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-images",
+        entryTag = "${id.toExternalId().serialize()}-images",
         get = { cache.showImagesCacheQueries.get(id, ::TmdbTimestampedEntry) },
         put = { cache.showImagesCacheQueries.put(tmdbId = id, images = it.value, lastUpdate = it.lastUpdate) },
         downloader = {
-            it.show.getDetails(
+            show.getDetails(
                 showId = id.value,
                 language = null,
                 appendResponses = listOf(AppendResponse.IMAGES),
@@ -43,11 +40,11 @@ data class TmdbShow(
     )
 
     suspend fun aggregateCredits(cache: TmdbCache): TmdbAggregateCredits = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-credits",
+        entryTag = "${id.toExternalId().serialize()}-credits",
         get = { cache.showAggregateCreditsCacheQueries.get(id, ::TmdbTimestampedEntry) },
         put = { cache.showAggregateCreditsCacheQueries.put(tmdbId = id, credits = it.value, lastUpdate = it.lastUpdate) },
         downloader = {
-            it.show.getDetails(
+            show.getDetails(
                 showId = id.value,
                 language = null,
                 appendResponses = listOf(AppendResponse.AGGREGATE_CREDITS),
@@ -56,4 +53,4 @@ data class TmdbShow(
     )
 }
 
-fun ApiTmdbShow.toInternalTmdbShow(language: TmdbLanguage) = TmdbShow(TmdbShowId(id), language)
+val ApiTmdbShow.tmdbShowId get() = TmdbShowId(id)

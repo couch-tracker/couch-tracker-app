@@ -22,6 +22,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbLanguages
+import io.github.couchtracker.tmdb.TmdbLanguagesLoader
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.PaginatedGrid
@@ -34,42 +37,51 @@ import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 
-class ShowSectionViewModel : ViewModel() {
-    val exploreState = ShowExploreTabState(viewModelScope)
+class ShowSectionViewModel(tmdbLanguages: TmdbLanguages) : ViewModel() {
+    val exploreState = ShowExploreTabState(viewModelScope, tmdbLanguages.languages.first())
 }
 
 @Composable
-fun ShowSection(
+fun ShowSection(innerPadding: PaddingValues) {
+    TmdbLanguagesLoader { tmdbLanguages ->
+        ShowSection(innerPadding, viewModel { ShowSectionViewModel(tmdbLanguages) })
+    }
+}
+
+@Composable
+private fun ShowSection(
     innerPadding: PaddingValues,
-    viewModel: ShowSectionViewModel = viewModel(),
+    viewModel: ShowSectionViewModel,
 ) {
     val navController = LocalNavController.current
     val pagerState = rememberPagerState(initialPage = ShowTab.UP_NEXT.ordinal) { ShowTab.entries.size }
 
-    MainSection(
-        innerPadding = innerPadding,
-        pagerState = pagerState,
-        imageModel = R.drawable.sunset,
-        actions = {
-            MainSectionDefaults.SearchButton(
-                onOpenSearch = {
-                    navController.navigate(SearchScreen(filter = SearchableMediaType.SHOW))
-                },
-            )
-        },
-        tabText = { page -> Text(text = ShowTab.entries[page].displayName.str()) },
-        page = { page ->
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                when (ShowTab.entries[page]) {
-                    ShowTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
-                    ShowTab.WATCHLIST -> WipMessageComposable(gitHubIssueId = 130)
-                    ShowTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
-                    ShowTab.EXPLORE -> ShowListComposable(viewModel.exploreState)
-                    ShowTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+    TmdbLanguagesLoader { tmdbLanguages ->
+        MainSection(
+            innerPadding = innerPadding,
+            pagerState = pagerState,
+            imageModel = R.drawable.sunset,
+            actions = {
+                MainSectionDefaults.SearchButton(
+                    onOpenSearch = {
+                        navController.navigate(SearchScreen(filter = SearchableMediaType.SHOW))
+                    },
+                )
+            },
+            tabText = { page -> Text(text = ShowTab.entries[page].displayName.str()) },
+            page = { page ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    when (ShowTab.entries[page]) {
+                        ShowTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
+                        ShowTab.WATCHLIST -> WipMessageComposable(gitHubIssueId = 130)
+                        ShowTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
+                        ShowTab.EXPLORE -> ShowListComposable(viewModel.exploreState)
+                        ShowTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+                    }
                 }
-            }
-        },
-    )
+            },
+        )
+    }
 }
 
 @Composable
@@ -80,7 +92,7 @@ private fun ShowListComposable(
     val navController = LocalNavController.current
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { show ->
         ShowPortrait(Modifier.fillMaxWidth(), show) {
-            navController.navigateToShow(it.show)
+            navController.navigateToShow(it.id)
         }
     }
 }
@@ -96,15 +108,18 @@ private enum class ShowTab(
     EXPLORE(R.string.tab_shows_explore),
 }
 
-class ShowExploreTabState(viewModelScope: CoroutineScope) {
+class ShowExploreTabState(
+    viewModelScope: CoroutineScope,
+    private val tmdbLanguage: TmdbLanguage,
+) {
 
     private val pager = tmdbPager(
         downloader = { page ->
-            trending.getTrendingShows(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
+            trending.getTrendingShows(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
         },
         mapper = { show ->
-            show.toShowPortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
+            show.toShowPortraitModels(ImagePreloadOptions.DoNotPreload)
         },
     )
-    val showFlow = pager.flow.removeDuplicates { it.show.id.value }.cachedIn(viewModelScope)
+    val showFlow = pager.flow.removeDuplicates { it.id.value }.cachedIn(viewModelScope)
 }

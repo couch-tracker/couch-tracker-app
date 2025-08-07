@@ -81,8 +81,8 @@ suspend fun CoroutineScope.loadMovie(
                 val credits = movie.credits(tmdbCache)
                 MovieScreenModel.Credits(
                     director = credits.crew.directors(),
-                    cast = credits.cast.toCastPortraitModel(movie.language),
-                    crew = credits.crew.toCrewCompactListItemModel(movie.language),
+                    cast = credits.cast.toCastPortraitModel(),
+                    crew = credits.crew.toCrewCompactListItemModel(),
                 )
             }
         }

@@ -17,67 +17,69 @@ import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
  */
 data class TmdbMovie(
     val id: TmdbMovieId,
-    val language: TmdbLanguage,
+    val languages: TmdbLanguages,
 ) {
     suspend fun details(cache: TmdbCache): TmdbMovieDetail = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-details",
-        get = { cache.movieDetailsCacheQueries.get(id, language, ::TmdbTimestampedEntry) },
-        put = { cache.movieDetailsCacheQueries.put(tmdbId = id, language = language, details = it.value, lastUpdate = it.lastUpdate) },
-        downloader = { it.movies.getDetails(id.value, language.apiParameter) },
+        languages = languages,
+        tryNextLanguage = { it.overview.isBlank() && it.tagline.isBlank() },
+        entryTag = { lang -> "${id.toExternalId().serialize()}-$lang-details" },
+        get = { lang -> cache.movieDetailsCacheQueries.get(tmdbId = id, language = lang, mapper = ::TmdbTimestampedEntry) },
+        put = { cache.movieDetailsCacheQueries.put(tmdbId = id, language = it.language, details = it.value, lastUpdate = it.lastUpdate) },
+        downloader = { lang -> movies.getDetails(movieId = id.value, language = lang.apiParameter) },
     )
 
     suspend fun credits(cache: TmdbCache): TmdbCredits = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-credits",
+        entryTag = "${id.toExternalId().serialize()}-credits",
         get = { cache.movieCreditsCacheQueries.get(id, ::TmdbTimestampedEntry) },
         put = { cache.movieCreditsCacheQueries.put(tmdbId = id, credits = it.value, lastUpdate = it.lastUpdate) },
         downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.CREDITS),
+            movies.getDetails(
+                movieId = id.value,
+                language = null,
+                appendResponses = listOf(AppendResponse.CREDITS),
             ).credits ?: error("credits cannot be null")
         },
     )
 
     suspend fun images(cache: TmdbCache): TmdbImages = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-images",
+        entryTag = "${id.toExternalId().serialize()}-images",
         get = { cache.movieImagesCacheQueries.get(id, ::TmdbTimestampedEntry) },
         put = { cache.movieImagesCacheQueries.put(tmdbId = id, images = it.value, lastUpdate = it.lastUpdate) },
         downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.IMAGES),
+            movies.getDetails(
+                movieId = id.value,
+                language = null,
+                appendResponses = listOf(AppendResponse.IMAGES),
             ).images ?: error("images cannot be null")
         },
     )
 
     suspend fun videos(cache: TmdbCache): List<TmdbVideo> = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-videos",
+        entryTag = "${id.toExternalId().serialize()}-videos",
         get = { cache.movieVideosCacheQueries.get(id, ::TmdbTimestampedEntry) },
         put = { cache.movieVideosCacheQueries.put(tmdbId = id, videos = it.value, lastUpdate = it.lastUpdate) },
         downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.VIDEOS),
+            movies.getDetails(
+                movieId = id.value,
+                language = null,
+                appendResponses = listOf(AppendResponse.VIDEOS),
             ).videos?.results ?: error("videos cannot be null")
         },
     )
 
     suspend fun releaseDates(cache: TmdbCache): List<TmdbReleaseDates> = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-release_dates",
+        entryTag = "${id.toExternalId().serialize()}-release_dates",
         get = { cache.movieReleaseDatesCacheQueries.get(id, ::TmdbTimestampedEntry) },
         put = { cache.movieReleaseDatesCacheQueries.put(tmdbId = id, releaseDates = it.value, lastUpdate = it.lastUpdate) },
         downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.RELEASES_DATES),
+            movies.getDetails(
+                movieId = id.value,
+                language = null,
+                appendResponses = listOf(AppendResponse.RELEASES_DATES),
             ).releaseDates?.results.orEmpty()
         },
         expiration = TMDB_CACHE_EXPIRATION_FAST,
     )
 }
 
-fun ApiTmdbMovie.toInternalTmdbMovie(language: TmdbLanguage) = TmdbMovie(TmdbMovieId(id), language)
+val ApiTmdbMovie.tmdbMovieId get() = TmdbMovieId(id)

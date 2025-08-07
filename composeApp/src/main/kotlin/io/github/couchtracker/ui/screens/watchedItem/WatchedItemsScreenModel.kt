@@ -70,7 +70,7 @@ data class WatchedItemsScreenModel(
                     }
                 }
             } catch (e: ApiException) {
-                Log.e(LOG_TAG, "Error while loading WatchedItemsScreenModel for TMDB movie ${movie.id} (${movie.language})", e)
+                Log.e(LOG_TAG, "Error while loading WatchedItemsScreenModel for TMDB movie ${movie.id} (${movie.languages})", e)
                 Result.Error(e)
             }
         }
