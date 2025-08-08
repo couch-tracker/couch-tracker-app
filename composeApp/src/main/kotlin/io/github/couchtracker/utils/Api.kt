@@ -32,7 +32,7 @@ sealed class ApiException(message: String?, cause: Throwable?) : Exception(messa
         override val title = Text.Resource(R.string.api_exception_io_error)
     }
 
-    class DeserializationError(message: String?, override val cause: SerializationException) : ApiException(message, cause) {
+    class DeserializationError(message: String?, override val cause: SerializationException?) : ApiException(message, cause) {
         override val title = Text.Resource(R.string.api_exception_deserialization_error)
     }
 

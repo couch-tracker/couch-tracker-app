@@ -8,7 +8,12 @@ import app.moviebase.tmdb.model.TmdbReleaseDates
 import app.moviebase.tmdb.model.TmdbVideo
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
+import io.github.couchtracker.utils.ApiException
+import kotlinx.coroutines.CompletableDeferred
 import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
+
+private typealias MovieDetailsRequestInput = List<AppendResponse>
+private typealias MovieDetailsRequestOutput = TmdbMovieDetail
 
 /**
  * Class that represents a TMDB movie.
@@ -19,65 +24,137 @@ data class TmdbMovie(
     val id: TmdbMovieId,
     val language: TmdbLanguage,
 ) {
-    suspend fun details(cache: TmdbCache): TmdbMovieDetail = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-details",
-        get = { cache.movieDetailsCacheQueries.get(id, language, ::TmdbTimestampedEntry) },
-        put = { cache.movieDetailsCacheQueries.put(tmdbId = id, language = language, details = it.value, lastUpdate = it.lastUpdate) },
-        downloader = { it.movies.getDetails(id.value, language.apiParameter) },
+    private val detailsDownloader = BatchableDownloader(
+        logTag = "${id.toExternalId().serialize()}-$language-details",
+        loadFromCache = { cache ->
+            cache.movieDetailsCacheQueries.get(
+                tmdbId = id,
+                language = language,
+                mapper = ::TmdbTimestampedEntry,
+            )
+        },
+        putInCache = { cache, data ->
+            cache.movieDetailsCacheQueries.put(
+                tmdbId = id,
+                language = language,
+                details = data.value,
+                lastUpdate = data.lastUpdate,
+            )
+        },
+        prepareRequest = { appendResponses: MovieDetailsRequestInput -> appendResponses },
+        extractFromResponse = { movieDetails: MovieDetailsRequestOutput -> movieDetails },
     )
-
-    suspend fun credits(cache: TmdbCache): TmdbCredits = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-credits",
-        get = { cache.movieCreditsCacheQueries.get(id, ::TmdbTimestampedEntry) },
-        put = { cache.movieCreditsCacheQueries.put(tmdbId = id, credits = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.CREDITS),
-            ).credits ?: error("credits cannot be null")
+    private val creditsDownloader = BatchableDownloader(
+        logTag = "${id.toExternalId().serialize()}-credits",
+        loadFromCache = { cache ->
+            cache.movieCreditsCacheQueries.get(
+                tmdbId = id,
+                mapper = ::TmdbTimestampedEntry,
+            )
+        },
+        putInCache = { cache, data ->
+            cache.movieCreditsCacheQueries.put(
+                tmdbId = id,
+                credits = data.value,
+                lastUpdate = data.lastUpdate,
+            )
+        },
+        prepareRequest = { appendResponses: MovieDetailsRequestInput -> appendResponses.plusElement(AppendResponse.CREDITS) },
+        extractFromResponse = { movieDetails: MovieDetailsRequestOutput ->
+            movieDetails.credits ?: throw ApiException.DeserializationError("credits cannot be null", null)
         },
     )
-
-    suspend fun images(cache: TmdbCache): TmdbImages = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-images",
-        get = { cache.movieImagesCacheQueries.get(id, ::TmdbTimestampedEntry) },
-        put = { cache.movieImagesCacheQueries.put(tmdbId = id, images = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.IMAGES),
-            ).images ?: error("images cannot be null")
+    private val imagesDownloader = BatchableDownloader(
+        logTag = "${id.toExternalId().serialize()}-images",
+        loadFromCache = { cache ->
+            cache.movieImagesCacheQueries.get(
+                tmdbId = id,
+                mapper = ::TmdbTimestampedEntry,
+            )
+        },
+        putInCache = { cache, data ->
+            cache.movieImagesCacheQueries.put(
+                tmdbId = id,
+                images = data.value,
+                lastUpdate = data.lastUpdate,
+            )
+        },
+        prepareRequest = { appendResponses: MovieDetailsRequestInput -> appendResponses.plusElement(AppendResponse.IMAGES) },
+        extractFromResponse = { movieDetails: MovieDetailsRequestOutput ->
+            movieDetails.images ?: throw ApiException.DeserializationError("images cannot be null", null)
         },
     )
-
-    suspend fun videos(cache: TmdbCache): List<TmdbVideo> = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-videos",
-        get = { cache.movieVideosCacheQueries.get(id, ::TmdbTimestampedEntry) },
-        put = { cache.movieVideosCacheQueries.put(tmdbId = id, videos = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.VIDEOS),
-            ).videos?.results ?: error("videos cannot be null")
+    private val videosDownloader = BatchableDownloader(
+        logTag = "${id.toExternalId().serialize()}-videos",
+        loadFromCache = { cache ->
+            cache.movieVideosCacheQueries.get(
+                tmdbId = id,
+                mapper = ::TmdbTimestampedEntry,
+            )
+        },
+        putInCache = { cache, data ->
+            cache.movieVideosCacheQueries.put(
+                tmdbId = id,
+                videos = data.value,
+                lastUpdate = data.lastUpdate,
+            )
+        },
+        prepareRequest = { appendResponses: MovieDetailsRequestInput -> appendResponses.plusElement(AppendResponse.VIDEOS) },
+        extractFromResponse = { movieDetails: MovieDetailsRequestOutput ->
+            movieDetails.videos?.results ?: throw ApiException.DeserializationError("videos cannot be null", null)
         },
     )
-
-    suspend fun releaseDates(cache: TmdbCache): List<TmdbReleaseDates> = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-release_dates",
-        get = { cache.movieReleaseDatesCacheQueries.get(id, ::TmdbTimestampedEntry) },
-        put = { cache.movieReleaseDatesCacheQueries.put(tmdbId = id, releaseDates = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.movies.getDetails(
-                id.value,
-                null,
-                listOf(AppendResponse.RELEASES_DATES),
-            ).releaseDates?.results.orEmpty()
+    private val releaseDatesDownloader = BatchableDownloader(
+        logTag = "${id.toExternalId().serialize()}-release_dates",
+        loadFromCache = { cache ->
+            cache.movieReleaseDatesCacheQueries.get(
+                tmdbId = id,
+                mapper = ::TmdbTimestampedEntry,
+            )
+        },
+        putInCache = { cache, data ->
+            cache.movieReleaseDatesCacheQueries.put(
+                tmdbId = id,
+                releaseDates = data.value,
+                lastUpdate = data.lastUpdate,
+            )
+        },
+        prepareRequest = { appendResponses: MovieDetailsRequestInput -> appendResponses.plusElement(AppendResponse.RELEASES_DATES) },
+        extractFromResponse = { movieDetails: MovieDetailsRequestOutput ->
+            movieDetails.releaseDates?.results ?: throw ApiException.DeserializationError("releaseDates cannot be null", null)
         },
         expiration = TMDB_CACHE_EXPIRATION_FAST,
     )
+
+    suspend fun details(
+        cache: TmdbCache,
+        details: CompletableDeferred<TmdbMovieDetail>? = null,
+        credits: CompletableDeferred<TmdbCredits>? = null,
+        images: CompletableDeferred<TmdbImages>? = null,
+        videos: CompletableDeferred<List<TmdbVideo>>? = null,
+        releaseDates: CompletableDeferred<List<TmdbReleaseDates>>? = null,
+    ) {
+        tmdbGetOrDownloadBatched(
+            cache = cache,
+            requests = listOfNotNull(
+                details?.let { BatchableRequest(detailsDownloader, details) },
+                credits?.let { BatchableRequest(creditsDownloader, credits) },
+                images?.let { BatchableRequest(imagesDownloader, images) },
+                videos?.let { BatchableRequest(videosDownloader, videos) },
+                releaseDates?.let { BatchableRequest(releaseDatesDownloader, releaseDates) },
+            ),
+            initialRequestInput = emptyList(),
+            downloader = { tmdb, appendToResponse ->
+                tmdb.movies.getDetails(id.value, language.apiParameter, appendToResponse.ifEmpty { null })
+            },
+        )
+    }
+
+    suspend fun details(cache: TmdbCache): TmdbMovieDetail {
+        return CompletableDeferred<TmdbMovieDetail>().also {
+            details(cache, details = it)
+        }.await()
+    }
 }
 
 fun ApiTmdbMovie.toInternalTmdbMovie(language: TmdbLanguage) = TmdbMovie(TmdbMovieId(id), language)

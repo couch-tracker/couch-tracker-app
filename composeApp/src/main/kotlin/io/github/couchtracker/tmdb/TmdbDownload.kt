@@ -37,14 +37,13 @@ const val TMDB_CACHE_PREFETCH_THRESHOLD = 0.5
 
 /**
  * Utility function to handle cached downloads towards TMDB.
- *
- * TODO: multiple calls on the same API should be batched, so the download is performed only once
+ * Handles caching, stale caching and prefetching.
  */
 suspend fun <T : Any> tmdbGetOrDownload(
     entryTag: String,
     get: () -> Query<TmdbTimestampedEntry<T>>,
     put: (TmdbTimestampedEntry<T>) -> Unit,
-    downloader: suspend (Tmdb3) -> T,
+    downloader: suspend () -> T,
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     prefetch: Duration = expiration * TMDB_CACHE_PREFETCH_THRESHOLD,
     coroutineContext: CoroutineContext = Dispatchers.IO,
@@ -85,12 +84,12 @@ suspend fun <T : Any> tmdbGetOrDownload(
 }
 
 private suspend fun <T : Any> downloadAndSave(
-    download: suspend (Tmdb3) -> T,
+    download: suspend () -> T,
     save: (TmdbTimestampedEntry<T>) -> Unit,
     coroutineContext: CoroutineContext,
 ): T {
     val currentTime = Clock.System.now()
-    val element = tmdbDownload(download)
+    val element = download()
     withContext(coroutineContext) {
         save(TmdbTimestampedEntry(element, currentTime))
     }

@@ -3,8 +3,11 @@ package io.github.couchtracker.ui.screens.movie
 import android.content.Context
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.image.TmdbImageType
+import app.moviebase.tmdb.model.TmdbCredits
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbGenre
+import app.moviebase.tmdb.model.TmdbImages
+import app.moviebase.tmdb.model.TmdbMovieDetail
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.tmdbCache.TmdbCache
@@ -27,6 +30,7 @@ import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.awaitAll
 import io.github.couchtracker.utils.runApiCatching
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -69,16 +73,21 @@ suspend fun CoroutineScope.loadMovie(
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<MovieScreenModel> {
     return runApiCatching(LOG_TAG) {
-        val images = async(coroutineContext) {
+        val detailsC = CompletableDeferred<TmdbMovieDetail>()
+        val credits = CompletableDeferred<TmdbCredits>()
+        val images = CompletableDeferred<TmdbImages>()
+        movie.details(cache = tmdbCache, details = detailsC, credits = credits, images = images)
+
+        val imagesModel = async(coroutineContext) {
             runApiCatching(LOG_TAG) {
-                movie.images(tmdbCache)
+                images.await()
                     .linearize()
                     .map { it.toImageModel(TmdbImageType.BACKDROP) }
             }
         }
-        val credits = async(coroutineContext) {
+        val creditsModel = async(coroutineContext) {
             runApiCatching(LOG_TAG) {
-                val credits = movie.credits(tmdbCache)
+                val credits = credits.await()
                 MovieScreenModel.Credits(
                     director = credits.crew.directors(),
                     cast = credits.cast.toCastPortraitModel(movie.language),
@@ -86,7 +95,7 @@ suspend fun CoroutineScope.loadMovie(
                 )
             }
         }
-        val details = movie.details(tmdbCache)
+        val details = detailsC.await()
         val backdrop = async(coroutineContext) {
             details.backdropImage.prepareAndExtractColorScheme(
                 ctx = ctx,
@@ -98,7 +107,7 @@ suspend fun CoroutineScope.loadMovie(
 
         // It can be disruptive to load in content at separate times.
         // If the other content loads "fast enough", I'll wait for it.
-        listOf(images, credits).awaitAll(100.milliseconds)
+        listOf(imagesModel, creditsModel).awaitAll(100.milliseconds)
 
         MovieScreenModel(
             movie = movie,
@@ -110,9 +119,9 @@ suspend fun CoroutineScope.loadMovie(
             originalLanguage = details.language(),
             rating = details.rating(),
             genres = details.genres,
-            credits = credits,
+            credits = creditsModel,
             backdrop = backdrop.await().first,
-            images = images,
+            images = imagesModel,
             colorScheme = backdrop.await().second,
         )
     }

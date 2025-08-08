@@ -3,8 +3,11 @@ package io.github.couchtracker.ui.screens.show
 import android.content.Context
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.image.TmdbImageType
+import app.moviebase.tmdb.model.TmdbAggregateCredits
 import app.moviebase.tmdb.model.TmdbGenre
+import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbShowCreatedBy
+import app.moviebase.tmdb.model.TmdbShowDetail
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbRating
@@ -24,6 +27,7 @@ import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.awaitAll
 import io.github.couchtracker.utils.runApiCatching
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -63,23 +67,28 @@ suspend fun CoroutineScope.loadShow(
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<ShowScreenModel> {
     return runApiCatching(LOG_TAG) {
-        val images = async(coroutineContext) {
+        val detailsC = CompletableDeferred<TmdbShowDetail>()
+        val credits = CompletableDeferred<TmdbAggregateCredits>()
+        val images = CompletableDeferred<TmdbImages>()
+        show.details(cache = tmdbCache, details = detailsC, aggregateCredits = credits, images = images)
+
+        val imagesModel = async(coroutineContext) {
             runApiCatching(LOG_TAG) {
-                show.images(tmdbCache)
+                images.await()
                     .linearize()
                     .map { it.toImageModel(TmdbImageType.BACKDROP) }
             }
         }
-        val credits = async(coroutineContext) {
+        val creditsModel = async(coroutineContext) {
             runApiCatching(LOG_TAG) {
-                val credits = show.aggregateCredits(tmdbCache)
+                val credits = credits.await()
                 ShowScreenModel.Credits(
                     cast = credits.cast.toCastPortraitModel(show.language),
                     crew = credits.crew.toCrewCompactListItemModel(show.language),
                 )
             }
         }
-        val details = show.details(tmdbCache)
+        val details = detailsC.await()
         val backdrop = async(coroutineContext) {
             details.backdropImage.prepareAndExtractColorScheme(
                 ctx = ctx,
@@ -91,7 +100,7 @@ suspend fun CoroutineScope.loadShow(
 
         // It can be disruptive to load in content at separate times.
         // If the other content loads "fast enough", I'll wait for it.
-        listOf(images, credits).awaitAll(100.milliseconds)
+        listOf(imagesModel, creditsModel).awaitAll(100.milliseconds)
 
         ShowScreenModel(
             id = show.id,
@@ -102,9 +111,9 @@ suspend fun CoroutineScope.loadShow(
             rating = details.rating(),
             genres = details.genres,
             createdBy = details.createdBy.orEmpty(),
-            credits = credits,
+            credits = creditsModel,
             backdrop = backdrop.await().first,
-            images = images,
+            images = imagesModel,
             colorScheme = backdrop.await().second,
         )
     }
