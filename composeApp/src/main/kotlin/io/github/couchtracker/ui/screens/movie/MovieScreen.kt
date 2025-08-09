@@ -68,7 +68,6 @@ import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -105,7 +104,7 @@ private fun Content(movie: TmdbMovie) {
     ) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
-        suspend fun CoroutineScope.load() {
+        suspend fun load() {
             if (screenModel is Result.Error) {
                 screenModel = Loadable.Loading
             }

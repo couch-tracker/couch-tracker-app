@@ -5,8 +5,12 @@ import app.moviebase.tmdb.model.TmdbAggregateCredits
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbShowDetail
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
+import io.github.couchtracker.utils.ApiResult
+import io.github.couchtracker.utils.CompletableApiResult
+import kotlin.time.Duration
 import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
+
+private typealias ShowDetailsDownloader = BatchableDownloaderBuilder<TmdbShowId, List<AppendResponse>, TmdbShowDetail>
 
 /**
  * Class that represents a TMDB show.
@@ -17,43 +21,67 @@ data class TmdbShow(
     val id: TmdbShowId,
     val language: TmdbLanguage,
 ) {
-    suspend fun details(cache: TmdbCache): TmdbShowDetail = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-details",
-        get = { cache.showDetailsCacheQueries.get(id, language, ::TmdbTimestampedEntry) },
-        put = { cache.showDetailsCacheQueries.put(tmdbId = id, language = language, details = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.show.getDetails(
-                showId = id.value,
-                language = language.apiParameter,
-            )
-        },
-    )
 
-    suspend fun images(cache: TmdbCache): TmdbImages = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-images",
-        get = { cache.showImagesCacheQueries.get(id, ::TmdbTimestampedEntry) },
-        put = { cache.showImagesCacheQueries.put(tmdbId = id, images = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.show.getDetails(
-                showId = id.value,
-                language = null,
-                appendResponses = listOf(AppendResponse.IMAGES),
-            ).images ?: error("images cannot be null")
-        },
-    )
+    private val detailsDownloader = detailsDownloader("details") { it }
+        .extractFromResponse { it }
+        .localized(
+            language = language,
+            loadFromCacheFn = { cache -> cache.showDetailsCacheQueries::get },
+            putInCacheFn = { cache -> cache.showDetailsCacheQueries::put },
+        )
+    private val aggregateCreditsDownloader = detailsDownloader("credits") { it + AppendResponse.AGGREGATE_CREDITS }
+        .extractNonNullFromResponse(TmdbShowDetail::aggregateCredits)
+        .notLocalized(
+            loadFromCacheFn = { cache -> cache.showAggregateCreditsCacheQueries::get },
+            putInCacheFn = { cache -> cache.showAggregateCreditsCacheQueries::put },
+        )
+    private val imagesDownloader = detailsDownloader("images") { it + AppendResponse.IMAGES }
+        .extractNonNullFromResponse(TmdbShowDetail::images)
+        .notLocalized(
+            loadFromCacheFn = { cache -> cache.showImagesCacheQueries::get },
+            putInCacheFn = { cache -> cache.showImagesCacheQueries::put },
+        )
 
-    suspend fun aggregateCredits(cache: TmdbCache): TmdbAggregateCredits = tmdbGetOrDownload(
-        entryTag = "${id.toExternalId().serialize()}-$language-credits",
-        get = { cache.showAggregateCreditsCacheQueries.get(id, ::TmdbTimestampedEntry) },
-        put = { cache.showAggregateCreditsCacheQueries.put(tmdbId = id, credits = it.value, lastUpdate = it.lastUpdate) },
-        downloader = {
-            it.show.getDetails(
-                showId = id.value,
-                language = null,
-                appendResponses = listOf(AppendResponse.AGGREGATE_CREDITS),
-            ).aggregateCredits ?: error("aggregateCredits cannot be null")
-        },
-    )
+    private fun detailsDownloader(
+        logTag: String,
+        expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
+        prepareRequest: (List<AppendResponse>) -> List<AppendResponse>,
+    ): ShowDetailsDownloader {
+        return ShowDetailsDownloader(
+            id = id,
+            logTag = "${id.toExternalId().serialize()}-$logTag",
+            prepareRequest = prepareRequest,
+            expiration = expiration,
+        )
+    }
+
+    suspend fun details(
+        cache: TmdbCache,
+        details: CompletableApiResult<TmdbShowDetail>? = null,
+        aggregateCredits: CompletableApiResult<TmdbAggregateCredits>? = null,
+        images: CompletableApiResult<TmdbImages>? = null,
+    ) {
+        tmdbGetOrDownloadBatched(
+            cache = cache,
+            requests = listOfNotNull(
+                details?.let { BatchableRequest(detailsDownloader, details) },
+                aggregateCredits?.let { BatchableRequest(aggregateCreditsDownloader, aggregateCredits) },
+                images?.let { BatchableRequest(imagesDownloader, images) },
+            ),
+            initialRequestInput = emptyList(),
+            downloader = { appendToResponse ->
+                tmdbDownloadResult(logTag = "${id.toExternalId().serialize()}-batched-details") { tmdb ->
+                    tmdb.show.getDetails(id.value, language.apiParameter, appendToResponse.ifEmpty { null })
+                }
+            },
+        )
+    }
+
+    suspend fun details(cache: TmdbCache): ApiResult<TmdbShowDetail> {
+        return CompletableApiResult<TmdbShowDetail>().also {
+            details(cache, details = it)
+        }.await()
+    }
 }
 
 fun ApiTmdbShow.toInternalTmdbShow(language: TmdbLanguage) = TmdbShow(TmdbShowId(id), language)

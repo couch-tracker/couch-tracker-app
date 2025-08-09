@@ -1,11 +1,10 @@
 package io.github.couchtracker.tmdb
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.TmdbPageResult
-import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ifError
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -19,27 +18,22 @@ class TmdbPagingSource<T : Any, O : Any>(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, O> {
         val nextPageNumber = params.key ?: 1
-        try {
-            val response = tmdbDownload { tmdb3 ->
-                tmdb3.downloader(nextPageNumber)
-            }
-            val mapped = coroutineScope {
-                response.results.map {
-                    async { mapper(it) }
-                }.awaitAll()
-            }
-            val loadedBefore = ((response.page - 1) * TMDB_ITEMS_PER_PAGE).coerceAtMost(response.totalResults)
-            return LoadResult.Page(
-                data = mapped.filterNotNull(),
-                prevKey = null,
-                nextKey = if (response.page < response.totalPages) response.page + 1 else null,
-                itemsBefore = loadedBefore,
-                itemsAfter = response.totalResults - loadedBefore - response.results.size,
-            )
-        } catch (e: ApiException) {
-            Log.w(LOG_TAG, "Error while loading page $nextPageNumber", e)
-            return LoadResult.Error(e)
+        val response = tmdbDownloadResult(LOG_TAG) { tmdb3 ->
+            tmdb3.downloader(nextPageNumber)
+        }.ifError { return LoadResult.Error(it) }
+        val mapped = coroutineScope {
+            response.results.map {
+                async { mapper(it) }
+            }.awaitAll()
         }
+        val loadedBefore = ((response.page - 1) * TMDB_ITEMS_PER_PAGE).coerceAtMost(response.totalResults)
+        return LoadResult.Page(
+            data = mapped.filterNotNull(),
+            prevKey = null,
+            nextKey = if (response.page < response.totalPages) response.page + 1 else null,
+            itemsBefore = loadedBefore,
+            itemsAfter = response.totalResults - loadedBefore - response.results.size,
+        )
     }
 
     override fun getRefreshKey(state: PagingState<Int, O>): Int? {

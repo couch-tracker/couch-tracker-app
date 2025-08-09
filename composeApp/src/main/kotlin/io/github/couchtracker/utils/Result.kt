@@ -37,6 +37,16 @@ inline fun <I, O, E> Result<I, E>.map(f: (I) -> O): Result<O, E> = flatMap {
 }
 
 /**
+ * Runs [f] when the result is a value.
+ */
+inline fun <T, E> Result<T, E>.onValue(f: (T) -> Unit): Result<T, E> {
+    if (this is Result.Value<T>) {
+        f(this.value)
+    }
+    return this
+}
+
+/**
  * Calls [block] whenever [this] is not a [Result.Value].
  *
  * Being inline, allows idiomatic code such as:
@@ -48,6 +58,13 @@ inline fun <T, E> Result<T, E>.onError(block: (Result.Error<E>) -> Unit) {
     when (this) {
         is Result.Value -> {}
         is Result.Error -> block(this)
+    }
+}
+
+inline fun <T : R, E, R> Result<T, E>.ifError(block: (E) -> R): R {
+    return when (this) {
+        is Result.Value -> value
+        is Result.Error -> block(this.error)
     }
 }
 
