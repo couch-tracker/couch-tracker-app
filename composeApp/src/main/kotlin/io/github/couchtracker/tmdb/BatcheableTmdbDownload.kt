@@ -1,6 +1,7 @@
 package io.github.couchtracker.tmdb
 
 import app.cash.sqldelight.Query
+import app.cash.sqldelight.db.QueryResult
 import app.moviebase.tmdb.Tmdb3
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
@@ -11,6 +12,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 class BatchableDownloader<T : Any, Req, Res>(
     val logTag: String,
@@ -21,6 +23,43 @@ class BatchableDownloader<T : Any, Req, Res>(
     val expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     val prefetch: Duration = expiration * TMDB_CACHE_PREFETCH_THRESHOLD,
 )
+
+class BatchableDownloaderFactory<ID, T : Any, Req, Res>(
+    val id: ID,
+    val logTag: String,
+    val prepareRequest: (Req) -> Req,
+    val extractFromResponse: (Res) -> T,
+    val expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
+    val prefetch: Duration = expiration * TMDB_CACHE_PREFETCH_THRESHOLD,
+) {
+
+    fun localized(
+        language: TmdbLanguage,
+        loadFromCacheFn: (TmdbCache) -> (ID, TmdbLanguage, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>,
+        putInCacheFn: (TmdbCache) -> (ID, TmdbLanguage, T, Instant) -> QueryResult<Long>,
+    ) = BatchableDownloader(
+        logTag = logTag,
+        loadFromCache = { cache -> loadFromCacheFn(cache)(id, language, ::TmdbTimestampedEntry) },
+        putInCache = { cache, data -> putInCacheFn(cache)(id, language, data.value, data.lastUpdate) },
+        prepareRequest = prepareRequest,
+        extractFromResponse = extractFromResponse,
+        expiration = expiration,
+        prefetch = prefetch,
+    )
+
+    fun notLocalized(
+        loadFromCacheFn: (TmdbCache) -> (ID, (details: T, lastUpdate: Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>,
+        putInCacheFn: (TmdbCache) -> (ID, T, Instant) -> QueryResult<Long>,
+    ) = BatchableDownloader(
+        logTag = logTag,
+        loadFromCache = { cache -> loadFromCacheFn(cache)(id, ::TmdbTimestampedEntry) },
+        putInCache = { cache, data -> putInCacheFn(cache)(id, data.value, data.lastUpdate) },
+        prepareRequest = prepareRequest,
+        extractFromResponse = extractFromResponse,
+        expiration = expiration,
+        prefetch = prefetch,
+    )
+}
 
 class BatchableRequest<T : Any, Req, Res>(
     val downloader: BatchableDownloader<T, Req, Res>,
