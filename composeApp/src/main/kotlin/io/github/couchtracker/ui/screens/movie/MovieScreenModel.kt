@@ -3,8 +3,11 @@ package io.github.couchtracker.ui.screens.movie
 import android.content.Context
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.image.TmdbImageType
+import app.moviebase.tmdb.model.TmdbCredits
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbGenre
+import app.moviebase.tmdb.model.TmdbImages
+import app.moviebase.tmdb.model.TmdbMovieDetail
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.tmdbCache.TmdbCache
@@ -24,17 +27,18 @@ import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.ApiResult
+import io.github.couchtracker.utils.CompletableApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.awaitAll
-import io.github.couchtracker.utils.runApiCatching
-import kotlinx.coroutines.CoroutineScope
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.onValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-
-private const val LOG_TAG = "MovieScreenModel"
 
 data class MovieScreenModel(
     val movie: TmdbMovie,
@@ -60,33 +64,38 @@ data class MovieScreenModel(
     )
 }
 
-suspend fun CoroutineScope.loadMovie(
+suspend fun loadMovie(
     ctx: Context,
     tmdbCache: TmdbCache,
     movie: TmdbMovie,
     width: Int,
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-): ApiResult<MovieScreenModel> {
-    return runApiCatching(LOG_TAG) {
-        val images = async(coroutineContext) {
-            runApiCatching(LOG_TAG) {
-                movie.images(tmdbCache)
-                    .linearize()
-                    .map { it.toImageModel(TmdbImageType.BACKDROP) }
-            }
+): ApiResult<MovieScreenModel> = coroutineScope {
+    val details = CompletableApiResult<TmdbMovieDetail>()
+    val credits = CompletableApiResult<TmdbCredits>()
+    val images = CompletableApiResult<TmdbImages>()
+    launch(coroutineContext) {
+        movie.details(cache = tmdbCache, details = details, credits = credits, images = images)
+    }
+
+    val imagesModel = async(coroutineContext) {
+        images.await().map { images ->
+            images
+                .linearize()
+                .map { it.toImageModel(TmdbImageType.BACKDROP) }
         }
-        val credits = async(coroutineContext) {
-            runApiCatching(LOG_TAG) {
-                val credits = movie.credits(tmdbCache)
-                MovieScreenModel.Credits(
-                    director = credits.crew.directors(),
-                    cast = credits.cast.toCastPortraitModel(movie.language),
-                    crew = credits.crew.toCrewCompactListItemModel(movie.language),
-                )
-            }
+    }
+    val creditsModel = async(coroutineContext) {
+        credits.await().map { credits ->
+            MovieScreenModel.Credits(
+                director = credits.crew.directors(),
+                cast = credits.cast.toCastPortraitModel(movie.language),
+                crew = credits.crew.toCrewCompactListItemModel(movie.language),
+            )
         }
-        val details = movie.details(tmdbCache)
+    }
+    details.await().map { details ->
         val backdrop = async(coroutineContext) {
             details.backdropImage.prepareAndExtractColorScheme(
                 ctx = ctx,
@@ -95,11 +104,6 @@ suspend fun CoroutineScope.loadMovie(
                 fallbackColorScheme = ColorSchemes.Movie,
             )
         }
-
-        // It can be disruptive to load in content at separate times.
-        // If the other content loads "fast enough", I'll wait for it.
-        listOf(images, credits).awaitAll(100.milliseconds)
-
         MovieScreenModel(
             movie = movie,
             title = details.title,
@@ -110,10 +114,14 @@ suspend fun CoroutineScope.loadMovie(
             originalLanguage = details.language(),
             rating = details.rating(),
             genres = details.genres,
-            credits = credits,
+            credits = creditsModel,
             backdrop = backdrop.await().first,
-            images = images,
+            images = imagesModel,
             colorScheme = backdrop.await().second,
         )
+    }.onValue {
+        // It can be disruptive to load in content at separate times.
+        // If the other content loads "fast enough", I'll wait for it.
+        it.allDeferred.awaitAll(100.milliseconds)
     }
 }

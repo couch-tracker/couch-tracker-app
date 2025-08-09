@@ -3,17 +3,17 @@ package io.github.couchtracker.tmdb
 import android.util.Log
 import app.cash.sqldelight.Query
 import app.moviebase.tmdb.Tmdb3
-import io.github.couchtracker.AndroidApplication
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.ApiResult
+import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.ifError
 import io.github.couchtracker.utils.injectApiError
 import io.github.couchtracker.utils.injectCacheMiss
 import io.github.couchtracker.utils.runApiCatching
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
@@ -37,18 +37,18 @@ const val TMDB_CACHE_PREFETCH_THRESHOLD = 0.5
 
 /**
  * Utility function to handle cached downloads towards TMDB.
- *
- * TODO: multiple calls on the same API should be batched, so the download is performed only once
+ * Handles caching, stale caching and prefetching.
  */
 suspend fun <T : Any> tmdbGetOrDownload(
     entryTag: String,
     get: () -> Query<TmdbTimestampedEntry<T>>,
     put: (TmdbTimestampedEntry<T>) -> Unit,
-    downloader: suspend (Tmdb3) -> T,
+    downloader: suspend () -> ApiResult<T>,
+    backgroundDownloader: () -> Unit,
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     prefetch: Duration = expiration * TMDB_CACHE_PREFETCH_THRESHOLD,
     coroutineContext: CoroutineContext = Dispatchers.IO,
-): T {
+): ApiResult<T> {
     require(prefetch <= expiration)
     val cachedValue = withContext(coroutineContext) {
         get().executeAsOneOrNull()
@@ -56,28 +56,21 @@ suspend fun <T : Any> tmdbGetOrDownload(
     val currentTime = Clock.System.now()
     return if (cachedValue != null) {
         val age = currentTime - cachedValue.lastUpdate
-        if (age > expiration) {
+        val result = if (age > expiration) {
             Log.d(LOG_TAG, "$entryTag: Entry is expired (age=$age), performing download")
-            try {
-                downloadAndSave(downloader, put, coroutineContext)
-            } catch (ignored: ApiException) {
-                Log.w(LOG_TAG, "$entryTag: Download failed, returning a stale entry", ignored)
+            downloadAndSave(downloader, put, coroutineContext).ifError {
+                Log.w(LOG_TAG, "$entryTag: Download failed, returning a stale entry", it)
                 cachedValue.value
             }
         } else if (age > prefetch) {
             Log.d(LOG_TAG, "$entryTag: Entry is about to expire (age=$age), starting background download")
-            AndroidApplication.scope.launch {
-                try {
-                    downloadAndSave(downloader, put, coroutineContext)
-                } catch (ignored: ApiException) {
-                    Log.w(LOG_TAG, "$entryTag: error while prefetching will be ignored", ignored)
-                }
-            }
+            backgroundDownloader()
             cachedValue.value
         } else {
             Log.d(LOG_TAG, "$entryTag: Entry is fresh (age=$age)")
             cachedValue.value
         }
+        Result.Value(result)
     } else {
         Log.d(LOG_TAG, "$entryTag: No cached entry, performing download")
         downloadAndSave(downloader, put, coroutineContext)
@@ -85,41 +78,41 @@ suspend fun <T : Any> tmdbGetOrDownload(
 }
 
 private suspend fun <T : Any> downloadAndSave(
-    download: suspend (Tmdb3) -> T,
+    download: suspend () -> ApiResult<T>,
     save: (TmdbTimestampedEntry<T>) -> Unit,
     coroutineContext: CoroutineContext,
-): T {
+): ApiResult<T> {
     val currentTime = Clock.System.now()
-    val element = tmdbDownload(download)
-    withContext(coroutineContext) {
-        save(TmdbTimestampedEntry(element, currentTime))
+    val element = download()
+    if (element is Result.Value) {
+        withContext(coroutineContext) {
+            save(TmdbTimestampedEntry(element.value, currentTime))
+        }
     }
     return element
 }
 
-/**
- * @throws ApiException
- */
 @Suppress("ThrowsCount")
-suspend fun <T> tmdbDownload(
+suspend fun <T> tmdbDownloadResult(
+    logTag: String?,
     download: suspend (Tmdb3) -> T,
-): T {
-    try {
-        injectApiError()
-        return download(tmdb)
-    } catch (e: ClientRequestException) {
-        throw ApiException.ClientError(e.message, e)
-    } catch (e: ResponseException) {
-        throw ApiException.ServerError(e.message, e)
-    } catch (e: IOException) {
-        throw ApiException.IOError(e.message, e)
-    } catch (e: SerializationException) {
-        throw ApiException.DeserializationError(e.message, e)
-    }
-}
-
-suspend fun <T> tmdbDownloadResult(logTag: String?, download: suspend (Tmdb3) -> T): ApiResult<T> {
-    return runApiCatching(logTag = logTag) {
-        tmdbDownload(download)
+): ApiResult<T> {
+    return runApiCatching(logTag) {
+        try {
+            injectApiError()
+            val client = tmdb
+            // preparing the API call is often CPU intensive
+            withContext(Dispatchers.Default) {
+                download(client)
+            }
+        } catch (e: ClientRequestException) {
+            throw ApiException.ClientError(e.message, e)
+        } catch (e: ResponseException) {
+            throw ApiException.ServerError(e.message, e)
+        } catch (e: IOException) {
+            throw ApiException.IOError(e.message, e)
+        } catch (e: SerializationException) {
+            throw ApiException.DeserializationError(e.message, e)
+        }
     }
 }

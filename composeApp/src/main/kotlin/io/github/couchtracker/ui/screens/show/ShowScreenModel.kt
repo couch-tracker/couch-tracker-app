@@ -3,8 +3,11 @@ package io.github.couchtracker.ui.screens.show
 import android.content.Context
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.image.TmdbImageType
+import app.moviebase.tmdb.model.TmdbAggregateCredits
 import app.moviebase.tmdb.model.TmdbGenre
+import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbShowCreatedBy
+import app.moviebase.tmdb.model.TmdbShowDetail
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbRating
@@ -21,16 +24,17 @@ import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.ApiResult
+import io.github.couchtracker.utils.CompletableApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.awaitAll
-import io.github.couchtracker.utils.runApiCatching
-import kotlinx.coroutines.CoroutineScope
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.onValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
-
-private const val LOG_TAG = "ShowScreenModel"
 
 data class ShowScreenModel(
     val id: TmdbShowId,
@@ -54,32 +58,37 @@ data class ShowScreenModel(
     )
 }
 
-suspend fun CoroutineScope.loadShow(
+suspend fun loadShow(
     ctx: Context,
     tmdbCache: TmdbCache,
     show: TmdbShow,
     width: Int,
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-): ApiResult<ShowScreenModel> {
-    return runApiCatching(LOG_TAG) {
-        val images = async(coroutineContext) {
-            runApiCatching(LOG_TAG) {
-                show.images(tmdbCache)
-                    .linearize()
-                    .map { it.toImageModel(TmdbImageType.BACKDROP) }
-            }
+): ApiResult<ShowScreenModel> = coroutineScope {
+    val details = CompletableApiResult<TmdbShowDetail>()
+    val credits = CompletableApiResult<TmdbAggregateCredits>()
+    val images = CompletableApiResult<TmdbImages>()
+    launch(coroutineContext) {
+        show.details(cache = tmdbCache, details = details, aggregateCredits = credits, images = images)
+    }
+
+    val imagesModel = async(coroutineContext) {
+        images.await().map { images ->
+            images
+                .linearize()
+                .map { img -> img.toImageModel(TmdbImageType.BACKDROP) }
         }
-        val credits = async(coroutineContext) {
-            runApiCatching(LOG_TAG) {
-                val credits = show.aggregateCredits(tmdbCache)
-                ShowScreenModel.Credits(
-                    cast = credits.cast.toCastPortraitModel(show.language),
-                    crew = credits.crew.toCrewCompactListItemModel(show.language),
-                )
-            }
+    }
+    val creditsModel = async(coroutineContext) {
+        credits.await().map { credits ->
+            ShowScreenModel.Credits(
+                cast = credits.cast.toCastPortraitModel(show.language),
+                crew = credits.crew.toCrewCompactListItemModel(show.language),
+            )
         }
-        val details = show.details(tmdbCache)
+    }
+    details.await().map { details ->
         val backdrop = async(coroutineContext) {
             details.backdropImage.prepareAndExtractColorScheme(
                 ctx = ctx,
@@ -88,11 +97,6 @@ suspend fun CoroutineScope.loadShow(
                 fallbackColorScheme = ColorSchemes.Show,
             )
         }
-
-        // It can be disruptive to load in content at separate times.
-        // If the other content loads "fast enough", I'll wait for it.
-        listOf(images, credits).awaitAll(100.milliseconds)
-
         ShowScreenModel(
             id = show.id,
             name = details.name,
@@ -102,10 +106,14 @@ suspend fun CoroutineScope.loadShow(
             rating = details.rating(),
             genres = details.genres,
             createdBy = details.createdBy.orEmpty(),
-            credits = credits,
+            credits = creditsModel,
             backdrop = backdrop.await().first,
-            images = images,
+            images = imagesModel,
             colorScheme = backdrop.await().second,
         )
+    }.onValue {
+        // It can be disruptive to load in content at separate times.
+        // If the other content loads "fast enough", I'll wait for it.
+        it.allDeferred.awaitAll(100.milliseconds)
     }
 }
