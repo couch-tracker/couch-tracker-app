@@ -58,7 +58,8 @@ class ResultTest : FunSpec(
         context("onError()") {
             test("nothing happens on success") {
                 val onError = spyk<(Result<Nothing, String>) -> Unit>(@JvmSerializableLambda {})
-                Result.Value("yey!").onError(onError)
+                val result = Result.Value("yey!").onError(onError)
+                result shouldBe "yey!"
                 verify(exactly = 0) { onError(any()) }
             }
             test("onError() is called when there is an error") {

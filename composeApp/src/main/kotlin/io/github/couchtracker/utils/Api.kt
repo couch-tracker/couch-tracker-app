@@ -4,6 +4,7 @@ import android.util.Log
 import io.github.couchtracker.R
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
@@ -11,6 +12,7 @@ import kotlinx.serialization.SerializationException
 typealias ApiLoadable<T> = Loadable<T, ApiException>
 typealias ApiResult<T> = Result<T, ApiException>
 typealias DeferredApiResult<T> = Deferred<ApiResult<T>>
+typealias CompletableApiResult<T> = CompletableDeferred<ApiResult<T>>
 
 sealed class ApiException(message: String?, cause: Throwable?) : Exception(message, cause) {
     @Deprecated("Use title instead", ReplaceWith("title.string()"))
@@ -32,7 +34,7 @@ sealed class ApiException(message: String?, cause: Throwable?) : Exception(messa
         override val title = Text.Resource(R.string.api_exception_io_error)
     }
 
-    class DeserializationError(message: String?, override val cause: SerializationException) : ApiException(message, cause) {
+    class DeserializationError(message: String?, override val cause: SerializationException?) : ApiException(message, cause) {
         override val title = Text.Resource(R.string.api_exception_deserialization_error)
     }
 
@@ -41,7 +43,9 @@ sealed class ApiException(message: String?, cause: Throwable?) : Exception(messa
     }
 }
 
-suspend fun <T> runApiCatching(logTag: String?, f: suspend () -> T): ApiResult<T> {
+fun <T> CompletableApiResult(): CompletableApiResult<T> = CompletableDeferred()
+
+inline fun <T> runApiCatching(logTag: String?, f: () -> T): ApiResult<T> {
     return try {
         Result.Value(f())
     } catch (e: ApiException) {

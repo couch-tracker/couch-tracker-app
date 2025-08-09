@@ -1,7 +1,6 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.material3.ColorScheme
 import coil3.request.ImageRequest
 import io.github.couchtracker.db.profile.Bcp47Language
@@ -13,17 +12,13 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.ui.ColorSchemes
-import io.github.couchtracker.utils.ApiException
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.ApiResult
+import io.github.couchtracker.utils.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
-
-private const val LOG_TAG = "WatchedItemScreenModel"
 
 data class WatchedItemsScreenModel(
     val id: WatchableExternalId,
@@ -43,35 +38,25 @@ data class WatchedItemsScreenModel(
             width: Int,
             height: Int,
             coroutineContext: CoroutineContext = Dispatchers.Default,
-        ): Loadable<WatchedItemsScreenModel, ApiException> {
-            return try {
-                coroutineScope {
-                    withContext(coroutineContext) {
-                        val details = movie.details(tmdbCache)
-                        val backdrop = async {
-                            details.backdropImage.prepareAndExtractColorScheme(
-                                ctx = context,
-                                width = width,
-                                height = height,
-                                fallbackColorScheme = ColorSchemes.Movie,
-                            )
-                        }
-                        Result.Value(
-                            WatchedItemsScreenModel(
-                                id = movie.id.toExternalId().asWatchable(),
-                                itemType = WatchedItemType.MOVIE,
-                                title = details.title,
-                                runtime = details.runtime(),
-                                originalLanguage = Bcp47Language.of(details.originalLanguage),
-                                backdrop = backdrop.await().first,
-                                colorScheme = backdrop.await().second,
-                            ),
-                        )
-                    }
+        ): ApiResult<WatchedItemsScreenModel> = coroutineScope {
+            movie.details(tmdbCache).map { details ->
+                val backdrop = async(coroutineContext) {
+                    details.backdropImage.prepareAndExtractColorScheme(
+                        ctx = context,
+                        width = width,
+                        height = height,
+                        fallbackColorScheme = ColorSchemes.Movie,
+                    )
                 }
-            } catch (e: ApiException) {
-                Log.e(LOG_TAG, "Error while loading WatchedItemsScreenModel for TMDB movie ${movie.id} (${movie.language})", e)
-                Result.Error(e)
+                WatchedItemsScreenModel(
+                    id = movie.id.toExternalId().asWatchable(),
+                    itemType = WatchedItemType.MOVIE,
+                    title = details.title,
+                    runtime = details.runtime(),
+                    originalLanguage = Bcp47Language.of(details.originalLanguage),
+                    backdrop = backdrop.await().first,
+                    colorScheme = backdrop.await().second,
+                )
             }
         }
     }
