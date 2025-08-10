@@ -1,5 +1,7 @@
 package io.github.couchtracker.ui.screens.main
 
+import android.app.Application
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,7 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.cachedIn
@@ -21,6 +23,7 @@ import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.tmdbPager
+import io.github.couchtracker.tmdb.toBaseMovie
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.MoviePortrait
 import io.github.couchtracker.ui.components.PaginatedGrid
@@ -35,8 +38,8 @@ import kotlinx.coroutines.CoroutineScope
 // TODO: do better
 val TMDB_LANGUAGE = TmdbLanguage.ENGLISH
 
-class MovieSectionViewModel : ViewModel() {
-    val exploreState = MovieExploreTabState(viewModelScope)
+class MovieSectionViewModel(application: Application) : AndroidViewModel(application) {
+    val exploreState = MovieExploreTabState(application.applicationContext, viewModelScope)
 }
 
 @Composable
@@ -80,8 +83,8 @@ private fun MovieListComposable(
     val lazyItems = tabState.movieFlow.collectAsLazyPagingItems()
     val navController = LocalNavController.current
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { movie ->
-        MoviePortrait(Modifier.fillMaxWidth(), movie) {
-            navController.navigateToMovie(it.movie)
+        MoviePortrait(Modifier.fillMaxWidth(), movie?.second) {
+            navController.navigateToMovie(it.movie, preloadData = movie?.first)
         }
     }
 }
@@ -97,15 +100,16 @@ enum class MovieTab(
     CALENDAR(R.string.tab_movies_calendar),
 }
 
-class MovieExploreTabState(viewModelScope: CoroutineScope) {
+class MovieExploreTabState(context: Context, viewModelScope: CoroutineScope) {
 
     private val pager = tmdbPager(
         downloader = { page ->
             trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
         },
         mapper = { movie ->
-            movie.toMoviePortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
+            val baseModel = movie.toBaseMovie(TMDB_LANGUAGE)
+            baseModel to movie.toMoviePortraitModels(context, TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
         },
     )
-    val movieFlow = pager.flow.removeDuplicates { it.movie.id.value }.cachedIn(viewModelScope)
+    val movieFlow = pager.flow.removeDuplicates { it.first.id.id }.cachedIn(viewModelScope)
 }

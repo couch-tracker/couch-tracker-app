@@ -85,3 +85,4 @@ data class TmdbShow(
 }
 
 fun ApiTmdbShow.toInternalTmdbShow(language: TmdbLanguage) = TmdbShow(TmdbShowId(id), language)
+fun TmdbShowDetail.toInternalTmdbShow(language: TmdbLanguage) = TmdbShow(TmdbShowId(id), language)

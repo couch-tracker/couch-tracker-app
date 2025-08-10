@@ -7,7 +7,14 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import com.ibm.icu.util.ULocale
+import kotlinx.coroutines.Deferred
 import java.util.Locale
+
+val ALL_ULOCALES: Deferred<List<ULocale>> = deferredConstant {
+    // Loading available locales can be CPU intensive
+    @Suppress("ForbiddenMethodCall")
+    ULocale.getAvailableLocales().asList()
+}
 
 val CompositionLocal<Configuration>.currentLocales
     @Composable

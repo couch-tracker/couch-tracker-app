@@ -1,11 +1,13 @@
 package io.github.couchtracker.tmdb
 
+import androidx.annotation.StringRes
 import app.moviebase.tmdb.model.TmdbDepartment
 import io.github.couchtracker.R
 import io.github.couchtracker.utils.Text
 
-fun TmdbDepartment.title(): Text {
-    val resource = when (this) {
+@StringRes
+fun TmdbDepartment.titleRes(): Int {
+    return when (this) {
         TmdbDepartment.ACTING -> R.string.crew_departments_acting
         TmdbDepartment.ACTORS -> R.string.crew_departments_actors
         TmdbDepartment.ART -> R.string.crew_departments_art
@@ -21,5 +23,8 @@ fun TmdbDepartment.title(): Text {
         TmdbDepartment.VISUAL_EFFECTS -> R.string.crew_departments_visual_effects
         TmdbDepartment.WRITING -> R.string.crew_departments_writing
     }
-    return Text.Resource(resource)
+}
+
+fun TmdbDepartment.title(): Text {
+    return Text.Resource(titleRes())
 }

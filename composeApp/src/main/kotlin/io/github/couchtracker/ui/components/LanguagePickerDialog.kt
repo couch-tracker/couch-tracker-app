@@ -6,7 +6,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import com.ibm.icu.text.DisplayContext
 import io.github.couchtracker.R
@@ -14,12 +13,14 @@ import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.utils.LanguageCategory
 import io.github.couchtracker.utils.LanguageItem
 import io.github.couchtracker.utils.MixedValueTree
+import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.allLeafs
 import io.github.couchtracker.utils.countLeafs
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.findLeafValue
 import io.github.couchtracker.utils.languageTree
 import io.github.couchtracker.utils.pluralStr
+import io.github.couchtracker.utils.rememberComputationResult
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toULocale
 
@@ -35,8 +36,7 @@ fun LanguagePickerDialog(
     onClose: () -> Unit,
 ) {
     val userLocale = LocalConfiguration.currentFirstLocale.toULocale()
-
-    val languagesTreeRoot = remember(userLocale) {
+    val languagesTreeRoot = rememberComputationResult(key = userLocale) {
         Bcp47Language.languageTree(
             compareBy {
                 when (it) {
@@ -46,60 +46,64 @@ fun LanguagePickerDialog(
             },
         )
     }
-    val selected = language?.let { languagesTreeRoot.findLeafValue { it.language isEqualTo language } }
+    // Loading is so fast that we don't need to handle it
+    if (languagesTreeRoot is Result.Value) {
+        val languagesTreeRoot = languagesTreeRoot.value
+        val selected = language?.let { languagesTreeRoot.findLeafValue { it.language isEqualTo language } }
 
-    TreePickerDialog(
-        selected = selected,
-        onSelect = { onLanguageSelected(it?.language) },
-        root = languagesTreeRoot,
-        suggestedOptions = SuggestedOptions(
-            suggestedString = { R.string.suggested_languages.str() },
-            allString = { R.string.all_languages.str() },
-            suggestedItems = { node ->
-                if (node is MixedValueTree.Root<*, *, *>) {
-                    languagesTreeRoot
-                        .allLeafs()
-                        .filter { it.value.language in suggestedLanguages }
-                        .sortedBy { suggestedLanguages.indexOf(it.value.language) }
-                        .toList()
-                } else {
-                    emptyList()
-                }
-            },
-        ),
-        itemName = { it.language.getDisplayName(userLocale, CAPITALIZATION) },
-        itemTrailingContent = { Text(it.language.toString()) },
-        itemSupportingName = {
-            when (it) {
-                is LanguageItem.Normal -> it.language.getDisplayName(it.language.locale, CAPITALIZATION)
-                is LanguageItem.Special -> it.description.str()
-            }
-        },
-        itemKey = { it.toString() },
-        itemSearchStrings = {
-            listOfNotNull(
-                it.language.getDisplayName(userLocale, CAPITALIZATION),
+        TreePickerDialog(
+            selected = selected,
+            onSelect = { onLanguageSelected(it?.language) },
+            root = languagesTreeRoot,
+            suggestedOptions = SuggestedOptions(
+                suggestedString = { R.string.suggested_languages.str() },
+                allString = { R.string.all_languages.str() },
+                suggestedItems = { node ->
+                    if (node is MixedValueTree.Root<*, *, *>) {
+                        languagesTreeRoot
+                            .allLeafs()
+                            .filter { it.value.language in suggestedLanguages }
+                            .sortedBy { suggestedLanguages.indexOf(it.value.language) }
+                            .toList()
+                    } else {
+                        emptyList()
+                    }
+                },
+            ),
+            itemName = { it.language.getDisplayName(userLocale, CAPITALIZATION) },
+            itemTrailingContent = { Text(it.language.toString()) },
+            itemSupportingName = {
                 when (it) {
                     is LanguageItem.Normal -> it.language.getDisplayName(it.language.locale, CAPITALIZATION)
-                    is LanguageItem.Special -> null
-                },
-                it.language.toString(),
-            )
-        },
-        categoryName = {
-            when (it.value) {
-                is LanguageCategory.Language -> it.value.language.getDisplayName(userLocale, CAPITALIZATION)
-                LanguageCategory.Special -> R.string.language_category_special.str()
-            }
-        },
-        categorySupportingName = {
-            val cnt = it.countLeafs()
-            R.plurals.language_category_subtitle.pluralStr(cnt, cnt)
-        },
-        icon = { Icon(Icons.Default.Language, contentDescription = null) },
-        title = { Text(R.string.select_language.str()) },
-        searchPlaceHolder = { R.string.language_search_placeholder.str() },
-        nullSelectionButtonText = null,
-        onClose = onClose,
-    )
+                    is LanguageItem.Special -> it.description.str()
+                }
+            },
+            itemKey = { it.toString() },
+            itemSearchStrings = {
+                listOfNotNull(
+                    it.language.getDisplayName(userLocale, CAPITALIZATION),
+                    when (it) {
+                        is LanguageItem.Normal -> it.language.getDisplayName(it.language.locale, CAPITALIZATION)
+                        is LanguageItem.Special -> null
+                    },
+                    it.language.toString(),
+                )
+            },
+            categoryName = {
+                when (it.value) {
+                    is LanguageCategory.Language -> it.value.language.getDisplayName(userLocale, CAPITALIZATION)
+                    LanguageCategory.Special -> R.string.language_category_special.str()
+                }
+            },
+            categorySupportingName = {
+                val cnt = it.countLeafs()
+                R.plurals.language_category_subtitle.pluralStr(cnt, cnt)
+            },
+            icon = { Icon(Icons.Default.Language, contentDescription = null) },
+            title = { Text(R.string.select_language.str()) },
+            searchPlaceHolder = { R.string.language_search_placeholder.str() },
+            nullSelectionButtonText = null,
+            onClose = onClose,
+        )
+    }
 }

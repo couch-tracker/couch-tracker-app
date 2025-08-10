@@ -17,7 +17,7 @@ val TmdbCacheDbModule = module {
         AndroidSqliteDriverFactory(schema = TmdbCache.Schema)
     }.bind<SqliteDriverFactory>()
 
-    single {
+    single(createdAtStart = true) {
         val driverFactory = get<SqliteDriverFactory>(named("TmdbCacheDb"))
         TmdbCache(
             driver = driverFactory.getDriver(DbPath.appCache(get(), "tmdb-cache.db")),

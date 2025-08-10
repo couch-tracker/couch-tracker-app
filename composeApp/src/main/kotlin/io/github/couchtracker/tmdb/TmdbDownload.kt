@@ -7,6 +7,7 @@ import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.deferredConstant
 import io.github.couchtracker.utils.ifError
 import io.github.couchtracker.utils.injectApiError
 import io.github.couchtracker.utils.injectCacheMiss
@@ -25,10 +26,12 @@ import kotlin.time.Duration.Companion.hours
 
 private const val LOG_TAG = "TmdbDownload"
 
-private val tmdb = Tmdb3 {
-    tmdbApiKey = TmdbConfig.API_KEY
-    useTimeout = true
-    maxRequestRetries = 3
+private val tmdb = deferredConstant {
+    Tmdb3 {
+        tmdbApiKey = TmdbConfig.API_KEY
+        useTimeout = true
+        maxRequestRetries = 3
+    }
 }
 
 val TMDB_CACHE_EXPIRATION_FAST = 1.hours
@@ -100,7 +103,7 @@ suspend fun <T> tmdbDownloadResult(
     return runApiCatching(logTag) {
         try {
             injectApiError()
-            val client = tmdb
+            val client = tmdb.await()
             // preparing the API call is often CPU intensive
             withContext(Dispatchers.Default) {
                 download(client)

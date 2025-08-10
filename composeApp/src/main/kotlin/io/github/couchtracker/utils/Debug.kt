@@ -1,8 +1,10 @@
 package io.github.couchtracker.utils
 
+import android.util.Log
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTimedValue
 
 private const val INJECT_ERRORS = false
 
@@ -29,4 +31,12 @@ fun <T : Any> T?.injectCacheMiss(): T? {
         }
     }
     return this
+}
+
+inline fun <T> logExecutionTime(logTag: String, message: String, f: () -> T): T {
+    val (value, took) = measureTimedValue {
+        f()
+    }
+    Log.d(logTag, "$message took $took")
+    return value
 }

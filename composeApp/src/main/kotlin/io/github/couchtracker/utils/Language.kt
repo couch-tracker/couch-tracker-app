@@ -52,7 +52,7 @@ sealed interface LanguageItem {
  *
  * Each branch is sorted according to the given [comparator].
  */
-fun Bcp47Language.Companion.languageTree(
+suspend fun Bcp47Language.Companion.languageTree(
     comparator: Comparator<MixedValueTree.NonRoot<LanguageCategory.Language, LanguageItem>>,
 ): MixedValueTree.Root<Unit, LanguageCategory, LanguageItem> {
     return MixedValueTree.Root(
@@ -63,7 +63,7 @@ fun Bcp47Language.Companion.languageTree(
                 children = LanguageItem.Special.entries.map { MixedValueTree.Leaf(it) },
             ),
         ).plus(
-            ULocale.getAvailableLocales()
+            ALL_ULOCALES.await()
                 .map { Bcp47Language(it) }
                 .filter { it !in LanguageItem.Special.LANGUAGES }
                 .groupBy { it.locale.language }

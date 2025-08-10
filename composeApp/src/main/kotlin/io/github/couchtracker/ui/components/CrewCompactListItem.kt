@@ -1,20 +1,21 @@
 package io.github.couchtracker.ui.components
 
-import androidx.compose.foundation.layout.BoxWithConstraints
+import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.model.TmdbAggregateCrew
+import app.moviebase.tmdb.model.TmdbAnyPerson
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbDepartment
 import coil3.compose.AsyncImage
@@ -22,7 +23,7 @@ import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbPerson
 import io.github.couchtracker.tmdb.TmdbPersonId
-import io.github.couchtracker.tmdb.title
+import io.github.couchtracker.tmdb.titleRes
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
@@ -32,6 +33,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
+private val AVATAR_IMAGE_SIZE = 40.dp
+
 @Composable
 fun CrewCompactListItem(crew: CrewCompactListItemModel?) {
     CompactListItem(
@@ -40,33 +43,29 @@ fun CrewCompactListItem(crew: CrewCompactListItemModel?) {
                 shape = CircleShape,
                 shadowElevation = 8.dp,
                 tonalElevation = 8.dp,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(AVATAR_IMAGE_SIZE),
             ) {
-                BoxWithConstraints(contentAlignment = Alignment.Companion.BottomStart) {
-                    if (crew != null) {
-                        AsyncImage(
-                            model = crew.posterModel?.getCoilModel(
-                                this.constraints.maxWidth,
-                                this.constraints.maxHeight,
-                            ),
-                            modifier = Modifier.fillMaxSize(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Companion.Crop,
-                            fallback = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = false),
-                            error = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = true),
-                        )
-                    }
+                val size = LocalDensity.current.run { AVATAR_IMAGE_SIZE.roundToPx() }
+                if (crew != null) {
+                    AsyncImage(
+                        model = crew.posterModel?.getCoilModel(size, size),
+                        modifier = Modifier.fillMaxSize(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        fallback = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = false),
+                        error = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = true),
+                    )
                 }
             }
         },
-        headlineContent = { Text(crew?.name.orEmpty()) },
+        headlineContent = {
+            if (crew?.name != null) {
+                Text(crew.name)
+            }
+        },
         supportingContent = {
-            if (!crew?.departments.isNullOrEmpty()) {
-                Text(
-                    text = formatAndList(crew.departments.map { it.title().string() }),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            if (crew?.departmentsString != null) {
+                Text(text = crew.departmentsString, overflow = TextOverflow.Ellipsis)
             }
         },
     )
@@ -77,42 +76,31 @@ data class CrewCompactListItemModel(
     val name: String,
     val posterModel: ImageModel?,
     val departments: Set<TmdbDepartment>,
+    val departmentsString: String?,
 ) {
     companion object {
-        suspend fun fromTmdbCrew(
-            crew: List<TmdbCrew>,
+        suspend fun <T : TmdbAnyPerson> fromTmdbCrew(
+            context: Context,
+            crew: List<T>,
             language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
+            department: (T) -> TmdbDepartment?,
         ): CrewCompactListItemModel {
             require(crew.isNotEmpty()) { "At least one crew has to be specified." }
             val base = crew.first()
             require(crew.all { it.id == base.id })
             require(crew.all { it.name == base.name })
             require(crew.all { it.profilePath == base.profilePath })
+            val departments = crew.mapNotNull { department(it) }.toSet()
             return CrewCompactListItemModel(
                 person = TmdbPerson(TmdbPersonId(base.id), language),
                 name = base.name,
-                departments = crew.mapNotNull { it.department }.toSet(),
-                posterModel = base.profilePath?.let { path ->
-                    TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                departments = departments,
+                departmentsString = if (departments.isNotEmpty()) {
+                    formatAndList(departments.map { context.getString(it.titleRes()) })
+                } else {
+                    null
                 },
-            )
-        }
-
-        suspend fun fromTmdbAggregateCrew(
-            crew: List<TmdbAggregateCrew>,
-            language: TmdbLanguage,
-            imagePreloadOptions: ImagePreloadOptions,
-        ): CrewCompactListItemModel {
-            require(crew.isNotEmpty()) { "At least one crew has to be specified." }
-            val base = crew.first()
-            require(crew.all { it.id == base.id })
-            require(crew.all { it.name == base.name })
-            require(crew.all { it.profilePath == base.profilePath })
-            return CrewCompactListItemModel(
-                person = TmdbPerson(TmdbPersonId(base.id), language),
-                name = base.name,
-                departments = crew.mapNotNull { it.department }.toSet(),
                 posterModel = base.profilePath?.let { path ->
                     TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
                 },
@@ -123,24 +111,38 @@ data class CrewCompactListItemModel(
 
 @JvmName("TmdbCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
+    context: Context,
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
-            CrewCompactListItemModel.fromTmdbCrew(crew, language, imagePreloadOptions)
+            CrewCompactListItemModel.fromTmdbCrew(
+                context = context,
+                crew = crew,
+                language = language,
+                imagePreloadOptions = imagePreloadOptions,
+                department = { it.department },
+            )
         }
     }.awaitAll()
 }
 
 @JvmName("TmdbAggregateCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
+    context: Context,
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
-            CrewCompactListItemModel.fromTmdbAggregateCrew(crew, language, imagePreloadOptions)
+            CrewCompactListItemModel.fromTmdbCrew(
+                context = context,
+                crew = crew,
+                language = language,
+                imagePreloadOptions = imagePreloadOptions,
+                department = { it.department },
+            )
         }
     }.awaitAll()
 }
