@@ -8,16 +8,16 @@ import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.utils.lazyEagerModule
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
-import org.koin.dsl.module
 
-val TmdbCacheDbModule = module {
+val TmdbCacheDbModule = lazyEagerModule {
     factory(named("TmdbCacheDb")) {
         AndroidSqliteDriverFactory(schema = TmdbCache.Schema)
     }.bind<SqliteDriverFactory>()
 
-    single {
+    single(createdAtStart = true) {
         val driverFactory = get<SqliteDriverFactory>(named("TmdbCacheDb"))
         TmdbCache(
             driver = driverFactory.getDriver(DbPath.appCache(get(), "tmdb-cache.db")),

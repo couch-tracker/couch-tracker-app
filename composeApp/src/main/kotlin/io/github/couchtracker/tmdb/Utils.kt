@@ -9,6 +9,7 @@ import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import coil3.Image
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -16,7 +17,15 @@ import coil3.toBitmap
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.utils.LocaleData
+import io.github.couchtracker.utils.logExecutionTime
+import org.koin.mp.KoinPlatform
 import kotlin.time.Duration.Companion.minutes
+
+private const val LOG_TAG = "Tmdb.Utils"
+
+// See Palette.DEFAULT_RESIZE_BITMAP_AREA
+private const val PALETTE_IMAGE_SIZE = 112
 
 suspend fun TmdbImage?.prepareAndExtractColorScheme(
     ctx: Context,
@@ -25,24 +34,45 @@ suspend fun TmdbImage?.prepareAndExtractColorScheme(
     fallbackColorScheme: ColorScheme,
 ): Pair<ImageRequest?, ColorScheme> {
     if (this != null) {
-        val url = TmdbImageUrlBuilder.build(this, width, height)
-        val imageRequest = ImageRequest.Builder(ctx)
-            // Necessary for palette generation
-            .allowHardware(false)
-            .data(url)
-            .size(width, height)
-            .build()
-        val image = ctx.imageLoader.execute(imageRequest).image
-        if (image != null) {
-            val bitmap = image.toBitmap()
-            bitmap.prepareToDraw()
-            val palette = Palette.Builder(bitmap).generate()
-            return imageRequest to palette.generateColorScheme()
-        } else {
-            return imageRequest to fallbackColorScheme
+        return logExecutionTime(LOG_TAG, "Loading backdrop with color palette") {
+            val smallUrl = TmdbImageUrlBuilder.build(this, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE)
+            val (smallImage, palette) = loadPalette(ctx, smallUrl, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE, fallbackColorScheme)
+            val url = TmdbImageUrlBuilder.build(this, width, height)
+            ImageRequest.Builder(ctx)
+                .placeholder { smallImage }
+                .placeholderMemoryCacheKey(smallUrl)
+                .data(url)
+                .size(width, height)
+                .build() to palette
         }
     } else {
         return null to fallbackColorScheme
+    }
+}
+
+private suspend fun loadPalette(
+    ctx: Context,
+    url: String,
+    width: Int,
+    height: Int,
+    fallbackColorScheme: ColorScheme,
+): Pair<Image?, ColorScheme> {
+    val imageRequest = ImageRequest.Builder(ctx)
+        // Necessary for palette generation
+        .allowHardware(false)
+        .memoryCacheKey(url)
+        .data(url)
+        .size(width, height)
+        .build()
+    val image = ctx.imageLoader.execute(imageRequest).image
+    return if (image != null) {
+        val bitmap = image.toBitmap()
+        logExecutionTime(LOG_TAG, "Generating color palette") {
+            val palette = Palette.Builder(bitmap).resizeBitmapArea(PALETTE_IMAGE_SIZE * PALETTE_IMAGE_SIZE).generate()
+            image to palette.generateColorScheme(fallbackColorScheme)
+        }
+    } else {
+        image to fallbackColorScheme
     }
 }
 
@@ -54,8 +84,9 @@ fun List<TmdbCrew>.directors(): List<TmdbCrew> {
     return filter { it.job == "Director" }
 }
 
-fun TmdbMovieDetail.language(): Bcp47Language {
-    val allLocales = ULocale.getAvailableLocales()
+fun TmdbMovieDetail.language(
+    allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
+): Bcp47Language {
     return originCountry
         .map { ULocale(originalLanguage, it) }
         .firstOrNull { it in allLocales }

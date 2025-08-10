@@ -7,7 +7,17 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import com.ibm.icu.util.ULocale
+import org.koin.core.module.dsl.singleOf
 import java.util.Locale
+
+class LocaleData {
+    @Suppress("ForbiddenMethodCall")
+    val allLocales = ULocale.getAvailableLocales().asList()
+}
+
+val LocaleModule = lazyEagerModule {
+    singleOf(::LocaleData)
+}
 
 val CompositionLocal<Configuration>.currentLocales
     @Composable

@@ -19,12 +19,14 @@ fun BoxScope.Scrim(visible: Boolean, color: Color, onDismissRequest: () -> Unit)
     } else {
         Modifier
     }
-    Canvas(
-        Modifier
-            .matchParentSize()
-            .then(dismissModifier),
-    ) {
-        drawRect(color = color, alpha = alpha)
+    if (alpha > 0) {
+        Canvas(
+            Modifier
+                .matchParentSize()
+                .then(dismissModifier),
+        ) {
+            drawRect(color = color, alpha = alpha)
+        }
     }
 }
 

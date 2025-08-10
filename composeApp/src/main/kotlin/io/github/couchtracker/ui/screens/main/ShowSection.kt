@@ -23,6 +23,7 @@ import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.tmdbPager
+import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
@@ -79,8 +80,8 @@ private fun ShowListComposable(
     val lazyItems = tabState.showFlow.collectAsLazyPagingItems()
     val navController = LocalNavController.current
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { show ->
-        ShowPortrait(Modifier.fillMaxWidth(), show) {
-            navController.navigateToShow(it.show)
+        ShowPortrait(Modifier.fillMaxWidth(), show?.second) {
+            navController.navigateToShow(it.show, show?.first)
         }
     }
 }
@@ -103,8 +104,8 @@ class ShowExploreTabState(viewModelScope: CoroutineScope) {
             trending.getTrendingShows(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
         },
         mapper = { show ->
-            show.toShowPortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
+            show.toBaseShow(TMDB_LANGUAGE) to show.toShowPortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
         },
     )
-    val showFlow = pager.flow.removeDuplicates { it.show.id.value }.cachedIn(viewModelScope)
+    val showFlow = pager.flow.removeDuplicates { it.first.id.id }.cachedIn(viewModelScope)
 }

@@ -5,11 +5,11 @@ import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.common.SqliteDriverFactory
 import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.URIColumnAdapter
+import io.github.couchtracker.utils.lazyEagerModule
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
-import org.koin.dsl.module
 
-val AppDataModule = module {
+val AppDataModule = lazyEagerModule {
     single(named("AppDb")) {
         AndroidSqliteDriverFactory(schema = AppData.Schema)
     }.bind<SqliteDriverFactory>()

@@ -29,6 +29,7 @@ kotlin {
         allWarningsAsErrors = true
         freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
     }
 
     dependencies {
@@ -73,6 +74,7 @@ kotlin {
         implementation(project.dependencies.platform(libs.koin.bom))
         implementation(libs.koin.androidx.compose)
         implementation(libs.koin.compose)
+        implementation(libs.koin.coroutines)
         implementation(libs.koin.core)
 
         // Coil (image library)

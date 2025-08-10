@@ -18,7 +18,7 @@ sealed interface ImageModel {
     fun getCoilModel(width: Int, height: Int): Any?
 
     data class TmdbImage(override val aspectRatio: Float?, val tmdbImage: app.moviebase.tmdb.image.TmdbImage) : ImageModel {
-        override fun getCoilModel(width: Int, height: Int): Any? {
+        override fun getCoilModel(width: Int, height: Int): Any {
             return TmdbImageUrlBuilder.build(tmdbImage, width, height)
         }
     }
@@ -28,7 +28,7 @@ sealed interface ImageModel {
         val tmdbImage: app.moviebase.tmdb.model.TmdbFileImage,
         val type: TmdbImageType,
     ) : ImageModel {
-        override fun getCoilModel(width: Int, height: Int): Any? {
+        override fun getCoilModel(width: Int, height: Int): Any {
             return TmdbImageUrlBuilder.build(
                 imagePath = tmdbImage.filePath,
                 type = type,
@@ -77,7 +77,7 @@ suspend fun TmdbFileImage.toImageModel(
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): ImageModel {
     return prepareImage(
-        baseModel = ImageModel.TmdbFileImage(null, this, type),
+        baseModel = ImageModel.TmdbFileImage(aspectRation, this, type),
         options = imagePreloadOptions,
     )
 }

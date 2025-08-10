@@ -71,6 +71,8 @@ import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.tmdbPager
+import io.github.couchtracker.tmdb.toBaseMovie
+import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.tmdb.toInternalTmdbMovie
 import io.github.couchtracker.tmdb.toInternalTmdbShow
 import io.github.couchtracker.ui.ColorSchemes
@@ -342,7 +344,7 @@ private fun SearchResult(item: SearchResultItem?) {
                     aspectRatio = PortraitComposableDefaults.POSTER_ASPECT_RATIO,
                 ),
             ) {
-                BoxWithConstraints(contentAlignment = Alignment.Companion.BottomStart) {
+                BoxWithConstraints(contentAlignment = Alignment.BottomStart) {
                     AsyncImage(
                         model = item?.posterModel?.getCoilModel(
                             this.constraints.maxWidth,
@@ -430,9 +432,9 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
             type = SearchableMediaType.MOVIE,
             tags = listOfNotNull(
                 releaseDate?.year?.toString(),
-                rating()?.format(),
+                rating()?.formatted,
             ),
-            navigate = { it.navigateToMovie(toInternalTmdbMovie(TMDB_LANGUAGE)) },
+            navigate = { it.navigateToMovie(toInternalTmdbMovie(TMDB_LANGUAGE), toBaseMovie(TMDB_LANGUAGE)) },
         )
 
         is TmdbPerson -> SearchResultItem(
@@ -448,7 +450,7 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
             title = name,
             type = SearchableMediaType.SHOW,
             tags = listOfNotNull(firstAirDate?.year?.toString()),
-            navigate = { it.navigateToShow(toInternalTmdbShow(TMDB_LANGUAGE)) },
+            navigate = { it.navigateToShow(toInternalTmdbShow(TMDB_LANGUAGE), toBaseShow(TMDB_LANGUAGE)) },
         )
     }
 }
