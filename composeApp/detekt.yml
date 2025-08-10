@@ -102,6 +102,8 @@ style:
       - value: com.ibm.icu.util.ULocale.getDisplayName
         reason: ULocale.getDisplayName doesn't allow to select additional options. To format a language, use Bcp47Language.getDisplayName()
           If you actually need to format a locale (and not a language), use LocaleDisplayNames.getInstance()s with the options you need.
+      - value: com.ibm.icu.util.ULocale.getAvailableLocales
+        reason: ULocale.getAvailableLocales can take a significant amount of time to load. Use the ALL_ULOCALES constant.
   MagicNumber:
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true

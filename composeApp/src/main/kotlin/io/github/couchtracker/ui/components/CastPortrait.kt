@@ -1,5 +1,6 @@
 package io.github.couchtracker.ui.components
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +23,11 @@ import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
-import io.github.couchtracker.utils.pluralStr
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CastPortrait(
@@ -60,9 +62,7 @@ fun CastPortrait(
                     add(null)
                 } else {
                     addAll(person.roles)
-                    person.episodesCount?.let { episodeCount ->
-                        add(R.plurals.n_episodes.pluralStr(episodeCount, episodeCount))
-                    }
+                    person.episodesCountString?.let { add(it) }
                 }
             }
             subtitleItems.forEach { subtitle ->
@@ -85,6 +85,7 @@ data class CastPortraitModel(
     val posterModel: ImageModel?,
     val roles: List<String>,
     val episodesCount: Int? = null,
+    val episodesCountString: String? = null,
 ) {
     companion object {
 
@@ -104,19 +105,27 @@ data class CastPortraitModel(
         }
 
         suspend fun fromTmdbAggregateCast(
+            context: Context,
             cast: TmdbAggregateCast,
             language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
         ): CastPortraitModel {
-            return CastPortraitModel(
-                person = TmdbPerson(TmdbPersonId(cast.id), language),
-                name = cast.name,
-                roles = cast.roles.sortedByDescending { it.episodeCount }.map { it.character },
-                posterModel = cast.profilePath?.let { path ->
-                    TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
-                },
-                episodesCount = cast.totalEpisodeCount,
-            )
+            return withContext(Dispatchers.Default) {
+                CastPortraitModel(
+                    person = TmdbPerson(TmdbPersonId(cast.id), language),
+                    name = cast.name,
+                    roles = cast.roles.sortedByDescending { it.episodeCount }.map { it.character },
+                    posterModel = cast.profilePath?.let { path ->
+                        TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                    },
+                    episodesCount = cast.totalEpisodeCount,
+                    episodesCountString = context.resources.getQuantityString(
+                        R.plurals.n_episodes,
+                        cast.totalEpisodeCount,
+                        cast.totalEpisodeCount,
+                    ),
+                )
+            }
         }
     }
 }
@@ -135,12 +144,13 @@ suspend fun List<TmdbCast>.toCastPortraitModel(
 
 @JvmName("TmdbAggregateCast_toCastPortraitModel")
 suspend fun List<TmdbAggregateCast>.toCastPortraitModel(
+    context: Context,
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CastPortraitModel> = coroutineScope {
     map {
         async {
-            CastPortraitModel.fromTmdbAggregateCast(it, language, imagePreloadOptions)
+            CastPortraitModel.fromTmdbAggregateCast(context, it, language, imagePreloadOptions)
         }
     }.awaitAll()
 }

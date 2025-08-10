@@ -5,9 +5,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 
 /**
  * Represents a value that can be in error.
@@ -72,9 +74,9 @@ inline fun <T : R, E, R> Result<T, E>.ifError(block: (E) -> R): R {
 @Composable
 fun <T, E> Deferred<Result<T, E>>.awaitAsLoadable(): Loadable<T, E> {
     var ret: Loadable<T, E> by remember(this) {
-        val initialValue = try {
+        val initialValue = if (this.isCompleted) {
             this.getCompleted()
-        } catch (_: IllegalStateException) {
+        } else {
             Loadable.Loading
         }
         mutableStateOf(initialValue)
@@ -83,4 +85,14 @@ fun <T, E> Deferred<Result<T, E>>.awaitAsLoadable(): Loadable<T, E> {
         ret = await()
     }
     return ret
+}
+
+@Composable
+fun <T> rememberComputationResult(key: Any = Unit, compute: suspend () -> T): Loadable<T, Nothing> {
+    val scope = rememberCoroutineScope()
+    return remember(key) {
+        scope.async {
+            Result.Value(compute())
+        }
+    }.awaitAsLoadable()
 }

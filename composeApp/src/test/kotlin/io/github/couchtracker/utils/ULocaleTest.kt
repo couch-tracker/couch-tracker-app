@@ -22,7 +22,7 @@ class ULocaleTest : FunSpec(
             context("doesn't break any existing locale") {
                 withData(
                     nameFn = { it.toString() },
-                    ULocale.getAvailableLocales().filter { it.extensionKeys.isEmpty() }.toList(),
+                    LocaleData().allLocales.filter { it.extensionKeys.isEmpty() }.toList(),
                 ) { locale ->
                     locale.stripExtensions() shouldBe locale
                 }

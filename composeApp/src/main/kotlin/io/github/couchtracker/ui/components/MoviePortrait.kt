@@ -1,5 +1,6 @@
 package io.github.couchtracker.ui.components
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -17,7 +18,8 @@ import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
-import io.github.couchtracker.utils.str
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import app.moviebase.tmdb.model.TmdbMovie as TmdbApiTmdbMovie
 
 @Composable
@@ -46,13 +48,8 @@ fun MoviePortrait(
             }
         },
         label = {
-            val label = when {
-                movie == null -> ""
-                movie.year != null -> R.string.item_tile_with_year.str(movie.title, movie.year)
-                else -> movie.title
-            }
             Text(
-                label,
+                movie?.titleWithYear.orEmpty(),
                 textAlign = TextAlign.Center,
                 minLines = if (movie == null) 2 else 1,
             )
@@ -64,19 +61,29 @@ data class MoviePortraitModel(
     val movie: TmdbMovie,
     val title: String,
     val year: Int?,
+    val titleWithYear: String,
     val posterModel: ImageModel?,
 ) {
     companion object {
 
         suspend fun fromApiTmdbMovie(
+            context: Context,
             movie: TmdbMovie,
             details: TmdbApiTmdbMovie,
             imagePreloadOptions: ImagePreloadOptions,
         ): MoviePortraitModel {
+            val year = details.releaseDate?.year
             return MoviePortraitModel(
                 movie = movie,
                 title = details.title,
-                year = details.releaseDate?.year,
+                year = year,
+                titleWithYear = if (year == null) {
+                    details.title
+                } else {
+                    withContext(Dispatchers.Default) {
+                        context.getString(R.string.item_tile_with_year, details.title, year)
+                    }
+                },
                 posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
             )
         }
@@ -84,8 +91,14 @@ data class MoviePortraitModel(
 }
 
 suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(
+    context: Context,
     language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions,
 ): MoviePortraitModel {
-    return MoviePortraitModel.fromApiTmdbMovie(toInternalTmdbMovie(language), this, imagePreloadOptions)
+    return MoviePortraitModel.fromApiTmdbMovie(
+        context = context,
+        movie = toInternalTmdbMovie(language),
+        details = this,
+        imagePreloadOptions = imagePreloadOptions,
+    )
 }

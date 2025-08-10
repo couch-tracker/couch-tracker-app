@@ -25,6 +25,14 @@ inline fun <I, O, E> Loadable<I, E>.flatMap(f: (I) -> Loadable<O, E>): Loadable<
     is Result.Value -> f(value)
 }
 
+fun <T> Loadable<T, *>.valueOrNull(): T? {
+    return when (this) {
+        is Result.Value -> value
+        is Result.Error -> null
+        Loadable.Loading -> null
+    }
+}
+
 /**
  * Applies [f] to [Result.Value.value].
  * Otherwise, [Loadable.Loading] and [Result.Error] are returned without executing [f].
