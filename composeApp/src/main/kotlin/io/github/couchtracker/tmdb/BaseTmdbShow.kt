@@ -8,7 +8,7 @@ import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
 
 /** Contains show information that can be obtained from the result of any TMDB API call */
 data class BaseTmdbShow(
-    val id: TmdbShow,
+    val key: TmdbBaseCacheKey<TmdbShowId>,
     val name: String,
     val overview: String,
     val poster: TmdbImage?,
@@ -24,7 +24,7 @@ data class BaseTmdbShow(
 
 fun ApiTmdbShow.toBaseShow(language: TmdbLanguage): BaseTmdbShow {
     return BaseTmdbShow(
-        id = toInternalTmdbShow(language),
+        key = TmdbBaseCacheKey(tmdbShowId, language),
         name = name,
         overview = overview,
         poster = posterImage,
@@ -41,7 +41,7 @@ fun ApiTmdbShow.toBaseShow(language: TmdbLanguage): BaseTmdbShow {
 
 fun TmdbShowDetail.toBaseShow(language: TmdbLanguage): BaseTmdbShow {
     return BaseTmdbShow(
-        id = toInternalTmdbShow(language),
+        key = TmdbBaseCacheKey(tmdbShowId, language),
         name = name,
         overview = overview,
         poster = posterImage,

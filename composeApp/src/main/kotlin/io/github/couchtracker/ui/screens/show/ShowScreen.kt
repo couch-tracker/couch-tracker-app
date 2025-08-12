@@ -34,10 +34,11 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 import io.github.couchtracker.db.profile.show.UnknownExternalShowId
+import io.github.couchtracker.settings.LocalAppSettingsContext
 import io.github.couchtracker.tmdb.BaseTmdbShow
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbMemoryCache
+import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShow
+import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -59,25 +60,24 @@ import org.koin.mp.KoinPlatform
 private const val LOG_TAG = "ShowScreen"
 
 @Serializable
-data class ShowScreen(val showId: String, val language: String) : Screen() {
+data class ShowScreen(val showId: String) : Screen() {
     @Composable
     override fun content() {
-        val tmdbShow = when (val showId = ExternalShowId.parse(this@ShowScreen.showId)) {
+        when (val showId = ExternalShowId.parse(this@ShowScreen.showId)) {
             is TmdbExternalShowId -> {
-                TmdbShow(showId.id, TmdbLanguage.parse(language))
+                val tmdbLanguages = LocalAppSettingsContext.current.get { Tmdb.Languages }.current
+                Content(TmdbShow(showId.id, tmdbLanguages))
             }
-
             is UnknownExternalShowId -> TODO()
         }
-        Content(tmdbShow)
     }
 }
 
-fun NavController.navigateToShow(show: TmdbShow, preloadData: BaseTmdbShow?) {
+fun NavController.navigateToShow(id: TmdbShowId, preloadData: BaseTmdbShow?) {
     if (preloadData != null) {
-        KoinPlatform.getKoin().get<TmdbMemoryCache>().registerItem(preloadData)
+        KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().registerItem(preloadData)
     }
-    navigate(ShowScreen(show.id.toExternalId().serialize(), show.language.serialize()))
+    navigate(ShowScreen(id.toExternalId().serialize()))
 }
 
 private enum class ShowScreenTab {

@@ -13,7 +13,7 @@ import coil3.request.ImageRequest
 import io.github.couchtracker.R
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbMemoryCache
+import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -75,10 +75,10 @@ suspend fun CoroutineScope.loadShow(
     width: Int,
     height: Int,
     tmdbCache: TmdbCache = KoinPlatform.getKoin().get(),
-    tmdbMemoryCache: TmdbMemoryCache = KoinPlatform.getKoin().get(),
+    tmdbBaseMemoryCache: TmdbBaseMemoryCache = KoinPlatform.getKoin().get(),
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<ShowScreenModel> {
-    val baseDetailsMemory = tmdbMemoryCache.getShow(show)
+    val baseDetailsMemory = tmdbBaseMemoryCache.getShow(show)
     val details = CompletableApiResult<TmdbShowDetail>()
     val credits = CompletableApiResult<TmdbAggregateCredits>()
     val images = CompletableApiResult<TmdbImages>()
@@ -96,8 +96,8 @@ suspend fun CoroutineScope.loadShow(
     val creditsModel = async(coroutineContext) {
         credits.await().map { credits ->
             ShowScreenModel.Credits(
-                cast = credits.cast.toCastPortraitModel(ctx, show.language),
-                crew = credits.crew.toCrewCompactListItemModel(ctx, show.language),
+                cast = credits.cast.toCastPortraitModel(ctx),
+                crew = credits.crew.toCrewCompactListItemModel(ctx),
             )
         }
     }
@@ -121,7 +121,7 @@ suspend fun CoroutineScope.loadShow(
     } else {
         Log.w("Cache miss", "Show $show not found in cache")
         details.await().map { details ->
-            details.toBaseShow(show.language)
+            details.toBaseShow(show.languages.apiLanguage)
         }.ifError { return Result.Error(it) }
     }
     val backdrop = async(coroutineContext) {

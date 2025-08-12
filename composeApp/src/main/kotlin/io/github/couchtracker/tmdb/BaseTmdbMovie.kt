@@ -8,7 +8,7 @@ import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 
 /** Contains movie information that can be obtained from the result of any TMDB API call */
 data class BaseTmdbMovie(
-    val id: TmdbMovie,
+    val key: TmdbBaseCacheKey<TmdbMovieId>,
     val title: String,
     val overview: String,
     val poster: TmdbImage?,
@@ -23,7 +23,7 @@ data class BaseTmdbMovie(
 
 fun ApiTmdbMovie.toBaseMovie(language: TmdbLanguage): BaseTmdbMovie {
     return BaseTmdbMovie(
-        id = toInternalTmdbMovie(language),
+        key = TmdbBaseCacheKey(tmdbMovieId, language),
         title = title,
         overview = overview,
         poster = posterImage,
@@ -39,7 +39,7 @@ fun ApiTmdbMovie.toBaseMovie(language: TmdbLanguage): BaseTmdbMovie {
 
 fun TmdbMovieDetail.toBaseMovie(language: TmdbLanguage): BaseTmdbMovie {
     return BaseTmdbMovie(
-        id = toInternalTmdbMovie(language),
+        key = TmdbBaseCacheKey(tmdbMovieId, language),
         title = title,
         overview = overview,
         poster = posterImage,

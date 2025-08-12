@@ -41,7 +41,7 @@ data class TmdbLanguage(
     override fun toString() = serialize()
 
     companion object {
-        val ENGLISH = TmdbLanguage("en", null)
+        private val ENGLISH = TmdbLanguage("en", null)
 
         /**
          * Language to use if all else fails

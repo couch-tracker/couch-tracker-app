@@ -18,6 +18,11 @@ value class TmdbLanguages(val languages: List<TmdbLanguage>) {
 
     val size get() = languages.size
 
+    /**
+     * Language to use when calling an API that supports only a single language as input. The first language is returned.
+     */
+    val apiLanguage get() = languages.first()
+
     fun tryPlus(another: TmdbLanguage) = TmdbLanguages((languages + another).distinct())
 
     fun tryMinus(another: TmdbLanguage) = if (size > 1) TmdbLanguages(languages - another) else this

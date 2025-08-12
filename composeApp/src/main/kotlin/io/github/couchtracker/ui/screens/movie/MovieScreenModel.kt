@@ -14,7 +14,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbMemoryCache
+import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.directors
@@ -80,10 +80,10 @@ suspend fun CoroutineScope.loadMovie(
     width: Int,
     height: Int,
     tmdbCache: TmdbCache = KoinPlatform.getKoin().get(),
-    tmdbMemoryCache: TmdbMemoryCache = KoinPlatform.getKoin().get(),
+    tmdbBaseMemoryCache: TmdbBaseMemoryCache = KoinPlatform.getKoin().get(),
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<MovieScreenModel> {
-    val baseDetailsMemory = tmdbMemoryCache.getMovie(movie)
+    val baseDetailsMemory = tmdbBaseMemoryCache.getMovie(movie)
     val details = CompletableApiResult<TmdbMovieDetail>()
     val credits = CompletableApiResult<TmdbCredits>()
     val images = CompletableApiResult<TmdbImages>()
@@ -103,8 +103,8 @@ suspend fun CoroutineScope.loadMovie(
             val directors = credits.crew.directors()
             MovieScreenModel.Credits(
                 directors = directors,
-                cast = credits.cast.toCastPortraitModel(movie.language),
-                crew = credits.crew.toCrewCompactListItemModel(ctx, movie.language),
+                cast = credits.cast.toCastPortraitModel(),
+                crew = credits.crew.toCrewCompactListItemModel(ctx),
                 directorsString = if (directors.isEmpty()) {
                     null
                 } else {
@@ -128,7 +128,7 @@ suspend fun CoroutineScope.loadMovie(
     } else {
         Log.w("Cache miss", "Movie $movie not found in cache")
         details.await().map { details ->
-            details.toBaseMovie(movie.language)
+            details.toBaseMovie(movie.languages.apiLanguage)
         }.ifError { return Result.Error(it) }
     }
     val backdrop = async(coroutineContext) {

@@ -10,9 +10,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.AsyncImage
 import io.github.couchtracker.R
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbMovie
-import io.github.couchtracker.tmdb.toInternalTmdbMovie
+import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
@@ -58,7 +57,7 @@ fun MoviePortrait(
 }
 
 data class MoviePortraitModel(
-    val movie: TmdbMovie,
+    val id: TmdbMovieId,
     val title: String,
     val year: Int?,
     val titleWithYear: String,
@@ -68,13 +67,13 @@ data class MoviePortraitModel(
 
         suspend fun fromApiTmdbMovie(
             context: Context,
-            movie: TmdbMovie,
+            id: TmdbMovieId,
             details: TmdbApiTmdbMovie,
             imagePreloadOptions: ImagePreloadOptions,
         ): MoviePortraitModel {
             val year = details.releaseDate?.year
             return MoviePortraitModel(
-                movie = movie,
+                id = id,
                 title = details.title,
                 year = year,
                 titleWithYear = if (year == null) {
@@ -92,12 +91,11 @@ data class MoviePortraitModel(
 
 suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(
     context: Context,
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions,
 ): MoviePortraitModel {
     return MoviePortraitModel.fromApiTmdbMovie(
         context = context,
-        movie = toInternalTmdbMovie(language),
+        id = tmdbMovieId,
         details = this,
         imagePreloadOptions = imagePreloadOptions,
     )
