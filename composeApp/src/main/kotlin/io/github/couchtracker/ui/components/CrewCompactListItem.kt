@@ -20,8 +20,6 @@ import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbDepartment
 import coil3.compose.AsyncImage
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbPerson
 import io.github.couchtracker.tmdb.TmdbPersonId
 import io.github.couchtracker.tmdb.title
 import io.github.couchtracker.ui.ImageModel
@@ -74,7 +72,7 @@ fun CrewCompactListItem(crew: CrewCompactListItemModel?) {
 }
 
 data class CrewCompactListItemModel(
-    val person: TmdbPerson,
+    val id: TmdbPersonId,
     val name: String,
     val posterModel: ImageModel?,
     val departments: Set<TmdbDepartment>,
@@ -84,7 +82,6 @@ data class CrewCompactListItemModel(
         suspend fun <T : TmdbAnyPerson> fromTmdbCrew(
             context: Context,
             crew: List<T>,
-            language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
             department: (T) -> TmdbDepartment?,
         ): CrewCompactListItemModel {
@@ -96,7 +93,7 @@ data class CrewCompactListItemModel(
                 require(crew.all { it.profilePath == base.profilePath })
                 val departments = crew.mapNotNull { department(it) }.toSet()
                 CrewCompactListItemModel(
-                    person = TmdbPerson(TmdbPersonId(base.id), language),
+                    id = TmdbPersonId(base.id),
                     name = base.name,
                     departments = departments,
                     departmentsString = if (departments.isNotEmpty()) {
@@ -116,7 +113,6 @@ data class CrewCompactListItemModel(
 @JvmName("TmdbCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
     context: Context,
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
@@ -124,7 +120,6 @@ suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
             CrewCompactListItemModel.fromTmdbCrew(
                 context = context,
                 crew = crew,
-                language = language,
                 imagePreloadOptions = imagePreloadOptions,
                 department = { it.department },
             )
@@ -135,7 +130,6 @@ suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
 @JvmName("TmdbAggregateCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
     context: Context,
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
@@ -143,7 +137,6 @@ suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
             CrewCompactListItemModel.fromTmdbCrew(
                 context = context,
                 crew = crew,
-                language = language,
                 imagePreloadOptions = imagePreloadOptions,
                 department = { it.department },
             )

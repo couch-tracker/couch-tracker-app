@@ -34,7 +34,6 @@ import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.WatchableExternalId
-import io.github.couchtracker.db.profile.asWatchable
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
@@ -42,7 +41,7 @@ import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.settings.LocalAppSettingsContext
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
@@ -59,16 +58,15 @@ import org.koin.compose.koinInject
 import kotlin.time.Duration
 
 @Serializable
-data class WatchedItemsScreen(val itemId: String, val language: String?) : Screen() {
+data class WatchedItemsScreen(val itemId: String) : Screen() {
     @Composable
     override fun content() {
-        val language = language?.let { TmdbLanguage.parse(it) } ?: TmdbLanguage.ENGLISH
         when (val itemId = WatchableExternalId.parse(itemId)) {
             is WatchableExternalId.Movie -> when (itemId.movieId) {
-                is TmdbExternalMovieId -> Content(
-                    movie = TmdbMovie(itemId.movieId.id, language),
-                )
-
+                is TmdbExternalMovieId -> {
+                    val tmdbLanguages = LocalAppSettingsContext.current.get { Tmdb.Languages }.current
+                    Content(movie = TmdbMovie(itemId.movieId.id, tmdbLanguages))
+                }
                 is UnknownExternalMovieId -> TODO()
             }
 
@@ -77,8 +75,8 @@ data class WatchedItemsScreen(val itemId: String, val language: String?) : Scree
     }
 }
 
-fun NavController.navigateToWatchedItems(movie: TmdbMovie) {
-    navigate(WatchedItemsScreen(movie.id.toExternalId().asWatchable().serialize(), movie.language.serialize()))
+fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
+    navigate(WatchedItemsScreen(id.serialize()))
 }
 
 @Composable

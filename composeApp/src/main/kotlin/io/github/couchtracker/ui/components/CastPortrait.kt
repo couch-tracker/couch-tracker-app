@@ -15,8 +15,6 @@ import app.moviebase.tmdb.model.TmdbAggregateCast
 import app.moviebase.tmdb.model.TmdbCast
 import coil3.compose.AsyncImage
 import io.github.couchtracker.R
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbPerson
 import io.github.couchtracker.tmdb.TmdbPersonId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
@@ -80,7 +78,7 @@ fun CastPortrait(
 }
 
 data class CastPortraitModel(
-    val person: TmdbPerson,
+    val id: TmdbPersonId,
     val name: String,
     val posterModel: ImageModel?,
     val roles: List<String>,
@@ -91,11 +89,10 @@ data class CastPortraitModel(
 
         suspend fun fromTmdbCast(
             cast: TmdbCast,
-            language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
         ): CastPortraitModel {
             return CastPortraitModel(
-                person = TmdbPerson(TmdbPersonId(cast.id), language),
+                id = TmdbPersonId(cast.id),
                 name = cast.name,
                 roles = listOf(cast.character),
                 posterModel = cast.profilePath?.let { path ->
@@ -107,12 +104,11 @@ data class CastPortraitModel(
         suspend fun fromTmdbAggregateCast(
             context: Context,
             cast: TmdbAggregateCast,
-            language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
         ): CastPortraitModel {
             return withContext(Dispatchers.Default) {
                 CastPortraitModel(
-                    person = TmdbPerson(TmdbPersonId(cast.id), language),
+                    id = TmdbPersonId(cast.id),
                     name = cast.name,
                     roles = cast.roles.sortedByDescending { it.episodeCount }.map { it.character },
                     posterModel = cast.profilePath?.let { path ->
@@ -132,12 +128,11 @@ data class CastPortraitModel(
 
 @JvmName("TmdbCast_toCastPortraitModel")
 suspend fun List<TmdbCast>.toCastPortraitModel(
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CastPortraitModel> = coroutineScope {
     map {
         async {
-            CastPortraitModel.fromTmdbCast(it, language, imagePreloadOptions)
+            CastPortraitModel.fromTmdbCast(it, imagePreloadOptions)
         }
     }.awaitAll()
 }
@@ -145,12 +140,11 @@ suspend fun List<TmdbCast>.toCastPortraitModel(
 @JvmName("TmdbAggregateCast_toCastPortraitModel")
 suspend fun List<TmdbAggregateCast>.toCastPortraitModel(
     context: Context,
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CastPortraitModel> = coroutineScope {
     map {
         async {
-            CastPortraitModel.fromTmdbAggregateCast(context, it, language, imagePreloadOptions)
+            CastPortraitModel.fromTmdbAggregateCast(context, it, imagePreloadOptions)
         }
     }.awaitAll()
 }

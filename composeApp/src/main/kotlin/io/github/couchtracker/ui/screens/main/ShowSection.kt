@@ -22,6 +22,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ImagePreloadOptions
@@ -34,6 +35,10 @@ import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 class ShowSectionViewModel : ViewModel() {
     val exploreState = ShowExploreTabState(viewModelScope)
@@ -81,7 +86,7 @@ private fun ShowListComposable(
     val navController = LocalNavController.current
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { show ->
         ShowPortrait(Modifier.fillMaxWidth(), show?.second) {
-            navController.navigateToShow(it.show, show?.first)
+            navController.navigateToShow(it.id, show?.first)
         }
     }
 }
@@ -99,13 +104,20 @@ private enum class ShowTab(
 
 class ShowExploreTabState(viewModelScope: CoroutineScope) {
 
-    private val pager = tmdbPager(
-        downloader = { page ->
-            trending.getTrendingShows(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
-        },
-        mapper = { show ->
-            show.toBaseShow(TMDB_LANGUAGE) to show.toShowPortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
-        },
-    )
-    val showFlow = pager.flow.removeDuplicates { it.first.id.id }.cachedIn(viewModelScope)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val showFlow = AppSettings.Tmdb.Languages.current
+        .map { it.apiLanguage }
+        .distinctUntilChanged()
+        .flatMapLatest { tmdbLanguage ->
+            tmdbPager(
+                downloader = { page ->
+                    trending.getTrendingShows(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
+                },
+                mapper = { show ->
+                    show.toBaseShow(tmdbLanguage) to show.toShowPortraitModels(ImagePreloadOptions.DoNotPreload)
+                },
+            ).flow
+        }
+        .removeDuplicates { it.second.id }
+        .cachedIn(viewModelScope)
 }

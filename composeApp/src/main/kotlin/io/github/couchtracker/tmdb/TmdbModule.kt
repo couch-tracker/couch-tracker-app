@@ -12,6 +12,6 @@ val TmdbModule = lazyEagerModule {
         }
     }
     single {
-        TmdbMemoryCache()
+        TmdbBaseMemoryCache()
     }
 }

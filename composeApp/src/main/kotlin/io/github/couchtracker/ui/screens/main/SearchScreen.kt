@@ -69,12 +69,14 @@ import app.moviebase.tmdb.model.TmdbShow
 import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.settings.AppSettings
+import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.rating
+import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.tmdb.tmdbPager
+import io.github.couchtracker.tmdb.tmdbShowId
 import io.github.couchtracker.tmdb.toBaseMovie
 import io.github.couchtracker.tmdb.toBaseShow
-import io.github.couchtracker.tmdb.toInternalTmdbMovie
-import io.github.couchtracker.tmdb.toInternalTmdbShow
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
@@ -94,10 +96,10 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -228,6 +230,7 @@ private data class SearchParameters(
 
 private data class SearchInstance(
     val searchParameters: SearchParameters,
+    val tmdbLanguage: TmdbLanguage,
     val lazyGridState: LazyGridState,
 )
 
@@ -247,16 +250,17 @@ private class SearchViewModel(initialMediaFilters: SearchMediaFilters) : ViewMod
     val currentSearchInstance = snapshotFlow { searchParameters }
         .debounce { if (it.incomplete) 300.milliseconds else 0.milliseconds }
         .distinctUntilChangedBy { it.query to it.filters }
-        .mapLatest {
+        .combine(AppSettings.Tmdb.Languages.current) { searchParameters, tmdbLanguages ->
             SearchInstance(
-                searchParameters = it,
+                searchParameters = searchParameters,
+                tmdbLanguage = tmdbLanguages.apiLanguage,
                 lazyGridState = LazyGridState(0, 0),
             )
         }
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val searchResults: Flow<PagingData<SearchResultItem>> = currentSearchInstance
-        .flatMapLatest { (searchParameters) ->
+        .flatMapLatest { (searchParameters, tmdbLanguage) ->
             val (query, filters) = searchParameters
 
             val pager = if (searchParameters.isEmpty()) {
@@ -265,9 +269,9 @@ private class SearchViewModel(initialMediaFilters: SearchMediaFilters) : ViewMod
                 tmdbPager(
                     downloader = { page ->
                         when (filters.singleOrNull()) {
-                            SearchableMediaType.MOVIE -> search.findMovies(query, page = page)
-                            SearchableMediaType.SHOW -> search.findShows(query, page = page)
-                            SearchableMediaType.PERSON -> search.findPeople(query, page = page)
+                            SearchableMediaType.MOVIE -> search.findMovies(query, page = page, language = tmdbLanguage.apiParameter)
+                            SearchableMediaType.SHOW -> search.findShows(query, page = page, language = tmdbLanguage.apiParameter)
+                            SearchableMediaType.PERSON -> search.findPeople(query, page = page, language = tmdbLanguage.apiParameter)
                             null -> search.findMulti(query, page = page)
                         }
                     },
@@ -275,7 +279,7 @@ private class SearchViewModel(initialMediaFilters: SearchMediaFilters) : ViewMod
                         if (it.type !in filters) {
                             null
                         } else {
-                            it.toModel()
+                            it.toModel(tmdbLanguage)
                         }
                     },
                 )
@@ -422,7 +426,7 @@ private val TmdbSearchableListItem.type
         is TmdbCollection -> null
     }
 
-private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
+private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): SearchResultItem? {
     return when (this) {
         is TmdbCollection -> null
 
@@ -434,7 +438,7 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
                 releaseDate?.year?.toString(),
                 rating()?.formatted,
             ),
-            navigate = { it.navigateToMovie(toInternalTmdbMovie(TMDB_LANGUAGE), toBaseMovie(TMDB_LANGUAGE)) },
+            navigate = { it.navigateToMovie(tmdbMovieId, toBaseMovie(language)) },
         )
 
         is TmdbPerson -> SearchResultItem(
@@ -450,7 +454,7 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
             title = name,
             type = SearchableMediaType.SHOW,
             tags = listOfNotNull(firstAirDate?.year?.toString()),
-            navigate = { it.navigateToShow(toInternalTmdbShow(TMDB_LANGUAGE), toBaseShow(TMDB_LANGUAGE)) },
+            navigate = { it.navigateToShow(tmdbShowId, toBaseShow(language)) },
         )
     }
 }

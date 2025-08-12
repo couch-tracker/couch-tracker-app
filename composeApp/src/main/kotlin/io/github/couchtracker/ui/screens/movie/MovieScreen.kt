@@ -50,10 +50,11 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
+import io.github.couchtracker.settings.LocalAppSettingsContext
 import io.github.couchtracker.tmdb.BaseTmdbMovie
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbMemoryCache
+import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
+import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -78,25 +79,24 @@ import org.koin.mp.KoinPlatform
 private const val LOG_TAG = "MovieScreen"
 
 @Serializable
-data class MovieScreen(val movieId: String, val language: String) : Screen() {
+data class MovieScreen(val movieId: String) : Screen() {
     @Composable
     override fun content() {
-        val tmdbMovie = when (val movieId = ExternalMovieId.parse(movieId)) {
+        when (val movieId = ExternalMovieId.parse(movieId)) {
             is TmdbExternalMovieId -> {
-                TmdbMovie(movieId.id, TmdbLanguage.parse(language))
+                val tmdbLanguages = LocalAppSettingsContext.current.get { Tmdb.Languages }.current
+                Content(TmdbMovie(movieId.id, tmdbLanguages))
             }
-
             is UnknownExternalMovieId -> TODO()
         }
-        Content(tmdbMovie)
     }
 }
 
-fun NavController.navigateToMovie(movie: TmdbMovie, preloadData: BaseTmdbMovie?) {
+fun NavController.navigateToMovie(id: TmdbMovieId, preloadData: BaseTmdbMovie?) {
     if (preloadData != null) {
-        KoinPlatform.getKoin().get<TmdbMemoryCache>().registerItem(preloadData)
+        KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().registerItem(preloadData)
     }
-    navigate(MovieScreen(movie.id.toExternalId().serialize(), movie.language.serialize()))
+    navigate(MovieScreen(id.toExternalId().serialize()))
 }
 
 @Composable
@@ -237,7 +237,7 @@ private fun MovieToolbar(
                     }
                 },
             ) {
-                IconButton(onClick = { navController.navigateToWatchedItems(movie) }) {
+                IconButton(onClick = { navController.navigateToWatchedItems(watchableId) }) {
                     Icon(Icons.Default.Checklist, contentDescription = R.string.viewing_history.str())
                 }
             }

@@ -19,13 +19,13 @@ private typealias ShowDetailsDownloader = BatchableDownloaderBuilder<TmdbShowId,
  */
 data class TmdbShow(
     val id: TmdbShowId,
-    val language: TmdbLanguage,
+    val languages: TmdbLanguages,
 ) {
 
     private val detailsDownloader = detailsDownloader("details") { it }
         .extractFromResponse { it }
         .localized(
-            language = language,
+            language = languages.apiLanguage,
             loadFromCacheFn = { cache -> cache.showDetailsCacheQueries::get },
             putInCacheFn = { cache -> cache.showDetailsCacheQueries::put },
         )
@@ -71,7 +71,7 @@ data class TmdbShow(
             initialRequestInput = emptyList(),
             downloader = { appendToResponse ->
                 tmdbDownloadResult(logTag = "${id.toExternalId().serialize()}-batched-details") { tmdb ->
-                    tmdb.show.getDetails(id.value, language.apiParameter, appendToResponse.ifEmpty { null })
+                    tmdb.show.getDetails(id.value, languages.apiLanguage.apiParameter, appendToResponse.ifEmpty { null })
                 }
             },
         )
@@ -84,5 +84,5 @@ data class TmdbShow(
     }
 }
 
-fun ApiTmdbShow.toInternalTmdbShow(language: TmdbLanguage) = TmdbShow(TmdbShowId(id), language)
-fun TmdbShowDetail.toInternalTmdbShow(language: TmdbLanguage) = TmdbShow(TmdbShowId(id), language)
+val ApiTmdbShow.tmdbShowId get() = TmdbShowId(id)
+val TmdbShowDetail.tmdbShowId get() = TmdbShowId(id)

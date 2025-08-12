@@ -10,8 +10,12 @@ import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 
+sealed interface TmdbId {
+    val value: Int
+}
+
 @JvmInline
-value class TmdbMovieId(val value: Int) {
+value class TmdbMovieId(override val value: Int) : TmdbId {
     init {
         requireTmdbId(value)
     }
@@ -27,7 +31,7 @@ value class TmdbMovieId(val value: Int) {
 }
 
 @JvmInline
-value class TmdbShowId(val value: Int) {
+value class TmdbShowId(override val value: Int) : TmdbId {
     init {
         requireTmdbId(value)
     }
@@ -43,7 +47,7 @@ value class TmdbShowId(val value: Int) {
 }
 
 @JvmInline
-value class TmdbEpisodeId(val value: Int) {
+value class TmdbEpisodeId(override val value: Int) : TmdbId {
     init {
         requireTmdbId(value)
     }
@@ -59,7 +63,7 @@ value class TmdbEpisodeId(val value: Int) {
 }
 
 @JvmInline
-value class TmdbPersonId(val value: Int) {
+value class TmdbPersonId(override val value: Int) : TmdbId {
     init {
         requireTmdbId(value)
     }
