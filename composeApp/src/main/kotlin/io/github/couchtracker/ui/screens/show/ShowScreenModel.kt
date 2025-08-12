@@ -83,8 +83,8 @@ suspend fun loadShow(
     val creditsModel = async(coroutineContext) {
         credits.await().map { credits ->
             ShowScreenModel.Credits(
-                cast = credits.cast.toCastPortraitModel(show.language),
-                crew = credits.crew.toCrewCompactListItemModel(show.language),
+                cast = credits.cast.toCastPortraitModel(),
+                crew = credits.crew.toCrewCompactListItemModel(),
             )
         }
     }

@@ -21,13 +21,13 @@ private typealias MovieDetailsDownloader = BatchableDownloaderBuilder<TmdbMovieI
  */
 data class TmdbMovie(
     val id: TmdbMovieId,
-    val language: TmdbLanguage,
+    val languages: TmdbLanguages,
 ) {
 
     private val detailsDownloader = detailsDownloader("details") { it }
         .extractFromResponse { it }
         .localized(
-            language = language,
+            language = languages.first,
             loadFromCacheFn = { cache -> cache.movieDetailsCacheQueries::get },
             putInCacheFn = { cache -> cache.movieDetailsCacheQueries::put },
         )
@@ -92,7 +92,7 @@ data class TmdbMovie(
             initialRequestInput = emptyList(),
             downloader = { appendToResponse ->
                 tmdbDownloadResult(logTag = "${id.toExternalId().serialize()}-batched-details") { tmdb ->
-                    tmdb.movies.getDetails(id.value, language.apiParameter, appendToResponse.ifEmpty { null })
+                    tmdb.movies.getDetails(id.value, languages.first.apiParameter, appendToResponse.ifEmpty { null })
                 }
             },
         )
@@ -105,4 +105,4 @@ data class TmdbMovie(
     }
 }
 
-fun ApiTmdbMovie.toInternalTmdbMovie(language: TmdbLanguage) = TmdbMovie(TmdbMovieId(id), language)
+val ApiTmdbMovie.tmdbMovieId get() = TmdbMovieId(id)

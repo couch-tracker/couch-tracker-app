@@ -29,6 +29,7 @@ class AndroidApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@AndroidApplication)
 
             modules(
+                AppModule,
                 AppDataModule,
                 ProfileDbModule,
                 TmdbCacheDbModule,
