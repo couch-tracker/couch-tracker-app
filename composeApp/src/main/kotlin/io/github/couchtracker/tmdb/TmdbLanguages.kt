@@ -1,12 +1,28 @@
 package io.github.couchtracker.tmdb
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.couchtracker.CurrentLocales
+import io.github.couchtracker.Settings
+import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.currentLocales
 import io.github.couchtracker.utils.toList
-import kotlin.collections.distinct
-import kotlin.collections.ifEmpty
-import kotlin.collections.take
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import org.koin.core.context.GlobalContext
+import org.koin.core.qualifier.named
 
 /**
  * Class representing a list of [TmdbLanguages] to use to get the localized something of a TMDB item.
@@ -25,6 +41,8 @@ value class TmdbLanguages(val languages: List<TmdbLanguage>) {
     }
 
     val size get() = languages.size
+
+    val first get() = languages.first()
 
     fun tryPlus(another: TmdbLanguage) = TmdbLanguages((languages + another).distinct())
 
@@ -54,9 +72,8 @@ value class TmdbLanguages(val languages: List<TmdbLanguage>) {
     }
 }
 
-@Composable
-private fun rememberSystemTmdbLanguages(): TmdbLanguages {
-    return LocalConfiguration.currentLocales.toList()
+private fun LocaleListCompat.toTmdbLanguages(): TmdbLanguages {
+    return toList()
         .mapNotNull { it.toTmdbLanguage() }
         .ifEmpty { listOf(TmdbLanguage.FALLBACK) }
         .distinct()
@@ -66,6 +83,31 @@ private fun rememberSystemTmdbLanguages(): TmdbLanguages {
 
 @Composable
 fun TmdbLanguages?.orDefault(): TmdbLanguages {
-    val systemTmdbLanguages = rememberSystemTmdbLanguages()
+    val systemTmdbLanguages = LocalConfiguration.currentLocales.toTmdbLanguages()
     return this ?: systemTmdbLanguages
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun Flow<TmdbLanguages?>.orDefault(): Flow<TmdbLanguages> {
+    return flatMapLatest { languages ->
+        if (languages != null) {
+            flowOf(languages)
+        } else {
+            GlobalContext.get().get<StateFlow<LocaleListCompat>>(named<CurrentLocales>()).map { it.toTmdbLanguages() }
+        }
+    }
+}
+
+val LocalTmdbLanguagesContext = compositionLocalOf<TmdbLanguages> { error("no default TmdbLanguages") }
+
+@Composable
+fun TmdbLanguagesContext(content: @Composable () -> Unit) {
+    val flow = remember { Settings.TmdbLanguages.orDefault().map { Result.Value(it) } }
+    val tmdbLanguages by flow.collectAsStateWithLifecycle(Loadable.Loading)
+
+    LoadableScreen(tmdbLanguages) { tmdbLanguages ->
+        CompositionLocalProvider(LocalTmdbLanguagesContext provides tmdbLanguages) {
+            content()
+        }
+    }
 }

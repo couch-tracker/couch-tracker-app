@@ -19,8 +19,6 @@ import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbDepartment
 import coil3.compose.AsyncImage
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbPerson
 import io.github.couchtracker.tmdb.TmdbPersonId
 import io.github.couchtracker.tmdb.title
 import io.github.couchtracker.ui.ImageModel
@@ -73,7 +71,7 @@ fun CrewCompactListItem(crew: CrewCompactListItemModel?) {
 }
 
 data class CrewCompactListItemModel(
-    val person: TmdbPerson,
+    val id: TmdbPersonId,
     val name: String,
     val posterModel: ImageModel?,
     val departments: Set<TmdbDepartment>,
@@ -81,7 +79,6 @@ data class CrewCompactListItemModel(
     companion object {
         suspend fun fromTmdbCrew(
             crew: List<TmdbCrew>,
-            language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
         ): CrewCompactListItemModel {
             require(crew.isNotEmpty()) { "At least one crew has to be specified." }
@@ -90,7 +87,7 @@ data class CrewCompactListItemModel(
             require(crew.all { it.name == base.name })
             require(crew.all { it.profilePath == base.profilePath })
             return CrewCompactListItemModel(
-                person = TmdbPerson(TmdbPersonId(base.id), language),
+                id = TmdbPersonId(base.id),
                 name = base.name,
                 departments = crew.mapNotNull { it.department }.toSet(),
                 posterModel = base.profilePath?.let { path ->
@@ -101,7 +98,6 @@ data class CrewCompactListItemModel(
 
         suspend fun fromTmdbAggregateCrew(
             crew: List<TmdbAggregateCrew>,
-            language: TmdbLanguage,
             imagePreloadOptions: ImagePreloadOptions,
         ): CrewCompactListItemModel {
             require(crew.isNotEmpty()) { "At least one crew has to be specified." }
@@ -110,7 +106,7 @@ data class CrewCompactListItemModel(
             require(crew.all { it.name == base.name })
             require(crew.all { it.profilePath == base.profilePath })
             return CrewCompactListItemModel(
-                person = TmdbPerson(TmdbPersonId(base.id), language),
+                id = TmdbPersonId(base.id),
                 name = base.name,
                 departments = crew.mapNotNull { it.department }.toSet(),
                 posterModel = base.profilePath?.let { path ->
@@ -123,24 +119,22 @@ data class CrewCompactListItemModel(
 
 @JvmName("TmdbCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
-            CrewCompactListItemModel.fromTmdbCrew(crew, language, imagePreloadOptions)
+            CrewCompactListItemModel.fromTmdbCrew(crew, imagePreloadOptions)
         }
     }.awaitAll()
 }
 
 @JvmName("TmdbAggregateCrew_toCrewCompactListItemModel")
 suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
-    language: TmdbLanguage,
     imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
 ): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
-            CrewCompactListItemModel.fromTmdbAggregateCrew(crew, language, imagePreloadOptions)
+            CrewCompactListItemModel.fromTmdbAggregateCrew(crew, imagePreloadOptions)
         }
     }.awaitAll()
 }

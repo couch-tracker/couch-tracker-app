@@ -9,9 +9,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.AsyncImage
 import io.github.couchtracker.R
-import io.github.couchtracker.tmdb.TmdbLanguage
-import io.github.couchtracker.tmdb.TmdbShow
-import io.github.couchtracker.tmdb.toInternalTmdbShow
+import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.tmdb.tmdbShowId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
@@ -61,7 +60,7 @@ fun ShowPortrait(
 }
 
 data class ShowPortraitModel(
-    val show: TmdbShow,
+    val id: TmdbShowId,
     val name: String,
     val year: Int?,
     val posterModel: ImageModel?,
@@ -69,12 +68,12 @@ data class ShowPortraitModel(
     companion object {
 
         suspend fun fromApiTmdbShow(
-            show: TmdbShow,
+            id: TmdbShowId,
             details: TmdbApiTmdbShow,
             imagePreloadOptions: ImagePreloadOptions,
         ): ShowPortraitModel {
             return ShowPortraitModel(
-                show = show,
+                id = id,
                 name = details.name,
                 year = details.firstAirDate?.year,
                 posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
@@ -83,9 +82,6 @@ data class ShowPortraitModel(
     }
 }
 
-suspend fun TmdbApiTmdbShow.toShowPortraitModels(
-    language: TmdbLanguage,
-    imagePreloadOptions: ImagePreloadOptions,
-): ShowPortraitModel {
-    return ShowPortraitModel.fromApiTmdbShow(toInternalTmdbShow(language), this, imagePreloadOptions)
+suspend fun TmdbApiTmdbShow.toShowPortraitModels(imagePreloadOptions: ImagePreloadOptions): ShowPortraitModel {
+    return ShowPortraitModel.fromApiTmdbShow(tmdbShowId, this, imagePreloadOptions)
 }

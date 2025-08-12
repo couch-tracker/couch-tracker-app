@@ -19,7 +19,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
-import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.Settings
+import io.github.couchtracker.tmdb.orDefault
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.MoviePortrait
@@ -31,9 +32,8 @@ import io.github.couchtracker.ui.screens.movie.navigateToMovie
 import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
-
-// TODO: do better
-val TMDB_LANGUAGE = TmdbLanguage.ENGLISH
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
 
 class MovieSectionViewModel : ViewModel() {
     val exploreState = MovieExploreTabState(viewModelScope)
@@ -81,7 +81,7 @@ private fun MovieListComposable(
     val navController = LocalNavController.current
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { movie ->
         MoviePortrait(Modifier.fillMaxWidth(), movie) {
-            navController.navigateToMovie(it.movie)
+            navController.navigateToMovie(it.id)
         }
     }
 }
@@ -99,13 +99,16 @@ enum class MovieTab(
 
 class MovieExploreTabState(viewModelScope: CoroutineScope) {
 
-    private val pager = tmdbPager(
-        downloader = { page ->
-            trending.getTrendingMovies(TmdbTimeWindow.DAY, page = page, TMDB_LANGUAGE.apiParameter)
-        },
-        mapper = { movie ->
-            movie.toMoviePortraitModels(TMDB_LANGUAGE, ImagePreloadOptions.DoNotPreload)
-        },
-    )
-    val movieFlow = pager.flow.removeDuplicates { it.movie.id.value }.cachedIn(viewModelScope)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val movieFlow = Settings.TmdbLanguages.orDefault().flatMapLatest { tmdbLanguages ->
+        val tmdbLanguage = tmdbLanguages.languages.first()
+        tmdbPager(
+            downloader = { page ->
+                trending.getTrendingMovies(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
+            },
+            mapper = { movie ->
+                movie.toMoviePortraitModels(ImagePreloadOptions.DoNotPreload)
+            },
+        ).flow
+    }.removeDuplicates { it.id }.cachedIn(viewModelScope)
 }

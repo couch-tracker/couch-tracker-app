@@ -70,9 +70,9 @@ import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.rating
+import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.tmdb.tmdbPager
-import io.github.couchtracker.tmdb.toInternalTmdbMovie
-import io.github.couchtracker.tmdb.toInternalTmdbShow
+import io.github.couchtracker.tmdb.tmdbShowId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImagePreloadOptions
@@ -432,7 +432,7 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
                 releaseDate?.year?.toString(),
                 rating()?.format(),
             ),
-            navigate = { it.navigateToMovie(toInternalTmdbMovie(TMDB_LANGUAGE)) },
+            navigate = { it.navigateToMovie(tmdbMovieId) },
         )
 
         is TmdbPerson -> SearchResultItem(
@@ -448,7 +448,7 @@ private suspend fun TmdbSearchableListItem.toModel(): SearchResultItem? {
             title = name,
             type = SearchableMediaType.SHOW,
             tags = listOfNotNull(firstAirDate?.year?.toString()),
-            navigate = { it.navigateToShow(toInternalTmdbShow(TMDB_LANGUAGE)) },
+            navigate = { it.navigateToShow(tmdbShowId) },
         )
     }
 }
