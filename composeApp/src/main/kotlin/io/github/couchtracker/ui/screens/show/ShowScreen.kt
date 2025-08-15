@@ -41,11 +41,10 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WipMessageComposable
-import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
-import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -81,7 +80,7 @@ private fun Content(show: TmdbShow) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<ShowScreenModel, ApiException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<ApiLoadable<ShowScreenModel>>(Loadable.Loading) }
     val pagerState = rememberPagerState(
         initialPage = ShowScreenTab.entries.indexOf(ShowScreenTab.DETAILS),
         pageCount = { ShowScreenTab.entries.size },
@@ -94,15 +93,15 @@ private fun Content(show: TmdbShow) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
         suspend fun load() {
-            if (screenModel is Result.Error) {
-                screenModel = Loadable.Loading
-            }
-            screenModel = loadShow(
-                ctx,
-                tmdbCache,
-                show,
-                width = maxWidth,
-                height = maxHeight,
+            screenModel = Loadable.Loading
+            screenModel = Loadable.Loaded(
+                loadShow(
+                    ctx,
+                    tmdbCache,
+                    show,
+                    width = maxWidth,
+                    height = maxHeight,
+                ),
             )
         }
         LaunchedEffect(show) {
@@ -225,7 +224,7 @@ private fun OverviewScreenComponents.ShowDetailsContent(
         }
         paragraphSection("overview", model.tagline, model.overview)
         imagesSection(images, totalHeight = totalHeight)
-        castSection(credits.map { it.cast }, totalHeight = totalHeight)
-        crewSection(credits.map { it.crew }, totalHeight = totalHeight)
+        castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
+        crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
     }
 }

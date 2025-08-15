@@ -9,7 +9,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
 
-typealias ApiLoadable<T> = Loadable<T, ApiException>
+typealias ApiLoadable<T> = Loadable<Result<T, ApiException>>
 typealias ApiResult<T> = Result<T, ApiException>
 typealias DeferredApiResult<T> = Deferred<ApiResult<T>>
 typealias CompletableApiResult<T> = CompletableDeferred<ApiResult<T>>

@@ -1,10 +1,12 @@
 package io.github.couchtracker.db.profile
 
 import android.content.ContentResolver
+import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import java.io.IOException
 
 typealias ProfileDbResult<T> = Result<T, ProfileDbError>
+typealias ProfileDbLoadable<T> = Loadable<ProfileDbResult<T>>
 
 /**
  * Represents the result of an operation on the profile database.

@@ -1,39 +1,75 @@
 package io.github.couchtracker.utils
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
  * Extension of [Result] that allows the value to be [Loading].
  */
-sealed interface Loadable<out T, out E> : Actionable<T, E> {
+sealed interface Loadable<out T> : Actionable<T> {
 
-    data object Loading : Loadable<Nothing, Nothing>
+    data object Loading : Loadable<Nothing>
+    data class Loaded<T>(val value: T) : Loadable<T>
+
+    companion object {
+        fun <E> error(error: E) = Loaded(Result.Error(error))
+        fun <T> value(value: T) = Loaded(Result.Value(value))
+    }
 }
 
 /**
- * Applies [f] to [Result.Value.value].
- * Otherwise, [Loadable.Loading] and [Result.Error] are returned without executing [f].
+ * Applies [f] to [Loadable.Loaded.value].
+ * Otherwise, [Loadable.Loading] is returned without executing [f].
  */
-inline fun <I, O, E> Loadable<I, E>.flatMap(f: (I) -> Loadable<O, E>): Loadable<O, E> = when (this) {
+inline fun <I, O> Loadable<I>.flatMap(f: (I) -> Loadable<O>): Loadable<O> = when (this) {
     is Loadable.Loading -> this
-    is Result.Error -> this
-    is Result.Value -> f(value)
+    is Loadable.Loaded -> f(value)
 }
 
 /**
- * Applies [f] to [Result.Value.value].
- * Otherwise, [Loadable.Loading] and [Result.Error] are returned without executing [f].
+ * Applies [f] to [Loadable.Loaded.value].
+ * Otherwise, [Loadable.Loading] are returned without executing [f].
  */
-inline fun <I, O, E> Loadable<I, E>.map(f: (I) -> O): Loadable<O, E> = flatMap {
-    Result.Value(f(it))
+inline fun <I, O> Loadable<I>.map(f: (I) -> O): Loadable<O> = flatMap {
+    Loadable.Loaded(f(it))
+}
+
+/**
+ * Returns [Loadable.Loaded.value], or `null` in other cases.
+ */
+fun <T> Loadable<T>.valueOrNull(): T? = when (this) {
+    is Loadable.Loaded -> value
+    Loadable.Loading -> null
 }
 
 @Composable
-fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T, Nothing>> {
-    return remember { map { Result.Value(it) } }.collectAsStateWithLifecycle(Loadable.Loading)
+fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
+    return remember { map { Loadable.Loaded(it) } }.collectAsStateWithLifecycle(Loadable.Loading)
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@Composable
+fun <T> Deferred<T>.awaitAsLoadable(): Loadable<T> {
+    var ret: Loadable<T> by remember(this) {
+        val initialValue = try {
+            Loadable.Loaded(this.getCompleted())
+        } catch (_: IllegalStateException) {
+            Loadable.Loading
+        }
+        mutableStateOf(initialValue)
+    }
+    LaunchedEffect(this) {
+        ret = Loadable.Loaded(await())
+    }
+    return ret
 }
