@@ -29,10 +29,11 @@ import kotlin.time.Duration
 @Composable
 fun MediaScreenScaffold(
     watchedItemSheetScaffoldState: WatchedItemSheetScaffoldState,
+    backgroundColor: () -> Color,
     colorScheme: ColorScheme,
     watchedItemType: WatchedItemType,
-    mediaRuntime: Duration?,
-    mediaLanguages: List<Bcp47Language>,
+    mediaRuntime: () -> Duration?,
+    mediaLanguages: () -> List<Bcp47Language>,
     title: String,
     backdrop: ImageRequest?,
     modifier: Modifier = Modifier,
@@ -47,12 +48,13 @@ fun MediaScreenScaffold(
             watchedItemType = watchedItemType,
             mediaRuntime = mediaRuntime,
             mediaLanguages = mediaLanguages,
+            containerColor = backgroundColor,
         ) {
             Scaffold(
                 modifier = modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                 containerColor = Color.Transparent,
                 topBar = {
-                    OverviewScreenComponents.Header(title, backdrop, topAppBarScrollBehavior)
+                    OverviewScreenComponents.Header(title, backdrop, topAppBarScrollBehavior, backgroundColor)
                 },
                 floatingActionButton = floatingActionButton,
                 snackbarHost = { SnackbarHost(snackbarHostState) },

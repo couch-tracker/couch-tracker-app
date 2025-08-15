@@ -1,11 +1,14 @@
 package io.github.couchtracker.ui.components
 
 import android.content.Context
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.AsyncImage
@@ -37,9 +40,8 @@ fun MoviePortrait(
                     model = movie.posterModel?.getCoilModel(w, h),
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable {
-                            onClick(movie)
-                        },
+                        .clickable { onClick(movie) }
+                        .clip(MaterialTheme.shapes.small), //TODO
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     fallback = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = false),

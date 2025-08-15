@@ -1,12 +1,7 @@
 package io.github.couchtracker.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -68,6 +63,10 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.emitAsFlow
+import io.github.couchtracker.utils.ifError
+import io.github.couchtracker.utils.ifLoading
+import io.github.couchtracker.utils.isLoadingOr
+import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.flow.any
 import kotlin.math.roundToInt
@@ -80,9 +79,9 @@ object OverviewScreenComponents {
     private const val WIDE_COMPONENTS_ASPECT_RATIO = 16f / 9
     private const val COLUMN_COMPONENTS_ASPECT_RATIO = 3f / 2
     private const val ITEMS_PER_COLUMN = 4
-    private const val PLACEHOLDER_IMAGES_COUNT = 6
-    private const val PLACEHOLDER_CAST_COUNT = 6
-    private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 3
+    private const val PLACEHOLDER_IMAGES_COUNT = 3
+    private const val PLACEHOLDER_CAST_COUNT = 3
+    private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 1
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -90,12 +89,14 @@ object OverviewScreenComponents {
         title: String,
         backdrop: ImageRequest?,
         scrollBehavior: TopAppBarScrollBehavior,
+        backgroundColor: () -> Color,
         belowAppBar: @Composable ColumnScope.() -> Unit = {},
     ) {
         val navController = LocalNavController.current
         BackgroundTopAppBar(
             scrollBehavior = scrollBehavior,
             backdrop = backdrop,
+            backgroundColor = backgroundColor,
             appBar = { colors ->
                 Column {
                     LargeTopAppBar(
@@ -218,6 +219,27 @@ object OverviewScreenComponents {
     }
 
     @Composable
+    fun Paragraph(
+        text: Loadable<String?, *>,
+        modifier: Modifier = Modifier,
+        placeholderLines: Int = 1,
+        maxLines: Int = Int.MAX_VALUE,
+        style: TextStyle = MaterialTheme.typography.titleMedium,
+    ) {
+        val text = text.ifError { return }
+        if (text.isLoadingOr { it != null }) {
+            LoadableText(
+                text.map { it ?: "" },
+                modifier = modifier.padding(horizontal = 16.dp),
+                placeholderLines = placeholderLines,
+                maxLines = maxLines,
+                style = style,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+
+    @Composable
     fun ContentList(
         innerPadding: PaddingValues,
         modifier: Modifier = Modifier,
@@ -253,24 +275,50 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.section(sectionKey: String, title: String?, content: SizeAwareLazyListScope.() -> Unit) {
-        val nullableTitle = when {
-            title.isNullOrBlank() -> null
-            else -> Text.Literal(title)
-        }
-        section(sectionKey, nullableTitle, content)
+        section(sectionKey, title = Result.Value(title), content = content)
     }
 
     fun LazyListScope.section(sectionKey: String, @StringRes title: Int, content: SizeAwareLazyListScope.() -> Unit) {
         section(sectionKey, Text.Resource(title), content)
     }
 
-    fun LazyListScope.section(sectionKey: String, title: Text? = null, content: SizeAwareLazyListScope.() -> Unit) {
-        countingElements {
-            if (title != null) {
-                item(key = "$sectionKey-title", contentType = "section-title") {
-                    Paragraph(title.string(), modifier = Modifier.animateItem())
+    fun LazyListScope.section(sectionKey: String, title: Text?, content: SizeAwareLazyListScope.() -> Unit) {
+        section(
+            title = {
+                if (title != null) {
+                    item(key = "$sectionKey-title", contentType = "section-title") {
+                        Paragraph(title.string(), modifier = Modifier.animateItem())
+                    }
                 }
-            }
+            },
+            content = content,
+        )
+    }
+
+    fun LazyListScope.section(
+        sectionKey: String,
+        title: Loadable<String?, *> = Result.Value(null),
+        titlePlaceholderLines: Int = 1,
+        content: SizeAwareLazyListScope.() -> Unit,
+    ) {
+        section(
+            title = {
+                if (title.isLoadingOr { !it.isNullOrBlank() }) {
+                    item(key = "$sectionKey-title", contentType = "section-title") {
+                        Paragraph(title, modifier = Modifier.animateItem(), placeholderLines = titlePlaceholderLines)
+                    }
+                }
+            },
+            content = content,
+        )
+    }
+
+    fun LazyListScope.section(
+        title: SizeAwareLazyListScope.() -> Unit,
+        content: SizeAwareLazyListScope.() -> Unit,
+    ) {
+        countingElements {
+            title()
             content()
             if (itemCount > 0) {
                 space()
@@ -288,6 +336,7 @@ object OverviewScreenComponents {
         totalHeight: Int,
         items: List<T>,
         modifier: Modifier = Modifier,
+        enabled: Boolean = true,
         itemComposable: @Composable (T, targetHeightPx: Int) -> Unit,
     ) {
         BoxWithConstraints(
@@ -299,6 +348,7 @@ object OverviewScreenComponents {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp),
+                userScrollEnabled = enabled,
             ) {
                 val targetHeightPx = (width * WIDE_COMPONENTS_FILL_PERCENTAGE / WIDE_COMPONENTS_ASPECT_RATIO)
                     .coerceAtMost(totalHeight / 2f)
@@ -334,7 +384,7 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.paragraphSection(sectionKey: String, title: String?, content: String) {
+    fun LazyListScope.paragraphSection(sectionKey: String, title: String?, content: String?) {
         section(sectionKey, title) {
             item(key = "$sectionKey-content", contentType = "text-section-content") {
                 Paragraph(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.animateItem())
@@ -342,11 +392,16 @@ object OverviewScreenComponents {
         }
     }
 
-    private fun <T> ApiLoadable<List<T>>.buildDefaults(default: () -> List<T>): List<T> {
-        return when (this) {
-            is Result.Value -> this.value
-            Loadable.Loading -> default()
-            is Result.Error<*> -> emptyList()
+    fun LazyListScope.paragraphSection(
+        sectionKey: String,
+        title: Loadable<String, *>,
+        content: Loadable<String, *>,
+        titlePlaceholderLines: Int = 1,
+    ) {
+        section(sectionKey, title, titlePlaceholderLines = titlePlaceholderLines) {
+            item(key = "$sectionKey-content", contentType = "text-section-content") {
+                Paragraph(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.animateItem())
+            }
         }
     }
 
@@ -356,22 +411,23 @@ object OverviewScreenComponents {
         // To align with other sections, using the default aspect ratio of PortraitComposable
         defaultAspectRatio: Float = PortraitComposableDefaults.POSTER_ASPECT_RATIO,
     ) {
-        val imagesList = images.buildDefaults {
-            List(PLACEHOLDER_IMAGES_COUNT) { ImageModel.Preloaded(defaultAspectRatio, null) }
-        }
-        if (imagesList.isNotEmpty()) {
+        if (images.isLoadingOr { it.isNotEmpty() }) {
             section("images", R.string.section_images) {
                 item(key = "images-content") {
-                    HorizontalListSection(totalHeight, imagesList, modifier = Modifier.animateItem()) { image, targetHeight ->
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            shadowElevation = 8.dp,
-                            tonalElevation = 8.dp,
-                        ) {
-                            val transition = updateTransition(image)
-                            transition.AnimatedContent(
-                                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            ) { image ->
+                    Crossfade(images, modifier = Modifier.animateItem()) { imagesLoadable ->
+                        val images = imagesLoadable.ifLoading {
+                            List(PLACEHOLDER_IMAGES_COUNT) { ImageModel.Preloaded(defaultAspectRatio, null) }
+                        }
+                        HorizontalListSection(
+                            totalHeight,
+                            images,
+                            enabled = imagesLoadable is Result.Value,
+                        ) { image, targetHeight ->
+                            Surface(
+                                shape = MaterialTheme.shapes.small,
+                                shadowElevation = 8.dp,
+                                tonalElevation = 8.dp,
+                            ) {
                                 val aspectRation = image.aspectRatio ?: defaultAspectRatio
                                 val imgWidth = (targetHeight * aspectRation).roundToInt()
                                 val model = image.getCoilModel(imgWidth, targetHeight)
@@ -392,20 +448,20 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.castSection(people: ApiLoadable<List<CastPortraitModel>>, totalHeight: Int) {
-        val peopleList = people.buildDefaults { List(PLACEHOLDER_CAST_COUNT) { null } }
-        if (peopleList.isNotEmpty()) {
+        if (people.isLoadingOr { it.isNotEmpty() }) {
             section("cast", R.string.section_cast) {
                 item(key = "cast-content") {
-                    HorizontalListSection(
-                        totalHeight = totalHeight,
-                        items = peopleList,
-                        modifier = Modifier.animateItem(),
-                    ) { person, targetHeight ->
-                        val w = with(LocalDensity.current) {
-                            targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
-                        }
-                        Crossfade(person) { p ->
-                            CastPortrait(Modifier.width(w), p, onClick = null)
+                    Crossfade(people, modifier = Modifier.animateItem()) { people ->
+                        val peopleList = people.ifLoading { List(PLACEHOLDER_CAST_COUNT) { null } }
+                        HorizontalListSection(
+                            totalHeight = totalHeight,
+                            items = peopleList,
+                            enabled = people is Result.Value,
+                        ) { person, targetHeight ->
+                            val w = with(LocalDensity.current) {
+                                targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
+                            }
+                            CastPortrait(Modifier.width(w), person, onClick = null)
                         }
                     }
                 }
@@ -414,17 +470,16 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.crewSection(people: ApiLoadable<List<CrewCompactListItemModel>>, totalHeight: Int) {
-        val peopleList = people.buildDefaults { List(ITEMS_PER_COLUMN * PLACEHOLDER_CREW_COLUMNS_COUNT) { null } }
-        if (peopleList.isNotEmpty()) {
+        if (people.isLoadingOr { it.isNotEmpty() }) {
             section("crew", R.string.section_crew) {
                 item(key = "crew-content") {
-                    HorizontalColumnsListSection(
-                        totalHeight = totalHeight,
-                        items = peopleList,
-                        modifier = Modifier.animateItem(),
-                    ) { person ->
-                        Crossfade(person) { p ->
-                            CrewCompactListItem(p)
+                    Crossfade(people, modifier = Modifier.animateItem()) { people ->
+                        val peopleList = people.ifLoading { List(ITEMS_PER_COLUMN * PLACEHOLDER_CREW_COLUMNS_COUNT) { null } }
+                        HorizontalColumnsListSection(
+                            totalHeight = totalHeight,
+                            items = peopleList,
+                        ) { person ->
+                            CrewCompactListItem(person)
                         }
                     }
                 }

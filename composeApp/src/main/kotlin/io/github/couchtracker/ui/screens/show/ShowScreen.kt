@@ -2,11 +2,12 @@
 
 package io.github.couchtracker.ui.screens.show
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.show.ExternalShowId
@@ -39,15 +41,19 @@ import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMemoryCache
 import io.github.couchtracker.tmdb.TmdbShow
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.LoadableContainer
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.awaitAsLoadable
+import io.github.couchtracker.utils.awaitLoadable
+import io.github.couchtracker.utils.awaitResult
+import io.github.couchtracker.utils.isLoadingOr
 import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
@@ -64,7 +70,7 @@ private const val LOG_TAG = "ShowScreen"
 data class ShowScreen(val showId: String, val language: String) : Screen() {
     @Composable
     override fun content() {
-        val tmdbShow = when (val showId = ExternalShowId.parse(this@ShowScreen.showId)) {
+        val tmdbShow = when (val showId = ExternalShowId.parse(showId)) {
             is TmdbExternalShowId -> {
                 TmdbShow(showId.id, TmdbLanguage.parse(language))
             }
@@ -148,15 +154,19 @@ private fun Content(show: TmdbShow) {
                     coroutineScope.launch { load() }
                 },
             )
-            MaterialTheme(colorScheme = model.colorScheme) {
+            // TODO
+            val cs = model.colorScheme.awaitLoadable().valueOrNull() ?: ColorSchemes.Show
+            val backgroundColor by animateColorAsState(cs.background)
+            MaterialTheme(colorScheme = cs) {
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = backgroundColor,
                     topBar = {
                         OverviewScreenComponents.Header(
                             title = model.name,
                             backdrop = model.backdrop,
                             scrollBehavior = scrollBehavior,
+                            backgroundColor = { backgroundColor },
                             belowAppBar = {
                                 OverviewScreenComponents.HeaderTabRow(
                                     pagerState = pagerState,
@@ -215,35 +225,29 @@ private fun OverviewScreenComponents.ShowDetailsContent(
     model: ShowScreenModel,
     totalHeight: Int,
 ) {
-    val fullDetails = model.fullDetails.awaitAsLoadable()
-    val images = model.images.awaitAsLoadable()
-    val credits = model.credits.awaitAsLoadable()
+    val fullDetails = model.fullDetails.awaitResult()
+    val images = model.images.awaitResult()
+    val credits = model.credits.awaitResult()
     ContentList(innerPadding) {
         topSpace()
-        section("subtitle") {
-            val creators = fullDetails.map { it.createdByString }.valueOrNull()
+        section("subtitle", fullDetails.map { it.createdByString }, titlePlaceholderLines = 2) {
             val tags = fullDetails.map { details ->
                 listOfNotNull(
                     model.year?.toString(),
                     model.rating?.formatted,
                 ) + details.genres.map { it.name }
-            }.valueOrNull().orEmpty()
-
-            val hasCreatedBy = creators != null
-            val hasTags = tags.isNotEmpty()
-            if (hasCreatedBy || hasTags) {
-                item(key = "subtitle-content") {
-                    AnimatedVisibility(hasCreatedBy, enter = expandVertically()) {
-                        Paragraph(creators)
-                    }
-                    SpaceBetweenItems()
-                    AnimatedVisibility(hasTags, enter = expandVertically()) {
-                        TagsComposable(tags)
-                    }
+            }
+            if (tags.isLoadingOr { it.isNotEmpty() }) {
+                item("subtitle-content") {
+                    LoadableContainer(
+                        tags,
+                        content = { TagsComposable(tags = it) },
+                        placeholder = { Spacer(Modifier.height(40.dp)) },
+                    )
                 }
             }
         }
-        paragraphSection("overview", fullDetails.map { it.tagline }.valueOrNull(), model.overview)
+        paragraphSection("overview", fullDetails.map { it.tagline }, Result.Value(model.overview), titlePlaceholderLines = 2)
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.map { it.cast }, totalHeight = totalHeight)
         crewSection(credits.map { it.crew }, totalHeight = totalHeight)

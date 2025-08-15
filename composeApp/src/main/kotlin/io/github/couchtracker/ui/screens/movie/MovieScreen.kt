@@ -2,8 +2,7 @@
 
 package io.github.couchtracker.ui.screens.movie
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,14 +28,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -57,22 +54,19 @@ import io.github.couchtracker.tmdb.TmdbMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
-import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.ui.components.ErrorScreen
+import io.github.couchtracker.ui.components.LoadableContainer
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
-import io.github.couchtracker.utils.ApiException
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.awaitAsLoadable
-import io.github.couchtracker.utils.logExecutionTime
+import io.github.couchtracker.utils.isLoadingOr
+import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.valueOrNull
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -106,53 +100,41 @@ private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, ApiException>>(Loadable.Loading) }
 
-    BoxWithConstraints(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        val maxWidth = this.constraints.maxWidth
-        val maxHeight = this.constraints.maxHeight
-        suspend fun load() {
-            if (screenModel is Result.Error) {
-                screenModel = Loadable.Loading
-            }
-            screenModel = coroutineScope.async(Dispatchers.Default) {
-                logExecutionTime(LOG_TAG, "Loading movie") {
-                    coroutineScope.loadMovie(
-                        ctx,
-                        tmdbCache,
-                        movie,
-                        width = maxWidth,
-                        height = maxHeight,
-                    )
-                }
-            }.await()
-        }
-        LaunchedEffect(movie) {
-            load()
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        var screenModel by remember {
+            mutableStateOf<MovieScreenModelState>(
+                MovieScreenModelState(
+                    context = ctx,
+                    movie = movie,
+                    width = this.constraints.maxWidth,
+                    height = this.constraints.maxHeight,
+                    tmdbCache = tmdbCache,
+                    scope = coroutineScope,
+                ).also { it.load() },
+            )
         }
 
-        LoadableScreen(
-            data = screenModel,
+        ErrorScreen(
+            data = screenModel.baseDetails.map { },
             onError = { exception ->
                 Surface {
                     DefaultErrorScreen(
                         errorMessage = exception.title.string(),
                         errorDetails = exception.details?.string(),
                         retry = {
-                            coroutineScope.launch { load() }
+                            coroutineScope.launch { screenModel.load() }
                         },
                     )
                 }
             },
-        ) { model ->
+        ) {
             MovieScreenContent(
-                model = model,
+                movie = movie,
+                model = screenModel,
                 totalHeight = constraints.maxHeight,
                 reloadMovie = {
-                    coroutineScope.launch { load() }
+                    coroutineScope.launch { screenModel.load() }
                 },
             )
         }
@@ -162,7 +144,8 @@ private fun Content(movie: TmdbMovie) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MovieScreenContent(
-    model: MovieScreenModel,
+    movie: TmdbMovie,
+    model: MovieScreenModelState,
     totalHeight: Int,
     reloadMovie: () -> Unit,
 ) {
@@ -171,42 +154,43 @@ private fun MovieScreenContent(
     var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    OverviewScreenComponents.ShowSnackbarOnErrorEffect(
-        snackbarHostState = snackbarHostState,
-        state = model.allDeferred,
-        onRetry = { reloadMovie() },
-    )
-    val fullDetails = model.fullDetails.awaitAsLoadable()
-
+    //TODO
+//    OverviewScreenComponents.ShowSnackbarOnErrorEffect(
+//        snackbarHostState = snackbarHostState,
+//        state = model?.allDeferred.orEmpty(),
+//        onRetry = { reloadMovie() },
+//    )
+    val backgroundColor by animateColorAsState(model.colorScheme.background)
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = model.colorScheme,
+        backgroundColor = { backgroundColor },
         watchedItemType = WatchedItemType.MOVIE,
-        mediaRuntime = fullDetails.valueOrNull()?.runtime,
-        mediaLanguages = listOfNotNull(fullDetails.valueOrNull()?.originalLanguage),
-        title = model.title,
-        backdrop = model.backdrop,
+        mediaRuntime = { model.fullDetails.valueOrNull()?.runtime },
+        mediaLanguages = { listOfNotNull(model.fullDetails.valueOrNull()?.originalLanguage) },
+        title = model.baseDetails.valueOrNull()?.title.orEmpty(),
+        backdrop = model.baseDetails.valueOrNull()?.backdrop,
         modifier = Modifier.nestedScroll(toolbarScrollBehavior),
         floatingActionButton = {
             MovieToolbar(
-                movie = model.movie,
+                movie = movie,
                 expanded = toolbarExpanded,
                 onMarkAsWatched = {
-                    scaffoldState.open(WatchedItemSheetMode.New(model.movie.id.toExternalId().asWatchable()))
+                    scaffoldState.open(WatchedItemSheetMode.New(movie.id.toExternalId().asWatchable()))
                 },
             )
         },
         snackbarHostState = snackbarHostState,
         content = { innerPadding ->
             OverviewScreenComponents.MoviePage(
+                innerPadding = innerPadding,
+                model = model,
+                totalHeight = totalHeight,
                 modifier = Modifier.floatingToolbarVerticalNestedScroll(
                     expanded = toolbarExpanded,
                     onExpand = { toolbarExpanded = true },
                     onCollapse = { toolbarExpanded = false },
                 ),
-                innerPadding = innerPadding,
-                totalHeight = totalHeight,
-                model = model,
             )
         },
     )
@@ -255,39 +239,35 @@ private fun MovieToolbar(
 @Composable
 private fun OverviewScreenComponents.MoviePage(
     innerPadding: PaddingValues,
-    model: MovieScreenModel,
+    model: MovieScreenModelState,
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
-    val fullDetails = model.fullDetails.awaitAsLoadable()
-    val images = model.images.awaitAsLoadable()
-    val credits = model.credits.awaitAsLoadable()
+    val baseDetails = model.baseDetails
+    val fullDetails = model.fullDetails
+    val images = model.images
+    val credits = model.credits
+    logCompositions(LOG_TAG, "Recomposing MoviePage")
     ContentList(innerPadding, modifier) {
-        section("subtitle") {
-            val directors = credits.map { it.directorsString }.valueOrNull()
+        section("subtitle-2", credits.map { it.directorsString ?: "" }, titlePlaceholderLines = 2) {
             val tags = fullDetails.map { details ->
                 listOfNotNull(
-                    model.year?.toString(),
+                    details.baseDetails.year?.toString(),
                     details.runtime?.toString(),
-                    model.rating?.formatted,
+                    details.rating?.formatted,
                 ) + details.genres.map { it.name }
-            }.valueOrNull().orEmpty()
-
-            val hasDirectors = directors != null
-            val hasTags = tags.isNotEmpty()
-            item("subtitle-content") {
-                if (hasDirectors || hasTags) {
-                    AnimatedVisibility(hasDirectors, enter = expandVertically()) {
-                        Paragraph(directors)
-                    }
-                    SpaceBetweenItems()
-                    AnimatedVisibility(hasTags, enter = expandVertically()) {
-                        TagsComposable(tags = tags)
-                    }
+            }
+            if (tags.isLoadingOr { it.isNotEmpty() }) {
+                item("subtitle-content") {
+                    LoadableContainer(
+                        tags,
+                        content = { TagsComposable(tags = it) },
+                        placeholder = { Spacer(Modifier.height(40.dp)) },
+                    )
                 }
             }
         }
-        paragraphSection("overview", fullDetails.map { it.tagline }.valueOrNull(), model.overview)
+        paragraphSection("overview", fullDetails.map { it.tagline }, baseDetails.map { it.overview }, titlePlaceholderLines = 2)
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.map { it.cast }, totalHeight = totalHeight)
         crewSection(credits.map { it.crew }, totalHeight = totalHeight)

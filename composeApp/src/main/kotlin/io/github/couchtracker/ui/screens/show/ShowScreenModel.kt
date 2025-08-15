@@ -19,6 +19,7 @@ import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.linearize
 import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
+import io.github.couchtracker.tmdb.prepareMainImageRequest
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ColorSchemes
@@ -27,18 +28,25 @@ import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
+import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.CompletableApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.awaitWithTimeout
 import io.github.couchtracker.utils.ifError
 import io.github.couchtracker.utils.map
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
+
+private val LOADING_TIME_CUTOFF = 25.milliseconds
 
 data class ShowScreenModel(
     val id: TmdbShowId,
@@ -50,9 +58,9 @@ data class ShowScreenModel(
     val credits: DeferredApiResult<Credits>,
     val images: DeferredApiResult<List<ImageModel>>,
     val backdrop: ImageRequest?,
-    val colorScheme: ColorScheme,
+    val colorScheme: Deferred<ColorScheme>,
 ) {
-    val allDeferred: Set<DeferredApiResult<*>> = setOf(credits, images)
+    val allDeferred: Set<DeferredApiResult<*>> = setOf(fullDetails, credits, images)
 
     data class FullDetails(
         val tagline: String,
@@ -75,6 +83,7 @@ suspend fun CoroutineScope.loadShow(
     height: Int,
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<ShowScreenModel> {
+    val startingTime = TimeSource.Monotonic.markNow()
     val baseDetailsMemory = TmdbMemoryCache.getShow(show)
     val details = CompletableApiResult<TmdbShowDetail>()
     val credits = CompletableApiResult<TmdbAggregateCredits>()
@@ -121,13 +130,8 @@ suspend fun CoroutineScope.loadShow(
             details.toBaseShow(show.language)
         }.ifError { return Result.Error(it) }
     }
-    val backdrop = async(coroutineContext) {
-        baseDetails.backdrop.prepareAndExtractColorScheme(
-            ctx = ctx,
-            width = width,
-            height = height,
-            fallbackColorScheme = ColorSchemes.Show,
-        )
+    val colorScheme = async(coroutineContext) {
+        baseDetails.backdrop?.prepareAndExtractColorScheme(ctx)?.generateColorScheme() ?: ColorSchemes.Show
     }
     val ret = ShowScreenModel(
         id = show.id,
@@ -137,12 +141,10 @@ suspend fun CoroutineScope.loadShow(
         rating = baseDetails.rating(),
         fullDetails = fullDetailsModel,
         credits = creditsModel,
-        backdrop = backdrop.await().first,
+        backdrop = baseDetails.backdrop?.prepareMainImageRequest(ctx, width, height),
         images = imagesModel,
-        colorScheme = backdrop.await().second,
+        colorScheme = colorScheme,
     )
-    // It can be disruptive to load in content at separate times.
-    // If the other content loads "fast enough", I'll wait for it.
-//        it.allDeferred.awaitAll(100.milliseconds)
+    listOf(ret.fullDetails, ret.colorScheme).awaitWithTimeout(startingTime, LOADING_TIME_CUTOFF)
     return Result.Value(ret)
 }

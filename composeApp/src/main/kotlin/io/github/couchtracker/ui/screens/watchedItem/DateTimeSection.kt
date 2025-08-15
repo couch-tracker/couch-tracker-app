@@ -196,7 +196,7 @@ fun WatchedItemSheetScope.DateTimeSection(
     enabled: Boolean,
     sectionState: DateTimeSectionState,
     watchedItemType: WatchedItemType,
-    mediaRuntime: Duration?,
+    mediaRuntime: () -> Duration?,
 ) {
     Section(title = Text.Resource(R.string.date_and_time), validity = WatchedItemDimensionSelectionValidity.Valid) {
         val transition = updateTransition(sectionState.dateTime)
@@ -227,7 +227,7 @@ fun WatchedItemSheetScope.DateTimeSection(
                                     DateAndTimeSectionChoices.Custom -> sectionState.customDateDialogVisibility = DATE
                                     is DateAndTimeSectionChoices.Preset -> sectionState.dateTime = DateAndTimeValue(
                                         category = category,
-                                        dateTime = category.default(runtime = mediaRuntime ?: watchedItemType.fallbackRuntime),
+                                        dateTime = category.default(runtime = mediaRuntime() ?: watchedItemType.fallbackRuntime),
                                     )
                                 }
                             },

@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize

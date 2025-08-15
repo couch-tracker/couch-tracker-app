@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import android.content.Context
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovie
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -52,7 +54,9 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.awaitLoadable
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -133,14 +137,18 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
     val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
-
+    // TODO
+    val cs = model.colorScheme.awaitLoadable().valueOrNull() ?: ColorSchemes.Movie
+    val backgroundColor by animateColorAsState(cs.background)
+    val title = R.string.viewing_history_for_x.str(model.title)
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
-        colorScheme = model.colorScheme,
+        colorScheme = cs,
+        backgroundColor = { backgroundColor },
         watchedItemType = model.itemType,
-        mediaRuntime = model.runtime,
-        mediaLanguages = listOf(model.originalLanguage),
-        title = R.string.viewing_history_for_x.str(model.title),
+        mediaRuntime = { model.runtime },
+        mediaLanguages = { listOf(model.originalLanguage) },
+        title = title,
         backdrop = model.backdrop,
         floatingActionButton = {
             FloatingActionButton(onClick = { scaffoldState.open(WatchedItemSheetMode.New(model.id)) }) {
@@ -206,7 +214,9 @@ private fun WatchedItemListItem(
                 WatchedItemProgress(
                     state = progressState,
                     type = watchedItem.itemId.type(),
-                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
                 )
             }
         },

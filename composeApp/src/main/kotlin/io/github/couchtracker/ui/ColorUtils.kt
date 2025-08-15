@@ -1,10 +1,20 @@
 package io.github.couchtracker.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
+import io.github.couchtracker.utils.awaitLoadable
+import io.github.couchtracker.utils.logExecutionTime
+import io.github.couchtracker.utils.valueOrNull
+import kotlinx.coroutines.Deferred
 import android.graphics.Color as AndroidColor
 
 private const val MAIN_COLOR_SATURATION = 0.1f
@@ -22,13 +32,9 @@ private const val HUE_COMPLEMENTARY_DISTANCE = 30f
 val DEFAULT_COLOR_SCHEME = darkColorScheme()
 private const val DARK_VALUE_THRESHOLD = 0.5f
 
-/**
- * Generates a [ColorScheme] based on the main color of this [Palette].
- */
-fun Palette?.generateColorScheme(fallback: ColorScheme = DEFAULT_COLOR_SCHEME): ColorScheme {
-    val mainSwatch = this?.vibrantSwatch ?: this?.dominantSwatch
-    val rgb = mainSwatch?.rgb ?: return fallback
-    return Color(rgb).generateColorScheme()
+fun Palette?.mainColor(): Color? {
+    val mainSwatch = this?.vibrantSwatch ?: this?.dominantSwatch ?: return null
+    return Color(mainSwatch.rgb)
 }
 
 /**

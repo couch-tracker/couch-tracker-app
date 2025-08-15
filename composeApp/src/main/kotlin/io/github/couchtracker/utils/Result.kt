@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import io.github.couchtracker.utils.Loadable.NoError
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -16,7 +17,7 @@ import kotlinx.coroutines.async
  */
 sealed interface Result<out T, out E> : Loadable<T, E> {
 
-    data class Value<T>(val value: T) : Result<T, Nothing>
+    data class Value<T>(val value: T) : Result<T, Nothing>, NoError<T>
 
     data class Error<E>(val error: E) : Result<Nothing, E>
 }
@@ -72,27 +73,48 @@ inline fun <T : R, E, R> Result<T, E>.ifError(block: (E) -> R): R {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun <T, E> Deferred<Result<T, E>>.awaitAsLoadable(): Loadable<T, E> {
-    var ret: Loadable<T, E> by remember(this) {
+// TODO: do we need this?
+fun <T, E> Deferred<Result<T, E>>?.awaitResult(): Loadable<T, E> {
+    return when {
+        this == null -> Loadable.Loading
+        this.isCompleted -> this.getCompleted()
+        else -> {
+            var ret: Loadable<T, E> by remember(this) { mutableStateOf(Loadable.Loading) }
+            LaunchedEffect(this) {
+                ret = await()
+            }
+            ret
+        }
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@Composable
+@JvmName("awaitAsLoadable2")
+// TODO: do we need this?
+fun <T> Deferred<T>?.awaitLoadable(): NoError<T> {
+    if (this == null) return Loadable.Loading
+
+    var ret: NoError<T> by remember(this) {
         val initialValue = if (this.isCompleted) {
-            this.getCompleted()
+            Result.Value(this.getCompleted())
         } else {
             Loadable.Loading
         }
         mutableStateOf(initialValue)
     }
     LaunchedEffect(this) {
-        ret = await()
+        ret = Result.Value(await())
     }
     return ret
 }
 
 @Composable
-fun <T> rememberComputationResult(key: Any = Unit, compute: suspend () -> T): Loadable<T, Nothing> {
+fun <T> rememberComputationResult(key: Any = Unit, compute: suspend () -> T): NoError<T> {
     val scope = rememberCoroutineScope()
     return remember(key) {
         scope.async {
-            Result.Value(compute())
+            compute()
         }
-    }.awaitAsLoadable()
+    }.awaitLoadable()
 }

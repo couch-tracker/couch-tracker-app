@@ -48,7 +48,12 @@ fun App() {
                                 fadeIn(FADE_ANIMATION_SPEC)
                         },
                         exitTransition = {
-                            fadeOut(FADE_ANIMATION_SPEC)
+                            fadeOut(
+                                tween(
+                                    AnimationDefaults.ANIMATION_DURATION_MS,
+                                    delayMillis = AnimationDefaults.ANIMATION_DURATION_MS,
+                                ),
+                            )
                         },
                         popEnterTransition = {
                             fadeIn(FADE_ANIMATION_SPEC)

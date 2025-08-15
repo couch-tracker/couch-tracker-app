@@ -7,6 +7,7 @@ import androidx.compose.animation.core.ExperimentalTransitionApi
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.valueOrNull
 
 private const val ANIMATION_DURATION_MS = AnimationDefaults.ANIMATION_DURATION_MS
 private val DEFAULT_INDICATOR_SIZE = 64.dp
@@ -74,6 +76,27 @@ fun <T, E> LoadableScreen(
             Loadable.Loading -> onLoading()
             is Result.Error -> onError(content.error)
             is Result.Value -> content(content.value)
+        }
+    }
+}
+@Composable
+fun <T: Any, E> ErrorScreen(
+    data: Loadable<T, E>,
+    onError: @Composable (error: E) -> Unit,
+    content: @Composable (value: T?) -> Unit,
+) {
+    val transition = updateTransition(data)
+    transition.AnimatedContent(
+        Modifier,
+        contentKey = { it is Result.Error },
+        transitionSpec = {
+            fadeIn(tween(ANIMATION_DURATION_MS)) togetherWith
+                fadeOut(tween(ANIMATION_DURATION_MS))
+        },
+    ) { content ->
+        when (content) {
+            is Result.Error -> onError(content.error)
+            else -> content(content.valueOrNull())
         }
     }
 }
