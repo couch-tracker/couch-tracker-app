@@ -50,7 +50,7 @@ import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
-import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
@@ -86,17 +86,19 @@ private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val context = koinInject<Context>()
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<WatchedItemsScreenModel, ApiException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<ApiLoadable<WatchedItemsScreenModel>>(Loadable.Loading) }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         suspend fun load() {
             screenModel = Loadable.Loading
-            screenModel = WatchedItemsScreenModel.loadTmdbMovie(
-                context = context,
-                tmdbCache = tmdbCache,
-                movie = movie,
-                width = this.constraints.maxWidth,
-                height = this.constraints.maxHeight,
+            screenModel = Loadable.Loaded(
+                WatchedItemsScreenModel.loadTmdbMovie(
+                    context = context,
+                    tmdbCache = tmdbCache,
+                    movie = movie,
+                    width = this.constraints.maxWidth,
+                    height = this.constraints.maxHeight,
+                ),
             )
         }
 
@@ -206,7 +208,9 @@ private fun WatchedItemListItem(
                 WatchedItemProgress(
                     state = progressState,
                     type = watchedItem.itemId.type(),
-                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
                 )
             }
         },

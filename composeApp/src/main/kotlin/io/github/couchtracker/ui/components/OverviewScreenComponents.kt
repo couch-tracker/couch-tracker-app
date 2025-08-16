@@ -344,9 +344,11 @@ object OverviewScreenComponents {
 
     private fun <T> ApiLoadable<List<T>>.buildDefaults(default: () -> List<T>): List<T> {
         return when (this) {
-            is Result.Value -> this.value
             Loadable.Loading -> default()
-            is Result.Error<*> -> emptyList()
+            is Loadable.Loaded -> when (this.value) {
+                is Result.Error -> emptyList()
+                is Result.Value -> this.value.value
+            }
         }
     }
 

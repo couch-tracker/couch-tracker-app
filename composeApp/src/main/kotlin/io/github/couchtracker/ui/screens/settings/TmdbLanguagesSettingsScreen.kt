@@ -90,9 +90,11 @@ private fun Content() {
 
     suspend fun downloadTmdbLanguages() {
         allTmdbLanguages = Loadable.Loading
-        allTmdbLanguages = tmdbDownloadResult(logTag = LOG_TAG) { tmdb ->
-            tmdb.configuration.getPrimaryTranslations().map { TmdbLanguage.parse(it) }
-        }
+        allTmdbLanguages = Loadable.Loaded(
+            tmdbDownloadResult(logTag = LOG_TAG) { tmdb ->
+                tmdb.configuration.getPrimaryTranslations().map { TmdbLanguage.parse(it) }
+            },
+        )
     }
     LaunchedEffect(Unit) { downloadTmdbLanguages() }
 

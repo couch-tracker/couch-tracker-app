@@ -5,12 +5,13 @@ import io.github.couchtracker.db.profile.ExternalProfileDb
 import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.ManagedProfileDb
 import io.github.couchtracker.db.profile.ProfileDb
-import io.github.couchtracker.db.profile.ProfileDbError
+import io.github.couchtracker.db.profile.ProfileDbLoadable
 import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.biFork
 import io.github.couchtracker.utils.collectWithPrevious
+import io.github.couchtracker.utils.resultValueOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +28,7 @@ import kotlinx.coroutines.withContext
 data class ProfilesInfo(
     val profiles: Map<Long, ProfileInfo>,
     val current: ProfileInfo,
-    val currentFullData: Loadable<FullProfileData, ProfileDbError>,
+    val currentFullData: ProfileDbLoadable<FullProfileData>,
 )
 
 /** The inputs that will trigger a reload of the full user data */
@@ -114,19 +115,19 @@ fun profilesInfoFlow(
  * When loading the data, the latest ProfileDb is used. However, new ProfileDbs won't trigger a full data reload.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-private fun Flow<Pair<ProfileDb, FullDataInput>>.fullDataFlow(): Flow<Pair<Long, Loadable<FullProfileData, ProfileDbError>>> {
+private fun Flow<Pair<ProfileDb, FullDataInput>>.fullDataFlow(): Flow<Pair<Long, ProfileDbLoadable<FullProfileData>>> {
     return this
         .distinctUntilChangedBy { (_, fullDataInput) -> fullDataInput }
         .transformLatest { (db, fullDataInput) ->
             emit(fullDataInput.profileId to Loadable.Loading)
             val result = db.read { profileData ->
-                FullProfileData.Companion.load(db = profileData)
+                FullProfileData.load(db = profileData)
             }
-            emit(fullDataInput.profileId to result)
+            emit(fullDataInput.profileId to Loadable.Loaded(result))
         }
         .flowOn(Dispatchers.IO)
         .runningReduce { (lastProfileId, last), (profileId, value) ->
-            if (value is Loadable.Loading && last is Result.Value && lastProfileId == profileId) {
+            if (value is Loadable.Loading && last.resultValueOrNull() != null && lastProfileId == profileId) {
                 // If value is already loaded, and I'm loading a new value, I don't want to emit a loading
                 // So I'll keep the stale value instead, waiting for the loaded data or an error
                 profileId to last

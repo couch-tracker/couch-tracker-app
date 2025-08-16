@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
  */
 class ActionState<T, E, I, O>(
     private val coroutineScope: CoroutineScope,
-    private val state: MutableState<Actionable<T, E>>,
+    private val state: MutableState<Actionable<Result<T, E>>>,
     private val decorator: suspend (block: (I) -> O) -> Result<T, E>,
     private val onSuccess: (T) -> Unit,
     private val onError: (E) -> Unit,
@@ -48,7 +48,7 @@ class ActionState<T, E, I, O>(
         state.value = Loadable.Loading
         coroutineScope.launch {
             val newState = decorator(block)
-            state.value = newState
+            state.value = Loadable.Loaded(newState)
             when (newState) {
                 is Result.Value -> onSuccess(newState.value)
                 is Result.Error -> onError(newState.error)
@@ -70,7 +70,7 @@ fun <T, E, I, O> rememberActionState(
     onError: (E) -> Unit = {},
 ): ActionState<T, E, I, O> {
     val coroutineScope = rememberCoroutineScope()
-    val state = remember { mutableStateOf<Actionable<T, E>>(Actionable.Idle) }
+    val state = remember { mutableStateOf<Actionable<Result<T, E>>>(Actionable.Idle) }
 
     return remember(coroutineScope, state, decorator, onSuccess) {
         ActionState(

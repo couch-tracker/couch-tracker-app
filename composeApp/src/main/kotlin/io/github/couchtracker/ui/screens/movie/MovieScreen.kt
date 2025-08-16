@@ -62,11 +62,11 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
-import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
-import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapResult
+import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -96,7 +96,7 @@ private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val tmdbCache = koinInject<TmdbCache>()
-    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, ApiException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<ApiLoadable<MovieScreenModel>>(Loadable.Loading) }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -105,15 +105,15 @@ private fun Content(movie: TmdbMovie) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
         suspend fun load() {
-            if (screenModel is Result.Error) {
-                screenModel = Loadable.Loading
-            }
-            screenModel = loadMovie(
-                ctx,
-                tmdbCache,
-                movie,
-                width = maxWidth,
-                height = maxHeight,
+            screenModel = Loadable.Loading
+            screenModel = Loadable.Loaded(
+                loadMovie(
+                    ctx,
+                    tmdbCache,
+                    movie,
+                    width = maxWidth,
+                    height = maxHeight,
+                ),
             )
         }
         LaunchedEffect(movie) {
@@ -248,19 +248,19 @@ private fun OverviewScreenComponents.MoviePage(
     val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding, modifier) {
         section("subtitle") {
-            val director = credits.map { it.director }
+            val director = credits.mapResult { credits -> credits.director.map { it.name } }
             val tags = listOfNotNull(
                 model.year?.toString(),
                 model.runtime?.toString(),
                 model.rating?.format(),
             ) + model.genres.map { it.name }
 
-            val hasDirector = director is Result.Value && director.value.isNotEmpty()
+            val hasDirector = director.resultValueOrNull().orEmpty().isNotEmpty()
             val hasTags = tags.isNotEmpty()
             if (hasDirector || hasTags) {
                 item("subtitle-content") {
                     AnimatedVisibility(hasDirector, enter = expandVertically()) {
-                        val directors = formatAndList((director as? Result.Value)?.value?.map { it.name }.orEmpty())
+                        val directors = formatAndList(director.resultValueOrNull().orEmpty())
                         Paragraph(R.string.movie_by_director.str(directors))
                     }
                     SpaceBetweenItems()
@@ -272,8 +272,8 @@ private fun OverviewScreenComponents.MoviePage(
         }
         paragraphSection("overview", model.tagline, model.overview)
         imagesSection(images, totalHeight = totalHeight)
-        castSection(credits.map { it.cast }, totalHeight = totalHeight)
-        crewSection(credits.map { it.crew }, totalHeight = totalHeight)
+        castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
+        crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
         // To avoid overlaps with the FAB; see FabBaselineTokens.ContainerHeight
         item("fab-spacer") { Spacer(Modifier.height(56.dp)) }
     }
