@@ -43,5 +43,5 @@ class MetadataQueriesTest : KoinTest, FunSpec() {
         }
     }
 
-    override fun extensions() = listOf(KoinExtension(module = ProfileDbModule, mode = KoinLifecycleMode.Root))
+    override fun extensions() = listOf(KoinExtension(module = ProfileDbModule.value, mode = KoinLifecycleMode.Root))
 }

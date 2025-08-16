@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
+import org.koin.mp.KoinPlatform
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -24,12 +25,6 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
 private const val LOG_TAG = "TmdbDownload"
-
-private val tmdb = Tmdb3 {
-    tmdbApiKey = TmdbConfig.API_KEY
-    useTimeout = true
-    maxRequestRetries = 3
-}
 
 val TMDB_CACHE_EXPIRATION_FAST = 1.hours
 val TMDB_CACHE_EXPIRATION_DEFAULT = 1.days
@@ -100,7 +95,7 @@ suspend fun <T> tmdbDownloadResult(
     return runApiCatching(logTag) {
         try {
             injectApiError()
-            val client = tmdb
+            val client = KoinPlatform.getKoin().get<Tmdb3>()
             // preparing the API call is often CPU intensive
             withContext(Dispatchers.Default) {
                 download(client)

@@ -21,10 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 
-private const val ANIMATION_DURATION_MS = 300
+private const val ANIMATION_DURATION_MS = AnimationDefaults.ANIMATION_DURATION_MS
 private val DEFAULT_INDICATOR_SIZE = 64.dp
 
 /**

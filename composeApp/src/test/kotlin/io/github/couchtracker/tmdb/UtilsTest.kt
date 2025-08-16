@@ -2,6 +2,7 @@ package io.github.couchtracker.tmdb
 
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.db.profile.Bcp47Language
+import io.github.couchtracker.utils.LocaleData
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withData
@@ -23,7 +24,7 @@ class UtilsTest : FunSpec(
                     every { originalLanguage } returns lang
                     every { originCountry } returns countries
                 }
-                detail.language() shouldBe expected
+                detail.language(LocaleData().allLocales) shouldBe expected
             }
         }
     },

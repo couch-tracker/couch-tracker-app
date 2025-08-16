@@ -13,6 +13,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.utils.LanguageCategory
 import io.github.couchtracker.utils.LanguageItem
+import io.github.couchtracker.utils.LocaleData
 import io.github.couchtracker.utils.MixedValueTree
 import io.github.couchtracker.utils.allLeafs
 import io.github.couchtracker.utils.countLeafs
@@ -22,6 +23,7 @@ import io.github.couchtracker.utils.languageTree
 import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toULocale
+import org.koin.compose.koinInject
 
 private val CAPITALIZATION = DisplayContext.CAPITALIZATION_FOR_UI_LIST_OR_MENU
 
@@ -35,10 +37,11 @@ fun LanguagePickerDialog(
     onClose: () -> Unit,
 ) {
     val userLocale = LocalConfiguration.currentFirstLocale.toULocale()
-
+    val allLocales = koinInject<LocaleData>().allLocales
     val languagesTreeRoot = remember(userLocale) {
         Bcp47Language.languageTree(
-            compareBy {
+            allLocales = allLocales,
+            comparator = compareBy {
                 when (it) {
                     is MixedValueTree.Intermediate -> it.value.language
                     is MixedValueTree.Leaf -> it.value.language

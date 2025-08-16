@@ -10,10 +10,12 @@ import coil3.size.Precision
 import io.github.couchtracker.db.app.AppDataModule
 import io.github.couchtracker.db.profile.ProfileDbModule
 import io.github.couchtracker.db.tmdbCache.TmdbCacheDbModule
-import kotlinx.coroutines.MainScope
+import io.github.couchtracker.tmdb.TmdbModule
+import io.github.couchtracker.utils.LocaleModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.logger.AndroidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.lazyModules
 import org.koin.core.logger.Level
 
 private const val IMAGE_CACHE_PERCENT = 0.5
@@ -28,10 +30,12 @@ class AndroidApplication : Application(), SingletonImageLoader.Factory {
 
             androidContext(this@AndroidApplication)
 
-            modules(
+            lazyModules(
                 AppDataModule,
+                LocaleModule,
                 ProfileDbModule,
                 TmdbCacheDbModule,
+                TmdbModule,
             )
         }
     }
@@ -46,9 +50,5 @@ class AndroidApplication : Application(), SingletonImageLoader.Factory {
                 MemoryCache.Builder().maxSizePercent(this, IMAGE_CACHE_PERCENT).build()
             }
             .build()
-    }
-
-    companion object {
-        var scope = MainScope()
     }
 }

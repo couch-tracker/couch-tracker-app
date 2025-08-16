@@ -4,7 +4,7 @@ import app.moviebase.tmdb.model.TmdbDepartment
 import io.github.couchtracker.R
 import io.github.couchtracker.utils.Text
 
-fun TmdbDepartment.title(): Text {
+fun TmdbDepartment.title(): Text.Resource {
     val resource = when (this) {
         TmdbDepartment.ACTING -> R.string.crew_departments_acting
         TmdbDepartment.ACTORS -> R.string.crew_departments_actors

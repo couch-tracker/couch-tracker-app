@@ -2,6 +2,8 @@
 
 package io.github.couchtracker.ui.screens.show
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,9 +34,9 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 import io.github.couchtracker.db.profile.show.UnknownExternalShowId
-import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.intl.formatAndList
+import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbMemoryCache
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
@@ -45,11 +47,17 @@ import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
+import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.koin.compose.koinInject
+import org.koin.mp.KoinPlatform
+
+private const val LOG_TAG = "ShowScreen"
 
 @Serializable
 data class ShowScreen(val showId: String, val language: String) : Screen() {
@@ -66,7 +74,10 @@ data class ShowScreen(val showId: String, val language: String) : Screen() {
     }
 }
 
-fun NavController.navigateToShow(show: TmdbShow) {
+fun NavController.navigateToShow(show: TmdbShow, preloadData: BaseTmdbShow?) {
+    if (preloadData != null) {
+        KoinPlatform.getKoin().get<TmdbMemoryCache>().registerItem(preloadData)
+    }
     navigate(ShowScreen(show.id.toExternalId().serialize(), show.language.serialize()))
 }
 
@@ -80,7 +91,6 @@ private enum class ShowScreenTab {
 private fun Content(show: TmdbShow) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
-    val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<Loadable<ShowScreenModel, ApiException>>(Loadable.Loading) }
     val pagerState = rememberPagerState(
         initialPage = ShowScreenTab.entries.indexOf(ShowScreenTab.DETAILS),
@@ -97,13 +107,16 @@ private fun Content(show: TmdbShow) {
             if (screenModel is Result.Error) {
                 screenModel = Loadable.Loading
             }
-            screenModel = loadShow(
-                ctx,
-                tmdbCache,
-                show,
-                width = maxWidth,
-                height = maxHeight,
-            )
+            screenModel = coroutineScope.async(Dispatchers.Default) {
+                logExecutionTime(LOG_TAG, "Loading show") {
+                    coroutineScope.loadShow(
+                        ctx = ctx,
+                        show = show,
+                        width = maxWidth,
+                        height = maxHeight,
+                    )
+                }
+            }.await()
         }
         LaunchedEffect(show) {
             load()
@@ -199,31 +212,35 @@ private fun OverviewScreenComponents.ShowDetailsContent(
     model: ShowScreenModel,
     totalHeight: Int,
 ) {
+    val fullDetails = model.fullDetails.awaitAsLoadable()
     val images = model.images.awaitAsLoadable()
     val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding) {
         topSpace()
         section("subtitle") {
-            val hasCreatedBy = model.createdBy.isNotEmpty()
-            val tags = listOfNotNull(
-                model.year?.toString(),
-                model.rating?.format(),
-            ) + model.genres.map { it.name }
+            val creators = fullDetails.map { it.createdByString }.valueOrNull()
+            val tags = fullDetails.map { details ->
+                listOfNotNull(
+                    model.year?.toString(),
+                    model.rating?.formatted,
+                ) + details.genres.map { it.name }
+            }.valueOrNull().orEmpty()
+
+            val hasCreatedBy = creators != null
             val hasTags = tags.isNotEmpty()
             if (hasCreatedBy || hasTags) {
                 item(key = "subtitle-content") {
-                    if (hasCreatedBy) {
-                        val creators = formatAndList(model.createdBy.map { it.name })
-                        Paragraph(R.string.show_by_creator.str(creators))
+                    AnimatedVisibility(hasCreatedBy, enter = expandVertically()) {
+                        Paragraph(creators)
                     }
                     SpaceBetweenItems()
-                    if (hasTags) {
+                    AnimatedVisibility(hasTags, enter = expandVertically()) {
                         TagsComposable(tags)
                     }
                 }
             }
         }
-        paragraphSection("overview", model.tagline, model.overview)
+        paragraphSection("overview", fullDetails.map { it.tagline }.valueOrNull(), model.overview)
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.map { it.cast }, totalHeight = totalHeight)
         crewSection(credits.map { it.crew }, totalHeight = totalHeight)

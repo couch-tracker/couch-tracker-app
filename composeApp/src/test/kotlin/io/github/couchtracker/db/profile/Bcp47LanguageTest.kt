@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.profile
 
 import com.ibm.icu.util.ULocale
+import io.github.couchtracker.utils.LocaleData
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -35,7 +36,7 @@ class Bcp47LanguageTest : FunSpec(
             context("succeeds with all available locales and special ones") {
                 withData(
                     nameFn = { it.toString().ifEmpty { "<empty>" } },
-                    ULocale.getAvailableLocales().toList() + listOf(
+                    LocaleData().allLocales + listOf(
                         ULocale("und"),
                         ULocale("mul"),
                         ULocale("zxx"),

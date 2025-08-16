@@ -105,4 +105,5 @@ data class TmdbMovie(
     }
 }
 
+fun TmdbMovieDetail.toInternalTmdbMovie(language: TmdbLanguage) = TmdbMovie(TmdbMovieId(id), language)
 fun ApiTmdbMovie.toInternalTmdbMovie(language: TmdbLanguage) = TmdbMovie(TmdbMovieId(id), language)

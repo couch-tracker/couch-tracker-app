@@ -50,9 +50,9 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
-import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.intl.formatAndList
+import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
@@ -66,11 +66,17 @@ import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
+import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.koin.compose.koinInject
+import org.koin.mp.KoinPlatform
+
+private const val LOG_TAG = "MovieScreen"
 
 @Serializable
 data class MovieScreen(val movieId: String, val language: String) : Screen() {
@@ -87,7 +93,10 @@ data class MovieScreen(val movieId: String, val language: String) : Screen() {
     }
 }
 
-fun NavController.navigateToMovie(movie: TmdbMovie) {
+fun NavController.navigateToMovie(movie: TmdbMovie, preloadData: BaseTmdbMovie?) {
+    if (preloadData != null) {
+        KoinPlatform.getKoin().get<TmdbMemoryCache>().registerItem(preloadData)
+    }
     navigate(MovieScreen(movie.id.toExternalId().serialize(), movie.language.serialize()))
 }
 
@@ -95,7 +104,6 @@ fun NavController.navigateToMovie(movie: TmdbMovie) {
 private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
-    val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, ApiException>>(Loadable.Loading) }
 
     BoxWithConstraints(
@@ -108,13 +116,16 @@ private fun Content(movie: TmdbMovie) {
             if (screenModel is Result.Error) {
                 screenModel = Loadable.Loading
             }
-            screenModel = loadMovie(
-                ctx,
-                tmdbCache,
-                movie,
-                width = maxWidth,
-                height = maxHeight,
-            )
+            screenModel = coroutineScope.async(Dispatchers.Default) {
+                logExecutionTime(LOG_TAG, "Loading movie") {
+                    coroutineScope.loadMovie(
+                        ctx = ctx,
+                        movie = movie,
+                        width = maxWidth,
+                        height = maxHeight,
+                    )
+                }
+            }.await()
         }
         LaunchedEffect(movie) {
             load()
@@ -162,13 +173,14 @@ private fun MovieScreenContent(
         state = model.allDeferred,
         onRetry = { reloadMovie() },
     )
+    val fullDetails = model.fullDetails.awaitAsLoadable()
 
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = model.colorScheme,
         watchedItemType = WatchedItemType.MOVIE,
-        mediaRuntime = model.runtime,
-        mediaLanguages = listOf(model.originalLanguage),
+        mediaRuntime = fullDetails.valueOrNull()?.runtime,
+        mediaLanguages = listOfNotNull(fullDetails.valueOrNull()?.originalLanguage),
         title = model.title,
         backdrop = model.backdrop,
         modifier = Modifier.nestedScroll(toolbarScrollBehavior),
@@ -244,33 +256,35 @@ private fun OverviewScreenComponents.MoviePage(
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
+    val fullDetails = model.fullDetails.awaitAsLoadable()
     val images = model.images.awaitAsLoadable()
     val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding, modifier) {
         section("subtitle") {
-            val director = credits.map { it.director }
-            val tags = listOfNotNull(
-                model.year?.toString(),
-                model.runtime?.toString(),
-                model.rating?.format(),
-            ) + model.genres.map { it.name }
+            val directors = credits.map { it.directorsString }.valueOrNull()
+            val tags = fullDetails.map { details ->
+                listOfNotNull(
+                    model.year?.toString(),
+                    details.runtime?.toString(),
+                    model.rating?.formatted,
+                ) + details.genres.map { it.name }
+            }.valueOrNull().orEmpty()
 
-            val hasDirector = director is Result.Value && director.value.isNotEmpty()
+            val hasDirectors = directors != null
             val hasTags = tags.isNotEmpty()
-            if (hasDirector || hasTags) {
-                item("subtitle-content") {
-                    AnimatedVisibility(hasDirector, enter = expandVertically()) {
-                        val directors = formatAndList((director as? Result.Value)?.value?.map { it.name }.orEmpty())
-                        Paragraph(R.string.movie_by_director.str(directors))
+            item("subtitle-content") {
+                if (hasDirectors || hasTags) {
+                    AnimatedVisibility(hasDirectors, enter = expandVertically()) {
+                        Paragraph(directors)
                     }
                     SpaceBetweenItems()
-                    if (hasTags) {
+                    AnimatedVisibility(hasTags, enter = expandVertically()) {
                         TagsComposable(tags = tags)
                     }
                 }
             }
         }
-        paragraphSection("overview", model.tagline, model.overview)
+        paragraphSection("overview", fullDetails.map { it.tagline }.valueOrNull(), model.overview)
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.map { it.cast }, totalHeight = totalHeight)
         crewSection(credits.map { it.crew }, totalHeight = totalHeight)

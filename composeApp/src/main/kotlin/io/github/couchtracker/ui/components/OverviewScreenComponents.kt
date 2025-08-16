@@ -334,7 +334,7 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.paragraphSection(sectionKey: String, title: String, content: String) {
+    fun LazyListScope.paragraphSection(sectionKey: String, title: String?, content: String) {
         section(sectionKey, title) {
             item(key = "$sectionKey-content", contentType = "text-section-content") {
                 Paragraph(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.animateItem())
