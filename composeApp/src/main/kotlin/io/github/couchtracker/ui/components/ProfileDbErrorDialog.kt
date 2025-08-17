@@ -15,17 +15,19 @@ import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.ProfileDbError
 import io.github.couchtracker.intl.errorMessage
+import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.ProfileDbActionState
-import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.str
 
 @Composable
 fun ProfileDbErrorDialog(actionState: ProfileDbActionState<*>) {
-    val state = actionState.current
+    val state = actionState.current as? Loadable ?: return
+    val error = state.resultErrorOrNull()
 
-    if (state is Result.Error) {
-        val detailedMessage = state.error.errorMessage()
-        val exception = if (state.error is ProfileDbError.WithException) state.error.exception else null
+    if (error != null) {
+        val detailedMessage = error.errorMessage()
+        val exception = if (error is ProfileDbError.WithException) error.exception else null
         AlertDialog(
             icon = { Icon(Icons.Default.Error, contentDescription = null) },
             title = { Text(R.string.save_failed.str()) },

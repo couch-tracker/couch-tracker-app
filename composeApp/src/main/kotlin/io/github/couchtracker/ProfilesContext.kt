@@ -5,14 +5,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.sqldelight.coroutines.asFlow
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.app.ProfilesInfo
 import io.github.couchtracker.db.app.profilesInfoFlow
 import io.github.couchtracker.ui.components.LoadableScreen
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
 import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
@@ -24,10 +22,10 @@ fun ProfilesContext(content: @Composable () -> Unit) {
 
     val profiles = remember { appDb.profileQueries.selectAll().asFlow().map { it.executeAsList() } }
     val flow = remember {
-        profilesInfoFlow(profiles, Settings.CurrentProfileId).map { Result.Value(it) }
+        profilesInfoFlow(profiles, Settings.CurrentProfileId)
     }
 
-    val profilesInfo by flow.collectAsStateWithLifecycle(Loadable.Loading)
+    val profilesInfo by flow.collectAsLoadableWithLifecycle()
 
     LoadableScreen(profilesInfo) { profilesInfo ->
         CompositionLocalProvider(LocalProfilesContext provides profilesInfo) {

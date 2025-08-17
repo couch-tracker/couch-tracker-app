@@ -17,7 +17,6 @@ import androidx.paging.compose.LazyPagingItems
 import io.github.couchtracker.R
 import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.isLoaded
 import io.github.couchtracker.utils.str
 import kotlin.contracts.ExperimentalContracts
@@ -37,9 +36,9 @@ fun <T : Any> PaginatedGrid(
     itemComposable: @Composable (T?) -> Unit,
 ) {
     val globalState = when (val state = paginatedItems.loadState.refresh) {
-        is LoadState.Error -> Result.Error(state.error.wrap())
+        is LoadState.Error -> Loadable.error(state.error.wrap())
         LoadState.Loading -> Loadable.Loading
-        is LoadState.NotLoading -> Result.Value(Unit)
+        is LoadState.NotLoading -> Loadable.value(Unit)
     }
     LoadableScreen(
         globalState,
