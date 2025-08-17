@@ -62,14 +62,13 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
-import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
 import io.github.couchtracker.utils.logExecutionTime
-import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapResult
+import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
-import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -104,7 +103,7 @@ fun NavController.navigateToMovie(movie: TmdbMovie, preloadData: BaseTmdbMovie?)
 private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
-    var screenModel by remember { mutableStateOf<Loadable<MovieScreenModel, ApiException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<ApiLoadable<MovieScreenModel>>(Loadable.Loading) }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -113,16 +112,16 @@ private fun Content(movie: TmdbMovie) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
         suspend fun load() {
-            if (screenModel is Result.Error) {
-                screenModel = Loadable.Loading
-            }
+            screenModel = Loadable.Loading
             screenModel = coroutineScope.async(Dispatchers.Default) {
                 logExecutionTime(LOG_TAG, "Loading movie") {
-                    coroutineScope.loadMovie(
-                        ctx = ctx,
-                        movie = movie,
-                        width = maxWidth,
-                        height = maxHeight,
+                    Loadable.Loaded(
+                        coroutineScope.loadMovie(
+                            ctx = ctx,
+                            movie = movie,
+                            width = maxWidth,
+                            height = maxHeight,
+                        ),
                     )
                 }
             }.await()
@@ -179,8 +178,8 @@ private fun MovieScreenContent(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = model.colorScheme,
         watchedItemType = WatchedItemType.MOVIE,
-        mediaRuntime = fullDetails.valueOrNull()?.runtime,
-        mediaLanguages = listOfNotNull(fullDetails.valueOrNull()?.originalLanguage),
+        mediaRuntime = fullDetails.resultValueOrNull()?.runtime,
+        mediaLanguages = listOfNotNull(fullDetails.resultValueOrNull()?.originalLanguage),
         title = model.title,
         backdrop = model.backdrop,
         modifier = Modifier.nestedScroll(toolbarScrollBehavior),
@@ -261,14 +260,14 @@ private fun OverviewScreenComponents.MoviePage(
     val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding, modifier) {
         section("subtitle") {
-            val directors = credits.map { it.directorsString }.valueOrNull()
-            val tags = fullDetails.map { details ->
+            val directors = credits.mapResult { it.directorsString }.resultValueOrNull()
+            val tags = fullDetails.mapResult { details ->
                 listOfNotNull(
                     model.year?.toString(),
                     details.runtime?.toString(),
                     model.rating?.formatted,
                 ) + details.genres.map { it.name }
-            }.valueOrNull().orEmpty()
+            }.resultValueOrNull().orEmpty()
 
             val hasDirectors = directors != null
             val hasTags = tags.isNotEmpty()
@@ -284,10 +283,10 @@ private fun OverviewScreenComponents.MoviePage(
                 }
             }
         }
-        paragraphSection("overview", fullDetails.map { it.tagline }.valueOrNull(), model.overview)
+        paragraphSection("overview", fullDetails.mapResult { it.tagline }.resultValueOrNull(), model.overview)
         imagesSection(images, totalHeight = totalHeight)
-        castSection(credits.map { it.cast }, totalHeight = totalHeight)
-        crewSection(credits.map { it.crew }, totalHeight = totalHeight)
+        castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
+        crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
         // To avoid overlaps with the FAB; see FabBaselineTokens.ContainerHeight
         item("fab-spacer") { Spacer(Modifier.height(56.dp)) }
     }

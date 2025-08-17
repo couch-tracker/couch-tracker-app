@@ -43,14 +43,13 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WipMessageComposable
-import io.github.couchtracker.utils.ApiException
+import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.awaitAsLoadable
 import io.github.couchtracker.utils.logExecutionTime
-import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapResult
+import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
-import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -91,7 +90,7 @@ private enum class ShowScreenTab {
 private fun Content(show: TmdbShow) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
-    var screenModel by remember { mutableStateOf<Loadable<ShowScreenModel, ApiException>>(Loadable.Loading) }
+    var screenModel by remember { mutableStateOf<ApiLoadable<ShowScreenModel>>(Loadable.Loading) }
     val pagerState = rememberPagerState(
         initialPage = ShowScreenTab.entries.indexOf(ShowScreenTab.DETAILS),
         pageCount = { ShowScreenTab.entries.size },
@@ -104,16 +103,16 @@ private fun Content(show: TmdbShow) {
         val maxWidth = this.constraints.maxWidth
         val maxHeight = this.constraints.maxHeight
         suspend fun load() {
-            if (screenModel is Result.Error) {
-                screenModel = Loadable.Loading
-            }
+            screenModel = Loadable.Loading
             screenModel = coroutineScope.async(Dispatchers.Default) {
                 logExecutionTime(LOG_TAG, "Loading show") {
-                    coroutineScope.loadShow(
-                        ctx = ctx,
-                        show = show,
-                        width = maxWidth,
-                        height = maxHeight,
+                    Loadable.Loaded(
+                        coroutineScope.loadShow(
+                            ctx = ctx,
+                            show = show,
+                            width = maxWidth,
+                            height = maxHeight,
+                        ),
                     )
                 }
             }.await()
@@ -218,13 +217,13 @@ private fun OverviewScreenComponents.ShowDetailsContent(
     ContentList(innerPadding) {
         topSpace()
         section("subtitle") {
-            val creators = fullDetails.map { it.createdByString }.valueOrNull()
-            val tags = fullDetails.map { details ->
+            val creators = fullDetails.mapResult { it.createdByString }.resultValueOrNull()
+            val tags = fullDetails.mapResult { details ->
                 listOfNotNull(
                     model.year?.toString(),
                     model.rating?.formatted,
                 ) + details.genres.map { it.name }
-            }.valueOrNull().orEmpty()
+            }.resultValueOrNull().orEmpty()
 
             val hasCreatedBy = creators != null
             val hasTags = tags.isNotEmpty()
@@ -240,9 +239,9 @@ private fun OverviewScreenComponents.ShowDetailsContent(
                 }
             }
         }
-        paragraphSection("overview", fullDetails.map { it.tagline }.valueOrNull(), model.overview)
+        paragraphSection("overview", fullDetails.mapResult { it.tagline }.resultValueOrNull(), model.overview)
         imagesSection(images, totalHeight = totalHeight)
-        castSection(credits.map { it.cast }, totalHeight = totalHeight)
-        crewSection(credits.map { it.crew }, totalHeight = totalHeight)
+        castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
+        crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
     }
 }

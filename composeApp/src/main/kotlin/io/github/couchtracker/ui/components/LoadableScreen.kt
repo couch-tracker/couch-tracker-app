@@ -38,9 +38,9 @@ private val DEFAULT_INDICATOR_SIZE = 64.dp
  *  - it shows up with a delay
  */
 @Composable
-fun <T, E> LoadableScreen(
-    data: Loadable<T, E>,
-    onError: @Composable (error: E) -> Unit,
+fun <T> LoadableScreen(
+    data: Loadable<T>,
+    key: (Loadable<T>) -> Any? = { it.javaClass },
     onLoading: @Composable () -> Unit = { DefaultLoadingScreen() },
     content: @Composable (value: T) -> Unit,
 ) {
@@ -58,7 +58,7 @@ fun <T, E> LoadableScreen(
     val transition = rememberTransition(state)
     transition.AnimatedContent(
         Modifier,
-        contentKey = { it?.javaClass },
+        contentKey = { it?.let { key(it) } },
         transitionSpec = {
             val fadeInDelay = if (targetState is Loadable.Loading) {
                 ANIMATION_DURATION_MS / 2
@@ -72,24 +72,33 @@ fun <T, E> LoadableScreen(
         when (content) {
             null -> Spacer(Modifier.fillMaxSize())
             Loadable.Loading -> onLoading()
-            is Result.Error -> onError(content.error)
-            is Result.Value -> content(content.value)
+            is Loadable.Loaded -> content(content.value)
         }
     }
 }
 
 @Composable
-fun <T> LoadableScreen(
-    data: Loadable<T, Nothing>,
+fun <T, E> LoadableScreen(
+    data: Loadable<Result<T, E>>,
+    onError: @Composable (error: E) -> Unit,
     onLoading: @Composable () -> Unit = { DefaultLoadingScreen() },
     content: @Composable (value: T) -> Unit,
 ) {
     LoadableScreen(
         data = data,
-        onError = { x: Nothing -> x },
         onLoading = onLoading,
-        content = content,
-    )
+        key = { content ->
+            when (content) {
+                Loadable.Loading -> content
+                is Loadable.Loaded -> content.value.javaClass
+            }
+        },
+    ) { content ->
+        when (content) {
+            is Result.Error -> onError(content.error)
+            is Result.Value -> content(content.value)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
