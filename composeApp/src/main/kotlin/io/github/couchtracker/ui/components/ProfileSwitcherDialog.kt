@@ -29,12 +29,12 @@ import androidx.compose.ui.unit.dp
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
-import io.github.couchtracker.Settings
 import io.github.couchtracker.db.app.ProfileInfo
 import io.github.couchtracker.intl.datetime.Skeletons
 import io.github.couchtracker.intl.datetime.TimeSkeleton
 import io.github.couchtracker.intl.datetime.sum
 import io.github.couchtracker.intl.formatDateTimeSkeleton
+import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -76,7 +76,7 @@ fun ProfileSwitcherDialog(
                             supportingContent = { Text(profileInfo.supportingText()) },
                             modifier = Modifier.clickable {
                                 coroutineScope.launch {
-                                    Settings.CurrentProfileId.set(profileInfo.profile.id)
+                                    AppSettings.CurrentProfileId.set(profileInfo.profile.id)
                                     close()
                                 }
                             },
