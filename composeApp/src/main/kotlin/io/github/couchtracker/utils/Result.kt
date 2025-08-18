@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.couchtracker.utils
 
 /**
@@ -28,10 +30,23 @@ inline fun <I, O, E> Result<I, E>.map(f: (I) -> O): Result<O, E> = flatMap {
 }
 
 /**
+ * [Result.Value.value], or the result of [f] when in error.
+ */
+inline fun <O, T : O, E> Result<T, E>.mapError(f: (E) -> O): O = when (this) {
+    is Result.Error -> f(error)
+    is Result.Value -> value
+}
+
+/**
  * Applies [f] to [Result.Value.value].
  * Otherwise, [Loadable.Loading] and [Result.Error] are returned without executing [f].
  */
 inline fun <I, O, E> Loadable<Result<I, E>>.mapResult(f: (I) -> O): Loadable<Result<O, E>> = map { it.map(f) }
+
+/**
+ * A new [Loadable] where errors are mapped to a value using [f].
+ */
+inline fun <O, T : O, E> Loadable<Result<T, E>>.mapError(f: (E) -> O): Loadable<O> = map { it.mapError(f) }
 
 /**
  * Returns [Result.Value.value], or `null` in other cases.
