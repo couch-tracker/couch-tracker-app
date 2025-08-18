@@ -54,6 +54,16 @@ fun <T> Loadable<T>.valueOrNull(): T? = when (this) {
     Loadable.Loading -> null
 }
 
+/**
+ * Runs [f] when it's loaded.
+ */
+inline fun <T> Loadable<T>.onValue(f: (T) -> Unit): Loadable<T> {
+    if (this is Loadable.Loaded<T>) {
+        f(this.value)
+    }
+    return this
+}
+
 @Composable
 fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
     return remember { map { Loadable.Loaded(it) } }.collectAsStateWithLifecycle(Loadable.Loading)
