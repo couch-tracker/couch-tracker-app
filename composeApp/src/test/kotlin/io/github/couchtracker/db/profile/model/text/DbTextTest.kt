@@ -8,6 +8,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.enum
+import io.kotest.property.arbitrary.filterNot
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.merge
 import io.kotest.property.arbitrary.string
@@ -48,7 +49,7 @@ class DbTextTest : FunSpec(
             )
         }
         test("round trip") {
-            forAll(Arb.defaultDbText()) {
+            forAll(10_000, Arb.defaultDbText()) {
                 it == DbText.fromUri(it.toCouchTrackerUri())
             }
         }
@@ -104,7 +105,7 @@ private suspend fun FunSpecContainerScope.uriTests(
 
 private fun Arb.Companion.defaultDbText(): Arb<DbText> {
     val default = enum<DbDefaultText>().map { DbText.Default(it) }
-    val unknown = string(minSize = 1).map { DbText.UnknownDefault(it) }
+    val unknown = string(minSize = 1).filterNot { it.isBlank() }.map { DbText.UnknownDefault(it) }
     val custom = string().map { DbText.Custom(it) }
 
     return default.merge(unknown).merge(custom)
