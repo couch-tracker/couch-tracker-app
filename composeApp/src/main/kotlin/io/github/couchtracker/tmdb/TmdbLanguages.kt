@@ -1,13 +1,5 @@
 package io.github.couchtracker.tmdb
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
-import io.github.couchtracker.utils.currentLocales
-import io.github.couchtracker.utils.toList
-import kotlin.collections.distinct
-import kotlin.collections.ifEmpty
-import kotlin.collections.take
-
 /**
  * Class representing a list of [TmdbLanguages] to use to get the localized something of a TMDB item.
  *
@@ -52,20 +44,4 @@ value class TmdbLanguages(val languages: List<TmdbLanguage>) {
             return TmdbLanguages(value.split(",").map { TmdbLanguage.parse(it) })
         }
     }
-}
-
-@Composable
-private fun rememberSystemTmdbLanguages(): TmdbLanguages {
-    return LocalConfiguration.currentLocales.toList()
-        .mapNotNull { it.toTmdbLanguage() }
-        .ifEmpty { listOf(TmdbLanguage.FALLBACK) }
-        .distinct()
-        .take(TmdbLanguages.MAX_LANGUAGES)
-        .let(::TmdbLanguages)
-}
-
-@Composable
-fun TmdbLanguages?.orDefault(): TmdbLanguages {
-    val systemTmdbLanguages = rememberSystemTmdbLanguages()
-    return this ?: systemTmdbLanguages
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import io.github.couchtracker.settings.AppSettingsContext
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.composable
@@ -45,33 +46,37 @@ fun App() {
         CompositionLocalProvider(LocalNavController provides navController) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 LoadableScreen(koinLoadState) {
-                    ProfilesContext {
-                        NavHost(
-                            navController = navController,
-                            startDestination = MainScreen,
-                            enterTransition = {
-                                val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = LinearOutSlowInEasing)
-                                slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                    fadeIn(FADE_ANIMATION_SPEC)
-                            },
-                            exitTransition = {
-                                fadeOut(FADE_ANIMATION_SPEC)
-                            },
-                            popEnterTransition = {
-                                fadeIn(FADE_ANIMATION_SPEC)
-                            },
-                            popExitTransition = {
-                                val slideSpec = tween<IntOffset>(AnimationDefaults.ANIMATION_DURATION_MS, easing = FastOutLinearInEasing)
-                                slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                    fadeOut(FADE_ANIMATION_SPEC)
-                            },
-                        ) {
-                            composable<MainScreen>()
-                            composable<SearchScreen>()
-                            composable<MovieScreen>()
-                            composable<ShowScreen>()
-                            composable<WatchedItemsScreen>()
-                            settings()
+                    AppSettingsContext {
+                        ProfilesContext {
+                            NavHost(
+                                navController = navController,
+                                startDestination = MainScreen,
+                                enterTransition = {
+                                    val slideSpec = tween<IntOffset>(
+                                        durationMillis = AnimationDefaults.ANIMATION_DURATION_MS,
+                                        easing = LinearOutSlowInEasing,
+                                    )
+                                    slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                                        fadeIn(FADE_ANIMATION_SPEC)
+                                },
+                                exitTransition = { fadeOut(FADE_ANIMATION_SPEC) },
+                                popEnterTransition = { fadeIn(FADE_ANIMATION_SPEC) },
+                                popExitTransition = {
+                                    val slideSpec = tween<IntOffset>(
+                                        durationMillis = AnimationDefaults.ANIMATION_DURATION_MS,
+                                        easing = FastOutLinearInEasing,
+                                    )
+                                    slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                                        fadeOut(FADE_ANIMATION_SPEC)
+                                },
+                            ) {
+                                composable<MainScreen>()
+                                composable<SearchScreen>()
+                                composable<MovieScreen>()
+                                composable<ShowScreen>()
+                                composable<WatchedItemsScreen>()
+                                settings()
+                            }
                         }
                     }
                 }

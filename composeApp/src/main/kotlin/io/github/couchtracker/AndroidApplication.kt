@@ -31,6 +31,7 @@ class AndroidApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@AndroidApplication)
 
             lazyModules(
+                AppModule,
                 AppDataModule,
                 LocaleModule,
                 ProfileDbModule,

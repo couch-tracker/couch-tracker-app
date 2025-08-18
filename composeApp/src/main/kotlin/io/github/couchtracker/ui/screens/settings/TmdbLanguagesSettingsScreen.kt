@@ -31,12 +31,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.DisplayContext
 import io.github.couchtracker.R
-import io.github.couchtracker.Settings
 import io.github.couchtracker.db.profile.toLossyBcp47Language
+import io.github.couchtracker.settings.LocalAppSettingsContext
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbLanguages
 import io.github.couchtracker.tmdb.languageTree
-import io.github.couchtracker.tmdb.orDefault
 import io.github.couchtracker.tmdb.tmdbDownloadResult
 import io.github.couchtracker.tmdb.toTmdbLanguage
 import io.github.couchtracker.ui.Screen
@@ -48,12 +47,12 @@ import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.MixedValueTree
 import io.github.couchtracker.utils.allLeafs
-import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
 import io.github.couchtracker.utils.countLeafs
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.currentLocales
 import io.github.couchtracker.utils.pluralStr
-import io.github.couchtracker.utils.rememberWriteThroughAsyncMutableState
+import io.github.couchtracker.utils.settings.LoadedSettingWithDefault
+import io.github.couchtracker.utils.settings.rememberWriteThroughAsyncSetting
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toList
 import io.github.couchtracker.utils.toULocale
@@ -83,7 +82,7 @@ private const val NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST = 3
 
 @Composable
 private fun Content() {
-    val settingsTmdbLanguages by Settings.TmdbLanguages.collectAsLoadableWithLifecycle()
+    val settingsTmdbLanguages = LocalAppSettingsContext.current.getWithDefault { Tmdb.Languages }
     val coroutineScope = rememberCoroutineScope()
 
     var allTmdbLanguages by remember { mutableStateOf<ApiLoadable<List<TmdbLanguage>>>(Loadable.Loading) }
@@ -108,7 +107,7 @@ private fun Content() {
             )
         },
     ) { allTmdbLanguages ->
-        LoadableScreen(data = settingsTmdbLanguages) { settingsTmdbLanguages ->
+        LoadableScreen(settingsTmdbLanguages) { settingsTmdbLanguages ->
             LoadedContent(
                 allTmdbLanguages = allTmdbLanguages,
                 settingsTmdbLanguages = settingsTmdbLanguages,
@@ -120,24 +119,18 @@ private fun Content() {
 @Composable
 private fun LoadedContent(
     allTmdbLanguages: List<TmdbLanguage>,
-    settingsTmdbLanguages: TmdbLanguages?,
+    settingsTmdbLanguages: LoadedSettingWithDefault<TmdbLanguages, TmdbLanguages>,
 ) {
-    var settingsTmdbLanguages by rememberWriteThroughAsyncMutableState(
-        asyncValue = settingsTmdbLanguages,
-        setValue = {
-            if (it != null) {
-                Settings.TmdbLanguages.set(it)
-            } else {
-                Settings.TmdbLanguages.reset()
-            }
-        },
-    )
-    val actualLanguages = settingsTmdbLanguages.orDefault()
+    val settingsTmdbLanguages = rememberWriteThroughAsyncSetting(settingsTmdbLanguages)
+
+    var actualTmdbLanguages by settingsTmdbLanguages.actual
+    val currentTmdbLanguages by settingsTmdbLanguages.current
+
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(
         lazyListState = lazyListState,
         onMove = { from, to ->
-            settingsTmdbLanguages = settingsTmdbLanguages?.withMovedItem(
+            actualTmdbLanguages = actualTmdbLanguages?.withMovedItem(
                 fromIndex = from.index - NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST,
                 toIndex = to.index - NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST,
             )
@@ -150,13 +143,13 @@ private fun LoadedContent(
         footer = R.string.tmdb_languages_settings_footer.str(),
         lazyColumnState = lazyListState,
     ) {
-        val enableCustomLanguages = settingsTmdbLanguages != null
+        val enableCustomLanguages = actualTmdbLanguages != null
         item("use-app-languages") {
             SwitchPreference(
                 modifier = Modifier.animateItem(),
                 value = !enableCustomLanguages,
                 onValueChange = {
-                    settingsTmdbLanguages = if (it) null else actualLanguages
+                    actualTmdbLanguages = if (it) null else currentTmdbLanguages
                 },
                 title = { Text(R.string.use_system_languages.str()) },
             )
@@ -169,16 +162,16 @@ private fun LoadedContent(
         }
         check(itemCount == NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST)
         languages(
-            languages = actualLanguages,
+            languages = currentTmdbLanguages,
             enabled = enableCustomLanguages,
             reorderableState = reorderableState,
-            onLanguageDeleted = { settingsTmdbLanguages = settingsTmdbLanguages?.tryMinus(it) },
+            onLanguageDeleted = { actualTmdbLanguages = actualTmdbLanguages?.tryMinus(it) },
         )
         addLanguage(
-            languages = actualLanguages,
+            languages = currentTmdbLanguages,
             allTmdbLanguages = allTmdbLanguages,
             enabled = enableCustomLanguages,
-            onLanguageSelected = { settingsTmdbLanguages = settingsTmdbLanguages?.tryPlus(it) },
+            onLanguageSelected = { actualTmdbLanguages = actualTmdbLanguages?.tryPlus(it) },
         )
     }
 }

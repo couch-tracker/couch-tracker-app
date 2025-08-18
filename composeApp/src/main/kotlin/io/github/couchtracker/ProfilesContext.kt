@@ -9,6 +9,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.app.ProfilesInfo
 import io.github.couchtracker.db.app.profilesInfoFlow
+import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
 import kotlinx.coroutines.flow.map
@@ -22,7 +23,7 @@ fun ProfilesContext(content: @Composable () -> Unit) {
 
     val profiles = remember { appDb.profileQueries.selectAll().asFlow().map { it.executeAsList() } }
     val flow = remember {
-        profilesInfoFlow(profiles, Settings.CurrentProfileId)
+        profilesInfoFlow(profiles, AppSettings.CurrentProfileId.current)
     }
 
     val profilesInfo by flow.collectAsLoadableWithLifecycle()
