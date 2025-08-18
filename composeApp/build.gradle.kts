@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.detekt)
     alias(libs.plugins.sqldelight)
@@ -33,6 +32,8 @@ kotlin {
     }
 
     dependencies {
+        val composeBom = platform(libs.compose.bom)
+
         detektPlugins(libs.detekt.formatting)
 
         // Kotlin stuff
@@ -45,12 +46,10 @@ kotlin {
         implementation(libs.androidx.documentfile)
 
         // Compose
-        implementation(compose.foundation)
-        implementation(compose.material)
-        implementation(compose.material3)
-        implementation(compose.materialIconsExtended)
-        implementation(compose.runtime)
-        implementation(compose.ui)
+        implementation(composeBom)
+        implementation(libs.compose.material)
+        implementation(libs.compose.material3)
+        implementation(libs.compose.materialIconsExtended)
         implementation(libs.androidx.activity.compose)
         implementation(libs.androidx.lifecycle.runtime.compose)
         implementation(libs.compose.paging)
@@ -88,10 +87,12 @@ kotlin {
         implementation(libs.preference)
         implementation(libs.reorderable)
         implementation(libs.tmdb.api)
-    }
 
-    // Test dependencies
-    dependencies {
+        // Test dependencies
+
+        // Compose
+        testImplementation(composeBom)
+
         // Kotest
         testImplementation(libs.kotest.assertions.core)
         testImplementation(libs.kotest.extensions.koin)
@@ -115,6 +116,10 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+    }
+    buildFeatures {
+        buildConfig = true
+        compose = true
     }
     packaging {
         resources {

@@ -11,7 +11,7 @@ buildConfig = "5.6.7"
 byte-size = "2.0.0"
 coil = "3.3.0"
 compose-paging = "3.3.6"
-compose-plugin = "1.9.0-alpha03"
+compose-bom = "2025.08.00"
 detekt = "1.23.8"
 icu = "77.1"
 koin-bom = "4.1.0"
@@ -37,6 +37,11 @@ androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-ru
 byteSize = { module = "me.saket.bytesize:bytesize", version.ref = "byte-size" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+# TODO: switch to stable once expressive material components are released
+compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose-bom" }
+compose-material = { module = "androidx.compose.material:material" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-materialIconsExtended = { module = "androidx.compose.material:material-icons-extended" }
 compose-paging = { module = "androidx.paging:paging-compose", version.ref = "compose-paging" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
@@ -76,7 +81,6 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
