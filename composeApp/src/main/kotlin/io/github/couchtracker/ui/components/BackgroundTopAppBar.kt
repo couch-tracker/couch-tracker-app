@@ -2,22 +2,24 @@
 
 package io.github.couchtracker.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
@@ -25,28 +27,33 @@ import coil3.request.ImageRequest
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-private const val GRADIENT_STEPS = 16
+private const val GRADIENT_STEPS = 32
 private const val BACKGROUND_START_ALPHA = 0.4f
 private val APP_BAR_MAX_ELEVATION = 16.dp
 private val BACKGROUND_MAX_BLUR = 16.dp
+
+private val BRUSH = createGradientBrush(Color.Black)
 
 @Composable
 fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     image: @Composable (Modifier) -> Unit,
     appBar: @Composable (TopAppBarColors) -> Unit,
-    backgroundColor: Color = MaterialTheme.colorScheme.background,
+    backgroundColor: () -> Color,
 ) {
     Box(
-        Modifier.graphicsLayer {
-            val scrollAmount = -scrollBehavior.state.contentOffset
-            shadowElevation = scrollAmount.coerceAtMost(APP_BAR_MAX_ELEVATION.toPx())
-            ambientShadowColor = backgroundColor
-        },
+        Modifier
+            .graphicsLayer {
+                val scrollAmount = -scrollBehavior.state.contentOffset
+                shadowElevation = scrollAmount.coerceAtMost(APP_BAR_MAX_ELEVATION.toPx())
+                ambientShadowColor = backgroundColor()
+            },
     ) {
         image(
             Modifier
                 .matchParentSize()
+                // Avoids artifacts where the brush doesn't completely cover the image
+                .padding(bottom = LocalDensity.current.run { 1.toDp() })
                 .graphicsLayer {
                     val radius = scrollBehavior.state.collapsedFraction * BACKGROUND_MAX_BLUR.toPx()
                     if (radius > 0) {
@@ -55,7 +62,11 @@ fun BackgroundTopAppBar(
                     this.clip = true
                 },
         )
-        Box(Modifier.background(createGradientBrush(backgroundColor))) {
+        Box(
+            Modifier.drawBehind {
+                drawRect(BRUSH, colorFilter = ColorFilter.tint(backgroundColor()))
+            },
+        ) {
             appBar(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
@@ -71,7 +82,7 @@ fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     backdrop: ImageRequest?,
     appBar: @Composable (TopAppBarColors) -> Unit,
-    backgroundColor: Color = MaterialTheme.colorScheme.background,
+    backgroundColor: () -> Color,
 ) {
     BackgroundTopAppBar(
         scrollBehavior = scrollBehavior,

@@ -90,12 +90,14 @@ object OverviewScreenComponents {
         title: String,
         backdrop: ImageRequest?,
         scrollBehavior: TopAppBarScrollBehavior,
+        backgroundColor: () -> Color,
         belowAppBar: @Composable ColumnScope.() -> Unit = {},
     ) {
         val navController = LocalNavController.current
         BackgroundTopAppBar(
             scrollBehavior = scrollBehavior,
             backdrop = backdrop,
+            backgroundColor = backgroundColor,
             appBar = { colors ->
                 Column {
                     LargeTopAppBar(

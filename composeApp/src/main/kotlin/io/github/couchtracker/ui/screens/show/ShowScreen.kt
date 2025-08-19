@@ -3,6 +3,7 @@
 package io.github.couchtracker.ui.screens.show
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -144,6 +145,7 @@ private fun Content(show: TmdbShow) {
                     coroutineScope.launch { load() }
                 },
             )
+            val backgroundColor by animateColorAsState(model.colorScheme.background)
             MaterialTheme(colorScheme = model.colorScheme) {
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -151,6 +153,7 @@ private fun Content(show: TmdbShow) {
                     topBar = {
                         OverviewScreenComponents.Header(
                             title = model.name,
+                            backgroundColor = { backgroundColor },
                             backdrop = model.backdrop,
                             scrollBehavior = scrollBehavior,
                             belowAppBar = {

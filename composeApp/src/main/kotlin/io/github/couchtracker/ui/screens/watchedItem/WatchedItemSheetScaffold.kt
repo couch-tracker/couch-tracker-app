@@ -47,6 +47,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onPlaced
@@ -84,6 +86,7 @@ import kotlin.time.Duration
 
 object WatchedItemSheetScope
 
+@Stable
 class WatchedItemSheetScaffoldState(
     val coroutineScope: CoroutineScope,
     val scaffoldState: BottomSheetScaffoldState,
@@ -132,8 +135,9 @@ fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
 fun WatchedItemSheetScaffold(
     scaffoldState: WatchedItemSheetScaffoldState,
     watchedItemType: WatchedItemType,
-    mediaRuntime: Duration?,
-    mediaLanguages: List<Bcp47Language>,
+    mediaRuntime: () -> Duration?,
+    mediaLanguages: () -> List<Bcp47Language>,
+    containerColor: () -> Color,
     content: @Composable () -> Unit,
 ) {
     val bottomSheetState = scaffoldState.scaffoldState.bottomSheetState
@@ -152,7 +156,7 @@ fun WatchedItemSheetScaffold(
     }
 
     BottomSheetScaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = containerColor(),
         scaffoldState = scaffoldState.scaffoldState,
         modifier = Modifier.fillMaxSize(),
         sheetPeekHeight = sheetPeekHeight,
@@ -202,8 +206,8 @@ private fun WatchedItemSheetContent(
     selections: WatchedItemSelections,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
-    mediaRuntime: Duration?,
-    mediaLanguages: List<Bcp47Language>,
+    mediaRuntime: () -> Duration?,
+    mediaLanguages: () -> List<Bcp47Language>,
     onDismissRequest: () -> Unit,
     onHeaderHeightChange: (Int) -> Unit,
     onScrollLabelHeightChange: (Int) -> Unit,
@@ -239,7 +243,7 @@ private fun WatchedItemSheetContent(
 
             is WatchedItemDimensionSelection.Language -> LanguageSection(
                 enabled = enabled,
-                mediaLanguages = mediaLanguages,
+                mediaLanguages = mediaLanguages(),
                 selection = selection,
                 onSelectionChange = selections::update,
             )
