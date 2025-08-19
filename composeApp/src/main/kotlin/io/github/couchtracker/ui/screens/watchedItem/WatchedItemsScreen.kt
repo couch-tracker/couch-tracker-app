@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import android.content.Context
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -133,13 +134,15 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
     val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
+    val backgroundColor by animateColorAsState(model.colorScheme.background)
 
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = model.colorScheme,
         watchedItemType = model.itemType,
-        mediaRuntime = model.runtime,
-        mediaLanguages = listOf(model.originalLanguage),
+        mediaRuntime = { model.runtime },
+        mediaLanguages = { listOf(model.originalLanguage) },
+        backgroundColor = { backgroundColor },
         title = R.string.viewing_history_for_x.str(model.title),
         backdrop = model.backdrop,
         floatingActionButton = {

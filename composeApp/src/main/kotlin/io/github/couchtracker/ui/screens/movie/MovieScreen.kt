@@ -3,6 +3,7 @@
 package io.github.couchtracker.ui.screens.movie
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -173,13 +174,15 @@ private fun MovieScreenContent(
         onRetry = { reloadMovie() },
     )
     val fullDetails = model.fullDetails.awaitAsLoadable()
+    val backgroundColor by animateColorAsState(model.colorScheme.background)
 
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = model.colorScheme,
         watchedItemType = WatchedItemType.MOVIE,
-        mediaRuntime = fullDetails.resultValueOrNull()?.runtime,
-        mediaLanguages = listOfNotNull(fullDetails.resultValueOrNull()?.originalLanguage),
+        mediaRuntime = { fullDetails.resultValueOrNull()?.runtime },
+        mediaLanguages = { listOfNotNull(fullDetails.resultValueOrNull()?.originalLanguage) },
+        backgroundColor = { backgroundColor },
         title = model.title,
         backdrop = model.backdrop,
         modifier = Modifier.nestedScroll(toolbarScrollBehavior),
