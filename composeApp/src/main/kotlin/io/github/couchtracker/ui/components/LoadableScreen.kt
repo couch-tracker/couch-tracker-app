@@ -7,6 +7,7 @@ import androidx.compose.animation.core.ExperimentalTransitionApi
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -40,7 +41,7 @@ private val DEFAULT_INDICATOR_SIZE = 64.dp
 @Composable
 fun <T> LoadableScreen(
     data: Loadable<T>,
-    key: (Loadable<T>) -> Any? = { it.javaClass },
+    key: (Loadable<T>) -> Any? = { it is Loadable.Loading },
     onLoading: @Composable () -> Unit = { DefaultLoadingScreen() },
     content: @Composable (value: T) -> Unit,
 ) {
@@ -98,6 +99,42 @@ fun <T, E> LoadableScreen(
             is Result.Error -> onError(content.error)
             is Result.Value -> content(content.value)
         }
+    }
+}
+
+@Composable
+fun <T : Any, E> ResultScreen(
+    data: Result<T, E>,
+    onError: @Composable (error: E) -> Unit,
+    content: @Composable (value: T) -> Unit,
+) {
+    val transition = updateTransition(data)
+    transition.AnimatedContent(
+        Modifier,
+        contentKey = { it is Result.Error },
+        transitionSpec = {
+            fadeIn(tween(ANIMATION_DURATION_MS)) togetherWith
+                fadeOut(tween(ANIMATION_DURATION_MS))
+        },
+    ) { data ->
+        when (data) {
+            is Result.Error -> onError(data.error)
+            is Result.Value -> content(data.value)
+        }
+    }
+}
+
+@Composable
+fun <E : Any?> ResultScreen(
+    error: E?,
+    onError: @Composable (error: E) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    ResultScreen(
+        data = if (error != null) Result.Error(error) else Result.Value(Unit),
+        onError = onError,
+    ) {
+        content()
     }
 }
 
