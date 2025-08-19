@@ -9,6 +9,7 @@ import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import app.moviebase.tmdb.model.TmdbShowDetail
 import coil3.Image
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -84,7 +85,9 @@ fun List<TmdbCrew>.directors(): List<TmdbCrew> {
     return filter { it.job == "Director" }
 }
 
-fun TmdbMovieDetail.language(
+private fun language(
+    originalLanguage: String,
+    originCountry: List<String>,
     allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
 ): Bcp47Language {
     return originCountry
@@ -92,6 +95,18 @@ fun TmdbMovieDetail.language(
         .firstOrNull { it in allLocales }
         ?.let { Bcp47Language(it) }
         ?: Bcp47Language.of(originalLanguage)
+}
+
+fun TmdbMovieDetail.language(
+    allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
+): Bcp47Language {
+    return language(originalLanguage, originCountry, allLocales)
+}
+
+fun TmdbShowDetail.language(
+    allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
+): Bcp47Language {
+    return language(originalLanguage, originCountry, allLocales)
 }
 
 fun TmdbMovieDetail.runtime() = runtime?.takeIf { it > 0 }?.minutes

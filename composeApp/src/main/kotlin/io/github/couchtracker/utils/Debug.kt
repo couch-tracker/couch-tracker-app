@@ -1,6 +1,10 @@
 package io.github.couchtracker.utils
 
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.currentRecomposeScope
+import androidx.compose.runtime.remember
+import io.github.couchtracker.BuildConfig
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
@@ -39,4 +43,18 @@ inline fun <T> logExecutionTime(logTag: String, message: String, f: () -> T): T 
     }
     Log.d(logTag, "$message took $took")
     return value
+}
+
+@PublishedApi
+internal class RecompositionCounter(var value: Int)
+
+/** Emits a log whenever the calling function is being recomposed (only in debug) */
+@Suppress("NOTHING_TO_INLINE")
+@Composable
+inline fun logCompositions(tag: String, msg: String) {
+    if (BuildConfig.DEBUG) {
+        val recompositionCounter = remember { RecompositionCounter(0) }
+        Log.d(tag, "$msg ${recompositionCounter.value} $currentRecomposeScope")
+        recompositionCounter.value++
+    }
 }
