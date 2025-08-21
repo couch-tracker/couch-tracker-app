@@ -96,32 +96,24 @@ private fun Content(show: TmdbShow) {
         initialPage = ShowScreenTab.entries.indexOf(ShowScreenTab.DETAILS),
         pageCount = { ShowScreenTab.entries.size },
     )
+    suspend fun load() {
+        screenModel = Loadable.Loading
+        screenModel = coroutineScope.async(Dispatchers.Default) {
+            logExecutionTime(LOG_TAG, "Loading show") {
+                Loadable.Loaded(
+                    coroutineScope.loadShow(ctx = ctx, show = show),
+                )
+            }
+        }.await()
+    }
+    LaunchedEffect(show) {
+        load()
+    }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
     ) {
-        val maxWidth = this.constraints.maxWidth
-        val maxHeight = this.constraints.maxHeight
-        suspend fun load() {
-            screenModel = Loadable.Loading
-            screenModel = coroutineScope.async(Dispatchers.Default) {
-                logExecutionTime(LOG_TAG, "Loading show") {
-                    Loadable.Loaded(
-                        coroutineScope.loadShow(
-                            ctx = ctx,
-                            show = show,
-                            width = maxWidth,
-                            height = maxHeight,
-                        ),
-                    )
-                }
-            }.await()
-        }
-        LaunchedEffect(show) {
-            load()
-        }
-
         LoadableScreen(
             data = screenModel,
             onError = { exception ->

@@ -79,7 +79,6 @@ import io.github.couchtracker.tmdb.toBaseMovie
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.MessageComposable
@@ -431,7 +430,7 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
         is TmdbCollection -> null
 
         is TmdbMovie -> SearchResultItem(
-            posterModel = posterImage?.toImageModel(ImagePreloadOptions.DoNotPreload),
+            posterModel = posterImage?.toImageModel(),
             title = title,
             type = SearchableMediaType.MOVIE,
             tags = listOfNotNull(
@@ -442,7 +441,7 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
         )
 
         is TmdbPerson -> SearchResultItem(
-            posterModel = profileImage?.toImageModel(ImagePreloadOptions.DoNotPreload),
+            posterModel = profileImage?.toImageModel(),
             title = name,
             type = SearchableMediaType.PERSON,
             tags = emptyList(),
@@ -450,7 +449,7 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
         )
 
         is TmdbShow -> SearchResultItem(
-            posterModel = posterImage?.toImageModel(ImagePreloadOptions.DoNotPreload),
+            posterModel = posterImage?.toImageModel(),
             title = name,
             type = SearchableMediaType.SHOW,
             tags = listOfNotNull(firstAirDate?.year?.toString()),

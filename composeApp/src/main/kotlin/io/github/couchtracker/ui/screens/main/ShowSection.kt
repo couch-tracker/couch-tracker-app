@@ -25,7 +25,6 @@ import io.github.couchtracker.R
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.tmdb.toBaseShow
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.ShowPortrait
@@ -114,7 +113,7 @@ class ShowExploreTabState(viewModelScope: CoroutineScope) {
                     trending.getTrendingShows(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
                 },
                 mapper = { show ->
-                    show.toBaseShow(tmdbLanguage) to show.toShowPortraitModels(ImagePreloadOptions.DoNotPreload)
+                    show.toBaseShow(tmdbLanguage) to show.toShowPortraitModels()
                 },
             ).flow
         }

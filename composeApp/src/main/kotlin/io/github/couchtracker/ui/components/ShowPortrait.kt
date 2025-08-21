@@ -12,7 +12,6 @@ import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.tmdbShowId
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
@@ -67,21 +66,20 @@ data class ShowPortraitModel(
 ) {
     companion object {
 
-        suspend fun fromApiTmdbShow(
+        fun fromApiTmdbShow(
             id: TmdbShowId,
             details: TmdbApiTmdbShow,
-            imagePreloadOptions: ImagePreloadOptions,
         ): ShowPortraitModel {
             return ShowPortraitModel(
                 id = id,
                 name = details.name,
                 year = details.firstAirDate?.year,
-                posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
+                posterModel = details.posterImage?.toImageModel(),
             )
         }
     }
 }
 
-suspend fun TmdbApiTmdbShow.toShowPortraitModels(imagePreloadOptions: ImagePreloadOptions): ShowPortraitModel {
-    return ShowPortraitModel.fromApiTmdbShow(tmdbShowId, this, imagePreloadOptions)
+fun TmdbApiTmdbShow.toShowPortraitModels(): ShowPortraitModel {
+    return ShowPortraitModel.fromApiTmdbShow(tmdbShowId, this)
 }

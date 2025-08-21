@@ -2,7 +2,6 @@ package io.github.couchtracker.ui.screens.watchedItem
 
 import android.content.Context
 import androidx.compose.material3.ColorScheme
-import coil3.request.ImageRequest
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.WatchableExternalId
 import io.github.couchtracker.db.profile.asWatchable
@@ -12,6 +11,7 @@ import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.ui.ColorSchemes
+import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.map
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ data class WatchedItemsScreenModel(
     val title: String,
     val runtime: Duration?,
     val originalLanguage: Bcp47Language,
-    val backdrop: ImageRequest?,
+    val backdrop: ImageModel?,
     val colorScheme: ColorScheme,
 ) {
 
@@ -35,16 +35,12 @@ data class WatchedItemsScreenModel(
             context: Context,
             tmdbCache: TmdbCache,
             movie: TmdbMovie,
-            width: Int,
-            height: Int,
             coroutineContext: CoroutineContext = Dispatchers.Default,
         ): ApiResult<WatchedItemsScreenModel> = coroutineScope {
             movie.details(tmdbCache).map { details ->
                 val backdrop = async(coroutineContext) {
                     details.backdropImage.prepareAndExtractColorScheme(
                         ctx = context,
-                        width = width,
-                        height = height,
                         fallbackColorScheme = ColorSchemes.Movie,
                     )
                 }

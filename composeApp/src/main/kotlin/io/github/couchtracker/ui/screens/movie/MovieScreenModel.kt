@@ -9,7 +9,6 @@ import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
-import coil3.request.ImageRequest
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.tmdbCache.TmdbCache
@@ -54,7 +53,7 @@ data class MovieScreenModel(
     val fullDetails: DeferredApiResult<FullDetails>,
     val credits: DeferredApiResult<Credits>,
     val images: DeferredApiResult<List<ImageModel>>,
-    val backdrop: ImageRequest?,
+    val backdrop: ImageModel?,
     val colorScheme: ColorScheme,
 ) {
     val allDeferred: Set<DeferredApiResult<*>> = setOf(credits, images)
@@ -77,8 +76,6 @@ data class MovieScreenModel(
 suspend fun CoroutineScope.loadMovie(
     ctx: Context,
     movie: TmdbMovie,
-    width: Int,
-    height: Int,
     tmdbCache: TmdbCache = KoinPlatform.getKoin().get(),
     tmdbBaseMemoryCache: TmdbBaseMemoryCache = KoinPlatform.getKoin().get(),
     coroutineContext: CoroutineContext = Dispatchers.Default,
@@ -132,12 +129,7 @@ suspend fun CoroutineScope.loadMovie(
         }.ifError { return Result.Error(it) }
     }
     val backdrop = async(coroutineContext) {
-        baseDetails.backdrop.prepareAndExtractColorScheme(
-            ctx = ctx,
-            width = width,
-            height = height,
-            fallbackColorScheme = ColorSchemes.Movie,
-        )
+        baseDetails.backdrop.prepareAndExtractColorScheme(ctx = ctx, fallbackColorScheme = ColorSchemes.Movie)
     }
     val ret = MovieScreenModel(
         movie = movie,
