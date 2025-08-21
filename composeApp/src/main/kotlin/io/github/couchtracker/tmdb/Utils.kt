@@ -17,6 +17,8 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.db.profile.Bcp47Language
+import io.github.couchtracker.ui.ImageModel
+import io.github.couchtracker.ui.ImageUrlProvider
 import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.utils.LocaleData
 import io.github.couchtracker.utils.logExecutionTime
@@ -30,21 +32,18 @@ private const val PALETTE_IMAGE_SIZE = 112
 
 suspend fun TmdbImage?.prepareAndExtractColorScheme(
     ctx: Context,
-    width: Int,
-    height: Int,
     fallbackColorScheme: ColorScheme,
-): Pair<ImageRequest?, ColorScheme> {
+): Pair<ImageModel?, ColorScheme> {
     if (this != null) {
         return logExecutionTime(LOG_TAG, "Loading backdrop with color palette") {
             val smallUrl = TmdbImageUrlBuilder.build(this, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE)
             val (smallImage, palette) = loadPalette(ctx, smallUrl, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE, fallbackColorScheme)
-            val url = TmdbImageUrlBuilder.build(this, width, height)
-            ImageRequest.Builder(ctx)
-                .placeholder { smallImage }
-                .placeholderMemoryCacheKey(smallUrl)
-                .data(url)
-                .size(width, height)
-                .build() to palette
+            val imageModel = ImageModel(
+                url = ImageUrlProvider.TmdbImage(this),
+                placeholderUrl = ImageUrlProvider.Constant(smallUrl),
+                aspectRatio = smallImage?.let { it.width.toFloat() / it.height },
+            )
+            imageModel to palette
         }
     } else {
         return null to fallbackColorScheme

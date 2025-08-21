@@ -24,7 +24,6 @@ import io.github.couchtracker.R
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.tmdb.toBaseMovie
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.components.MoviePortrait
 import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
@@ -115,7 +114,7 @@ class MovieExploreTabState(context: Context, viewModelScope: CoroutineScope) {
                 },
                 mapper = { movie ->
                     val baseModel = movie.toBaseMovie(tmdbLanguage)
-                    baseModel to movie.toMoviePortraitModels(context, ImagePreloadOptions.DoNotPreload)
+                    baseModel to movie.toMoviePortraitModels(context)
                 },
             ).flow
         }

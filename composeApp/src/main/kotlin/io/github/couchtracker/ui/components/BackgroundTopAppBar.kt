@@ -3,6 +3,7 @@
 package io.github.couchtracker.ui.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarColors
@@ -20,10 +21,11 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
+import io.github.couchtracker.ui.ImageModel
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -37,11 +39,11 @@ private val BRUSH = createGradientBrush(Color.Black)
 @Composable
 fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
-    image: @Composable (Modifier) -> Unit,
+    image: @Composable (Modifier, Constraints) -> Unit,
     appBar: @Composable (TopAppBarColors) -> Unit,
     backgroundColor: () -> Color,
 ) {
-    Box(
+    BoxWithConstraints(
         Modifier
             .graphicsLayer {
                 val scrollAmount = -scrollBehavior.state.contentOffset
@@ -61,6 +63,7 @@ fun BackgroundTopAppBar(
                     }
                     this.clip = true
                 },
+            this.constraints,
         )
         Box(
             Modifier.drawBehind {
@@ -80,13 +83,13 @@ fun BackgroundTopAppBar(
 @Composable
 fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
-    backdrop: ImageRequest?,
+    backdrop: ImageModel?,
     appBar: @Composable (TopAppBarColors) -> Unit,
     backgroundColor: () -> Color,
 ) {
     BackgroundTopAppBar(
         scrollBehavior = scrollBehavior,
-        image = { modifier ->
+        image = { modifier, constraints ->
             // The image fills the width of the AppBar, and it's vertically centered, with the constraint of not leaving gaps at the top
             AsyncImage(
                 modifier = modifier,
@@ -105,7 +108,7 @@ fun BackgroundTopAppBar(
                         fraction = scrollBehavior.state.collapsedFraction,
                     ).roundToInt()
                 },
-                model = backdrop,
+                model = backdrop?.getCoilModel(constraints.maxWidth, constraints.maxHeight),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
             )
