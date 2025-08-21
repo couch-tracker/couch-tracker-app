@@ -17,7 +17,6 @@ import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbPersonId
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
@@ -87,16 +86,13 @@ data class CastPortraitModel(
 ) {
     companion object {
 
-        suspend fun fromTmdbCast(
-            cast: TmdbCast,
-            imagePreloadOptions: ImagePreloadOptions,
-        ): CastPortraitModel {
+        fun fromTmdbCast(cast: TmdbCast): CastPortraitModel {
             return CastPortraitModel(
                 id = TmdbPersonId(cast.id),
                 name = cast.name,
                 roles = listOf(cast.character),
                 posterModel = cast.profilePath?.let { path ->
-                    TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                    TmdbImage(path, TmdbImageType.PROFILE).toImageModel()
                 },
             )
         }
@@ -104,7 +100,6 @@ data class CastPortraitModel(
         suspend fun fromTmdbAggregateCast(
             context: Context,
             cast: TmdbAggregateCast,
-            imagePreloadOptions: ImagePreloadOptions,
         ): CastPortraitModel {
             return withContext(Dispatchers.Default) {
                 CastPortraitModel(
@@ -112,7 +107,7 @@ data class CastPortraitModel(
                     name = cast.name,
                     roles = cast.roles.sortedByDescending { it.episodeCount }.map { it.character },
                     posterModel = cast.profilePath?.let { path ->
-                        TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                        TmdbImage(path, TmdbImageType.PROFILE).toImageModel()
                     },
                     episodesCount = cast.totalEpisodeCount,
                     episodesCountString = context.resources.getQuantityString(
@@ -127,24 +122,19 @@ data class CastPortraitModel(
 }
 
 @JvmName("TmdbCast_toCastPortraitModel")
-suspend fun List<TmdbCast>.toCastPortraitModel(
-    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
-): List<CastPortraitModel> = coroutineScope {
+suspend fun List<TmdbCast>.toCastPortraitModel(): List<CastPortraitModel> = coroutineScope {
     map {
         async {
-            CastPortraitModel.fromTmdbCast(it, imagePreloadOptions)
+            CastPortraitModel.fromTmdbCast(it)
         }
     }.awaitAll()
 }
 
 @JvmName("TmdbAggregateCast_toCastPortraitModel")
-suspend fun List<TmdbAggregateCast>.toCastPortraitModel(
-    context: Context,
-    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
-): List<CastPortraitModel> = coroutineScope {
+suspend fun List<TmdbAggregateCast>.toCastPortraitModel(context: Context): List<CastPortraitModel> = coroutineScope {
     map {
         async {
-            CastPortraitModel.fromTmdbAggregateCast(context, it, imagePreloadOptions)
+            CastPortraitModel.fromTmdbAggregateCast(context, it)
         }
     }.awaitAll()
 }

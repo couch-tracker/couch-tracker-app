@@ -15,9 +15,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import coil3.request.ImageRequest
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffoldState
 import kotlin.time.Duration
@@ -35,7 +35,7 @@ fun MediaScreenScaffold(
     mediaRuntime: () -> Duration?,
     mediaLanguages: () -> List<Bcp47Language>,
     title: String,
-    backdrop: ImageRequest?,
+    backdrop: ImageModel?,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},

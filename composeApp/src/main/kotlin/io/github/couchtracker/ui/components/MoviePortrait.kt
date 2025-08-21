@@ -13,7 +13,6 @@ import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
@@ -69,7 +68,6 @@ data class MoviePortraitModel(
             context: Context,
             id: TmdbMovieId,
             details: TmdbApiTmdbMovie,
-            imagePreloadOptions: ImagePreloadOptions,
         ): MoviePortraitModel {
             val year = details.releaseDate?.year
             return MoviePortraitModel(
@@ -83,20 +81,16 @@ data class MoviePortraitModel(
                         context.getString(R.string.item_tile_with_year, details.title, year)
                     }
                 },
-                posterModel = details.posterImage?.toImageModel(imagePreloadOptions),
+                posterModel = details.posterImage?.toImageModel(),
             )
         }
     }
 }
 
-suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(
-    context: Context,
-    imagePreloadOptions: ImagePreloadOptions,
-): MoviePortraitModel {
+suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(context: Context): MoviePortraitModel {
     return MoviePortraitModel.fromApiTmdbMovie(
         context = context,
         id = tmdbMovieId,
         details = this,
-        imagePreloadOptions = imagePreloadOptions,
     )
 }

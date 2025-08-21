@@ -105,32 +105,24 @@ private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
     var screenModel by remember { mutableStateOf<ApiLoadable<MovieScreenModel>>(Loadable.Loading) }
+    suspend fun load() {
+        screenModel = Loadable.Loading
+        screenModel = coroutineScope.async(Dispatchers.Default) {
+            logExecutionTime(LOG_TAG, "Loading movie") {
+                Loadable.Loaded(
+                    coroutineScope.loadMovie(ctx = ctx, movie = movie),
+                )
+            }
+        }.await()
+    }
+    LaunchedEffect(movie) {
+        load()
+    }
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
     ) {
-        val maxWidth = this.constraints.maxWidth
-        val maxHeight = this.constraints.maxHeight
-        suspend fun load() {
-            screenModel = Loadable.Loading
-            screenModel = coroutineScope.async(Dispatchers.Default) {
-                logExecutionTime(LOG_TAG, "Loading movie") {
-                    Loadable.Loaded(
-                        coroutineScope.loadMovie(
-                            ctx = ctx,
-                            movie = movie,
-                            width = maxWidth,
-                            height = maxHeight,
-                        ),
-                    )
-                }
-            }.await()
-        }
-        LaunchedEffect(movie) {
-            load()
-        }
-
         LoadableScreen(
             data = screenModel,
             onError = { exception ->

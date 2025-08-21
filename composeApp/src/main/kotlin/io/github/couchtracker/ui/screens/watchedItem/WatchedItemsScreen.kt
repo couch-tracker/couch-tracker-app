@@ -84,41 +84,37 @@ fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
 private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val context = koinInject<Context>()
+    val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<ApiLoadable<WatchedItemsScreenModel>>(Loadable.Loading) }
+    suspend fun load() {
+        screenModel = Loadable.Loading
+        screenModel = Loadable.Loaded(
+            WatchedItemsScreenModel.loadTmdbMovie(
+                context = context,
+                tmdbCache = tmdbCache,
+                movie = movie,
+            ),
+        )
+    }
+    LaunchedEffect(movie) {
+        load()
+    }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        suspend fun load() {
-            screenModel = Loadable.Loading
-            screenModel = Loadable.Loaded(
-                WatchedItemsScreenModel.loadTmdbMovie(
-                    context = context,
-                    movie = movie,
-                    width = this.constraints.maxWidth,
-                    height = this.constraints.maxHeight,
-                ),
-            )
-        }
-
-        LaunchedEffect(movie) {
-            load()
-        }
-
-        LoadableScreen(
-            data = screenModel,
-            onError = { exception ->
-                Surface {
-                    DefaultErrorScreen(
-                        errorMessage = exception.title.string(),
-                        errorDetails = exception.details?.string(),
-                        retry = {
-                            coroutineScope.launch { load() }
-                        },
-                    )
-                }
-            },
-        ) { model ->
-            WatchedItemList(model = model)
-        }
+    LoadableScreen(
+        data = screenModel,
+        onError = { exception ->
+            Surface {
+                DefaultErrorScreen(
+                    errorMessage = exception.title.string(),
+                    errorDetails = exception.details?.string(),
+                    retry = {
+                        coroutineScope.launch { load() }
+                    },
+                )
+            }
+        },
+    ) { model ->
+        WatchedItemList(model = model)
     }
 }
 

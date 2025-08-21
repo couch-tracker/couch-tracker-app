@@ -61,7 +61,7 @@ fun MainSection(
         topBar = {
             BackgroundTopAppBar(
                 scrollBehavior = scrollBehavior,
-                image = { modifier ->
+                image = { modifier, _ ->
                     AsyncImage(
                         modifier = modifier,
                         model = imageModel,

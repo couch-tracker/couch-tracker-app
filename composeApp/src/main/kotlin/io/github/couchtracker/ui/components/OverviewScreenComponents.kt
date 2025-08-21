@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.ImageModel
@@ -88,7 +87,7 @@ object OverviewScreenComponents {
     @Composable
     fun Header(
         title: String,
-        backdrop: ImageRequest?,
+        backdrop: ImageModel?,
         scrollBehavior: TopAppBarScrollBehavior,
         backgroundColor: () -> Color,
         belowAppBar: @Composable ColumnScope.() -> Unit = {},
@@ -361,7 +360,7 @@ object OverviewScreenComponents {
         defaultAspectRatio: Float = PortraitComposableDefaults.POSTER_ASPECT_RATIO,
     ) {
         val imagesList = images.buildDefaults {
-            List(PLACEHOLDER_IMAGES_COUNT) { ImageModel.Preloaded(defaultAspectRatio, null) }
+            List(PLACEHOLDER_IMAGES_COUNT) { ImageModel(defaultAspectRatio, null) }
         }
         if (imagesList.isNotEmpty()) {
             section("images", R.string.section_images) {

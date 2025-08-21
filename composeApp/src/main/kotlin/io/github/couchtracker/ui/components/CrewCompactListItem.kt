@@ -23,7 +23,6 @@ import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.TmdbPersonId
 import io.github.couchtracker.tmdb.title
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.ImagePreloadOptions
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
@@ -82,7 +81,6 @@ data class CrewCompactListItemModel(
         suspend fun <T : TmdbAnyPerson> fromTmdbCrew(
             context: Context,
             crew: List<T>,
-            imagePreloadOptions: ImagePreloadOptions,
             department: (T) -> TmdbDepartment?,
         ): CrewCompactListItemModel {
             return withContext(Dispatchers.Default) {
@@ -102,7 +100,7 @@ data class CrewCompactListItemModel(
                         null
                     },
                     posterModel = base.profilePath?.let { path ->
-                        TmdbImage(path, TmdbImageType.PROFILE).toImageModel(imagePreloadOptions)
+                        TmdbImage(path, TmdbImageType.PROFILE).toImageModel()
                     },
                 )
             }
@@ -111,16 +109,12 @@ data class CrewCompactListItemModel(
 }
 
 @JvmName("TmdbCrew_toCrewCompactListItemModel")
-suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
-    context: Context,
-    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
-): List<CrewCompactListItemModel> = coroutineScope {
+suspend fun List<TmdbCrew>.toCrewCompactListItemModel(context: Context): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
             CrewCompactListItemModel.fromTmdbCrew(
                 context = context,
                 crew = crew,
-                imagePreloadOptions = imagePreloadOptions,
                 department = { it.department },
             )
         }
@@ -128,16 +122,12 @@ suspend fun List<TmdbCrew>.toCrewCompactListItemModel(
 }
 
 @JvmName("TmdbAggregateCrew_toCrewCompactListItemModel")
-suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(
-    context: Context,
-    imagePreloadOptions: ImagePreloadOptions = ImagePreloadOptions.DoNotPreload,
-): List<CrewCompactListItemModel> = coroutineScope {
+suspend fun List<TmdbAggregateCrew>.toCrewCompactListItemModel(context: Context): List<CrewCompactListItemModel> = coroutineScope {
     groupBy { it.id }.map { (_, crew) ->
         async {
             CrewCompactListItemModel.fromTmdbCrew(
                 context = context,
                 crew = crew,
-                imagePreloadOptions = imagePreloadOptions,
                 department = { it.department },
             )
         }
