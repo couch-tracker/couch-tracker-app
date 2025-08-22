@@ -4,14 +4,10 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.image.TmdbImageType
-import app.moviebase.tmdb.model.TmdbCredits
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbGenre
-import app.moviebase.tmdb.model.TmdbImages
-import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
-import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
@@ -31,7 +27,6 @@ import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.ApiResult
-import io.github.couchtracker.utils.CompletableApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.ifError
@@ -39,7 +34,7 @@ import io.github.couchtracker.utils.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import org.koin.mp.KoinPlatform
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
@@ -76,27 +71,20 @@ data class MovieScreenModel(
 suspend fun CoroutineScope.loadMovie(
     ctx: Context,
     movie: TmdbMovie,
-    tmdbCache: TmdbCache = KoinPlatform.getKoin().get(),
     tmdbBaseMemoryCache: TmdbBaseMemoryCache = KoinPlatform.getKoin().get(),
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<MovieScreenModel> {
     val baseDetailsMemory = tmdbBaseMemoryCache.getMovie(movie)
-    val details = CompletableApiResult<TmdbMovieDetail>()
-    val credits = CompletableApiResult<TmdbCredits>()
-    val images = CompletableApiResult<TmdbImages>()
-    launch(coroutineContext) {
-        movie.details(cache = tmdbCache, details = details, credits = credits, images = images)
-    }
 
     val imagesModel = async(coroutineContext) {
-        images.await().map { images ->
+        movie.images.first().map { images ->
             images
                 .linearize()
                 .map { it.toImageModel(TmdbImageType.BACKDROP) }
         }
     }
     val creditsModel = async(coroutineContext) {
-        credits.await().map { credits ->
+        movie.credits.first().map { credits ->
             val directors = credits.crew.directors()
             MovieScreenModel.Credits(
                 directors = directors,
@@ -110,8 +98,9 @@ suspend fun CoroutineScope.loadMovie(
             )
         }
     }
+    val fullDetails = async(coroutineContext) { movie.details.first() }
     val fullDetailsModel = async(coroutineContext) {
-        details.await().map { details ->
+        fullDetails.await().map { details ->
             MovieScreenModel.FullDetails(
                 tagline = details.tagline,
                 runtime = details.runtime(),
@@ -124,7 +113,7 @@ suspend fun CoroutineScope.loadMovie(
         baseDetailsMemory
     } else {
         Log.w("Cache miss", "Movie $movie not found in cache")
-        details.await().map { details ->
+        fullDetails.await().map { details ->
             details.toBaseMovie(movie.languages.apiLanguage)
         }.ifError { return Result.Error(it) }
     }
