@@ -41,7 +41,6 @@ import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.type
-import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.settings.LocalAppSettingsContext
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.Screen
@@ -84,7 +83,6 @@ fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
 private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val context = koinInject<Context>()
-    val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<ApiLoadable<WatchedItemsScreenModel>>(Loadable.Loading) }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -93,7 +91,6 @@ private fun Content(movie: TmdbMovie) {
             screenModel = Loadable.Loaded(
                 WatchedItemsScreenModel.loadTmdbMovie(
                     context = context,
-                    tmdbCache = tmdbCache,
                     movie = movie,
                     width = this.constraints.maxWidth,
                     height = this.constraints.maxHeight,
