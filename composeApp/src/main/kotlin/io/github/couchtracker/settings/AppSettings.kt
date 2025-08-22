@@ -8,12 +8,17 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
 import io.github.couchtracker.utils.settings.LoadedSettings
-import io.github.couchtracker.utils.settings.loaded
+import io.github.couchtracker.utils.settings.LoadedSettingsFlow
+import io.github.couchtracker.utils.settings.LoadedSettingsGetter
 import kotlinx.coroutines.flow.flowOf
+import org.koin.compose.koinInject
+import org.koin.mp.KoinPlatform
 
 val LocalAppSettingsContext = compositionLocalOf<LoadedSettings<AppSettings>> { error("no default app settings context") }
 
-object AppSettings : AbstractAppSettings() {
+object AppSettings : AbstractAppSettings(), LoadedSettingsGetter<AppSettings> {
+
+    override val loadedSettingsFlow by KoinPlatform.getKoin().inject<LoadedSettingsFlow<AppSettings>>()
 
     val Tmdb = settings(TmdbSettings)
 
@@ -25,11 +30,16 @@ object AppSettings : AbstractAppSettings() {
 
 @Composable
 fun AppSettingsContext(content: @Composable () -> Unit) {
-    val loadedSettings by AppSettings.loaded().collectAsLoadableWithLifecycle()
+    val loadedSettings by koinInject<LoadedSettingsFlow<AppSettings>>().settings.collectAsLoadableWithLifecycle()
 
     LoadableScreen(loadedSettings) { loadedSettings ->
         CompositionLocalProvider(LocalAppSettingsContext provides loadedSettings) {
             content()
         }
     }
+}
+
+@Composable
+fun appSettings(): LoadedSettings<AppSettings> {
+    return LocalAppSettingsContext.current
 }

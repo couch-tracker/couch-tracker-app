@@ -1,13 +1,13 @@
 package io.github.couchtracker.utils.settings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.datastore.preferences.core.Preferences
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
-import io.github.couchtracker.utils.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 private typealias SettingGetter<S, V, D> = S.() -> Setting<*, *, V, D>
 
@@ -33,21 +33,30 @@ class LoadedSettings<S : AbstractSettings>(
         return values.getValue(setting.key).cast(setting)
     }
 
-    @Composable
-    inline fun <reified V : D, reified D> getWithDefault(setting: S.() -> Setting<*, *, V, D>): Loadable<LoadedSettingWithDefault<V, D>> {
+    inline fun <reified V : D, reified D> getWithDefault(setting: S.() -> Setting<*, *, V, D>): Flow<LoadedSettingWithDefault<V, D>> {
         val setting = getSetting(setting)
         val loaded = values.getValue(setting.key).cast<V, D>(setting)
-        val default by setting.default.collectAsLoadableWithLifecycle()
 
-        return default.map {
+        return setting.default.map {
             LoadedSettingWithDefault(
                 loaded = loaded,
                 default = it,
             )
         }
     }
+
+    @Composable
+    inline fun <reified V : D, reified D> loadWithDefault(
+        setting: S.() -> Setting<*, *, V, D>,
+    ): State<Loadable<LoadedSettingWithDefault<V, D>>> {
+        return getWithDefault(setting).collectAsLoadableWithLifecycle()
+    }
 }
 
+/**
+ * Loads and emits these settings as a [Flow].
+ */
+@UseLoadedSetting
 fun <S : AbstractSettings> S.loaded(): Flow<LoadedSettings<S>> {
     val flowsMap = settings.mapValues { it.value.currentLoadedSetting }
 

@@ -3,7 +3,11 @@ package io.github.couchtracker
 import android.content.Context
 import androidx.core.os.LocaleListCompat
 import androidx.datastore.preferences.preferencesDataStore
+import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.utils.currentLocalesFlow
+import io.github.couchtracker.utils.settings.LoadedSettingsFlow
+import io.github.couchtracker.utils.settings.UseLoadedSetting
+import io.github.couchtracker.utils.settings.loaded
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,5 +30,10 @@ val AppModule = lazyModule {
         with(get<Context>()) {
             settingsDataStore
         }
+    }
+
+    @OptIn(UseLoadedSetting::class, DelicateCoroutinesApi::class)
+    single {
+        LoadedSettingsFlow(scope = GlobalScope, settingsFlow = AppSettings.loaded())
     }
 }

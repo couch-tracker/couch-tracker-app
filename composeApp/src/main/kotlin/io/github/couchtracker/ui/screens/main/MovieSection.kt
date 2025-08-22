@@ -32,6 +32,7 @@ import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.components.toMoviePortraitModels
 import io.github.couchtracker.ui.screens.movie.navigateToMovie
 import io.github.couchtracker.utils.removeDuplicates
+import io.github.couchtracker.utils.settings.get
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -104,8 +105,8 @@ enum class MovieTab(
 class MovieExploreTabState(context: Context, viewModelScope: CoroutineScope) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val movieFlow = AppSettings.Tmdb.Languages.current
-        .map { it.apiLanguage }
+    val movieFlow = AppSettings.get { Tmdb.Languages }
+        .map { it.current.apiLanguage }
         .distinctUntilChanged()
         .flatMapLatest { tmdbLanguage ->
             tmdbPager(

@@ -33,6 +33,7 @@ import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.components.toShowPortraitModels
 import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.utils.removeDuplicates
+import io.github.couchtracker.utils.settings.get
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -105,8 +106,8 @@ private enum class ShowTab(
 class ShowExploreTabState(viewModelScope: CoroutineScope) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val showFlow = AppSettings.Tmdb.Languages.current
-        .map { it.apiLanguage }
+    val showFlow = AppSettings.get { Tmdb.Languages }
+        .map { it.current.apiLanguage }
         .distinctUntilChanged()
         .flatMapLatest { tmdbLanguage ->
             tmdbPager(

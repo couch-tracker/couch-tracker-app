@@ -42,7 +42,7 @@ import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.db.tmdbCache.TmdbCache
-import io.github.couchtracker.settings.LocalAppSettingsContext
+import io.github.couchtracker.settings.appSettings
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
@@ -65,7 +65,7 @@ data class WatchedItemsScreen(val itemId: String) : Screen() {
         when (val itemId = WatchableExternalId.parse(itemId)) {
             is WatchableExternalId.Movie -> when (itemId.movieId) {
                 is TmdbExternalMovieId -> {
-                    val tmdbLanguages = LocalAppSettingsContext.current.get { Tmdb.Languages }.current
+                    val tmdbLanguages = appSettings().get { Tmdb.Languages }.current
                     Content(movie = TmdbMovie(itemId.movieId.id, tmdbLanguages))
                 }
                 is UnknownExternalMovieId -> TODO()

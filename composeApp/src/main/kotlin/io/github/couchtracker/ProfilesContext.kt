@@ -12,6 +12,7 @@ import io.github.couchtracker.db.app.profilesInfoFlow
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
+import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
@@ -23,7 +24,8 @@ fun ProfilesContext(content: @Composable () -> Unit) {
 
     val profiles = remember { appDb.profileQueries.selectAll().asFlow().map { it.executeAsList() } }
     val flow = remember {
-        profilesInfoFlow(profiles, AppSettings.CurrentProfileId.current)
+        val profileId = AppSettings.get { CurrentProfileId }.map { it.current }
+        profilesInfoFlow(profiles, profileId)
     }
 
     val profilesInfo by flow.collectAsLoadableWithLifecycle()

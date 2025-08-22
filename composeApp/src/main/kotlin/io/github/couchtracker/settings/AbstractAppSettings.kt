@@ -4,14 +4,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import io.github.couchtracker.AppSettingsDataStore
 import io.github.couchtracker.utils.settings.AbstractPreferencesSettings
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.koin.core.qualifier.named
-import kotlin.getValue
+import org.koin.mp.KoinPlatform
 
 /**
  * Specialization of [AbstractPreferencesSettings] that uses the [AppSettingsDataStore] bound in Koin as [DataStore].
  */
-abstract class AbstractAppSettings : AbstractPreferencesSettings(), KoinComponent {
-    override val dataStore by inject<DataStore<Preferences>>(named<AppSettingsDataStore>())
+abstract class AbstractAppSettings : AbstractPreferencesSettings() {
+    override val dataStore by KoinPlatform.getKoin().inject<DataStore<Preferences>>(named<AppSettingsDataStore>())
 }
