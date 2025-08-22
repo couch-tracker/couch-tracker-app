@@ -62,6 +62,7 @@ data class ShowPortraitModel(
     val id: TmdbShowId,
     val name: String,
     val year: Int?,
+    // TODO: add title with year, like for the movie
     val posterModel: ImageModel?,
 ) {
     companion object {
