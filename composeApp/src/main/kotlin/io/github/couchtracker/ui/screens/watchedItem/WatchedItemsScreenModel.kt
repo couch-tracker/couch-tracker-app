@@ -6,7 +6,6 @@ import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.WatchableExternalId
 import io.github.couchtracker.db.profile.asWatchable
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
 import io.github.couchtracker.tmdb.runtime
@@ -17,6 +16,7 @@ import io.github.couchtracker.utils.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
@@ -33,11 +33,11 @@ data class WatchedItemsScreenModel(
     companion object {
         suspend fun loadTmdbMovie(
             context: Context,
-            tmdbCache: TmdbCache,
             movie: TmdbMovie,
             coroutineContext: CoroutineContext = Dispatchers.Default,
         ): ApiResult<WatchedItemsScreenModel> = coroutineScope {
-            movie.details(tmdbCache).map { details ->
+            val details = movie.details.first()
+            details.map { details ->
                 val backdrop = async(coroutineContext) {
                     details.backdropImage.prepareAndExtractColorScheme(
                         ctx = context,

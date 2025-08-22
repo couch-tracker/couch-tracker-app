@@ -4,13 +4,9 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.image.TmdbImageType
-import app.moviebase.tmdb.model.TmdbAggregateCredits
 import app.moviebase.tmdb.model.TmdbGenre
-import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbShowCreatedBy
-import app.moviebase.tmdb.model.TmdbShowDetail
 import io.github.couchtracker.R
-import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbRating
@@ -28,7 +24,6 @@ import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.ApiResult
-import io.github.couchtracker.utils.CompletableApiResult
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.ifError
@@ -36,7 +31,7 @@ import io.github.couchtracker.utils.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import org.koin.mp.KoinPlatform
 import kotlin.coroutines.CoroutineContext
 
@@ -71,35 +66,29 @@ data class ShowScreenModel(
 suspend fun CoroutineScope.loadShow(
     ctx: Context,
     show: TmdbShow,
-    tmdbCache: TmdbCache = KoinPlatform.getKoin().get(),
     tmdbBaseMemoryCache: TmdbBaseMemoryCache = KoinPlatform.getKoin().get(),
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ): ApiResult<ShowScreenModel> {
     val baseDetailsMemory = tmdbBaseMemoryCache.getShow(show)
-    val details = CompletableApiResult<TmdbShowDetail>()
-    val credits = CompletableApiResult<TmdbAggregateCredits>()
-    val images = CompletableApiResult<TmdbImages>()
-    launch(coroutineContext) {
-        show.details(cache = tmdbCache, details = details, aggregateCredits = credits, images = images)
-    }
 
     val imagesModel = async(coroutineContext) {
-        images.await().map { images ->
+        show.images.first().map { images ->
             images
                 .linearize()
                 .map { img -> img.toImageModel(TmdbImageType.BACKDROP) }
         }
     }
     val creditsModel = async(coroutineContext) {
-        credits.await().map { credits ->
+        show.aggregateCredits.first().map { credits ->
             ShowScreenModel.Credits(
                 cast = credits.cast.toCastPortraitModel(ctx),
                 crew = credits.crew.toCrewCompactListItemModel(ctx),
             )
         }
     }
+    val fullDetails = async(coroutineContext) { show.details.first() }
     val fullDetailsModel = async(coroutineContext) {
-        details.await().map { details ->
+        fullDetails.await().map { details ->
             val createdBy = details.createdBy.orEmpty()
             ShowScreenModel.FullDetails(
                 tagline = details.tagline,
@@ -117,7 +106,7 @@ suspend fun CoroutineScope.loadShow(
         baseDetailsMemory
     } else {
         Log.w("Cache miss", "Show $show not found in cache")
-        details.await().map { details ->
+        fullDetails.await().map { details ->
             details.toBaseShow(show.languages.apiLanguage)
         }.ifError { return Result.Error(it) }
     }
