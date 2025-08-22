@@ -84,7 +84,6 @@ fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
 private fun Content(movie: TmdbMovie) {
     val coroutineScope = rememberCoroutineScope()
     val context = koinInject<Context>()
-    val tmdbCache = koinInject<TmdbCache>()
     var screenModel by remember { mutableStateOf<ApiLoadable<WatchedItemsScreenModel>>(Loadable.Loading) }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -93,7 +92,6 @@ private fun Content(movie: TmdbMovie) {
             screenModel = Loadable.Loaded(
                 WatchedItemsScreenModel.loadTmdbMovie(
                     context = context,
-                    tmdbCache = tmdbCache,
                     movie = movie,
                     width = this.constraints.maxWidth,
                     height = this.constraints.maxHeight,
