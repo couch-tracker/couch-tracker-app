@@ -92,6 +92,7 @@ import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.emptyPager
 import io.github.couchtracker.utils.heightWithAspectRatio
+import io.github.couchtracker.utils.settings.get
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -250,10 +251,10 @@ private class SearchViewModel(initialMediaFilters: SearchMediaFilters) : ViewMod
     val currentSearchInstance = snapshotFlow { searchParameters }
         .debounce { if (it.incomplete) 300.milliseconds else 0.milliseconds }
         .distinctUntilChangedBy { it.query to it.filters }
-        .combine(AppSettings.Tmdb.Languages.current) { searchParameters, tmdbLanguages ->
+        .combine(AppSettings.get { Tmdb.Languages }) { searchParameters, tmdbLanguages ->
             SearchInstance(
                 searchParameters = searchParameters,
-                tmdbLanguage = tmdbLanguages.apiLanguage,
+                tmdbLanguage = tmdbLanguages.current.apiLanguage,
                 lazyGridState = LazyGridState(0, 0),
             )
         }

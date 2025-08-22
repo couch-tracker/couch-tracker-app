@@ -41,15 +41,16 @@ abstract class Setting<DS, K, V : D, D> {
      * A [Flow] emitting the actual setting's value, without considering [default].
      * It will emit `null` if the setting is not set.
      */
-    val actual: Flow<V?> by lazy {
-        actualValue.map { value -> value?.let { parse(it) } }
-    }
+    @UseLoadedSetting
+    val actual: Flow<V?>
+        get() = actualValue.map { value -> value?.let { parse(it) } }
 
     /**
      * A [Flow] emitting a [LoadedSetting] instance.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @UseLoadedSetting
     val currentLoadedSetting: Flow<LoadedSetting<V, D>> by lazy {
-        @OptIn(ExperimentalCoroutinesApi::class)
         actual.flatMapConcat { value ->
             if (value != null) {
                 flowOf(LoadedSetting.Value(setting = this, actual = value))
@@ -62,6 +63,7 @@ abstract class Setting<DS, K, V : D, D> {
     /**
      * A [Flow] emitting the [actual] if it exists, or [default].
      */
+    @UseLoadedSetting
     val current: Flow<D> by lazy {
         currentLoadedSetting.map { it.current }
     }
@@ -84,14 +86,14 @@ abstract class Setting<DS, K, V : D, D> {
     protected abstract suspend fun setValue(value: K)
 
     /**
-     * Sets the given [value] in the backing [dataStore]. [value] will be emitted by [current].
+     * Sets the given [value] in the backing [dataStore]. [value] will be emitted by [current] and [currentLoadedSetting].
      */
     suspend fun set(value: V) {
         setValue(serialize(value))
     }
 
     /**
-     * Removes this setting from the backing [dataStore]. [default] will be emitted by [current].
+     * Removes this setting from the backing [dataStore]. [default] will be emitted by [current] and [currentLoadedSetting].
      */
     abstract suspend fun reset()
 }

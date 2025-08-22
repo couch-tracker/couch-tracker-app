@@ -13,6 +13,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 
 /**
@@ -67,6 +68,10 @@ inline fun <T> Loadable<T>.onValue(f: (T) -> Unit): Loadable<T> {
 @Composable
 fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
     return remember { map { Loadable.Loaded(it) } }.collectAsStateWithLifecycle(Loadable.Loading)
+}
+
+fun <T> Flow<Loadable<T>>.filterLoaded(): Flow<T> {
+    return filterIsInstance<Loadable.Loaded<T>>().map { it.value }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

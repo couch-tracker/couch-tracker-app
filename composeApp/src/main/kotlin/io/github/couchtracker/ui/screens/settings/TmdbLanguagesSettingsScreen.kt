@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.DisplayContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.toLossyBcp47Language
-import io.github.couchtracker.settings.LocalAppSettingsContext
+import io.github.couchtracker.settings.appSettings
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbLanguages
 import io.github.couchtracker.tmdb.languageTree
@@ -82,7 +82,7 @@ private const val NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST = 3
 
 @Composable
 private fun Content() {
-    val settingsTmdbLanguages = LocalAppSettingsContext.current.getWithDefault { Tmdb.Languages }
+    val settingsTmdbLanguages by appSettings().loadWithDefault { Tmdb.Languages }
     val coroutineScope = rememberCoroutineScope()
 
     var allTmdbLanguages by remember { mutableStateOf<ApiLoadable<List<TmdbLanguage>>>(Loadable.Loading) }

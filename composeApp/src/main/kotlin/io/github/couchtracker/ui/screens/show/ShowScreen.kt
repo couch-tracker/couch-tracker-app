@@ -35,7 +35,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
 import io.github.couchtracker.db.profile.show.UnknownExternalShowId
-import io.github.couchtracker.settings.LocalAppSettingsContext
+import io.github.couchtracker.settings.appSettings
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShow
@@ -66,7 +66,7 @@ data class ShowScreen(val showId: String) : Screen() {
     override fun content() {
         when (val showId = ExternalShowId.parse(this@ShowScreen.showId)) {
             is TmdbExternalShowId -> {
-                val tmdbLanguages = LocalAppSettingsContext.current.get { Tmdb.Languages }.current
+                val tmdbLanguages = appSettings().get { Tmdb.Languages }.current
                 Content(TmdbShow(showId.id, tmdbLanguages))
             }
             is UnknownExternalShowId -> TODO()
