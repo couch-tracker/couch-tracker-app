@@ -5,7 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
@@ -38,5 +38,5 @@ inline fun <S : AbstractSettings, reified V : D, reified D> LoadedSettingsGetter
 inline fun <S : AbstractSettings, reified V : D, reified D> LoadedSettingsGetter<S>.getWithDefault(
     crossinline setting: S.() -> Setting<*, *, V, D>,
 ): Flow<LoadedSettingWithDefault<V, D>> {
-    return loadedSettingsFlow.settings.flatMapConcat { it.getWithDefault(setting) }
+    return loadedSettingsFlow.settings.flatMapLatest { it.getWithDefault(setting) }
 }
