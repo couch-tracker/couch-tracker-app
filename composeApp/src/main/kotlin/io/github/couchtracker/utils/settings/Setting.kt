@@ -4,7 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -51,7 +51,7 @@ abstract class Setting<DS, K, V : D, D> {
     @OptIn(ExperimentalCoroutinesApi::class)
     @UseLoadedSetting
     val currentLoadedSetting: Flow<LoadedSetting<V, D>> by lazy {
-        actual.flatMapConcat { value ->
+        actual.flatMapLatest { value ->
             if (value != null) {
                 flowOf(LoadedSetting.Value(setting = this, actual = value))
             } else {
