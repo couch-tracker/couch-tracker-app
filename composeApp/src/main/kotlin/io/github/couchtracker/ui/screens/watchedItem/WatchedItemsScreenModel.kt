@@ -7,12 +7,14 @@ import io.github.couchtracker.db.profile.WatchableExternalId
 import io.github.couchtracker.db.profile.asWatchable
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.tmdb.TmdbMovie
-import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
+import io.github.couchtracker.tmdb.extractColorScheme
 import io.github.couchtracker.tmdb.runtime
+import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.map
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -27,7 +29,8 @@ data class WatchedItemsScreenModel(
     val runtime: Duration?,
     val originalLanguage: Bcp47Language,
     val backdrop: ImageModel?,
-    val colorScheme: ColorScheme,
+    val colorScheme: Deferred<ColorScheme?>,
+    val fallbackColorScheme: ColorScheme,
 ) {
 
     companion object {
@@ -39,10 +42,7 @@ data class WatchedItemsScreenModel(
             val details = movie.details.first()
             details.map { details ->
                 val backdrop = async(coroutineContext) {
-                    details.backdropImage.prepareAndExtractColorScheme(
-                        ctx = context,
-                        fallbackColorScheme = ColorSchemes.Movie,
-                    )
+                    details.backdropImage?.toImageModelWithPlaceholder()
                 }
                 WatchedItemsScreenModel(
                     id = movie.id.toExternalId().asWatchable(),
@@ -50,8 +50,9 @@ data class WatchedItemsScreenModel(
                     title = details.title,
                     runtime = details.runtime(),
                     originalLanguage = Bcp47Language.of(details.originalLanguage),
-                    backdrop = backdrop.await().first,
-                    colorScheme = backdrop.await().second,
+                    backdrop = backdrop.await(),
+                    colorScheme = async { backdrop.await()?.extractColorScheme(context) },
+                    fallbackColorScheme = ColorSchemes.Movie,
                 )
             }
         }

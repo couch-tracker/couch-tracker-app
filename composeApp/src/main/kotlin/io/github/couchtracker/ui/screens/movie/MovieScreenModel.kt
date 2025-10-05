@@ -13,13 +13,13 @@ import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.directors
+import io.github.couchtracker.tmdb.extractColorScheme
 import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.linearize
-import io.github.couchtracker.tmdb.prepareAndExtractColorScheme
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.toBaseMovie
-import io.github.couchtracker.ui.ColorSchemes
+import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
@@ -32,6 +32,7 @@ import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.ifError
 import io.github.couchtracker.utils.map
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -49,7 +50,7 @@ data class MovieScreenModel(
     val credits: DeferredApiResult<Credits>,
     val images: DeferredApiResult<List<ImageModel>>,
     val backdrop: ImageModel?,
-    val colorScheme: ColorScheme,
+    val colorScheme: Deferred<ColorScheme?>,
 ) {
     val allDeferred: Set<DeferredApiResult<*>> = setOf(credits, images)
 
@@ -118,7 +119,7 @@ suspend fun CoroutineScope.loadMovie(
         }.ifError { return Result.Error(it) }
     }
     val backdrop = async(coroutineContext) {
-        baseDetails.backdrop.prepareAndExtractColorScheme(ctx = ctx, fallbackColorScheme = ColorSchemes.Movie)
+        baseDetails.backdrop?.toImageModelWithPlaceholder()
     }
     val ret = MovieScreenModel(
         movie = movie,
@@ -128,9 +129,9 @@ suspend fun CoroutineScope.loadMovie(
         rating = baseDetails.rating(),
         fullDetails = fullDetailsModel,
         credits = creditsModel,
-        backdrop = backdrop.await().first,
+        backdrop = backdrop.await(),
         images = imagesModel,
-        colorScheme = backdrop.await().second,
+        colorScheme = async { backdrop.await()?.extractColorScheme(ctx) },
     )
     return Result.Value(ret)
 }

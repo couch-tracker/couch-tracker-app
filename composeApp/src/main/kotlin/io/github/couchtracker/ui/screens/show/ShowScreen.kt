@@ -40,6 +40,7 @@ import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -52,6 +53,7 @@ import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -137,8 +139,9 @@ private fun Content(show: TmdbShow) {
                     coroutineScope.launch { load() }
                 },
             )
-            val backgroundColor by animateColorAsState(model.colorScheme.background)
-            MaterialTheme(colorScheme = model.colorScheme) {
+            val colorScheme = model.colorScheme.awaitAsLoadable().valueOrNull() ?: ColorSchemes.Show
+            val backgroundColor by animateColorAsState(colorScheme.background)
+            MaterialTheme(colorScheme = colorScheme) {
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     containerColor = MaterialTheme.colorScheme.background,
