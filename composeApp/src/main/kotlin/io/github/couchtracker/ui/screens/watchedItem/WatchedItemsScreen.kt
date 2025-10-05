@@ -50,7 +50,9 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.awaitAsLoadable
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -124,11 +126,12 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
     val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
-    val backgroundColor by animateColorAsState(model.colorScheme.background)
+    val colorScheme = model.colorScheme.awaitAsLoadable().valueOrNull() ?: model.fallbackColorScheme
+    val backgroundColor by animateColorAsState(colorScheme.background)
 
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
-        colorScheme = model.colorScheme,
+        colorScheme = colorScheme,
         watchedItemType = model.itemType,
         mediaRuntime = { model.runtime },
         mediaLanguages = { listOf(model.originalLanguage) },

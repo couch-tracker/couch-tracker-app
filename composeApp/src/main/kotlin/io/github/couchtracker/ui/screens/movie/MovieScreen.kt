@@ -56,6 +56,7 @@ import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -71,6 +72,7 @@ import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -166,11 +168,12 @@ private fun MovieScreenContent(
         onRetry = { reloadMovie() },
     )
     val fullDetails = model.fullDetails.awaitAsLoadable()
-    val backgroundColor by animateColorAsState(model.colorScheme.background)
+    val colorScheme = model.colorScheme.awaitAsLoadable().valueOrNull() ?: ColorSchemes.Movie
+    val backgroundColor by animateColorAsState(colorScheme.background)
 
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
-        colorScheme = model.colorScheme,
+        colorScheme = colorScheme,
         watchedItemType = WatchedItemType.MOVIE,
         mediaRuntime = { fullDetails.resultValueOrNull()?.runtime },
         mediaLanguages = { listOfNotNull(fullDetails.resultValueOrNull()?.originalLanguage) },

@@ -10,7 +10,6 @@ import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import app.moviebase.tmdb.model.TmdbShowDetail
-import coil3.Image
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -20,6 +19,7 @@ import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ImageUrlProvider
 import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.LocaleData
 import io.github.couchtracker.utils.logExecutionTime
 import org.koin.mp.KoinPlatform
@@ -30,50 +30,30 @@ private const val LOG_TAG = "Tmdb.Utils"
 // See Palette.DEFAULT_RESIZE_BITMAP_AREA
 private const val PALETTE_IMAGE_SIZE = 112
 
-suspend fun TmdbImage?.prepareAndExtractColorScheme(
-    ctx: Context,
-    fallbackColorScheme: ColorScheme,
-): Pair<ImageModel?, ColorScheme> {
-    if (this != null) {
-        return logExecutionTime(LOG_TAG, "Loading backdrop with color palette") {
-            val smallUrl = TmdbImageUrlBuilder.build(this, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE)
-            val (smallImage, palette) = loadPalette(ctx, smallUrl, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE, fallbackColorScheme)
-            val imageModel = ImageModel(
-                url = ImageUrlProvider.TmdbImage(this),
-                placeholderUrl = ImageUrlProvider.Constant(smallUrl),
-                aspectRatio = smallImage?.let { it.width.toFloat() / it.height },
-            )
-            imageModel to palette
+suspend fun ImageModel.extractColorScheme(ctx: Context): ColorScheme? {
+    logExecutionTime(LOG_TAG, "Loading backdrop with color palette") {
+        val smallUrl = url?.getUrl(PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE) ?: return null
+        val imageRequest = ImageRequest.Builder(ctx)
+            // Necessary for palette generation
+            .allowHardware(false)
+            .data(smallUrl)
+            .size(PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE)
+            .build()
+        val image = ctx.imageLoader.execute(imageRequest).image ?: return null
+        val bitmap = image.toBitmap()
+        return logExecutionTime(LOG_TAG, "Generating color palette") {
+            val palette = Palette.Builder(bitmap).resizeBitmapArea(PALETTE_IMAGE_SIZE * PALETTE_IMAGE_SIZE).generate()
+            palette.generateColorScheme()
         }
-    } else {
-        return null to fallbackColorScheme
     }
 }
 
-private suspend fun loadPalette(
-    ctx: Context,
-    url: String,
-    width: Int,
-    height: Int,
-    fallbackColorScheme: ColorScheme,
-): Pair<Image?, ColorScheme> {
-    val imageRequest = ImageRequest.Builder(ctx)
-        // Necessary for palette generation
-        .allowHardware(false)
-        .memoryCacheKey(url)
-        .data(url)
-        .size(width, height)
-        .build()
-    val image = ctx.imageLoader.execute(imageRequest).image
-    return if (image != null) {
-        val bitmap = image.toBitmap()
-        logExecutionTime(LOG_TAG, "Generating color palette") {
-            val palette = Palette.Builder(bitmap).resizeBitmapArea(PALETTE_IMAGE_SIZE * PALETTE_IMAGE_SIZE).generate()
-            image to palette.generateColorScheme(fallbackColorScheme)
-        }
-    } else {
-        image to fallbackColorScheme
-    }
+/**
+ * Converts the image to an [ImageModel], which uses the same image used by [extractColorScheme] as a placeholder.
+ */
+fun TmdbImage.toImageModelWithPlaceholder(): ImageModel {
+    val smallUrl = TmdbImageUrlBuilder.build(this, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE)
+    return toImageModel().copy(placeholderUrl = ImageUrlProvider.Constant(smallUrl))
 }
 
 fun TmdbImages.linearize(): List<TmdbFileImage> {
