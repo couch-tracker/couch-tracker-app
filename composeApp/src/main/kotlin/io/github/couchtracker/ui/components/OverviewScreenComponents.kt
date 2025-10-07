@@ -1,12 +1,7 @@
 package io.github.couchtracker.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -65,8 +60,11 @@ import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.emitAsFlow
+import io.github.couchtracker.utils.ifNullOrBlank
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapError
+import io.github.couchtracker.utils.onValue
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.flow.any
 import kotlin.math.roundToInt
@@ -79,9 +77,9 @@ object OverviewScreenComponents {
     private const val WIDE_COMPONENTS_ASPECT_RATIO = 16f / 9
     private const val COLUMN_COMPONENTS_ASPECT_RATIO = 3f / 2
     private const val ITEMS_PER_COLUMN = 4
-    private const val PLACEHOLDER_IMAGES_COUNT = 6
-    private const val PLACEHOLDER_CAST_COUNT = 6
-    private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 3
+    private const val PLACEHOLDER_IMAGES_COUNT = 3
+    private const val PLACEHOLDER_CAST_COUNT = 3
+    private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 1
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -201,24 +199,6 @@ object OverviewScreenComponents {
     }
 
     @Composable
-    fun Paragraph(
-        text: String?,
-        modifier: Modifier = Modifier,
-        maxLines: Int = Int.MAX_VALUE,
-        style: TextStyle = MaterialTheme.typography.titleMedium,
-    ) {
-        if (!text.isNullOrBlank()) {
-            Text(
-                text,
-                modifier = modifier.padding(horizontal = 16.dp),
-                maxLines = maxLines,
-                style = style,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-
-    @Composable
     fun ContentList(
         innerPadding: PaddingValues,
         modifier: Modifier = Modifier,
@@ -227,16 +207,12 @@ object OverviewScreenComponents {
         LazyColumn(
             contentPadding = innerPadding,
             modifier = modifier.fillMaxSize(),
-            // Same as SpaceBetweenItems
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             content()
             bottomSpace()
         }
     }
-
-    @Composable
-    fun SpaceBetweenItems() = Spacer(Modifier.height(4.dp))
 
     fun LazyListScope.space() = item(key = null, contentType = "spacer") {
         // Plus the lazy list spacing is 24
@@ -253,25 +229,12 @@ object OverviewScreenComponents {
         Spacer(Modifier.height(92.dp))
     }
 
-    fun LazyListScope.section(sectionKey: String, title: String?, content: SizeAwareLazyListScope.() -> Unit) {
-        val nullableTitle = when {
-            title.isNullOrBlank() -> null
-            else -> Text.Literal(title)
-        }
-        section(sectionKey, nullableTitle, content)
-    }
-
-    fun LazyListScope.section(sectionKey: String, @StringRes title: Int, content: SizeAwareLazyListScope.() -> Unit) {
-        section(sectionKey, Text.Resource(title), content)
-    }
-
-    fun LazyListScope.section(sectionKey: String, title: Text? = null, content: SizeAwareLazyListScope.() -> Unit) {
+    fun LazyListScope.section(
+        title: SizeAwareLazyListScope.() -> Unit,
+        content: SizeAwareLazyListScope.() -> Unit,
+    ) {
         countingElements {
-            if (title != null) {
-                item(key = "$sectionKey-title", contentType = "section-title") {
-                    Paragraph(title.string(), modifier = Modifier.animateItem())
-                }
-            }
+            title()
             content()
             if (itemCount > 0) {
                 space()
@@ -279,9 +242,101 @@ object OverviewScreenComponents {
         }
     }
 
-    @Composable
-    fun TagsComposable(tags: List<String>) {
-        TagsRow(tags, modifier = Modifier.padding(horizontal = 16.dp))
+    fun <T> LazyListScope.sectionWithPlaceholder(
+        title: SizeAwareLazyListScope.() -> Unit,
+        contentKey: String,
+        content: Loadable<T>,
+        placeholder: () -> T,
+        contentComposable: @Composable (T, isPlaceholder: Boolean) -> Unit,
+    ) {
+        section(title = title) {
+            item(key = contentKey) {
+                val dataWithPlaceholder = when (content) {
+                    is Loadable.Loaded -> content.value to false
+                    Loadable.Loading -> placeholder() to true
+                }
+                Crossfade(dataWithPlaceholder, modifier = Modifier.animateItem()) {
+                    contentComposable(it.first, it.second)
+                }
+            }
+        }
+    }
+
+    fun LazyListScope.textBlock(
+        key: String,
+        @StringRes text: Int,
+        modifier: Modifier = Modifier,
+    ) {
+        item(key = key) {
+            Text(
+                text.str(),
+                modifier = modifier
+                    .animateItem()
+                    .padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+    }
+
+    fun LazyListScope.textBlock(
+        key: String,
+        text: ApiLoadable<String?>,
+        modifier: Modifier = Modifier,
+        placeholderLines: Int = 1,
+        maxLines: Int = Int.MAX_VALUE,
+        style: @Composable () -> TextStyle = { MaterialTheme.typography.titleMedium },
+    ) {
+        val text = text
+            .mapError { return }
+            .map { it.ifNullOrBlank { return } }
+        item(key = key) {
+            LoadableText(
+                text,
+                modifier = modifier
+                    .animateItem()
+                    .padding(horizontal = 16.dp),
+                placeholderLines = placeholderLines,
+                maxLines = maxLines,
+                style = style(),
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+
+    fun LazyListScope.tags(
+        tags: ApiLoadable<List<String>>,
+        key: String = "tags",
+        placeholderLines: Int = 2,
+    ) {
+        val tags = tags
+            .mapError { return }
+            .onValue { it.ifEmpty { return } }
+        item(key = key) {
+            LoadableTagsRow(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .animateItem(),
+                tags = tags,
+                placeholderLines = placeholderLines,
+            )
+        }
+    }
+
+    fun LazyListScope.tagline(tagline: ApiLoadable<String?>) {
+        textBlock(
+            key = "tagline",
+            text = tagline,
+            placeholderLines = 2,
+        )
+    }
+
+    fun LazyListScope.overview(overview: ApiLoadable<String?>) {
+        textBlock(
+            key = "overview",
+            text = overview,
+            placeholderLines = 4,
+            style = { MaterialTheme.typography.bodyMedium },
+        )
     }
 
     @Composable
@@ -289,6 +344,7 @@ object OverviewScreenComponents {
         totalHeight: Int,
         items: List<T>,
         modifier: Modifier = Modifier,
+        enabled: Boolean = true,
         itemComposable: @Composable (T, targetHeightPx: Int) -> Unit,
     ) {
         BoxWithConstraints(
@@ -300,6 +356,7 @@ object OverviewScreenComponents {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp),
+                userScrollEnabled = enabled,
             ) {
                 val targetHeightPx = (width * WIDE_COMPONENTS_FILL_PERCENTAGE / WIDE_COMPONENTS_ASPECT_RATIO)
                     .coerceAtMost(totalHeight / 2f)
@@ -316,6 +373,7 @@ object OverviewScreenComponents {
         totalHeight: Int,
         items: List<T>,
         modifier: Modifier = Modifier,
+        enabled: Boolean = true,
         itemsPerColumn: Int = ITEMS_PER_COLUMN,
         itemComposable: @Composable (T) -> Unit,
     ) {
@@ -323,6 +381,7 @@ object OverviewScreenComponents {
             totalHeight = totalHeight,
             items = items.chunked(itemsPerColumn),
             modifier = modifier,
+            enabled = enabled,
         ) { itemsInColumn, targetHeight ->
             val targetWidth = with(LocalDensity.current) {
                 targetHeight.toDp() * COLUMN_COMPONENTS_ASPECT_RATIO
@@ -335,102 +394,83 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.paragraphSection(sectionKey: String, title: String?, content: String) {
-        section(sectionKey, title) {
-            item(key = "$sectionKey-content", contentType = "text-section-content") {
-                Paragraph(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.animateItem())
-            }
-        }
-    }
-
-    private fun <T> ApiLoadable<List<T>>.buildDefaults(default: () -> List<T>): List<T> {
-        return when (this) {
-            Loadable.Loading -> default()
-            is Loadable.Loaded -> when (this.value) {
-                is Result.Error -> emptyList()
-                is Result.Value -> this.value.value
-            }
-        }
-    }
-
     fun LazyListScope.imagesSection(
         images: ApiLoadable<List<ImageModel>>,
         totalHeight: Int,
         // To align with other sections, using the default aspect ratio of PortraitComposable
         defaultAspectRatio: Float = PortraitComposableDefaults.POSTER_ASPECT_RATIO,
     ) {
-        val imagesList = images.buildDefaults {
-            List(PLACEHOLDER_IMAGES_COUNT) { ImageModel(defaultAspectRatio, null) }
-        }
-        if (imagesList.isNotEmpty()) {
-            section("images", R.string.section_images) {
-                item(key = "images-content") {
-                    HorizontalListSection(totalHeight, imagesList, modifier = Modifier.animateItem()) { image, targetHeight ->
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            shadowElevation = 8.dp,
-                            tonalElevation = 8.dp,
-                        ) {
-                            val transition = updateTransition(image)
-                            transition.AnimatedContent(
-                                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            ) { image ->
-                                val aspectRation = image.aspectRatio ?: defaultAspectRatio
-                                val imgWidth = (targetHeight * aspectRation).roundToInt()
-                                val model = image.getCoilModel(imgWidth, targetHeight)
-                                AsyncImage(
-                                    model,
-                                    modifier = Modifier
-                                        .width(with(LocalDensity.current) { imgWidth.toDp() })
-                                        .height(with(LocalDensity.current) { targetHeight.toDp() }),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                )
-                            }
-                        }
-                    }
+        sectionWithPlaceholder(
+            title = { textBlock("images-title", R.string.section_images) },
+            contentKey = "images-content",
+            content = images
+                .mapError { return }
+                .onValue { it.ifEmpty { return } },
+            placeholder = { List(PLACEHOLDER_IMAGES_COUNT) { ImageModel(defaultAspectRatio, null) } },
+        ) { images, isPlaceholder ->
+            HorizontalListSection(
+                totalHeight,
+                images,
+                enabled = !isPlaceholder,
+            ) { image, targetHeight ->
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    shadowElevation = 8.dp,
+                    tonalElevation = 8.dp,
+                ) {
+                    val aspectRation = image.aspectRatio ?: defaultAspectRatio
+                    val imgWidth = (targetHeight * aspectRation).roundToInt()
+                    val model = image.getCoilModel(imgWidth, targetHeight)
+                    AsyncImage(
+                        model,
+                        modifier = Modifier
+                            .width(with(LocalDensity.current) { imgWidth.toDp() })
+                            .height(with(LocalDensity.current) { targetHeight.toDp() }),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                    )
                 }
             }
         }
     }
 
     fun LazyListScope.castSection(people: ApiLoadable<List<CastPortraitModel>>, totalHeight: Int) {
-        val peopleList = people.buildDefaults { List(PLACEHOLDER_CAST_COUNT) { null } }
-        if (peopleList.isNotEmpty()) {
-            section("cast", R.string.section_cast) {
-                item(key = "cast-content") {
-                    HorizontalListSection(
-                        totalHeight = totalHeight,
-                        items = peopleList,
-                        modifier = Modifier.animateItem(),
-                    ) { person, targetHeight ->
-                        val w = with(LocalDensity.current) {
-                            targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
-                        }
-                        Crossfade(person) { p ->
-                            CastPortrait(Modifier.width(w), p, onClick = null)
-                        }
-                    }
+        sectionWithPlaceholder(
+            title = { textBlock("cast-title", R.string.section_cast) },
+            contentKey = "cast-content",
+            content = people
+                .mapError { return }
+                .onValue { it.ifEmpty { return } },
+            placeholder = { List(PLACEHOLDER_CAST_COUNT) { null } },
+        ) { people, isPlaceholder ->
+            HorizontalListSection(
+                totalHeight = totalHeight,
+                items = people,
+                enabled = !isPlaceholder,
+            ) { person, targetHeight ->
+                val w = with(LocalDensity.current) {
+                    targetHeight.toDp() * PortraitComposableDefaults.POSTER_ASPECT_RATIO
                 }
+                CastPortrait(Modifier.width(w), person, onClick = null)
             }
         }
     }
 
     fun LazyListScope.crewSection(people: ApiLoadable<List<CrewCompactListItemModel>>, totalHeight: Int) {
-        val peopleList = people.buildDefaults { List(ITEMS_PER_COLUMN * PLACEHOLDER_CREW_COLUMNS_COUNT) { null } }
-        if (peopleList.isNotEmpty()) {
-            section("crew", R.string.section_crew) {
-                item(key = "crew-content") {
-                    HorizontalColumnsListSection(
-                        totalHeight = totalHeight,
-                        items = peopleList,
-                        modifier = Modifier.animateItem(),
-                    ) { person ->
-                        Crossfade(person) { p ->
-                            CrewCompactListItem(p)
-                        }
-                    }
-                }
+        sectionWithPlaceholder(
+            title = { textBlock("crew-title", R.string.section_crew) },
+            contentKey = "crew-content",
+            content = people
+                .mapError { return }
+                .onValue { it.ifEmpty { return } },
+            placeholder = { List(ITEMS_PER_COLUMN * PLACEHOLDER_CREW_COLUMNS_COUNT) { null } },
+        ) { people, isPlaceholder ->
+            HorizontalColumnsListSection(
+                totalHeight = totalHeight,
+                items = people,
+                enabled = !isPlaceholder,
+            ) { person ->
+                CrewCompactListItem(person)
             }
         }
     }

@@ -2,9 +2,7 @@
 
 package io.github.couchtracker.ui.screens.movie
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -257,31 +255,20 @@ private fun OverviewScreenComponents.MoviePage(
     val images = model.images.awaitAsLoadable()
     val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding, modifier) {
-        section("subtitle") {
-            val directors = credits.mapResult { it.directorsString }.resultValueOrNull()
-            val tags = fullDetails.mapResult { details ->
-                listOfNotNull(
-                    model.year?.toString(),
-                    details.runtime?.toString(),
-                    model.rating?.formatted,
-                ) + details.genres.map { it.name }
-            }.resultValueOrNull().orEmpty()
-
-            val hasDirectors = directors != null
-            val hasTags = tags.isNotEmpty()
-            item("subtitle-content") {
-                if (hasDirectors || hasTags) {
-                    AnimatedVisibility(hasDirectors, enter = expandVertically()) {
-                        Paragraph(directors)
-                    }
-                    SpaceBetweenItems()
-                    AnimatedVisibility(hasTags, enter = expandVertically()) {
-                        TagsComposable(tags = tags)
-                    }
-                }
-            }
+        section(title = { textBlock("directors", credits.mapResult { it.directorsString }, placeholderLines = 2) }) {
+            tags(
+                tags = fullDetails.mapResult { details ->
+                    listOfNotNull(
+                        model.year?.toString(),
+                        details.runtime?.toString(),
+                        model.rating?.formatted,
+                    ) + details.genres.map { it.name }
+                },
+            )
         }
-        paragraphSection("overview", fullDetails.mapResult { it.tagline }.resultValueOrNull(), model.overview)
+        section(title = { tagline(fullDetails.mapResult { it.tagline }) }) {
+            overview(Loadable.value(model.overview))
+        }
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
         crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
