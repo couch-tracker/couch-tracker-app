@@ -2,9 +2,7 @@
 
 package io.github.couchtracker.ui.screens.show
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,7 +49,6 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.awaitAsLoadable
 import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.mapResult
-import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.Dispatchers
@@ -214,30 +211,19 @@ private fun OverviewScreenComponents.ShowDetailsContent(
     val credits = model.credits.awaitAsLoadable()
     ContentList(innerPadding) {
         topSpace()
-        section("subtitle") {
-            val creators = fullDetails.mapResult { it.createdByString }.resultValueOrNull()
-            val tags = fullDetails.mapResult { details ->
-                listOfNotNull(
-                    model.year?.toString(),
-                    model.rating?.formatted,
-                ) + details.genres.map { it.name }
-            }.resultValueOrNull().orEmpty()
-
-            val hasCreatedBy = creators != null
-            val hasTags = tags.isNotEmpty()
-            if (hasCreatedBy || hasTags) {
-                item(key = "subtitle-content") {
-                    AnimatedVisibility(hasCreatedBy, enter = expandVertically()) {
-                        Paragraph(creators)
-                    }
-                    SpaceBetweenItems()
-                    AnimatedVisibility(hasTags, enter = expandVertically()) {
-                        TagsComposable(tags)
-                    }
-                }
-            }
+        section(title = { textBlock("creators", fullDetails.mapResult { it.createdByString }, placeholderLines = 2) }) {
+            tags(
+                tags = fullDetails.mapResult { details ->
+                    listOfNotNull(
+                        model.year?.toString(),
+                        model.rating?.formatted,
+                    ) + details.genres.map { it.name }
+                },
+            )
         }
-        paragraphSection("overview", fullDetails.mapResult { it.tagline }.resultValueOrNull(), model.overview)
+        section(title = { tagline(fullDetails.mapResult { it.tagline }) }) {
+            overview(Loadable.value(model.overview))
+        }
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
         crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
