@@ -57,16 +57,13 @@ import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.SizeAwareLazyListScope
 import io.github.couchtracker.ui.countingElements
 import io.github.couchtracker.utils.ApiLoadable
-import io.github.couchtracker.utils.DeferredApiResult
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.emitAsFlow
 import io.github.couchtracker.utils.ifNullOrBlank
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapError
 import io.github.couchtracker.utils.onValue
 import io.github.couchtracker.utils.str
-import kotlinx.coroutines.flow.any
 import kotlin.math.roundToInt
 
 @Suppress("TooManyFunctions")
@@ -169,32 +166,6 @@ object OverviewScreenComponents {
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
-        }
-    }
-
-    @Composable
-    fun ShowSnackbarOnErrorEffect(
-        snackbarHostState: SnackbarHostState,
-        state: Set<DeferredApiResult<*>>,
-        onRetry: () -> Unit,
-        retryMessage: String = R.string.error_loading_data.str(),
-        retryAction: String = R.string.retry_action.str(),
-    ) {
-        LaunchedEffect(snackbarHostState, state, onRetry, retryMessage, retryAction) {
-            if (state.emitAsFlow().any { it is Result.Error }) {
-                val result = snackbarHostState.showSnackbar(
-                    retryMessage,
-                    actionLabel = retryAction,
-                    duration = SnackbarDuration.Indefinite,
-                    withDismissAction = true,
-                )
-                when (result) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> {
-                        onRetry()
-                    }
-                }
-            }
         }
     }
 

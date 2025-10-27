@@ -41,8 +41,8 @@ inline fun <I, O> Loadable<I>.flatMap(f: (I) -> Loadable<O>): Loadable<O> = when
 }
 
 /**
- * Applies [f] to [Loadable.Loading].
- * Otherwise, [Loadable.Loaded] is returned without executing [f].
+ * Applies [f] to [Loadable.Loaded.value].
+ * Otherwise, [Loadable.Loading] is returned without executing [f].
  */
 inline fun <T> Loadable<T>.flatMapLoading(f: () -> Loadable<T>): Loadable<T> = when (this) {
     is Loadable.Loading -> f()
