@@ -28,18 +28,17 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.LocalNavController
@@ -49,30 +48,23 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
-import io.github.couchtracker.settings.appSettings
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
-import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
-import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
-import io.github.couchtracker.utils.ApiLoadable
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.awaitAsLoadable
-import io.github.couchtracker.utils.logExecutionTime
+import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
+import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
-import io.github.couchtracker.utils.valueOrNull
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.mp.KoinPlatform
@@ -83,13 +75,23 @@ private const val LOG_TAG = "MovieScreen"
 data class MovieScreen(val movieId: String) : Screen() {
     @Composable
     override fun content() {
-        when (val movieId = ExternalMovieId.parse(movieId)) {
+        val externalMovieId: ExternalMovieId = ExternalMovieId.parse(movieId)
+        val movieId = when (externalMovieId) {
             is TmdbExternalMovieId -> {
-                val tmdbLanguages = appSettings().get { Tmdb.Languages }.current
-                Content(TmdbMovie(movieId.id, tmdbLanguages))
+                externalMovieId.id
             }
             is UnknownExternalMovieId -> TODO()
         }
+
+        Content(
+            viewModel {
+                MovieScreenViewModel(
+                    application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                    externalMovieId = externalMovieId,
+                    movieId = movieId,
+                )
+            },
+        )
     }
 }
 
@@ -101,47 +103,30 @@ fun NavController.navigateToMovie(id: TmdbMovieId, preloadData: BaseTmdbMovie?) 
 }
 
 @Composable
-private fun Content(movie: TmdbMovie) {
+private fun Content(viewModel: MovieScreenViewModel) {
     val coroutineScope = rememberCoroutineScope()
-    val ctx = LocalContext.current
-    var screenModel by remember { mutableStateOf<ApiLoadable<MovieScreenModel>>(Loadable.Loading) }
-    suspend fun load() {
-        screenModel = Loadable.Loading
-        screenModel = coroutineScope.async(Dispatchers.Default) {
-            logExecutionTime(LOG_TAG, "Loading movie") {
-                Loadable.Loaded(
-                    coroutineScope.loadMovie(ctx = ctx, movie = movie),
-                )
-            }
-        }.await()
-    }
-    LaunchedEffect(movie) {
-        load()
-    }
-
-    BoxWithConstraints(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        LoadableScreen(
-            data = screenModel,
+    logCompositions(LOG_TAG, "Recomposing Content")
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        ResultScreen(
+            error = viewModel.baseDetails.resultErrorOrNull(),
             onError = { exception ->
                 Surface {
                     DefaultErrorScreen(
                         errorMessage = exception.title.string(),
                         errorDetails = exception.details?.string(),
                         retry = {
-                            coroutineScope.launch { load() }
+                            coroutineScope.launch { viewModel.retryAll() }
                         },
                     )
                 }
             },
-        ) { model ->
+        ) {
             MovieScreenContent(
-                model = model,
+                externalMovieId = viewModel.externalMovieId,
+                viewModel = viewModel,
                 totalHeight = constraints.maxHeight,
                 reloadMovie = {
-                    coroutineScope.launch { load() }
+                    coroutineScope.launch { viewModel.retryAll() }
                 },
             )
         }
@@ -151,7 +136,8 @@ private fun Content(movie: TmdbMovie) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MovieScreenContent(
-    model: MovieScreenModel,
+    externalMovieId: ExternalMovieId,
+    viewModel: MovieScreenViewModel,
     totalHeight: Int,
     reloadMovie: () -> Unit,
 ) {
@@ -162,35 +148,35 @@ private fun MovieScreenContent(
 
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        state = model.allDeferred,
-        onRetry = { reloadMovie() },
+        loadable = { viewModel.allLoadables },
+        onRetry = reloadMovie,
     )
-    val fullDetails = model.fullDetails.awaitAsLoadable()
-    val colorScheme = model.colorScheme.awaitAsLoadable().valueOrNull() ?: ColorSchemes.Movie
+    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
     val backgroundColor by animateColorAsState(colorScheme.background)
-
+    logCompositions(LOG_TAG, "Recomposing MovieScreenContent")
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = colorScheme,
         watchedItemType = WatchedItemType.MOVIE,
-        mediaRuntime = { fullDetails.resultValueOrNull()?.runtime },
-        mediaLanguages = { listOfNotNull(fullDetails.resultValueOrNull()?.originalLanguage) },
+        mediaRuntime = { viewModel.fullDetails.resultValueOrNull()?.runtime },
+        mediaLanguages = { listOfNotNull(viewModel.fullDetails.resultValueOrNull()?.originalLanguage) },
         backgroundColor = { backgroundColor },
-        title = model.title,
-        backdrop = model.backdrop,
+        title = viewModel.baseDetails.resultValueOrNull()?.title.orEmpty(),
+        backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
         modifier = Modifier.nestedScroll(toolbarScrollBehavior),
         floatingActionButton = {
             MovieToolbar(
-                movie = model.movie,
+                externalMovieId = externalMovieId,
                 expanded = toolbarExpanded,
                 onMarkAsWatched = {
-                    scaffoldState.open(WatchedItemSheetMode.New(model.movie.id.toExternalId().asWatchable()))
+                    scaffoldState.open(WatchedItemSheetMode.New(externalMovieId.asWatchable()))
                 },
             )
         },
         snackbarHostState = snackbarHostState,
         content = { innerPadding ->
             OverviewScreenComponents.MoviePage(
+                viewModel = viewModel,
                 modifier = Modifier.floatingToolbarVerticalNestedScroll(
                     expanded = toolbarExpanded,
                     onExpand = { toolbarExpanded = true },
@@ -198,7 +184,6 @@ private fun MovieScreenContent(
                 ),
                 innerPadding = innerPadding,
                 totalHeight = totalHeight,
-                model = model,
             )
         },
     )
@@ -207,13 +192,13 @@ private fun MovieScreenContent(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MovieToolbar(
-    movie: TmdbMovie,
+    externalMovieId: ExternalMovieId,
     expanded: Boolean,
     onMarkAsWatched: () -> Unit,
 ) {
     val navController = LocalNavController.current
     val fullProfileData = LocalFullProfileDataContext.current
-    val watchableId = movie.id.toExternalId().asWatchable()
+    val watchableId = externalMovieId.asWatchable()
     val watchCount = fullProfileData.watchedItems.count { it.itemId == watchableId }
     HorizontalFloatingToolbar(
         expanded = expanded,
@@ -247,27 +232,28 @@ private fun MovieToolbar(
 @Composable
 private fun OverviewScreenComponents.MoviePage(
     innerPadding: PaddingValues,
-    model: MovieScreenModel,
+    viewModel: MovieScreenViewModel,
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
-    val fullDetails = model.fullDetails.awaitAsLoadable()
-    val images = model.images.awaitAsLoadable()
-    val credits = model.credits.awaitAsLoadable()
+    val baseDetails = viewModel.baseDetails
+    val fullDetails = viewModel.fullDetails
+    val images = viewModel.images
+    val credits = viewModel.credits
     ContentList(innerPadding, modifier) {
         section(title = { textBlock("directors", credits.mapResult { it.directorsString }, placeholderLines = 2) }) {
             tags(
                 tags = fullDetails.mapResult { details ->
                     listOfNotNull(
-                        model.year?.toString(),
+                        details.baseDetails.year?.toString(),
                         details.runtime?.toString(),
-                        model.rating?.formatted,
+                        details.rating?.formatted,
                     ) + details.genres.map { it.name }
                 },
             )
         }
         section(title = { tagline(fullDetails.mapResult { it.tagline }) }) {
-            overview(Loadable.value(model.overview))
+            overview(baseDetails.mapResult { it.overview })
         }
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
