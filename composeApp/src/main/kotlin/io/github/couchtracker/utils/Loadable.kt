@@ -13,6 +13,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 
@@ -40,6 +41,15 @@ inline fun <I, O> Loadable<I>.flatMap(f: (I) -> Loadable<O>): Loadable<O> = when
 }
 
 /**
+ * Applies [f] to [Loadable.Loading].
+ * Otherwise, [Loadable.Loaded] is returned without executing [f].
+ */
+inline fun <T> Loadable<T>.flatMapLoading(f: () -> Loadable<T>): Loadable<T> = when (this) {
+    is Loadable.Loading -> f()
+    is Loadable.Loaded -> this
+}
+
+/**
  * Applies [f] to [Loadable.Loaded.value].
  * Otherwise, [Loadable.Loading] are returned without executing [f].
  */
@@ -63,6 +73,15 @@ inline fun <T> Loadable<T>.onValue(f: (T) -> Unit): Loadable<T> {
         f(this.value)
     }
     return this
+}
+
+/**
+ * Transform this into a new [Flow] that emits [Loadable.Loading] before other elements are emitted
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T> Flow<T>.withLoading(): Flow<Loadable<T>> = channelFlow {
+    send(Loadable.Loading)
+    this@withLoading.collect { send(Loadable.Loaded(it)) }
 }
 
 @Composable

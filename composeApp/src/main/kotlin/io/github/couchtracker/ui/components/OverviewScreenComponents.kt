@@ -199,6 +199,33 @@ object OverviewScreenComponents {
     }
 
     @Composable
+    fun ShowSnackbarOnErrorEffect(
+        snackbarHostState: SnackbarHostState,
+        loadable: () -> Collection<ApiLoadable<*>>,
+        onRetry: () -> Unit,
+        retryMessage: String = R.string.error_loading_data.str(),
+        retryAction: String = R.string.retry_action.str(),
+    ) {
+        val loadable = loadable()
+        LaunchedEffect(snackbarHostState, loadable, onRetry, retryMessage, retryAction) {
+            if (loadable.any { it is Loadable.Loaded && it.value is Result.Error }) {
+                val result = snackbarHostState.showSnackbar(
+                    retryMessage,
+                    actionLabel = retryAction,
+                    duration = SnackbarDuration.Indefinite,
+                    withDismissAction = true,
+                )
+                when (result) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> {
+                        onRetry()
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
     fun ContentList(
         innerPadding: PaddingValues,
         modifier: Modifier = Modifier,
