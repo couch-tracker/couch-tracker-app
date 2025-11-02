@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
-import android.content.Context
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -21,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
@@ -40,39 +40,41 @@ import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.type
-import io.github.couchtracker.settings.appSettings
-import io.github.couchtracker.tmdb.TmdbMovie
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
-import io.github.couchtracker.utils.ApiLoadable
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.awaitAsLoadable
+import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
-import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.koin.compose.koinInject
 import kotlin.time.Duration
 
 @Serializable
 data class WatchedItemsScreen(val itemId: String) : Screen() {
     @Composable
     override fun content() {
-        when (val itemId = WatchableExternalId.parse(itemId)) {
-            is WatchableExternalId.Movie -> when (itemId.movieId) {
-                is TmdbExternalMovieId -> {
-                    val tmdbLanguages = appSettings().get { Tmdb.Languages }.current
-                    Content(movie = TmdbMovie(itemId.movieId.id, tmdbLanguages))
+        val viewModel = when (val externalId = WatchableExternalId.parse(itemId)) {
+            is WatchableExternalId.Movie -> {
+                val movieId = when (externalId.movieId) {
+                    is TmdbExternalMovieId -> externalId.movieId.id
+                    is UnknownExternalMovieId -> TODO()
                 }
-                is UnknownExternalMovieId -> TODO()
+                viewModel {
+                    WatchedItemsScreenViewModel.Movie(
+                        application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                        watchableExternalMovieId = externalId,
+                        movieId = movieId,
+                    )
+                }
             }
 
             is WatchableExternalId.Episode -> TODO()
         }
+        Content(viewModel)
     }
 }
 
@@ -81,65 +83,51 @@ fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
 }
 
 @Composable
-private fun Content(movie: TmdbMovie) {
+private fun Content(
+    viewModel: WatchedItemsScreenViewModel,
+) {
     val coroutineScope = rememberCoroutineScope()
-    val context = koinInject<Context>()
-    var screenModel by remember { mutableStateOf<ApiLoadable<WatchedItemsScreenModel>>(Loadable.Loading) }
-    suspend fun load() {
-        screenModel = Loadable.Loading
-        screenModel = Loadable.Loaded(
-            WatchedItemsScreenModel.loadTmdbMovie(
-                context = context,
-                movie = movie,
-            ),
-        )
-    }
-    LaunchedEffect(movie) {
-        load()
-    }
-
     LoadableScreen(
-        data = screenModel,
+        data = viewModel.details,
         onError = { exception ->
             Surface {
                 DefaultErrorScreen(
                     errorMessage = exception.title.string(),
                     errorDetails = exception.details?.string(),
                     retry = {
-                        coroutineScope.launch { load() }
+                        coroutineScope.launch { viewModel.retryAll() }
                     },
                 )
             }
         },
-    ) { model ->
-        WatchedItemList(model = model)
+    ) { details ->
+        WatchedItemList(viewModel = viewModel, details = details)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WatchedItemList(model: WatchedItemsScreenModel) {
+private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: WatchedItemsScreenViewModel.Details) {
     val fullProfileData = LocalFullProfileDataContext.current
-    val watchedItems = remember(fullProfileData, model.id) {
-        fullProfileData.watchedItems.filter { it.itemId == model.id }.sortDescending()
+    val watchedItems = remember(fullProfileData, viewModel.watchableExternalMovieId) {
+        fullProfileData.watchedItems.filter { it.itemId == viewModel.watchableExternalMovieId }.sortDescending()
     }
     val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
-    val colorScheme = model.colorScheme.awaitAsLoadable().valueOrNull() ?: model.fallbackColorScheme
+    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
     val backgroundColor by animateColorAsState(colorScheme.background)
-
     MediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = colorScheme,
-        watchedItemType = model.itemType,
-        mediaRuntime = { model.runtime },
-        mediaLanguages = { listOf(model.originalLanguage) },
         backgroundColor = { backgroundColor },
-        title = R.string.viewing_history_for_x.str(model.title),
-        backdrop = model.backdrop,
+        watchedItemType = viewModel.watchableExternalMovieId.type(),
+        mediaRuntime = { details.runtime },
+        mediaLanguages = { listOf(details.originalLanguage) },
+        title = R.string.viewing_history_for_x.str(details.title),
+        backdrop = details.backdrop,
         floatingActionButton = {
-            FloatingActionButton(onClick = { scaffoldState.open(WatchedItemSheetMode.New(model.id)) }) {
+            FloatingActionButton(onClick = { scaffoldState.open(WatchedItemSheetMode.New(viewModel.watchableExternalMovieId)) }) {
                 Icon(Icons.Default.Add, contentDescription = R.string.add_viewing.str())
             }
         },
@@ -158,7 +146,7 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
                 items(watchedItems) { watchedItem ->
                     WatchedItemListItem(
                         watchedItem = watchedItem,
-                        mediaRuntime = model.runtime,
+                        mediaRuntime = details.runtime,
                         onClick = { watchedItemForInfoDialog = watchedItem },
                     )
                 }
@@ -166,7 +154,7 @@ private fun WatchedItemList(model: WatchedItemsScreenModel) {
         }
         watchedItemForInfoDialog?.let { watchedItem ->
             WatchedItemInfoDialog(
-                itemTitle = model.title,
+                itemTitle = details.title,
                 watchedItem = watchedItem,
                 onDismissRequest = { watchedItemForInfoDialog = null },
                 onEditRequest = { scaffoldState.open(WatchedItemSheetMode.Edit(watchedItem)) },
