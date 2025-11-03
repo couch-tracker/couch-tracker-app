@@ -5,13 +5,11 @@ import io.github.couchtracker.R
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
 
 typealias ApiResult<T> = Result<T, ApiException>
 typealias ApiLoadable<T> = Loadable<ApiResult<T>>
-typealias DeferredApiResult<T> = Deferred<ApiResult<T>>
 typealias CompletableApiResult<T> = CompletableDeferred<ApiResult<T>>
 
 sealed class ApiException(message: String?, cause: Throwable?) : Exception(message, cause) {
