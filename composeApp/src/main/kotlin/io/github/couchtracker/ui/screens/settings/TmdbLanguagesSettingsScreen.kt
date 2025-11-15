@@ -43,10 +43,10 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.SuggestedOptions
 import io.github.couchtracker.ui.components.TreePickerDialog
-import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.MixedValueTree
 import io.github.couchtracker.utils.allLeafs
+import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.countLeafs
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.currentLocales

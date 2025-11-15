@@ -1,5 +1,10 @@
-package io.github.couchtracker.utils
+package io.github.couchtracker.utils.api
 
+import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.flatMapLoading
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapError
+import io.github.couchtracker.utils.withLoading
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

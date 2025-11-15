@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
-import io.github.couchtracker.utils.ApiLoadable
+import io.github.couchtracker.utils.api.ApiLoadable
 
 class MovieScreenViewModel(
     application: Application,
@@ -15,7 +15,7 @@ class MovieScreenViewModel(
 ) : AndroidViewModel(
     application = application,
 ) {
-    private val baseViewModel = MovieScreenModelBuilder(
+    private val baseViewModel = MovieScreenViewModelHelper(
         application = application,
         scope = viewModelScope,
         movieId = movieId,

@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.State
 import app.moviebase.tmdb.image.TmdbImageType
-import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.R
@@ -29,12 +28,12 @@ import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
-import io.github.couchtracker.utils.ApiCallHelper
-import io.github.couchtracker.utils.ApiException
-import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.api.ApiCallHelper
+import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
@@ -53,7 +52,7 @@ import kotlin.time.Duration
 /**
  * A utility class to create your own model for a movie screen.
  */
-class MovieScreenModelBuilder(
+class MovieScreenViewModelHelper(
     val application: Application,
     scope: CoroutineScope,
     movieId: TmdbMovieId,
@@ -82,7 +81,6 @@ class MovieScreenModelBuilder(
     )
 
     data class Credits(
-        val directors: List<TmdbCrew>,
         val cast: List<CastPortraitModel>,
         val crew: List<CrewCompactListItemModel>,
         val directorsString: String?,
@@ -135,7 +133,6 @@ class MovieScreenModelBuilder(
                 result.mapResult { credits ->
                     val directors = credits.crew.directors()
                     Credits(
-                        directors = directors,
                         cast = credits.cast.toCastPortraitModel(),
                         crew = credits.crew.toCrewCompactListItemModel(application),
                         directorsString = if (directors.isEmpty()) {

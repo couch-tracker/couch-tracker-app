@@ -2,6 +2,8 @@ package io.github.couchtracker.tmdb
 
 import app.moviebase.tmdb.model.AppendResponse
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import io.github.couchtracker.utils.api.BatchDownloader
+import kotlin.collections.ifEmpty
 import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 
 private typealias MovieDetailsDownloader = BatchDownloadableFlowBuilder<TmdbMovieId, List<AppendResponse>, TmdbMovieDetail>
@@ -53,9 +55,7 @@ data class TmdbMovie(
             putInCacheFn = { cache -> cache.movieVideosCacheQueries::put },
         )
         .flow(detailsBatchDownloader)
-    val releaseDates = detailsDownloader(
-        logTag = "release_dates",
-    ) { it + AppendResponse.RELEASES_DATES }
+    val releaseDates = detailsDownloader("release_dates") { it + AppendResponse.RELEASES_DATES }
         .extractNonNullFromResponse("release_dates") { it.releaseDates?.results }
         .notLocalized(
             loadFromCacheFn = { cache -> cache.movieReleaseDatesCacheQueries::get },

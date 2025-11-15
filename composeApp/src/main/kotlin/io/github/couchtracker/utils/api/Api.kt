@@ -1,7 +1,10 @@
-package io.github.couchtracker.utils
+package io.github.couchtracker.utils.api
 
 import android.util.Log
 import io.github.couchtracker.R
+import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.Text
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.CompletableDeferred
