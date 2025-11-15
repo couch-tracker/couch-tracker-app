@@ -24,6 +24,8 @@ fun LazyListScope.countingElements(content: SizeAwareLazyListScope.() -> Unit): 
             original.item(key, contentType, content)
         }
 
+        @Suppress("OVERRIDE_DEPRECATION")
+        @Deprecated("Use the non deprecated overload", level = DeprecationLevel.HIDDEN)
         override fun item(
             key: Any?,
             content: @Composable (LazyItemScope.() -> Unit),
@@ -42,6 +44,8 @@ fun LazyListScope.countingElements(content: SizeAwareLazyListScope.() -> Unit): 
             original.items(count, key, contentType, itemContent)
         }
 
+        @Suppress("OVERRIDE_DEPRECATION")
+        @Deprecated("Use the non deprecated overload", level = DeprecationLevel.HIDDEN)
         override fun items(
             count: Int,
             key: ((Int) -> Any)?,

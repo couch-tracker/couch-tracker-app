@@ -4,8 +4,8 @@ import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Zoned
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.FixedOffsetTimeZone
 import kotlinx.datetime.LocalDate
