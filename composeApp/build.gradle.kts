@@ -42,6 +42,7 @@ kotlin {
         implementation(libs.kotlinx.datetime)
         implementation(libs.serialization.core)
         implementation(libs.serialization.json)
+        testImplementation(libs.kotlinx.coroutines.test)
 
         // AndroidX & other misc Google libs
         implementation(libs.androidx.datastore.preferences)
@@ -98,7 +99,6 @@ kotlin {
         // Kotest
         testImplementation(libs.kotest.assertions.core)
         testImplementation(libs.kotest.extensions.koin)
-        testImplementation(libs.kotest.framework.datatest)
         testImplementation(libs.kotest.property)
         testImplementation(libs.kotest.runner.junit5)
 
