@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.tmdb.TmdbShowId
-import io.github.couchtracker.utils.ApiLoadable
+import io.github.couchtracker.utils.api.ApiLoadable
 
 class ShowScreenViewModel(
     application: Application,
@@ -15,7 +15,7 @@ class ShowScreenViewModel(
 ) : AndroidViewModel(
     application = application,
 ) {
-    private val baseViewModel = ShowScreenModelBuilder(
+    private val baseViewModel = ShowScreenViewModelHelper(
         application = application,
         scope = viewModelScope,
         movieId = showId,

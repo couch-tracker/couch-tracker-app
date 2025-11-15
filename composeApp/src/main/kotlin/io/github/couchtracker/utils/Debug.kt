@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.remember
 import io.github.couchtracker.BuildConfig
+import io.github.couchtracker.utils.api.ApiException
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds

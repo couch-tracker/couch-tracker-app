@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import io.github.couchtracker.R
-import io.github.couchtracker.utils.ApiException
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.api.ApiException
 import io.github.couchtracker.utils.isLoaded
 import io.github.couchtracker.utils.str
 import kotlin.contracts.ExperimentalContracts

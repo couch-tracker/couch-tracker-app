@@ -2,6 +2,7 @@ package io.github.couchtracker.tmdb
 
 import app.moviebase.tmdb.model.AppendResponse
 import app.moviebase.tmdb.model.TmdbShowDetail
+import io.github.couchtracker.utils.api.BatchDownloader
 import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
 
 private typealias ShowDetailsDownloader = BatchDownloadableFlowBuilder<TmdbShowId, List<AppendResponse>, TmdbShowDetail>

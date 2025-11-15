@@ -10,8 +10,8 @@ import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.WatchableExternalId
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.screens.movie.MovieScreenModelBuilder
-import io.github.couchtracker.utils.ApiLoadable
+import io.github.couchtracker.ui.screens.movie.MovieScreenViewModelHelper
+import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.mapResult
 import kotlin.time.Duration
 
@@ -36,7 +36,7 @@ interface WatchedItemsScreenViewModel {
         movieId: TmdbMovieId,
     ) : AndroidViewModel(application = application), WatchedItemsScreenViewModel {
 
-        private val baseViewModel = MovieScreenModelBuilder(
+        private val baseViewModel = MovieScreenViewModelHelper(
             application = application,
             scope = viewModelScope,
             movieId = movieId,

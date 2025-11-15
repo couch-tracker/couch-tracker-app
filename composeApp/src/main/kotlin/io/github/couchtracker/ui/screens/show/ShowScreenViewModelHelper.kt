@@ -27,12 +27,12 @@ import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
-import io.github.couchtracker.utils.ApiCallHelper
-import io.github.couchtracker.utils.ApiException
-import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.api.ApiCallHelper
+import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
@@ -50,7 +50,7 @@ import org.koin.mp.KoinPlatform
 /**
  * A utility class to create your own model for a show screen.
  */
-class ShowScreenModelBuilder(
+class ShowScreenViewModelHelper(
     val application: Application,
     scope: CoroutineScope,
     movieId: TmdbShowId,

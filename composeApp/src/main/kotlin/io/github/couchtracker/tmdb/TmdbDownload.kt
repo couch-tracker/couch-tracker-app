@@ -4,13 +4,14 @@ import android.util.Log
 import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
 import app.moviebase.tmdb.Tmdb3
+import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
-import io.github.couchtracker.utils.ApiException
-import io.github.couchtracker.utils.ApiResult
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.utils.api.ApiResult
+import io.github.couchtracker.utils.api.runApiCatching
 import io.github.couchtracker.utils.injectApiError
 import io.github.couchtracker.utils.injectCacheMiss
-import io.github.couchtracker.utils.runApiCatching
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.Dispatchers
@@ -42,23 +43,24 @@ val TMDB_CACHE_EXPIRATION_DEFAULT = 12.hours
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T : Any> tmdbGetOrDownload(
     entryTag: String,
-    get: () -> Query<TmdbTimestampedEntry<T>>,
-    put: (TmdbTimestampedEntry<T>) -> Unit,
+    loadFromCache: (TmdbCache) -> Query<TmdbTimestampedEntry<T>>,
+    putInCache: (TmdbCache, TmdbTimestampedEntry<T>) -> Unit,
     downloader: suspend () -> ApiResult<T>,
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     coroutineContext: CoroutineContext = Dispatchers.IO,
+    cache: TmdbCache = KoinPlatform.getKoin().get(),
 ): Flow<ApiResult<T>> {
-    return get()
+    return loadFromCache(cache)
         .asFlow()
         .transformLatest {
             val cachedValue = it.executeAsOneOrNull().injectCacheMiss()
             val currentTime = Clock.System.now()
             if (cachedValue != null) {
-                val age = currentTime - cachedValue.lastUpdate
                 emit(Result.Value(cachedValue.value))
+                val age = currentTime - cachedValue.lastUpdate
                 if (age > expiration) {
                     Log.d(LOG_TAG, "$entryTag: Entry is old (age=$age), starting download")
-                    when (val downloaded = downloadAndSave(downloader, put, coroutineContext)) {
+                    when (val downloaded = downloadAndSave(cache, downloader, putInCache, coroutineContext)) {
                         is Result.Error -> {
                             Log.w(LOG_TAG, "$entryTag: Download failed, using a stale entry", downloaded.error)
                         }
@@ -69,7 +71,7 @@ fun <T : Any> tmdbGetOrDownload(
                 }
             } else {
                 Log.d(LOG_TAG, "$entryTag: No cached entry, performing download")
-                emit(downloadAndSave(downloader, put, coroutineContext))
+                emit(downloadAndSave(cache, downloader, putInCache, coroutineContext))
             }
         }
         .flowOn(coroutineContext)
@@ -77,15 +79,16 @@ fun <T : Any> tmdbGetOrDownload(
 }
 
 private suspend fun <T : Any> downloadAndSave(
+    cache: TmdbCache,
     download: suspend () -> ApiResult<T>,
-    save: (TmdbTimestampedEntry<T>) -> Unit,
+    save: (TmdbCache, TmdbTimestampedEntry<T>) -> Unit,
     coroutineContext: CoroutineContext,
 ): ApiResult<T> {
     val currentTime = Clock.System.now()
     val element = download()
     if (element is Result.Value) {
         withContext(coroutineContext) {
-            save(TmdbTimestampedEntry(element.value, currentTime))
+            save(cache, TmdbTimestampedEntry(element.value, currentTime))
         }
     }
     return element

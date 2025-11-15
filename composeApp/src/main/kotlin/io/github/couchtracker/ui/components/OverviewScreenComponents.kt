@@ -56,9 +56,9 @@ import io.github.couchtracker.R
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.SizeAwareLazyListScope
 import io.github.couchtracker.ui.countingElements
-import io.github.couchtracker.utils.ApiLoadable
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.ifNullOrBlank
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapError

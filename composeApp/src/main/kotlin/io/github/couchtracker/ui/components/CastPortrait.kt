@@ -122,12 +122,8 @@ data class CastPortraitModel(
 }
 
 @JvmName("TmdbCast_toCastPortraitModel")
-suspend fun List<TmdbCast>.toCastPortraitModel(): List<CastPortraitModel> = coroutineScope {
-    map {
-        async {
-            CastPortraitModel.fromTmdbCast(it)
-        }
-    }.awaitAll()
+fun List<TmdbCast>.toCastPortraitModel(): List<CastPortraitModel> {
+    return map { CastPortraitModel.fromTmdbCast(it) }
 }
 
 @JvmName("TmdbAggregateCast_toCastPortraitModel")
