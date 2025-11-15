@@ -1,3 +1,4 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -9,6 +10,7 @@ plugins {
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.gradleVersions)
 }
 
 buildConfig {
@@ -206,5 +208,17 @@ tasks.withType<Detekt>().configureEach {
     exclude {
         // Exclude auto generated files
         it.file.relativeTo(projectDir).startsWith("build")
+    }
+}
+
+tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
+    fun isNonStable(version: String): Boolean {
+        val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
+        val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+        val isStable = stableKeyword || regex.matches(version)
+        return !isStable
+    }
+    this.rejectVersionIf {
+        isNonStable(candidate.version) && !isNonStable(currentVersion)
     }
 }
