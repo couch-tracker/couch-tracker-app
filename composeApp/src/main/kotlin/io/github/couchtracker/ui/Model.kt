@@ -64,7 +64,7 @@ fun TmdbImage.toImageModel(): ImageModel {
 fun TmdbFileImage.toImageModel(type: TmdbImageType): ImageModel {
     return ImageModel(
         url = ImageUrlProvider.TmdbFileImage(this, type),
-        aspectRatio = aspectRation,
+         aspectRatio = aspectRatio,
         placeholderUrl = null,
     )
 }
