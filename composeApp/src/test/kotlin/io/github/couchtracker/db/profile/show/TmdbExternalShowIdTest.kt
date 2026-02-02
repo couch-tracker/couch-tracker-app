@@ -1,10 +1,10 @@
 package io.github.couchtracker.db.profile.show
 
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.assertThrows
 
 class TmdbExternalShowIdTest : FunSpec(
     {
@@ -26,7 +26,7 @@ class TmdbExternalShowIdTest : FunSpec(
                     "   123",
                     "123   ",
                 ) { value ->
-                    assertThrows<IllegalArgumentException> {
+                    shouldThrow<IllegalArgumentException> {
                         TmdbExternalShowId.ofValue(value)
                     }
                 }

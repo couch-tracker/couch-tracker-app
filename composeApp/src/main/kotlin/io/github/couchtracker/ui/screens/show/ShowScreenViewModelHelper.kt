@@ -64,7 +64,7 @@ class ShowScreenViewModelHelper(
 
     data class BaseDetails(
         val name: String,
-        val overview: String,
+        val overview: String?,
         val year: Int?,
         val backdrop: ImageModel?,
     )
@@ -74,7 +74,7 @@ class ShowScreenViewModelHelper(
         val createdBy: List<TmdbShowCreatedBy>,
         val createdByString: String?,
         val genres: List<TmdbGenre>,
-        val originalLanguage: Bcp47Language,
+        val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
         val tagline: String,
     )

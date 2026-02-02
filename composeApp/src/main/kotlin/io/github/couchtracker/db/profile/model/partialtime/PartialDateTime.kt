@@ -85,9 +85,8 @@ sealed interface PartialDateTime {
     /**
      * Specialization of [ICompanion] that handles parsing with a given [DateTimeFormat] of [DateTimeComponents].
      */
-    @Suppress("VariableNaming")
     abstract class ICompanionWithFormat<out P : PartialDateTime> : ICompanion<P> {
-        abstract val FORMAT: DateTimeFormat<DateTimeComponents>
+        abstract val format: DateTimeFormat<DateTimeComponents>
 
         /**
          * Creates a [P] from the given [components].
@@ -95,7 +94,7 @@ sealed interface PartialDateTime {
          */
         abstract fun fromComponents(components: DateTimeComponents): P
 
-        override fun parse(input: String): P = fromComponents(FORMAT.parse(input))
+        override fun parse(input: String): P = fromComponents(format.parse(input))
     }
 
     /**
@@ -103,13 +102,12 @@ sealed interface PartialDateTime {
      *
      * The result of first parser that doesn't throw [IllegalArgumentException] is propagated to the caller.
      */
-    @Suppress("VariableNaming")
     abstract class ICompanionWithParsers<out P : PartialDateTime> : ICompanion<P> {
-        abstract val PARSERS: List<(String) -> P>
+        abstract val parsers: List<(String) -> P>
 
         override fun parse(input: String): P {
             val exceptions = mutableListOf<IllegalArgumentException>()
-            for (parser in PARSERS) {
+            for (parser in parsers) {
                 try {
                     return parser(input)
                 } catch (e: IllegalArgumentException) {
@@ -182,14 +180,14 @@ sealed interface PartialDateTime {
          */
         data class Year(override val year: Int) : Local, WithYear {
             override fun group() = PartialDateTimeGroup.Year(this)
-            override fun serialize() = FORMAT.format {
+            override fun serialize() = format.format {
                 year = this@Year.year
             }
 
             override fun toInstant(zone: TimeZone) = LocalDate(year, Month.JANUARY, day = 1).atStartOfDayIn(zone)
 
             companion object : ICompanionWithFormat<Year>() {
-                override val FORMAT = DateTimeComponents.Format { year(Padding.ZERO) }
+                override val format = DateTimeComponents.Format { year(Padding.ZERO) }
 
                 override fun fromComponents(components: DateTimeComponents) = Year(year = requireNotNull(components.year))
             }
@@ -200,7 +198,7 @@ sealed interface PartialDateTime {
          */
         data class YearMonth(override val year: Int, override val month: Month) : Local, WithYearMonth {
             override fun group() = PartialDateTimeGroup.YearMonth(this)
-            override fun serialize() = FORMAT.format {
+            override fun serialize() = format.format {
                 year = this@YearMonth.year
                 month = this@YearMonth.month
             }
@@ -208,7 +206,7 @@ sealed interface PartialDateTime {
             override fun toInstant(zone: TimeZone) = LocalDate(year, month, day = 1).atStartOfDayIn(zone)
 
             companion object : ICompanionWithFormat<YearMonth>() {
-                override val FORMAT = DateTimeComponents.Format {
+                override val format = DateTimeComponents.Format {
                     year(Padding.ZERO)
                     char('-')
                     monthNumber(Padding.ZERO)
@@ -226,12 +224,12 @@ sealed interface PartialDateTime {
          */
         data class Date(override val date: LocalDate) : Local, WithDate {
             override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(date.year, date.month))
-            override fun serialize() = FORMAT.format { setDate(date) }
+            override fun serialize() = format.format { setDate(date) }
 
             override fun toInstant(zone: TimeZone) = date.atStartOfDayIn(zone)
 
             companion object : ICompanionWithFormat<Date>() {
-                override val FORMAT = DateTimeComponents.Format { date(LocalDate.Formats.ISO) }
+                override val format = DateTimeComponents.Format { date(LocalDate.Formats.ISO) }
 
                 override fun fromComponents(components: DateTimeComponents) = Date(components.toLocalDate())
             }
@@ -242,12 +240,12 @@ sealed interface PartialDateTime {
          */
         data class DateTime(override val dateTime: LocalDateTime) : Local, WithDateTime {
             override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(dateTime.year, dateTime.month))
-            override fun serialize() = FORMAT.format { setDateTime(dateTime) }
+            override fun serialize() = format.format { setDateTime(dateTime) }
 
             override fun toInstant(zone: TimeZone) = dateTime.toInstant(zone)
 
             companion object : ICompanionWithFormat<DateTime>() {
-                override val FORMAT = DateTimeComponents.Format { dateTime(LocalDateTime.Formats.ISO) }
+                override val format = DateTimeComponents.Format { dateTime(LocalDateTime.Formats.ISO) }
 
                 override fun fromComponents(components: DateTimeComponents) = DateTime(components.toLocalDateTime())
             }
@@ -261,7 +259,7 @@ sealed interface PartialDateTime {
         override fun compareTo(other: Local) = LOCAL_COMPARATOR.compare(this, other)
 
         companion object : ICompanionWithParsers<Local>() {
-            override val PARSERS: List<(String) -> Local> by lazy { listOf(Year::parse, YearMonth::parse, Date::parse, DateTime::parse) }
+            override val parsers: List<(String) -> Local> by lazy { listOf(Year::parse, YearMonth::parse, Date::parse, DateTime::parse) }
 
             private val FROM_COMPONENTS: List<(DateTimeComponents) -> Local> by lazy {
                 listOf(
@@ -334,10 +332,10 @@ sealed interface PartialDateTime {
             private val PARSE_FORMAT = DateTimeComponents.Format {
                 // Any type of Local value
                 alternativeParsing(
-                    { dateTimeComponents(Date.FORMAT) },
-                    { dateTimeComponents(YearMonth.FORMAT) },
-                    { dateTimeComponents(Year.FORMAT) },
-                ) { dateTimeComponents(DateTime.FORMAT) }
+                    { dateTimeComponents(Date.format) },
+                    { dateTimeComponents(YearMonth.format) },
+                    { dateTimeComponents(Year.format) },
+                ) { dateTimeComponents(DateTime.format) }
 
                 // Either offset or IANA timezone ID
                 alternativeParsing({ offset(OFFSET_FORMAT) }) {
@@ -363,7 +361,7 @@ sealed interface PartialDateTime {
 
     companion object : ICompanionWithParsers<PartialDateTime>() {
 
-        override val PARSERS: List<(String) -> PartialDateTime> by lazy { Local.PARSERS + listOf(Zoned::parse) }
+        override val parsers: List<(String) -> PartialDateTime> by lazy { Local.parsers + listOf(Zoned::parse) }
 
         /**
          * Sorts [PartialDateTime] only by their local year and month.

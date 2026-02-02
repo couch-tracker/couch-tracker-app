@@ -20,7 +20,7 @@ interface WatchedItemsScreenViewModel {
     data class Details(
         val title: String,
         val runtime: Duration?,
-        val originalLanguage: Bcp47Language,
+        val originalLanguage: Bcp47Language?,
         val backdrop: ImageModel?,
     )
 

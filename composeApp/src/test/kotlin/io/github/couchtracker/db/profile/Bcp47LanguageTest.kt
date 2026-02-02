@@ -62,7 +62,6 @@ class Bcp47LanguageTest : FunSpec(
                 }
             }
             context("fails on invalid inputs") {
-                ->
                 withData(
                     nameFn = { it.ifEmpty { "<empty>" }.ifBlank { "<blank>" } },
                     "",
