@@ -65,26 +65,30 @@ fun List<TmdbCrew>.directors(): List<TmdbCrew> {
 }
 
 private fun language(
-    originalLanguage: String,
+    originalLanguage: String?,
     originCountry: List<String>,
     allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
-): Bcp47Language {
-    return originCountry
-        .map { ULocale(originalLanguage, it) }
-        .firstOrNull { it in allLocales }
-        ?.let { Bcp47Language(it) }
-        ?: Bcp47Language.of(originalLanguage)
+): Bcp47Language? {
+    return if (originalLanguage == null) {
+        null
+    } else {
+        originCountry
+            .map { ULocale(originalLanguage, it) }
+            .firstOrNull { it in allLocales }
+            ?.let { Bcp47Language(it) }
+            ?: Bcp47Language.of(originalLanguage)
+    }
 }
 
 fun TmdbMovieDetail.language(
     allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
-): Bcp47Language {
+): Bcp47Language? {
     return language(originalLanguage, originCountry, allLocales)
 }
 
 fun TmdbShowDetail.language(
     allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
-): Bcp47Language {
+): Bcp47Language? {
     return language(originalLanguage, originCountry, allLocales)
 }
 

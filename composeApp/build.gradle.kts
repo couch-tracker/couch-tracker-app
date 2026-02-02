@@ -1,5 +1,6 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.extensions.FailOnSeverity
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -36,7 +37,7 @@ kotlin {
     dependencies {
         val composeBom = platform(libs.compose.bom)
 
-        detektPlugins(libs.detekt.formatting)
+        detektPlugins(libs.detekt.ktlint)
 
         // Kotlin stuff
         implementation(libs.kotlinx.datetime)
@@ -209,6 +210,13 @@ tasks.withType<Detekt>().configureEach {
         // Exclude auto generated files
         it.file.relativeTo(projectDir).startsWith("build")
     }
+    reports {
+        checkstyle.required.set(true)
+        html.required.set(true)
+        sarif.required.set(true)
+        markdown.required.set(true)
+    }
+    failOnSeverity = FailOnSeverity.Warning
 }
 
 tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {

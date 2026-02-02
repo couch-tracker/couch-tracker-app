@@ -10,11 +10,11 @@ import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
 data class BaseTmdbShow(
     val key: TmdbBaseCacheKey<TmdbShowId>,
     val name: String,
-    val overview: String,
+    val overview: String?,
     val poster: TmdbImage?,
     val backdrop: TmdbImage?,
     val firstAirDate: LocalDate?,
-    val originalName: String,
+    val originalName: String?,
     val originCountry: List<String>,
     val originalLanguage: String,
     val popularity: Float,

@@ -1,35 +1,35 @@
 [versions]
-agp = "8.12.0"
+agp = "8.12.3"
 android-compileSdk = "36"
 android-minSdk = "26"
 android-targetSdk = "36"
-androidx-activityCompose = "1.11.0"
-androidx-datastore = "1.1.7"
+androidx-activityCompose = "1.12.3"
+androidx-datastore = "1.2.0"
 androidx-documentfile = "1.1.0"
-androidx-lifecycle = "2.9.4"
-buildConfig = "5.7.1"
-byte-size = "2.0.0"
+androidx-lifecycle = "2.10.0"
+buildConfig = "6.0.7"
+byte-size = "2.1.0"
 coil = "3.3.0"
-compose-bom = "2025.11.00"
-compose-paging = "3.3.6"
-detekt = "1.23.8"
+compose-bom = "2026.01.01"
+compose-paging = "3.4.0"
+detekt = "2.0.0-alpha.1"
 gradle-versions = "0.53.0"
-icu = "78.1"
+icu = "78.2"
 koin-bom = "4.1.1"
-kotest = "6.0.4"
-kotlin = "2.2.21"
+kotest = "6.1.2"
+kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
-ktor = "3.3.2"
-mockk = "1.14.6"
-navigation = "2.9.6"
+ktor = "3.4.0"
+mockk = "1.14.9"
+navigation = "2.9.7"
 palette = "1.0.0"
-preference = "2.1.0"
+preference = "2.1.1"
 reorderable = "3.0.0"
 requeryAndroid = "3.49.0"
-serialization = "1.9.0"
+serialization = "1.10.0"
 sqldelight = "2.2.1"
-tmdb-api = "1.6.0"
+tmdb-api = "1.7.1"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -45,7 +45,7 @@ compose-material = { module = "androidx.compose.material:material" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-materialIconsExtended = { module = "androidx.compose.material:material-icons-extended" }
 compose-paging = { module = "androidx.paging:paging-compose", version.ref = "compose-paging" }
-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+detekt-ktlint = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
@@ -82,7 +82,7 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 gradleVersions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

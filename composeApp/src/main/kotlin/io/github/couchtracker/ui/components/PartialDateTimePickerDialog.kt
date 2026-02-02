@@ -179,7 +179,8 @@ private fun DatePrecisionSelector(precision: DatePrecision, selectPrecision: (Da
 /** A dialog-button to select the given [dateTime] */
 @Composable
 private fun DialogButtonForDate(
-    @Suppress("CanBeNonNullable") // False positive, see https://github.com/detekt/detekt/issues/7420
+    // False positive, see https://github.com/detekt/detekt/issues/7420
+    @Suppress("CanBeNonNullable")
     dateTime: PartialDateTime.Local?,
     onDateSelected: (PartialDateTime.Local) -> Unit,
     close: () -> Unit,

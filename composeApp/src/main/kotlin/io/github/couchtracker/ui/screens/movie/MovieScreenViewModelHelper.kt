@@ -66,7 +66,7 @@ class MovieScreenViewModelHelper(
 
     data class BaseDetails(
         val title: String,
-        val overview: String,
+        val overview: String?,
         val year: Int?,
         val backdrop: ImageModel?,
     )
@@ -74,7 +74,7 @@ class MovieScreenViewModelHelper(
     data class FullDetails(
         val baseDetails: BaseDetails,
         val genres: List<TmdbGenre>,
-        val originalLanguage: Bcp47Language,
+        val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
         val runtime: Duration?,
         val tagline: String,

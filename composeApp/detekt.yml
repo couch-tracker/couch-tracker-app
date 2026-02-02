@@ -1,20 +1,14 @@
-build:
-  maxIssues: 0
-
 console-reports:
-  active: true
-
-output-reports:
   active: true
 
 complexity:
   LongMethod:
-    threshold: 100
+    allowedLines: 100
   LongParameterList:
     ignoreAnnotated: ["Composable"]
     ignoreDefaultParameters: true
   TooManyFunctions:
-    thresholdInClasses: 15
+    allowedFunctionsPerClass: 15
     ignorePrivate: true
   CyclomaticComplexMethod:
     ignoreSimpleWhenEntries: true
@@ -23,23 +17,41 @@ coroutines:
   InjectDispatcher:
     active: false
 
-formatting:
+ktlint:
   ArgumentListWrapping:
     maxLineLength: 140
+  BinaryExpressionWrapping:
+    maxLineLength: 140
+  BlankLineBeforeDeclaration:
+    active: false
+  ChainMethodContinuation:
+    active: false
   ClassName:
     active: true
+  ClassSignature:
+    active: false
   EnumWrapping:
     active: true
   Filename:
     ignoreAnnotated: ["Preview"]
+  FunctionExpressionBody:
+    active: false
+  FunctionLiteral:
+    maxLineLength: 140
   FunctionReturnTypeSpacing:
     maxLineLength: 140
+  FunctionSignature:
+    active: false
   IfElseBracing:
     active: true
   IfElseWrapping:
     active: true
   MaximumLineLength:
     maxLineLength: 140 #TODO
+  NoBlankLineInList:
+    active: false
+  NoEmptyFirstLineInClassBody:
+    active: false
   NoSingleLineBlockComment:
     active: true
   ParameterListWrapping:
@@ -67,13 +79,15 @@ naming:
   FunctionNaming:
     ignoreAnnotated: ["Composable"]
   MatchingDeclarationName:
-    active: false # Overlaps with formatting > Filename
+    active: false # Overlaps with ktlint > Filename
   NoNameShadowing:
     active: false
   TopLevelPropertyNaming:
     constantPattern: "([A-Z][A-Za-z0-9]*|[A-Z][_A-Z0-9]*)"
 
 style:
+  AbstractClassCanBeConcreteClass:
+    active: false
   CanBeNonNullable:
     active: true
   CascadingCallWrapping:
@@ -110,25 +124,25 @@ style:
   MandatoryBracesLoops:
     active: true
   MaxLineLength:
-    active: false # Overlaps with formatting > MaximumLineLength
+    active: false # Overlaps with ktlint > MaximumLineLength
   MultilineRawStringIndentation:
     active: true
   NewLineAtEndOfFile:
-    active: false # Overlaps with formatting > FinalNewline
+    active: false # Overlaps with ktlint > FinalNewline
   NoTabs:
     active: true
   WildcardImport:
-    active: false # Overlaps with formatting > NoWildcardImports
+    active: false # Overlaps with ktlint > NoWildcardImports
   NullableBooleanCheck:
     active: true
   OptionalUnit:
     active: true
-  RedundantVisibilityModifierRule:
+  RedundantVisibilityModifier:
     active: true
   ReturnCount:
     max: 5
     excludeGuardClauses: true
-  SpacingBetweenPackageAndImports:
+  SpacingAfterPackageDeclaration:
     active: true
   ThrowsCount:
     excludeGuardClauses: true
@@ -138,11 +152,9 @@ style:
     active: true
   UnderscoresInNumericLiterals:
     active: true
-  UnnecessaryAbstractClass:
-    active: false
   UnnecessaryBackticks:
     active: true
-  UnusedPrivateMember:
+  UnusedPrivateFunction:
     ignoreAnnotated: [ "Preview" ]
   UseEmptyCounterpart:
     active: true

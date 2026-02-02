@@ -1,10 +1,10 @@
 package io.github.couchtracker.db.profile.movie
 
 import io.github.couchtracker.tmdb.TmdbMovieId
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.assertThrows
 
 class TmdbExternalMovieIdTest : FunSpec(
     {
@@ -26,7 +26,7 @@ class TmdbExternalMovieIdTest : FunSpec(
                     "   123",
                     "123   ",
                 ) { value ->
-                    assertThrows<IllegalArgumentException> {
+                    shouldThrow<IllegalArgumentException> {
                         TmdbExternalMovieId.ofValue(value)
                     }
                 }

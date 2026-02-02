@@ -123,7 +123,7 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
         backgroundColor = { backgroundColor },
         watchedItemType = viewModel.watchableExternalMovieId.type(),
         mediaRuntime = { details.runtime },
-        mediaLanguages = { listOf(details.originalLanguage) },
+        mediaLanguages = { listOfNotNull(details.originalLanguage) },
         title = R.string.viewing_history_for_x.str(details.title),
         backdrop = details.backdrop,
         floatingActionButton = {
