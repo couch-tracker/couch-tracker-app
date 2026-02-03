@@ -11,8 +11,8 @@ class ExternalEpisodeIdTest : FunSpec(
         context("parse()") {
             context("works") {
                 withData(
-                    "tmdb-1234" to TmdbExternalEpisodeId(TmdbEpisodeId(1234)),
-                    "tmdb-9999" to TmdbExternalEpisodeId(TmdbEpisodeId(9999)),
+                    "tmdb-1234-1x5" to TmdbExternalEpisodeId(TmdbEpisodeId(showId = 1234, seasonNumber = 1, episodeNumber = 5)),
+                    "tmdb-9999-4x3" to TmdbExternalEpisodeId(TmdbEpisodeId(showId = 9999, seasonNumber = 4, episodeNumber = 3)),
                     "abcd-qwerty" to UnknownExternalEpisodeId("abcd", "qwerty"),
                 ) { (id, expected) ->
                     ExternalEpisodeId.parse(id) shouldBe expected

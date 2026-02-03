@@ -9,13 +9,16 @@ import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
+import io.github.couchtracker.tmdb.TmdbEpisodeId
 
-sealed interface TmdbId {
+sealed interface TmdbId
+
+sealed interface TmdbIntId : TmdbId {
     val value: Int
 }
 
 @JvmInline
-value class TmdbMovieId(override val value: Int) : TmdbId {
+value class TmdbMovieId(override val value: Int) : TmdbIntId {
     init {
         requireTmdbId(value)
     }
@@ -31,12 +34,14 @@ value class TmdbMovieId(override val value: Int) : TmdbId {
 }
 
 @JvmInline
-value class TmdbShowId(override val value: Int) : TmdbId {
+value class TmdbShowId(override val value: Int) : TmdbIntId {
     init {
         requireTmdbId(value)
     }
 
     fun toExternalId(): ExternalShowId = TmdbExternalShowId(this)
+
+    fun season(number: Int) = TmdbSeasonId(showId = this, number = number)
 
     companion object {
         val COLUMN_ADAPTER: ColumnAdapter<TmdbShowId, Long> = IntColumnAdapter.map(
@@ -46,24 +51,33 @@ value class TmdbShowId(override val value: Int) : TmdbId {
     }
 }
 
-@JvmInline
-value class TmdbEpisodeId(override val value: Int) : TmdbId {
+data class TmdbSeasonId(val showId: TmdbShowId, val number: Int) : TmdbId {
+
     init {
-        requireTmdbId(value)
+        require(number >= 0) { "Season number cannot be negative, $number given" }
     }
+
+    fun episode(number: Int) = TmdbEpisodeId(seasonId = this, number = number)
+}
+
+data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
+
+    val showId: TmdbShowId get() = seasonId.showId
+
+    init {
+        require(number > 0) { "Episode number cannot be negative, $number given" }
+    }
+
+    constructor(showId: Int, seasonNumber: Int, episodeNumber: Int) : this(
+        seasonId = TmdbSeasonId(showId = TmdbShowId(showId), number = seasonNumber),
+        number = episodeNumber,
+    )
 
     fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
-
-    companion object {
-        val COLUMN_ADAPTER: ColumnAdapter<TmdbEpisodeId, Long> = IntColumnAdapter.map(
-            encoder = { it.value },
-            decoder = { TmdbEpisodeId(it) },
-        )
-    }
 }
 
 @JvmInline
-value class TmdbPersonId(override val value: Int) : TmdbId {
+value class TmdbPersonId(override val value: Int) : TmdbIntId {
     init {
         requireTmdbId(value)
     }

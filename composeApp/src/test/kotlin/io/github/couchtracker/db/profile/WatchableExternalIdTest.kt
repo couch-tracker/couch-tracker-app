@@ -13,7 +13,10 @@ class WatchableExternalIdTest : FunSpec(
         context("serialize()") {
             withData(
                 WatchableExternalId.Movie(TmdbMovieId(123).toExternalId()) to "movie:tmdb-123",
-                WatchableExternalId.Episode(TmdbEpisodeId(999).toExternalId()) to "episode:tmdb-999",
+                Pair(
+                    WatchableExternalId.Episode(TmdbEpisodeId(showId = 999, seasonNumber = 1, episodeNumber = 1).toExternalId()),
+                    "episode:tmdb-999-1x1",
+                ),
             ) { (id, expected) ->
                 id.serialize() shouldBe expected
             }
@@ -23,7 +26,10 @@ class WatchableExternalIdTest : FunSpec(
             context("works with valid values") {
                 withData(
                     "movie:tmdb-123" to WatchableExternalId.Movie(TmdbMovieId(123).toExternalId()),
-                    "episode:tmdb-999" to WatchableExternalId.Episode(TmdbEpisodeId(999).toExternalId()),
+                    Pair(
+                        "episode:tmdb-999-1x2",
+                        WatchableExternalId.Episode(TmdbEpisodeId(showId = 999, seasonNumber = 1, episodeNumber = 2).toExternalId()),
+                    ),
                     "episode:abc-xyz" to WatchableExternalId.Episode(UnknownExternalEpisodeId("abc", "xyz")),
                 ) { (serializedValue, expected) ->
                     WatchableExternalId.parse(serializedValue) shouldBe expected
