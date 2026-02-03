@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,7 +48,6 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
@@ -86,7 +84,6 @@ fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
 private fun Content(
     viewModel: WatchedItemsScreenViewModel,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     LoadableScreen(
         data = viewModel.details,
         onError = { exception ->
@@ -94,9 +91,7 @@ private fun Content(
                 DefaultErrorScreen(
                     errorMessage = exception.title.string(),
                     errorDetails = exception.details?.string(),
-                    retry = {
-                        coroutineScope.launch { viewModel.retryAll() }
-                    },
+                    retry = { viewModel.retryAll() },
                 )
             }
         },
