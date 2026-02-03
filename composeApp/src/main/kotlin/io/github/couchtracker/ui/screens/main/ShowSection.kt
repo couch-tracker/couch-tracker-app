@@ -84,7 +84,7 @@ private fun ShowListComposable(
 ) {
     val lazyItems = tabState.showFlow.collectAsLazyPagingItems()
     val navController = LocalNavController.current
-    PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { show ->
+    PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { show, _ ->
         ShowPortrait(Modifier.fillMaxWidth(), show?.second) {
             navController.navigateToShow(it.id, show?.first)
         }

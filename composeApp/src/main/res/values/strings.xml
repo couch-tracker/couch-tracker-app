@@ -123,6 +123,10 @@
     <string name="search_filter_people">People</string>
     <string name="search_no_results">No results</string>
 
+    <string name="item_type_movie">Movie</string>
+    <string name="item_type_show">Show</string>
+    <string name="item_type_person">Person</string>
+
     <plurals name="n_episodes">
         <item quantity="one">%1$d episode</item>
         <item quantity="other">%1$d episodes</item>

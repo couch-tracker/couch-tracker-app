@@ -33,7 +33,7 @@ fun <T : Any> PaginatedGrid(
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(16.dp),
     emptyComposable: (@Composable () -> Unit)? = null,
     lazyGridState: LazyGridState = rememberLazyGridState(),
-    itemComposable: @Composable (T?) -> Unit,
+    itemComposable: @Composable (T?, index: Int) -> Unit,
 ) {
     val globalState = when (val state = paginatedItems.loadState.refresh) {
         is LoadState.Error -> Loadable.error(state.error.wrap())
@@ -75,7 +75,7 @@ private fun <T : Any> LoadedPaginatedGrid(
     horizontalArrangement: Arrangement.Horizontal,
     verticalArrangement: Arrangement.Vertical,
     lazyGridState: LazyGridState,
-    itemComposable: @Composable (T?) -> Unit,
+    itemComposable: @Composable (T?, index: Int) -> Unit,
 ) {
     val bottomState = paginatedItems.loadState.append
     LazyVerticalGrid(
@@ -107,6 +107,7 @@ private fun <T : Any> LoadedPaginatedGrid(
             },
         ) { index ->
             val item = paginatedItems[index]
+            paginatedItems.itemSnapshotList.size
             if (isErrorView(item, bottomState)) {
                 val wrappedError = bottomState.error.wrap()
                 ErrorMessageComposable(
@@ -116,7 +117,7 @@ private fun <T : Any> LoadedPaginatedGrid(
                     retry = { paginatedItems.retry() },
                 )
             } else {
-                itemComposable(item)
+                itemComposable(item, index)
             }
         }
     }
