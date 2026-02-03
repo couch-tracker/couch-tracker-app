@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -65,7 +64,6 @@ import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.mp.KoinPlatform
 
@@ -104,7 +102,6 @@ fun NavController.navigateToMovie(id: TmdbMovieId, preloadData: BaseTmdbMovie?) 
 
 @Composable
 private fun Content(viewModel: MovieScreenViewModel) {
-    val coroutineScope = rememberCoroutineScope()
     logCompositions(LOG_TAG, "Recomposing Content")
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         ResultScreen(
@@ -114,9 +111,7 @@ private fun Content(viewModel: MovieScreenViewModel) {
                     DefaultErrorScreen(
                         errorMessage = exception.title.string(),
                         errorDetails = exception.details?.string(),
-                        retry = {
-                            coroutineScope.launch { viewModel.retryAll() }
-                        },
+                        retry = { viewModel.retryAll() },
                     )
                 }
             },
@@ -125,9 +120,7 @@ private fun Content(viewModel: MovieScreenViewModel) {
                 externalMovieId = viewModel.externalMovieId,
                 viewModel = viewModel,
                 totalHeight = constraints.maxHeight,
-                reloadMovie = {
-                    coroutineScope.launch { viewModel.retryAll() }
-                },
+                reloadMovie = { viewModel.retryAll() },
             )
         }
     }

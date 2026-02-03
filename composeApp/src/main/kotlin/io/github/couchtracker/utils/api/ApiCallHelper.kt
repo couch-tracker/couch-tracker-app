@@ -18,13 +18,14 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 /**
  * A utility class to perform API calls where [T] is the input.
  */
 class ApiCallHelper<T>(
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     item: Flow<T>,
 ) {
     private val retryToken = MutableStateFlow(Any())
@@ -69,7 +70,9 @@ class ApiCallHelper<T>(
     }
 
     /** Retries the download for all [Flow] created by this class */
-    suspend fun retryAll() {
-        retryToken.emit(Any())
+    fun retryAll() {
+        scope.launch {
+            retryToken.emit(Any())
+        }
     }
 }

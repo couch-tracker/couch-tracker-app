@@ -28,7 +28,7 @@ interface WatchedItemsScreenViewModel {
     val watchableExternalMovieId: WatchableExternalId
     val details: ApiLoadable<Details>
 
-    suspend fun retryAll()
+    fun retryAll()
 
     class Movie(
         application: Application,
@@ -54,7 +54,7 @@ interface WatchedItemsScreenViewModel {
         }
         override val colorScheme by baseViewModel.colorScheme()
 
-        override suspend fun retryAll() {
+        override fun retryAll() {
             baseViewModel.apiCallHelper.retryAll()
         }
     }

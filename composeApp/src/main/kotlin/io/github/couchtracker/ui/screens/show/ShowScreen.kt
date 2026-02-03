@@ -3,9 +3,11 @@
 package io.github.couchtracker.ui.screens.show
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -36,8 +39,10 @@ import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
+import io.github.couchtracker.ui.components.SeasonListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
@@ -89,8 +94,6 @@ private enum class ShowScreenTab {
 
 @Composable
 private fun Content(viewModel: ShowScreenViewModel) {
-    val coroutineScope = rememberCoroutineScope()
-
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
@@ -102,9 +105,7 @@ private fun Content(viewModel: ShowScreenViewModel) {
                     DefaultErrorScreen(
                         errorMessage = exception.title.string(),
                         errorDetails = exception.details?.string(),
-                        retry = {
-                            coroutineScope.launch { viewModel.retryAll() }
-                        },
+                        retry = { viewModel.retryAll() },
                     )
                 }
             },
@@ -112,9 +113,7 @@ private fun Content(viewModel: ShowScreenViewModel) {
             ShowScreenContent(
                 viewModel = viewModel,
                 totalHeight = constraints.maxHeight,
-                reloadShow = {
-                    coroutineScope.launch { viewModel.retryAll() }
-                },
+                reloadShow = { viewModel.retryAll() },
             )
         }
     }
@@ -177,7 +176,10 @@ private fun ShowScreenContent(
                             viewModel = viewModel,
                             totalHeight = totalHeight,
                         )
-                        ShowScreenTab.SEASONS -> WipMessageComposable(gitHubIssueId = 138)
+                        ShowScreenTab.SEASONS -> OverviewScreenComponents.SeasonsContent(
+                            innerPadding = innerPadding,
+                            viewModel = viewModel,
+                        )
                         ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
                     }
                 }
@@ -215,5 +217,35 @@ private fun OverviewScreenComponents.ShowDetailsContent(
         imagesSection(images, totalHeight = totalHeight)
         castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
         crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
+    }
+}
+
+@Composable
+private fun OverviewScreenComponents.SeasonsContent(
+    innerPadding: PaddingValues,
+    viewModel: ShowScreenViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val seasons = viewModel.fullDetails.mapResult { it.seasons }
+    LoadableScreen(
+        seasons,
+        onError = { exception ->
+            DefaultErrorScreen(
+                errorMessage = exception.title.string(),
+                errorDetails = exception.details?.string(),
+                retry = { viewModel.retryAll() },
+            )
+        },
+    ) { seasons ->
+        ContentList(
+            innerPadding.plus(PaddingValues(vertical = 16.dp, horizontal = 8.dp)),
+            modifier,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            items(seasons.size) { index ->
+                val season = seasons[index]
+                SeasonListItem(season, isFirstInList = index == 0, isLastInList = index == seasons.size - 1)
+            }
+        }
     }
 }

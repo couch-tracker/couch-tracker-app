@@ -200,12 +200,13 @@ object OverviewScreenComponents {
     fun ContentList(
         innerPadding: PaddingValues,
         modifier: Modifier = Modifier,
+        verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
         content: LazyListScope.() -> Unit,
     ) {
         LazyColumn(
             contentPadding = innerPadding,
             modifier = modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = verticalArrangement,
         ) {
             content()
             bottomSpace()

@@ -24,6 +24,7 @@ import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
+import io.github.couchtracker.ui.components.SeasonListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
@@ -77,6 +78,7 @@ class ShowScreenViewModelHelper(
         val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
         val tagline: String,
+        val seasons: List<SeasonListItemModel>,
     )
 
     data class Credits(
@@ -157,6 +159,9 @@ class ShowScreenViewModelHelper(
                 null
             } else {
                 application.getString(R.string.show_by_creator, formatAndList(createdBy.map { it.name }))
+            },
+            seasons = seasons.map { season ->
+                SeasonListItemModel.fromTmdbSeason(application, season)
             },
         )
         return base to full
