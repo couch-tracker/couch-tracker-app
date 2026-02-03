@@ -20,10 +20,17 @@ class IdsTest : FunSpec(
                 }
             }
         }
-        context("TmdbEpisodeId") {
-            withData(0, -1) { id ->
+        context("TmdbSeasonId") {
+            withData(-1, -2, Int.MIN_VALUE) { number ->
                 shouldThrow<IllegalArgumentException> {
-                    TmdbShowId(id)
+                    TmdbSeasonId(showId = TmdbShowId(1234), number = number)
+                }
+            }
+        }
+        context("TmdbEpisodeId") {
+            withData(0, -1, -2, Int.MIN_VALUE) { number ->
+                shouldThrow<IllegalArgumentException> {
+                    TmdbEpisodeId(seasonId = TmdbSeasonId(showId = TmdbShowId(1234), 1), number = number)
                 }
             }
         }
