@@ -2,36 +2,39 @@ package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.Keep
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -48,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -79,6 +81,7 @@ import io.github.couchtracker.tmdb.toBaseMovie
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
+import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.MessageComposable
@@ -168,23 +171,23 @@ private fun Content(
             expanded = true,
             onExpandedChange = { if (!it) onDismissRequest() },
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            LazyRow(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             ) {
-                for (type in SearchableMediaType.entries) {
+                items(SearchableMediaType.entries) { type ->
                     val selected = type in searchParameters.filters
                     MaterialTheme(colorScheme = type.colorScheme) {
                         FilterChip(
                             selected = selected,
                             leadingIcon = {
-                                if (selected) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Done,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                    )
-                                }
+                                Icon(
+                                    imageVector = if (selected) Icons.Filled.Done else Icons.Filled.Remove,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                )
                             },
                             label = { Text(type.title.str()) },
                             onClick = {
@@ -308,18 +311,26 @@ private class SearchViewModel(initialMediaFilters: SearchMediaFilters) : ViewMod
 
 @Composable
 private fun SearchResults(results: Flow<PagingData<SearchResultItem>>, lazyGridState: LazyGridState) {
-    val inset = WindowInsets.Companion.systemBars
+    val inset = WindowInsets.systemBars
     val contentPadding =
-        inset.only(WindowInsetsSides.Companion.Horizontal).add(inset.only(WindowInsetsSides.Companion.Bottom))
+        inset.only(WindowInsetsSides.Horizontal).add(inset.only(WindowInsetsSides.Bottom))
             .asPaddingValues()
+            .plus(PaddingValues(start = 12.dp, end = 12.dp, bottom = 96.dp))
 
+    val paginatedItems = results.collectAsLazyPagingItems()
     PaginatedGrid(
-        paginatedItems = results.collectAsLazyPagingItems(),
+        paginatedItems = paginatedItems,
         columns = GridCells.Fixed(1),
         contentPadding = contentPadding,
         lazyGridState = lazyGridState,
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-        itemComposable = { SearchResult(it) },
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        itemComposable = { item, index ->
+            SearchResult(
+                item,
+                isFirstInList = index == 0,
+                isLastInList = index == paginatedItems.itemSnapshotList.size - 1,
+            )
+        },
         emptyComposable = {
             MessageComposable(
                 modifier = Modifier
@@ -332,19 +343,22 @@ private fun SearchResults(results: Flow<PagingData<SearchResultItem>>, lazyGridS
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SearchResult(item: SearchResultItem?) {
+private fun SearchResult(
+    item: SearchResultItem?,
+    isFirstInList: Boolean,
+    isLastInList: Boolean,
+) {
     val navController = LocalNavController.current
 
     ListItem(
+        onClick = { item?.navigate(navController) },
         leadingContent = {
             Surface(
                 shape = MaterialTheme.shapes.small,
-                shadowElevation = 8.dp,
-                tonalElevation = 8.dp,
                 modifier = Modifier.heightWithAspectRatio(
-                    height = 80.dp,
+                    height = 96.dp,
                     aspectRatio = PortraitComposableDefaults.POSTER_ASPECT_RATIO,
                 ),
             ) {
@@ -356,33 +370,38 @@ private fun SearchResult(item: SearchResultItem?) {
                         ),
                         modifier = Modifier.fillMaxSize(),
                         contentDescription = null,
-                        contentScale = ContentScale.Companion.Crop,
+                        contentScale = ContentScale.Crop,
                         fallback = item?.type?.icon?.let { rememberPlaceholderPainter(it, isError = false) },
                         error = item?.type?.icon?.let { rememberPlaceholderPainter(it, isError = true) },
                     )
                 }
             }
         },
-        headlineContent = { Text(item?.title.orEmpty()) },
-        supportingContent = {
-            Column {
-                val scheme = item?.type?.colorScheme ?: MaterialTheme.colorScheme
-                Surface(
-                    shape = MaterialTheme.shapes.extraSmall,
-                    color = scheme.secondaryContainer,
-                    contentColor = scheme.onSecondaryContainer,
-                ) {
-                    Text(
-                        text = item?.type?.title?.str().orEmpty(),
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 6.dp),
-                    )
-                }
-                TagsRow(item?.tags.orEmpty())
+        overlineContent = {
+            val scheme = item?.type?.colorScheme ?: MaterialTheme.colorScheme
+            Surface(
+                shape = MaterialTheme.shapes.extraSmall,
+                color = scheme.secondaryContainer,
+                contentColor = scheme.onSecondaryContainer,
+            ) {
+                Text(
+                    text = item?.type?.itemType?.str().orEmpty(),
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 6.dp),
+                )
             }
         },
-        modifier = Modifier.clickable { item?.navigate(navController) },
-        colors = ListItemDefaults.colors(containerColor = Color.Companion.Transparent),
+        content = { Text(item?.title.orEmpty(), style = MaterialTheme.typography.titleMedium) },
+        supportingContent = {
+            TagsRow(item?.tags.orEmpty())
+        },
+        trailingContent = {
+            if (item?.trailingInfo != null) {
+                Text(item.trailingInfo)
+            }
+        },
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+        shapes = ListItemShapes(isFirstInList = isFirstInList, isLastInList = isLastInList),
     )
 }
 
@@ -391,6 +410,7 @@ private data class SearchResultItem(
     val title: String,
     val type: SearchableMediaType,
     val tags: List<String>,
+    val trailingInfo: String?,
     val navigate: (NavController) -> Unit,
 )
 
@@ -398,21 +418,25 @@ private data class SearchResultItem(
 @Serializable
 enum class SearchableMediaType(
     @StringRes val title: Int,
+    @StringRes val itemType: Int,
     val colorScheme: ColorScheme,
     val icon: ImageVector,
 ) {
     MOVIE(
         title = R.string.search_filter_movies,
+        itemType = R.string.item_type_movie,
         colorScheme = ColorSchemes.Movie,
         icon = PlaceholdersDefaults.MOVIE.icon,
     ),
     SHOW(
         title = R.string.search_filter_shows,
+        itemType = R.string.item_type_show,
         colorScheme = ColorSchemes.Show,
         icon = PlaceholdersDefaults.SHOW.icon,
     ),
     PERSON(
         title = R.string.search_filter_people,
+        itemType = R.string.item_type_person,
         colorScheme = ColorSchemes.Common,
         icon = PlaceholdersDefaults.PERSON.icon,
     ),
@@ -435,9 +459,9 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
             title = title,
             type = SearchableMediaType.MOVIE,
             tags = listOfNotNull(
-                releaseDate?.year?.toString(),
                 rating()?.formatted,
             ),
+            trailingInfo = releaseDate?.year?.toString(),
             navigate = { it.navigateToMovie(tmdbMovieId, toBaseMovie(language)) },
         )
 
@@ -446,6 +470,7 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
             title = name,
             type = SearchableMediaType.PERSON,
             tags = emptyList(),
+            trailingInfo = null,
             navigate = { /* TODO */ },
         )
 
@@ -453,7 +478,8 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
             posterModel = posterImage?.toImageModel(),
             title = name,
             type = SearchableMediaType.SHOW,
-            tags = listOfNotNull(firstAirDate?.year?.toString()),
+            tags = emptyList(),
+            trailingInfo = firstAirDate?.year?.toString(),
             navigate = { it.navigateToShow(tmdbShowId, toBaseShow(language)) },
         )
     }

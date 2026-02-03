@@ -9,7 +9,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -19,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.settings.AppSettingsContext
 import io.github.couchtracker.ui.AnimationDefaults
+import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.composable
 import io.github.couchtracker.ui.screens.main.MainScreen
@@ -42,7 +42,7 @@ fun App() {
     val navController = rememberNavController()
     val koin = getKoin()
     val koinLoadState = rememberComputationResult { koin.loadAll() }
-    MaterialTheme(colorScheme = darkColorScheme()) {
+    MaterialTheme(colorScheme = ColorSchemes.Base) {
         CompositionLocalProvider(LocalNavController provides navController) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 LoadableScreen(koinLoadState) {

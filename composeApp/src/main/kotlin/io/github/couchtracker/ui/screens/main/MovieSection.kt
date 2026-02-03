@@ -83,7 +83,7 @@ private fun MovieListComposable(
 ) {
     val lazyItems = tabState.movieFlow.collectAsLazyPagingItems()
     val navController = LocalNavController.current
-    PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { movie ->
+    PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { movie, _ ->
         MoviePortrait(Modifier.fillMaxWidth(), movie?.second) {
             navController.navigateToMovie(it.id, preloadData = movie?.first)
         }
