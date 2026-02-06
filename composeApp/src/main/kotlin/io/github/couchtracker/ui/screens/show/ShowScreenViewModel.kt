@@ -18,7 +18,7 @@ class ShowScreenViewModel(
     private val baseViewModel = ShowScreenViewModelHelper(
         application = application,
         scope = viewModelScope,
-        movieId = showId,
+        showId = showId,
     )
 
     val baseDetails by baseViewModel.baseDetails()

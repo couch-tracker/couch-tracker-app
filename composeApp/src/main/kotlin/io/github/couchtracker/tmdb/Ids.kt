@@ -7,9 +7,10 @@ import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
 import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.season.ExternalSeasonId
+import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
-import io.github.couchtracker.tmdb.TmdbEpisodeId
 
 sealed interface TmdbId
 
@@ -53,11 +54,38 @@ value class TmdbShowId(override val value: Int) : TmdbIntId {
 
 data class TmdbSeasonId(val showId: TmdbShowId, val number: Int) : TmdbId {
 
+    val stringRepresentation: String get() = "${showId.value}-$number"
+
     init {
         require(number >= 0) { "Season number cannot be negative, $number given" }
     }
 
     fun episode(number: Int) = TmdbEpisodeId(seasonId = this, number = number)
+
+    fun toExternalId(): ExternalSeasonId = TmdbExternalSeasonId(this)
+
+    companion object {
+        val COLUMN_ADAPTER: ColumnAdapter<TmdbSeasonId, String> = object : ColumnAdapter<TmdbSeasonId, String> {
+            override fun decode(databaseValue: String) = ofValue(databaseValue)
+            override fun encode(value: TmdbSeasonId) = value.stringRepresentation
+        }
+
+        fun ofValue(value: String): TmdbSeasonId {
+            val (show, seasonNumber) = value.split('-', limit = 2).also {
+                require(it.size == 2) { "Invalid serialized TMDB season ID: $value" }
+            }
+            fun partError(what: String): Nothing {
+                throw IllegalArgumentException("Invalid $what in TMDB season ID: $value")
+            }
+
+            val showId = TmdbShowId(show.toIntOrNull() ?: partError("show ID"))
+
+            return TmdbSeasonId(
+                showId = showId,
+                number = seasonNumber.toIntOrNull() ?: partError("season number"),
+            )
+        }
+    }
 }
 
 data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
