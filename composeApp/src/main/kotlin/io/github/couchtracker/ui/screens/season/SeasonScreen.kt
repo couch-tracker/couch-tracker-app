@@ -1,0 +1,151 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package io.github.couchtracker.ui.screens.season
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import io.github.couchtracker.db.profile.season.ExternalSeasonId
+import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
+import io.github.couchtracker.db.profile.season.UnknownExternalSeasonId
+import io.github.couchtracker.ui.ColorSchemes
+import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.ui.components.ResultScreen
+import io.github.couchtracker.utils.logCompositions
+import io.github.couchtracker.utils.resultErrorOrNull
+import io.github.couchtracker.utils.resultValueOrNull
+import kotlinx.serialization.Serializable
+
+private const val LOG_TAG = "SeasonScreen"
+
+@Serializable
+data class SeasonScreen(val seasonId: String) : Screen() {
+    @Composable
+    override fun content() {
+        val externalSeasonId = ExternalSeasonId.parse(this@SeasonScreen.seasonId)
+        val seasonId = when (externalSeasonId) {
+            is TmdbExternalSeasonId -> {
+                externalSeasonId.id
+            }
+            is UnknownExternalSeasonId -> TODO()
+        }
+
+        Content(
+            viewModel {
+                SeasonScreenViewModel(
+                    application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                    externalSeasonId = externalSeasonId,
+                    seasonId = seasonId,
+                )
+            },
+        )
+    }
+}
+
+fun NavController.navigateToSeason(id: ExternalSeasonId) {
+    navigate(SeasonScreen(id.serialize()))
+}
+
+@Composable
+private fun Content(viewModel: SeasonScreenViewModel) {
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        ResultScreen(
+            error = viewModel.details.resultErrorOrNull(),
+            onError = { exception ->
+                Surface {
+                    DefaultErrorScreen(
+                        errorMessage = exception.title.string(),
+                        errorDetails = exception.details?.string(),
+                        retry = { viewModel.retryAll() },
+                    )
+                }
+            },
+        ) {
+            SeasonScreenContent(
+                viewModel = viewModel,
+                totalHeight = constraints.maxHeight,
+                reloadSeason = { viewModel.retryAll() },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun SeasonScreenContent(
+    viewModel: SeasonScreenViewModel,
+    totalHeight: Int,
+    reloadSeason: () -> Unit,
+) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val snackbarHostState = remember { SnackbarHostState() }
+    OverviewScreenComponents.ShowSnackbarOnErrorEffect(
+        snackbarHostState = snackbarHostState,
+        loadable = { viewModel.allLoadables },
+        onRetry = reloadSeason,
+    )
+    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
+    val backgroundColor by animateColorAsState(colorScheme.background)
+    logCompositions(LOG_TAG, "Recomposing SeasonScreenContent")
+    MaterialTheme(colorScheme = colorScheme) {
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = backgroundColor,
+            topBar = {
+                OverviewScreenComponents.Header(
+                    title = viewModel.details.resultValueOrNull()?.name.orEmpty(),
+                    backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
+                    scrollBehavior = scrollBehavior,
+                    backgroundColor = { backgroundColor },
+                )
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            content = { innerPadding ->
+                OverviewScreenComponents.SeasonDetailsContent(
+                    innerPadding = innerPadding,
+                    viewModel = viewModel,
+                    totalHeight = totalHeight,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+@Suppress("UnusedParameter")
+private fun OverviewScreenComponents.SeasonDetailsContent(
+    innerPadding: PaddingValues,
+    viewModel: SeasonScreenViewModel,
+    totalHeight: Int,
+    modifier: Modifier = Modifier,
+) {
+    ContentList(innerPadding, modifier) {
+        topSpace()
+        item { Text("Episodes here") }
+    }
+}

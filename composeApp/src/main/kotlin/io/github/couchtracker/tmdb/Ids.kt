@@ -7,9 +7,10 @@ import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
 import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.season.ExternalSeasonId
+import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
-import io.github.couchtracker.tmdb.TmdbEpisodeId
 
 sealed interface TmdbId
 
@@ -57,7 +58,34 @@ data class TmdbSeasonId(val showId: TmdbShowId, val number: Int) : TmdbId {
         require(number >= 0) { "Season number cannot be negative, $number given" }
     }
 
+    override fun toString(): String = "${showId.value}-$number"
+
     fun episode(number: Int) = TmdbEpisodeId(seasonId = this, number = number)
+
+    fun toExternalId(): ExternalSeasonId = TmdbExternalSeasonId(this)
+
+    companion object {
+        val COLUMN_ADAPTER: ColumnAdapter<TmdbSeasonId, String> = object : ColumnAdapter<TmdbSeasonId, String> {
+            override fun decode(databaseValue: String) = ofValue(databaseValue)
+            override fun encode(value: TmdbSeasonId) = value.toString()
+        }
+
+        fun ofValue(value: String): TmdbSeasonId {
+            val (show, seasonNumber) = value.split('-', limit = 2).also {
+                require(it.size == 2) { "Invalid serialized TMDB season ID: $value" }
+            }
+            fun partError(what: String): Nothing {
+                throw IllegalArgumentException("Invalid $what in TMDB season ID: $value")
+            }
+
+            val showId = TmdbShowId(show.toIntOrNull() ?: partError("show ID"))
+
+            return TmdbSeasonId(
+                showId = showId,
+                number = seasonNumber.toIntOrNull() ?: partError("season number"),
+            )
+        }
+    }
 }
 
 data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
@@ -73,7 +101,33 @@ data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
         number = episodeNumber,
     )
 
+    override fun toString() = "${showId.value}-${seasonId.number}x$number"
+
     fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
+
+    companion object {
+        fun ofValue(value: String): TmdbEpisodeId {
+            val (show, rest) = value.split('-', limit = 2).also {
+                require(it.size == 2) { "Invalid serialized TMDB episode ID: $value" }
+            }
+            fun partError(what: String): Nothing {
+                throw IllegalArgumentException("Invalid $what in TMDB external episode ID: $value")
+            }
+
+            val showId = TmdbShowId(show.toIntOrNull() ?: partError("show ID"))
+            val (seasonNumber, episodeNumber) = rest.split('x', limit = 2).also {
+                require(it.size == 2) { "Invalid serialized TMDB episode ID: $value" }
+            }
+
+            return TmdbEpisodeId(
+                seasonId = TmdbSeasonId(
+                    showId = showId,
+                    number = seasonNumber.toIntOrNull() ?: partError("season number"),
+                ),
+                number = episodeNumber.toIntOrNull() ?: partError("season number"),
+            )
+        }
+    }
 }
 
 @JvmInline

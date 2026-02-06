@@ -7,6 +7,7 @@ import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.utils.lazyEagerModule
 import org.koin.core.qualifier.named
@@ -61,6 +62,12 @@ val TmdbCacheDbModule = lazyEagerModule {
             ShowAggregateCreditsCacheAdapter = ShowAggregateCreditsCache.Adapter(
                 tmdbIdAdapter = TmdbShowId.COLUMN_ADAPTER,
                 creditsAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            SeasonDetailsCacheAdapter = SeasonDetailsCache.Adapter(
+                tmdbIdAdapter = TmdbSeasonId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
+                detailsAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
         )

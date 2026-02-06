@@ -24,6 +24,7 @@ import io.github.couchtracker.ui.composable
 import io.github.couchtracker.ui.screens.main.MainScreen
 import io.github.couchtracker.ui.screens.main.SearchScreen
 import io.github.couchtracker.ui.screens.movie.MovieScreen
+import io.github.couchtracker.ui.screens.season.SeasonScreen
 import io.github.couchtracker.ui.screens.settings.settings
 import io.github.couchtracker.ui.screens.show.ShowScreen
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemsScreen
@@ -74,6 +75,7 @@ fun App() {
                                 composable<SearchScreen>()
                                 composable<MovieScreen>()
                                 composable<ShowScreen>()
+                                composable<SeasonScreen>()
                                 composable<WatchedItemsScreen>()
                                 settings()
                             }

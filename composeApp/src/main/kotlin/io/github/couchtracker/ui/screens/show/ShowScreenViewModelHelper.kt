@@ -9,11 +9,14 @@ import app.moviebase.tmdb.model.TmdbShowCreatedBy
 import app.moviebase.tmdb.model.TmdbShowDetail
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
+import io.github.couchtracker.db.profile.season.ExternalSeasonId
+import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbRating
+import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.extractColorScheme
@@ -54,11 +57,11 @@ import org.koin.mp.KoinPlatform
 class ShowScreenViewModelHelper(
     val application: Application,
     scope: CoroutineScope,
-    movieId: TmdbShowId,
+    val showId: TmdbShowId,
     val apiCallHelper: ApiCallHelper<TmdbShow> = ApiCallHelper(
         scope = scope,
         item = AppSettings.get { Tmdb.Languages }
-            .map { languages -> TmdbShow(movieId, languages.current) },
+            .map { languages -> TmdbShow(showId, languages.current) },
     ),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
@@ -78,7 +81,7 @@ class ShowScreenViewModelHelper(
         val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
         val tagline: String,
-        val seasons: List<SeasonListItemModel>,
+        val seasons: List<Pair<ExternalSeasonId, SeasonListItemModel>>,
     )
 
     data class Credits(
@@ -161,7 +164,8 @@ class ShowScreenViewModelHelper(
                 application.getString(R.string.show_by_creator, formatAndList(createdBy.map { it.name }))
             },
             seasons = seasons.map { season ->
-                SeasonListItemModel.fromTmdbSeason(application, season)
+                val id = TmdbExternalSeasonId(TmdbSeasonId(showId, season.seasonNumber))
+                id to SeasonListItemModel.fromTmdbSeason(application, season)
             },
         )
         return base to full

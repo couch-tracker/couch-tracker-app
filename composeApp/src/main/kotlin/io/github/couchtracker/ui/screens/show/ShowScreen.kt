@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.db.profile.show.TmdbExternalShowId
@@ -44,6 +45,7 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
+import io.github.couchtracker.ui.screens.season.navigateToSeason
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
@@ -227,6 +229,7 @@ private fun OverviewScreenComponents.SeasonsContent(
     modifier: Modifier = Modifier,
 ) {
     val seasons = viewModel.fullDetails.mapResult { it.seasons }
+    val navController = LocalNavController.current
     LoadableScreen(
         seasons,
         onError = { exception ->
@@ -243,8 +246,13 @@ private fun OverviewScreenComponents.SeasonsContent(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             items(seasons.size) { index ->
-                val season = seasons[index]
-                SeasonListItem(season, isFirstInList = index == 0, isLastInList = index == seasons.size - 1)
+                val (id, season) = seasons[index]
+                SeasonListItem(
+                    season,
+                    onClick = { navController.navigateToSeason(id) },
+                    isFirstInList = index == 0,
+                    isLastInList = index == seasons.size - 1,
+                )
             }
         }
     }
