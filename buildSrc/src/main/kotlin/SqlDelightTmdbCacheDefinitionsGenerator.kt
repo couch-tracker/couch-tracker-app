@@ -5,6 +5,7 @@ import java.io.File
 /** Common columns */
 private val MOVIE_ID_COLUMN = SqlColumn.int("tmdbId", "io.github.couchtracker.tmdb.TmdbMovieId")
 private val SHOW_ID_COLUMN = SqlColumn.int("tmdbId", "io.github.couchtracker.tmdb.TmdbShowId")
+private val SEASON_ID_COLUMN = SqlColumn.text("tmdbId", "io.github.couchtracker.tmdb.TmdbSeasonId")
 private val LANGUAGE_COLUMN = SqlColumn.text("language", "io.github.couchtracker.tmdb.TmdbLanguage")
 
 /** Which caches to create */
@@ -51,7 +52,17 @@ private val CACHES = listOf(
         key = listOf(SHOW_ID_COLUMN),
         value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbAggregateCredits"),
     ),
-)
+    // Season
+    SqlTable(
+        name = "SeasonDetailsCache",
+        key = listOf(SEASON_ID_COLUMN, LANGUAGE_COLUMN),
+        value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbSeasonDetail"),
+    ),
+).also { cachesDefinitions ->
+    check(cachesDefinitions.distinctBy { it.name }.size == cachesDefinitions.size){
+        "Duplicate cache names"
+    }
+}
 
 /** Which sql functions to generate */
 private val SQL_FUNCTIONS = listOf(
