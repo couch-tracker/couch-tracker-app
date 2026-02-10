@@ -42,7 +42,6 @@ import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.asWatchable
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
@@ -162,7 +161,7 @@ private fun MovieScreenContent(
                 externalMovieId = externalMovieId,
                 expanded = toolbarExpanded,
                 onMarkAsWatched = {
-                    scaffoldState.open(WatchedItemSheetMode.New(externalMovieId.asWatchable()))
+                    scaffoldState.open(WatchedItemSheetMode.New.Movie(externalMovieId))
                 },
             )
         },
@@ -191,8 +190,7 @@ private fun MovieToolbar(
 ) {
     val navController = LocalNavController.current
     val fullProfileData = LocalFullProfileDataContext.current
-    val watchableId = externalMovieId.asWatchable()
-    val watchCount = fullProfileData.watchedItems.count { it.itemId == watchableId }
+    val watchCount = fullProfileData.watchedItems.count { it.itemId == externalMovieId }
     HorizontalFloatingToolbar(
         expanded = expanded,
         floatingActionButton = {
@@ -211,7 +209,7 @@ private fun MovieToolbar(
                     }
                 },
             ) {
-                IconButton(onClick = { navController.navigateToWatchedItems(watchableId) }) {
+                IconButton(onClick = { navController.navigateToWatchedItems(externalMovieId) }) {
                     Icon(Icons.Default.Checklist, contentDescription = R.string.viewing_history.str())
                 }
             }

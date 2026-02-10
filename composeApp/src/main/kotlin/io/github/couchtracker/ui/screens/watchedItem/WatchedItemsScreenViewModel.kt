@@ -7,7 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.Bcp47Language
-import io.github.couchtracker.db.profile.WatchableExternalId
+import io.github.couchtracker.db.profile.ExternalId
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.screens.movie.MovieScreenViewModelHelper
@@ -15,7 +17,7 @@ import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.mapResult
 import kotlin.time.Duration
 
-interface WatchedItemsScreenViewModel {
+sealed interface WatchedItemsScreenViewModel {
 
     data class Details(
         val title: String,
@@ -25,16 +27,18 @@ interface WatchedItemsScreenViewModel {
     )
 
     val colorScheme: ApiLoadable<ColorScheme?>
-    val watchableExternalMovieId: WatchableExternalId
+    val externalId: ExternalId
     val details: ApiLoadable<Details>
+    val watchedItemType: WatchedItemType
 
     fun retryAll()
 
     class Movie(
         application: Application,
-        override val watchableExternalMovieId: WatchableExternalId.Movie,
         movieId: TmdbMovieId,
     ) : AndroidViewModel(application = application), WatchedItemsScreenViewModel {
+
+        override val externalId = TmdbExternalMovieId(movieId)
 
         private val baseViewModel = MovieScreenViewModelHelper(
             application = application,
@@ -52,6 +56,7 @@ interface WatchedItemsScreenViewModel {
                 )
             }
         }
+        override val watchedItemType get() = WatchedItemType.MOVIE
         override val colorScheme by baseViewModel.colorScheme()
 
         override fun retryAll() {

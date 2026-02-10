@@ -5,7 +5,6 @@ import androidx.compose.runtime.remember
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
-import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.rememberTickingValue
 import kotlinx.datetime.TimeZone
@@ -58,7 +57,7 @@ fun rememberWatchedItemProgressState(
 
     return rememberTickingValue(startInstant, mediaRuntime, maxWaitTime = 30.seconds) {
         val elapsed = startInstant?.elapsed()
-        val approximateMediaRuntime = mediaRuntime ?: watchedItem.itemId.type().fallbackRuntime
+        val approximateMediaRuntime = mediaRuntime ?: watchedItem.type().fallbackRuntime
         if (elapsed == null) {
             TickingValue(
                 value = WatchedItemProgressState.Unknown,

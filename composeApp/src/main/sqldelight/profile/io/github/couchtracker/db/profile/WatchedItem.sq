@@ -1,13 +1,14 @@
-import io.github.couchtracker.db.profile.WatchableExternalId;
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime;
 import kotlin.time.Instant;
 
 /**
- * Saves every movie the user ever watched.
+ * Saves every item the user ever watched.
+ *
+ * This table is to be considered "abstract", i.e. a row by itself not linked with either of its inheritors is
+ * meaningless. See `WatchedMovie` and `WatchedEpisode` tables.
  */
 CREATE TABLE WatchedItem (
   id INTEGER PRIMARY KEY NOT NULL,
-  itemId TEXT AS WatchableExternalId NOT NULL,
 
   /**
    * The date this entry was added to the DB. Not representative of when the user has watched the movie.
@@ -27,11 +28,11 @@ selectAll:
 SELECT * FROM WatchedItem;
 
 insert:
-INSERT INTO WatchedItem(itemId, watchAt)
-VALUES (:itemId, :watchAt)
+INSERT INTO WatchedItem(watchAt)
+VALUES (:watchAt)
 RETURNING *;
 
-update:
+updateWatchAt:
 UPDATE WatchedItem
 SET watchAt = :watchAt
 WHERE id = :id

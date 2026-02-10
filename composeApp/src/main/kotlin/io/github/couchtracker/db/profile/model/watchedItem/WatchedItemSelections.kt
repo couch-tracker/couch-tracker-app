@@ -31,12 +31,13 @@ class WatchedItemSelections(
         db.transaction {
             val watchAt = datetime.dateTime?.dateTime
             val watchedItem = when (sheetMode) {
-                is WatchedItemSheetMode.New -> db.watchedItemQueries.insert(
-                    itemId = sheetMode.itemId,
-                    watchAt = watchAt,
-                ).executeAsOne()
+                is WatchedItemSheetMode.New -> {
+                    val watchedItem = db.watchedItemQueries.insert(watchAt = watchAt).executeAsOne()
+                    sheetMode.save(db, watchedItem)
+                    watchedItem
+                }
 
-                is WatchedItemSheetMode.Edit -> db.watchedItemQueries.update(
+                is WatchedItemSheetMode.Edit -> db.watchedItemQueries.updateWatchAt(
                     id = sheetMode.watchedItem.id,
                     watchAt = watchAt,
                 ).executeAsOne()

@@ -1,0 +1,15 @@
+import io.github.couchtracker.db.profile.episode.ExternalEpisodeId;
+
+CREATE TABLE WatchedEpisode (
+  id INTEGER PRIMARY KEY NOT NULL,
+  itemId TEXT AS ExternalEpisodeId NOT NULL,
+
+  FOREIGN KEY(id) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+selectAll:
+SELECT * FROM WatchedEpisode;
+
+insert:
+INSERT INTO WatchedEpisode(id, itemId)
+VALUES (:id, :itemId);

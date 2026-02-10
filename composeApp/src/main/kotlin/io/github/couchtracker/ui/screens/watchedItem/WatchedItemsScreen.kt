@@ -32,13 +32,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.WatchableExternalId
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
+import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
-import io.github.couchtracker.db.profile.type
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
@@ -52,32 +52,31 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
 @Serializable
-data class WatchedItemsScreen(val itemId: String) : Screen() {
+data class WatchedItemsScreen(val type: String, val itemId: String) : Screen() {
     @Composable
     override fun content() {
-        val viewModel = when (val externalId = WatchableExternalId.parse(itemId)) {
-            is WatchableExternalId.Movie -> {
-                val movieId = when (externalId.movieId) {
-                    is TmdbExternalMovieId -> externalId.movieId.id
+        val viewModel = when (WatchedItemType.valueOf(type.uppercase())) {
+            WatchedItemType.MOVIE -> {
+                val movieId = when (val externalMovieId = ExternalMovieId.parse(itemId)) {
+                    is TmdbExternalMovieId -> externalMovieId.id
                     is UnknownExternalMovieId -> TODO()
                 }
                 viewModel {
                     WatchedItemsScreenViewModel.Movie(
                         application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
-                        watchableExternalMovieId = externalId,
                         movieId = movieId,
                     )
                 }
             }
 
-            is WatchableExternalId.Episode -> TODO()
+            WatchedItemType.EPISODE -> TODO()
         }
         Content(viewModel)
     }
 }
 
-fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
-    navigate(WatchedItemsScreen(id.serialize()))
+fun NavController.navigateToWatchedItems(id: ExternalMovieId) {
+    navigate(WatchedItemsScreen(WatchedItemType.MOVIE.name, id.serialize()))
 }
 
 @Composable
@@ -104,8 +103,8 @@ private fun Content(
 @Composable
 private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: WatchedItemsScreenViewModel.Details) {
     val fullProfileData = LocalFullProfileDataContext.current
-    val watchedItems = remember(fullProfileData, viewModel.watchableExternalMovieId) {
-        fullProfileData.watchedItems.filter { it.itemId == viewModel.watchableExternalMovieId }.sortDescending()
+    val watchedItems = remember(fullProfileData, viewModel.externalId) {
+        fullProfileData.watchedItems.filter { it.itemId == viewModel.externalId }.sortDescending()
     }
     val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
@@ -116,13 +115,20 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = colorScheme,
         backgroundColor = { backgroundColor },
-        watchedItemType = viewModel.watchableExternalMovieId.type(),
+        watchedItemType = viewModel.watchedItemType,
         mediaRuntime = { details.runtime },
         mediaLanguages = { listOfNotNull(details.originalLanguage) },
         title = R.string.viewing_history_for_x.str(details.title),
         backdrop = details.backdrop,
         floatingActionButton = {
-            FloatingActionButton(onClick = { scaffoldState.open(WatchedItemSheetMode.New(viewModel.watchableExternalMovieId)) }) {
+            FloatingActionButton(
+                onClick = {
+                    val sheetMode = when (viewModel) {
+                        is WatchedItemsScreenViewModel.Movie -> WatchedItemSheetMode.New.Movie(viewModel.externalId)
+                    }
+                    scaffoldState.open(sheetMode)
+                },
+            ) {
                 Icon(Icons.Default.Add, contentDescription = R.string.add_viewing.str())
             }
         },
@@ -184,7 +190,7 @@ private fun WatchedItemListItem(
                 WatchedItemDimensionSelections(watchedItem.dimensions)
                 WatchedItemProgress(
                     state = progressState,
-                    type = watchedItem.itemId.type(),
+                    type = watchedItem.type(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 2.dp),
