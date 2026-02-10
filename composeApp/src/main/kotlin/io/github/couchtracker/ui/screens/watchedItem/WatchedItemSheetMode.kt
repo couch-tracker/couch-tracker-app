@@ -1,24 +1,45 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
-import io.github.couchtracker.db.profile.WatchableExternalId
+import io.github.couchtracker.db.profile.ExternalId
+import io.github.couchtracker.db.profile.ProfileData
+import io.github.couchtracker.db.profile.WatchedItem
+import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
+import io.github.couchtracker.db.profile.movie.ExternalMovieId
 
 /**
  * Represents the mode to open a [WatchedItemSheetScaffold].
  */
 sealed interface WatchedItemSheetMode {
 
-    val itemId: WatchableExternalId
+    val itemId: ExternalId
 
     /**
      * A sheet opened with blank data, to create a new watched item.
      */
-    data class New(override val itemId: WatchableExternalId) : WatchedItemSheetMode
+    sealed interface New : WatchedItemSheetMode {
+
+        fun save(db: ProfileData, watchedItem: WatchedItem)
+
+        data class Movie(override val itemId: ExternalMovieId) : New {
+
+            override fun save(db: ProfileData, watchedItem: WatchedItem) {
+                db.watchedMovieQueries.insert(id = watchedItem.id, itemId = itemId)
+            }
+        }
+
+        data class Episode(override val itemId: ExternalEpisodeId) : New {
+
+            override fun save(db: ProfileData, watchedItem: WatchedItem) {
+                db.watchedEpisodeQueries.insert(id = watchedItem.id, itemId = itemId)
+            }
+        }
+    }
 
     /**
      * A sheet opened pre-populated with existing data, to edit an existing watched item.
      */
     data class Edit(val watchedItem: WatchedItemWrapper) : WatchedItemSheetMode {
-        override val itemId: WatchableExternalId get() = watchedItem.itemId
+        override val itemId: ExternalId get() = watchedItem.itemId
     }
 }

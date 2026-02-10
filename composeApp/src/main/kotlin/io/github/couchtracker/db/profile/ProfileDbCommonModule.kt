@@ -6,13 +6,14 @@ import io.github.couchtracker.db.common.adapters.DbIconColumnAdapter
 import io.github.couchtracker.db.common.adapters.DbTextColumnAdapter
 import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.PartialDateTimeColumnAdapter
-import io.github.couchtracker.db.common.adapters.WatchableExternalIdColumnAdapter
 import io.github.couchtracker.db.common.adapters.columnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.db.common.adapters.jsonSet
 import io.github.couchtracker.db.profile.defaultdata.ProfileDefaultDataHandler
+import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionType
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.db.profile.movie.ExternalMovieId
 import io.github.couchtracker.db.profile.show.ExternalShowId
 import org.koin.dsl.module
 
@@ -24,10 +25,15 @@ val ProfileDbCommonModule = module {
                 showIdAdapter = ExternalShowId.columnAdapter(),
                 addDateAdapter = InstantColumnAdapter,
             ),
+            WatchedEpisodeAdapter = WatchedEpisode.Adapter(
+                itemIdAdapter = ExternalEpisodeId.columnAdapter(),
+            ),
             WatchedItemAdapter = WatchedItem.Adapter(
-                itemIdAdapter = WatchableExternalIdColumnAdapter,
                 addedAtAdapter = InstantColumnAdapter,
                 watchAtAdapter = PartialDateTimeColumnAdapter,
+            ),
+            WatchedMovieAdapter = WatchedMovie.Adapter(
+                itemIdAdapter = ExternalMovieId.columnAdapter(),
             ),
             WatchedItemDimensionAdapter = WatchedItemDimension.Adapter(
                 appliesToAdapter = EnumColumnAdapter<WatchedItemType>().jsonSet(),

@@ -1,0 +1,15 @@
+import io.github.couchtracker.db.profile.movie.ExternalMovieId;
+
+CREATE TABLE WatchedMovie (
+  id INTEGER PRIMARY KEY NOT NULL,
+  itemId TEXT AS ExternalMovieId NOT NULL,
+
+  FOREIGN KEY(id) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+selectAll:
+SELECT * FROM WatchedMovie;
+
+insert:
+INSERT INTO WatchedMovie(id, itemId)
+VALUES (:id, :itemId);
