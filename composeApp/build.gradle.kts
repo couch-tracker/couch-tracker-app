@@ -1,6 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.extensions.FailOnSeverity
+import io.github.couchtracker.cache.SqlDelightTmdbCacheDefinitionsGenerator
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
