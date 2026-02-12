@@ -3,9 +3,9 @@
 package io.github.couchtracker.ui.screens.season
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.plus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -13,15 +13,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -31,9 +30,12 @@ import io.github.couchtracker.db.profile.season.UnknownExternalSeasonId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.EpisodeListItem
+import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.utils.logCompositions
+import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
 import kotlinx.serialization.Serializable
@@ -70,28 +72,22 @@ fun NavController.navigateToSeason(id: ExternalSeasonId) {
 
 @Composable
 private fun Content(viewModel: SeasonScreenViewModel) {
-    BoxWithConstraints(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize(),
+    ResultScreen(
+        error = viewModel.details.resultErrorOrNull(),
+        onError = { exception ->
+            Surface {
+                DefaultErrorScreen(
+                    errorMessage = exception.title.string(),
+                    errorDetails = exception.details?.string(),
+                    retry = { viewModel.retryAll() },
+                )
+            }
+        },
     ) {
-        ResultScreen(
-            error = viewModel.details.resultErrorOrNull(),
-            onError = { exception ->
-                Surface {
-                    DefaultErrorScreen(
-                        errorMessage = exception.title.string(),
-                        errorDetails = exception.details?.string(),
-                        retry = { viewModel.retryAll() },
-                    )
-                }
-            },
-        ) {
-            SeasonScreenContent(
-                viewModel = viewModel,
-                totalHeight = constraints.maxHeight,
-                reloadSeason = { viewModel.retryAll() },
-            )
-        }
+        SeasonScreenContent(
+            viewModel = viewModel,
+            reloadSeason = { viewModel.retryAll() },
+        )
     }
 }
 
@@ -99,7 +95,6 @@ private fun Content(viewModel: SeasonScreenViewModel) {
 @Composable
 private fun SeasonScreenContent(
     viewModel: SeasonScreenViewModel,
-    totalHeight: Int,
     reloadSeason: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -119,6 +114,7 @@ private fun SeasonScreenContent(
             topBar = {
                 OverviewScreenComponents.Header(
                     title = viewModel.details.resultValueOrNull()?.name.orEmpty(),
+                    subtitle = viewModel.subtitle.resultValueOrNull(),
                     backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
                     scrollBehavior = scrollBehavior,
                     backgroundColor = { backgroundColor },
@@ -129,7 +125,6 @@ private fun SeasonScreenContent(
                 OverviewScreenComponents.SeasonDetailsContent(
                     innerPadding = innerPadding,
                     viewModel = viewModel,
-                    totalHeight = totalHeight,
                 )
             },
         )
@@ -137,15 +132,38 @@ private fun SeasonScreenContent(
 }
 
 @Composable
-@Suppress("UnusedParameter")
 private fun OverviewScreenComponents.SeasonDetailsContent(
     innerPadding: PaddingValues,
     viewModel: SeasonScreenViewModel,
-    totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
-    ContentList(innerPadding, modifier) {
-        topSpace()
-        item { Text("Episodes here") }
+    val episodes = viewModel.details.mapResult { it.episodes }
+    LoadableScreen(
+        episodes,
+        onError = { exception ->
+            DefaultErrorScreen(
+                errorMessage = exception.title.string(),
+                errorDetails = exception.details?.string(),
+                retry = { viewModel.retryAll() },
+            )
+        },
+    ) { episodes ->
+        ContentList(
+            innerPadding.plus(PaddingValues(vertical = 16.dp, horizontal = 8.dp)),
+            modifier,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            items(episodes.size) { index ->
+                val (_, episode) = episodes[index]
+                EpisodeListItem(
+                    episode,
+                    onClick = {
+                        // TODO: navigate to episode
+                    },
+                    isFirstInList = index == 0,
+                    isLastInList = index == episodes.size - 1,
+                )
+            }
+        }
     }
 }

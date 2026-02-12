@@ -2,9 +2,15 @@ package io.github.couchtracker.ui.screens.season
 
 import android.app.Application
 import androidx.compose.runtime.State
+import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
+import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
 import io.github.couchtracker.settings.AppSettings
+import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeason
 import io.github.couchtracker.tmdb.TmdbSeasonId
+import io.github.couchtracker.ui.components.EpisodeListItemModel
+import io.github.couchtracker.ui.isWorthDisplayingAltSeasonName
+import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.api.ApiCallHelper
 import io.github.couchtracker.utils.api.ApiLoadable
@@ -21,7 +27,7 @@ import kotlinx.datetime.LocalDate
 class SeasonScreenViewModelHelper(
     val application: Application,
     scope: CoroutineScope,
-    seasonId: TmdbSeasonId,
+    val seasonId: TmdbSeasonId,
     val apiCallHelper: ApiCallHelper<TmdbSeason> = ApiCallHelper(
         scope = scope,
         item = AppSettings.get { Tmdb.Languages }
@@ -31,19 +37,30 @@ class SeasonScreenViewModelHelper(
 ) {
 
     data class Details(
+        val number: Int,
         val name: String,
+        val defaultName: String,
         val overview: String?,
         val airDate: LocalDate?,
-    )
+        val episodes: List<Pair<ExternalEpisodeId, EpisodeListItemModel>>,
+    ) {
+        val displayDefaultName = isWorthDisplayingAltSeasonName(name, number, defaultName)
+    }
 
     fun details(): State<ApiLoadable<Details>> {
         return flowCollector.collectFlow(
             flow = apiCallHelper.callApi { it.details }.map { result ->
                 result.mapResult { tmdbSeasonDetails ->
                     Details(
+                        number = tmdbSeasonDetails.seasonNumber,
                         name = tmdbSeasonDetails.name,
+                        defaultName = seasonNumberToString(application, tmdbSeasonDetails.seasonNumber),
                         overview = tmdbSeasonDetails.overview,
                         airDate = tmdbSeasonDetails.airDate,
+                        episodes = tmdbSeasonDetails.episodes.orEmpty().map { tmdbEpisode ->
+                            val id = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, tmdbEpisode.episodeNumber))
+                            id to EpisodeListItemModel.fromTmdbEpisode(application, tmdbEpisode)
+                        },
                     )
                 }
             },

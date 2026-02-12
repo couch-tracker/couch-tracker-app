@@ -112,6 +112,7 @@
     <string name="episode_progress_x_left">%1$s left</string>
     <string name="season_x">Season %1$d</string>
     <string name="season_specials">Specials</string>
+    <string name="episode_x">Episode %1$d</string>
 
     <string name="mark_movie_as_watched">Mark as watched</string>
     <string name="mark_episode_as_watched">Mark as watched</string>
