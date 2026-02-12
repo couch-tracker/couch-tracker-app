@@ -237,7 +237,7 @@ private fun OverviewScreenComponents.MoviePage(
                 tags = fullDetails.mapResult { details ->
                     listOfNotNull(
                         details.baseDetails.year?.toString(),
-                        details.runtime?.toString(),
+                        details.runtimeString,
                         details.rating?.formatted,
                     ) + details.genres.map { it.name }
                 },

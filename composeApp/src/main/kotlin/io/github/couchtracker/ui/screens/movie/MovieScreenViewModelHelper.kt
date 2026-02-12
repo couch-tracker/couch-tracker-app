@@ -27,6 +27,7 @@ import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
+import io.github.couchtracker.ui.format
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
@@ -77,6 +78,7 @@ class MovieScreenViewModelHelper(
         val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
         val runtime: Duration?,
+        val runtimeString: String?,
         val tagline: String,
     )
 
@@ -153,11 +155,13 @@ class MovieScreenViewModelHelper(
             year = releaseDate?.year,
             backdrop = backdropImage?.toImageModelWithPlaceholder(),
         )
+        val runtime = runtime()
         val full = FullDetails(
             baseDetails = base,
             tagline = tagline,
             rating = rating(),
-            runtime = runtime(),
+            runtime = runtime,
+            runtimeString = runtime?.format(),
             originalLanguage = language(),
             genres = genres,
         )

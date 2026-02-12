@@ -6,6 +6,7 @@ import androidx.palette.graphics.Palette
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbCrew
+import app.moviebase.tmdb.model.TmdbEpisode
 import app.moviebase.tmdb.model.TmdbFileImage
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
@@ -93,3 +94,5 @@ fun TmdbShowDetail.language(
 }
 
 fun TmdbMovieDetail.runtime() = runtime?.takeIf { it > 0 }?.minutes
+
+fun TmdbEpisode.runtime() = runtime?.takeIf { it > 0 }?.minutes

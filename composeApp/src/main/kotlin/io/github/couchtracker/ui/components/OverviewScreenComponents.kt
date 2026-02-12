@@ -23,9 +23,10 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -78,13 +79,14 @@ object OverviewScreenComponents {
     private const val PLACEHOLDER_CAST_COUNT = 3
     private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 1
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     fun Header(
         title: String,
         backdrop: ImageModel?,
         scrollBehavior: TopAppBarScrollBehavior,
         backgroundColor: () -> Color,
+        subtitle: String? = null,
         belowAppBar: @Composable ColumnScope.() -> Unit = {},
     ) {
         val navController = LocalNavController.current
@@ -94,15 +96,20 @@ object OverviewScreenComponents {
             backgroundColor = backgroundColor,
             appBar = { colors ->
                 Column {
-                    LargeTopAppBar(
+                    LargeFlexibleTopAppBar(
                         colors = colors,
                         title = {
-                            val isExpanded = LocalTextStyle.current == MaterialTheme.typography.headlineMedium
+                            val isExpanded = LocalTextStyle.current == MaterialTheme.typography.displaySmall
                             Text(
                                 title,
                                 maxLines = if (isExpanded) 6 else 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+                        },
+                        subtitle = subtitle?.let {
+                            {
+                                Text(subtitle)
+                            }
                         },
                         navigationIcon = {
                             IconButton({ navController.navigateUp() }) {
