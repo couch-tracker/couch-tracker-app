@@ -74,7 +74,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
             if (language == null) {
                 return emptySelection()
             }
-            require(language.watchedItemDimension == dimension.id) { "Language of another dimension" }
+            require(language.dimension == dimension.id) { "Language of another dimension" }
             return WatchedItemDimensionSelection.Language(
                 dimension = this,
                 value = language.language,
@@ -96,7 +96,7 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
             if (text == null) {
                 return emptySelection()
             }
-            require(text.watchedItemDimension == dimension.id) { "Free text of another dimension" }
+            require(text.dimension == dimension.id) { "Free text of another dimension" }
             return WatchedItemDimensionSelection.FreeText(
                 dimension = this,
                 value = text.text,

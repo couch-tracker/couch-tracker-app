@@ -7,7 +7,6 @@ import io.github.couchtracker.db.profile.ExternalId
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisode
 import io.github.couchtracker.db.profile.WatchedItem
-import io.github.couchtracker.db.profile.WatchedItemChoice
 import io.github.couchtracker.db.profile.WatchedMovie
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTimeGroup
@@ -20,12 +19,13 @@ import io.github.couchtracker.utils.str
 sealed class WatchedItemWrapper {
 
     protected abstract val watchedItem: WatchedItem
-    abstract val dimensions: List<WatchedItemDimensionSelection<*>>
+    abstract val selections: WatchedItemDimensionSelectionsWrapper
 
     val id get() = watchedItem.id
     abstract val itemId: ExternalId
     val addedAt get() = watchedItem.addedAt
     val watchAt get() = watchedItem.watchAt
+    val dimensions get() = selections.dimensions
 
     fun type() = when (this) {
         is Episode -> WatchedItemType.EPISODE
@@ -33,13 +33,16 @@ sealed class WatchedItemWrapper {
     }
 
     fun delete(db: ProfileData) {
-        db.watchedItemQueries.delete(watchedItem.id)
+        db.transaction {
+            db.watchedItemQueries.delete(watchedItem.id)
+            db.watchedItemDimensionSelectionsQueries.delete(watchedItem.dimensionSelections)
+        }
     }
 
     data class Movie(
         override val watchedItem: WatchedItem,
         val watchedMovie: WatchedMovie,
-        override val dimensions: List<WatchedItemDimensionSelection<*>>,
+        override val selections: WatchedItemDimensionSelectionsWrapper,
     ) : WatchedItemWrapper() {
 
         override val itemId get() = watchedMovie.itemId
@@ -52,7 +55,7 @@ sealed class WatchedItemWrapper {
     data class Episode(
         override val watchedItem: WatchedItem,
         val watchedEpisode: WatchedEpisode,
-        override val dimensions: List<WatchedItemDimensionSelection<*>>,
+        override val selections: WatchedItemDimensionSelectionsWrapper,
     ) : WatchedItemWrapper() {
 
         override val itemId get() = watchedEpisode.itemId
@@ -67,48 +70,32 @@ sealed class WatchedItemWrapper {
         /**
          * Loads all the necessary information and wraps each [WatchedItem] in [WatchedItemWrapper].
          *
-         * @param dimensions list of all dimensions present in the database, see [WatchedItemDimensionWrapper.load]
+         * @param selections list of all dimensions selections present in the database, see [WatchedItemDimensionSelectionsWrapper.load]
          */
         fun load(
             db: ProfileData,
-            dimensions: List<WatchedItemDimensionWrapper>,
+            selections: List<WatchedItemDimensionSelectionsWrapper>,
         ): List<WatchedItemWrapper> {
-            val choices = db.watchedItemChoiceQueries.selectAllWithDimensionId().executeAsList()
-                .groupBy { it.watchedItem to it.watchedItemDimension }
-                .mapValues { (_, list) ->
-                    list.map { WatchedItemChoice(watchedItem = it.watchedItem, choice = it.choice) }
-                }
-            val freeTexts = db.watchedItemFreeTextQueries.selectAll().executeAsList()
-                .associateBy { it.watchedItem to it.watchedItemDimension }
-            val languages = db.watchedItemLanguageQueries.selectAll().executeAsList()
-                .associateBy { it.watchedItem to it.watchedItemDimension }
-
             val watchedItems = db.watchedItemQueries.selectAll().executeAsList()
             val watchedMovies = db.watchedMovieQueries.selectAll().executeAsList().associateBy { it.id }
             val watchedEpisodes = db.watchedEpisodeQueries.selectAll().executeAsList().associateBy { it.id }
+            val selectionsById = selections.associateBy { it.id }
 
             return watchedItems.map { watchedItem ->
-                val dimensions = dimensions.map { dimension ->
-                    val key = watchedItem.id to dimension.id
-                    when (dimension) {
-                        is WatchedItemDimensionWrapper.Choice -> dimension.selection(choices[key].orEmpty())
-                        is WatchedItemDimensionWrapper.Language -> dimension.selection(languages[key])
-                        is WatchedItemDimensionWrapper.FreeText -> dimension.selection(freeTexts[key])
-                    }
-                }.sortedBy { it.dimension.manualSortIndex }
-
                 val watchedMovie = watchedMovies[watchedItem.id]
                 val watchedEpisode = watchedEpisodes[watchedItem.id]
+                val selections = selectionsById[watchedItem.dimensionSelections]
+                    ?: error("Unable to find WatchedItemDimensionSelections with id ${watchedItem.dimensionSelections}")
                 when {
                     watchedMovie != null -> Movie(
                         watchedItem = watchedItem,
                         watchedMovie = watchedMovie,
-                        dimensions = dimensions,
+                        selections = selections,
                     )
                     watchedEpisode != null -> Episode(
                         watchedItem = watchedItem,
                         watchedEpisode = watchedEpisode,
-                        dimensions = dimensions,
+                        selections = selections,
                     )
                     else -> error("Unknown type of watched item $watchedItem")
                 }

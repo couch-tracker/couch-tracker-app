@@ -70,9 +70,9 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
-import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelectionsState
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelections
+import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelectionsState
 import io.github.couchtracker.ui.components.BoxWithScrim
 import io.github.couchtracker.ui.components.DelayedActionLoadingIndicator
 import io.github.couchtracker.ui.components.ProfileDbErrorDialog
@@ -173,7 +173,7 @@ fun WatchedItemSheetScaffold(
             scaffoldState.mode?.let { mode ->
                 key(scaffoldState.openCounter) {
                     WatchedItemSheetContent(
-                        selections = rememberWatchedItemSelections(watchedItemType, mode = mode),
+                        selections = rememberWatchedItemSelectionsState(watchedItemType, mode = mode),
                         bottomSheetState = bottomSheetState,
                         watchedItemType = watchedItemType,
                         mediaRuntime = mediaRuntime,
@@ -203,7 +203,7 @@ fun WatchedItemSheetScaffold(
 @Composable
 @Suppress("LongMethod")
 private fun WatchedItemSheetContent(
-    selections: WatchedItemSelections,
+    selections: WatchedItemSelectionsState,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
     mediaRuntime: () -> Duration?,
@@ -390,7 +390,7 @@ private fun BelowScrollLabelContainer(
 @Composable
 private fun ButtonRow(
     enabled: Boolean,
-    selections: WatchedItemSelections,
+    selections: WatchedItemSelectionsState,
     saveAction: ProfileDbActionState<Unit>,
     onDelete: () -> Unit,
     innerBottomPadding: Dp,

@@ -21,15 +21,19 @@ CREATE TABLE WatchedItem (
    * This is different than what some other apps do. For instance, Trakt has a `watchedAt` field, which is the date/time
    * when a user has *finished* watching something.
    */
-  watchAt TEXT AS PartialDateTime
+  watchAt TEXT AS PartialDateTime,
+
+  dimensionSelections INTEGER NOT NULL,
+
+  FOREIGN KEY(dimensionSelections) REFERENCES WatchedItemDimensionSelections(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 selectAll:
 SELECT * FROM WatchedItem;
 
 insert:
-INSERT INTO WatchedItem(watchAt)
-VALUES (:watchAt)
+INSERT INTO WatchedItem(watchAt, dimensionSelections)
+VALUES (:watchAt, :dimensionSelections)
 RETURNING *;
 
 updateWatchAt:

@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.profile
 
 import android.util.Log
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionsWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import kotlinx.coroutines.Dispatchers
@@ -23,9 +24,10 @@ data class FullProfileData(
             val (data, time) = measureTimedValue {
                 withContext(coroutineContext) {
                     val watchedItemDimensions = WatchedItemDimensionWrapper.load(db)
+                    val watchedItemDimensionSelections = WatchedItemDimensionSelectionsWrapper.load(db, watchedItemDimensions)
                     FullProfileData(
                         showCollection = db.showInCollectionQueries.selectShowCollection().executeAsList(),
-                        watchedItems = WatchedItemWrapper.load(db, watchedItemDimensions),
+                        watchedItems = WatchedItemWrapper.load(db, watchedItemDimensionSelections),
                         watchedItemDimensions = watchedItemDimensions,
                     )
                 }
