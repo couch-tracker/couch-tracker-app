@@ -2,8 +2,8 @@ package io.github.couchtracker.db.profile.model.watchedItem
 
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.ProfileData
-import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.WatchedItemDimensionChoice
+import io.github.couchtracker.db.profile.WatchedItemDimensionSelections
 import kotlin.collections.minus
 import kotlin.collections.plus
 import kotlin.text.isBlank
@@ -30,11 +30,11 @@ sealed interface WatchedItemDimensionSelection<T> {
     fun isEmpty(): Boolean
 
     /**
-     * Saves this selection to the given [db] for the given [watchedItem], which must already exist.
+     * Saves this selection to the given [db] for the given [selections], which must already exist.
      *
      * Saving unchanged data is permitted, but might have small side effects (e.g. deleting and re-adding the same row)
      */
-    fun save(db: ProfileData, watchedItem: WatchedItem)
+    fun save(db: ProfileData, selections: WatchedItemDimensionSelections)
 
     data class Choice(
         override val dimension: WatchedItemDimensionWrapper.Choice,
@@ -52,15 +52,15 @@ sealed interface WatchedItemDimensionSelection<T> {
 
         override fun isEmpty() = value.isEmpty()
 
-        override fun save(db: ProfileData, watchedItem: WatchedItem) {
+        override fun save(db: ProfileData, selections: WatchedItemDimensionSelections) {
             db.watchedItemChoiceQueries.transaction {
                 db.watchedItemChoiceQueries.deleteForDimension(
-                    watchedItem = watchedItem.id,
+                    selections = selections.id,
                     dimension = dimension.id,
                 )
 
                 for (choice in value) {
-                    db.watchedItemChoiceQueries.insert(watchedItem = watchedItem.id, choice = choice.id)
+                    db.watchedItemChoiceQueries.insert(selections = selections.id, choice = choice.id)
                 }
             }
         }
@@ -88,16 +88,16 @@ sealed interface WatchedItemDimensionSelection<T> {
 
         override fun isEmpty() = value == null
 
-        override fun save(db: ProfileData, watchedItem: WatchedItem) {
+        override fun save(db: ProfileData, selections: WatchedItemDimensionSelections) {
             if (isEmpty()) {
                 db.watchedItemLanguageQueries.delete(
-                    watchedItem = watchedItem.id,
-                    watchedItemDimension = dimension.id,
+                    selections = selections.id,
+                    dimension = dimension.id,
                 )
             } else {
                 db.watchedItemLanguageQueries.upsert(
-                    watchedItem = watchedItem.id,
-                    watchedItemDimension = dimension.id,
+                    selections = selections.id,
+                    dimension = dimension.id,
                     language = checkNotNull(value),
                 )
             }
@@ -121,16 +121,16 @@ sealed interface WatchedItemDimensionSelection<T> {
 
         override fun isEmpty() = value.isBlank()
 
-        override fun save(db: ProfileData, watchedItem: WatchedItem) {
+        override fun save(db: ProfileData, selections: WatchedItemDimensionSelections) {
             if (isEmpty()) {
                 db.watchedItemFreeTextQueries.delete(
-                    watchedItem = watchedItem.id,
-                    watchedItemDimension = dimension.id,
+                    selections = selections.id,
+                    dimension = dimension.id,
                 )
             } else {
                 db.watchedItemFreeTextQueries.upsert(
-                    watchedItem = watchedItem.id,
-                    watchedItemDimension = dimension.id,
+                    selections = selections.id,
+                    dimension = dimension.id,
                     text = value,
                 )
             }

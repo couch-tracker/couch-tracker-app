@@ -1,0 +1,20 @@
+/**
+ * This table is used as "glue" to group dimension selections together.
+ *
+ * Normally these would attach to the relevant `WatchedItem` directly, but having this table is more flexible as it
+ * allows a set of values to exist also for other entity types (e.g. an episode watch session).
+ */
+CREATE TABLE WatchedItemDimensionSelections(
+  id INTEGER PRIMARY KEY NOT NULL
+);
+
+selectAll:
+SELECT * FROM WatchedItemDimensionSelections;
+
+insert:
+INSERT INTO WatchedItemDimensionSelections DEFAULT VALUES
+RETURNING *;
+
+delete:
+DELETE FROM WatchedItemDimensionSelections
+WHERE id = :id;

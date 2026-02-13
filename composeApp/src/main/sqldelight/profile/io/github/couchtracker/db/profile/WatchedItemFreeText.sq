@@ -2,12 +2,12 @@
  * Contains the values for the dimensions of type free text for a single `WatchedItem`.
  */
 CREATE TABLE WatchedItemFreeText(
-  watchedItem INTEGER NOT NULL,
-  watchedItemDimension INTEGER NOT NULL,
+  selections INTEGER NOT NULL,
+  dimension INTEGER NOT NULL,
   text TEXT NOT NULL,
-  PRIMARY KEY(watchedItem, watchedItemDimension),
-  FOREIGN KEY(watchedItem) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY(watchedItemDimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
+  PRIMARY KEY(selections, dimension),
+  FOREIGN KEY(selections) REFERENCES WatchedItemDimensionSelections(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY(dimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 selectAll:
@@ -15,9 +15,9 @@ SELECT * FROM WatchedItemFreeText;
 
 delete:
 DELETE FROM WatchedItemFreeText
-WHERE watchedItem = :watchedItem AND watchedItemDimension = :watchedItemDimension;
+WHERE selections = :selections AND dimension = :dimension;
 
 upsert:
-INSERT INTO WatchedItemFreeText(watchedItem, watchedItemDimension, text)
-VALUES(:watchedItem, :watchedItemDimension, :text)
-ON CONFLICT(watchedItem, watchedItemDimension) DO UPDATE SET text = :text;
+INSERT INTO WatchedItemFreeText(selections, dimension, text)
+VALUES(:selections, :dimension, :text)
+ON CONFLICT(selections, dimension) DO UPDATE SET text = :text;

@@ -4,12 +4,12 @@ import io.github.couchtracker.db.profile.Bcp47Language;
  * Contains the values for the dimensions of type language for a single `WatchedItem`.
  */
 CREATE TABLE WatchedItemLanguage(
-  watchedItem INTEGER NOT NULL,
-  watchedItemDimension INTEGER NOT NULL,
+  selections INTEGER NOT NULL,
+  dimension INTEGER NOT NULL,
   language TEXT AS Bcp47Language NOT NULL,
-  PRIMARY KEY(watchedItem, watchedItemDimension),
-  FOREIGN KEY(watchedItem) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY(watchedItemDimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
+  PRIMARY KEY(selections, dimension),
+  FOREIGN KEY(selections) REFERENCES WatchedItemDimensionSelections(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY(dimension) REFERENCES WatchedItemDimension(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 selectAll:
@@ -17,9 +17,9 @@ SELECT * FROM WatchedItemLanguage;
 
 delete:
 DELETE FROM WatchedItemLanguage
-WHERE watchedItem = :watchedItem AND watchedItemDimension = :watchedItemDimension;
+WHERE selections = :selections AND dimension = :dimension;
 
 upsert:
-INSERT INTO WatchedItemLanguage(watchedItem, watchedItemDimension, language)
-VALUES(:watchedItem, :watchedItemDimension, :language)
-ON CONFLICT(watchedItem, watchedItemDimension) DO UPDATE SET language = :language;
+INSERT INTO WatchedItemLanguage(selections, dimension, language)
+VALUES(:selections, :dimension, :language)
+ON CONFLICT(selections, dimension) DO UPDATE SET language = :language;
