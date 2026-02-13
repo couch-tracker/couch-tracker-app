@@ -42,7 +42,7 @@ sealed class WatchedItemWrapper {
         override val dimensions: List<WatchedItemDimensionSelection<*>>,
     ) : WatchedItemWrapper() {
 
-        override val itemId get() = watchedMovie.itemId
+        override val itemId get() = watchedMovie.movieId
 
         init {
             require(watchedItem.id == watchedMovie.id) { "WatchedItem and WatchedMovie IDs must match" }
@@ -55,7 +55,7 @@ sealed class WatchedItemWrapper {
         override val dimensions: List<WatchedItemDimensionSelection<*>>,
     ) : WatchedItemWrapper() {
 
-        override val itemId get() = watchedEpisode.itemId
+        override val itemId get() = watchedEpisode.episodeId
 
         init {
             require(watchedItem.id == watchedEpisode.id) { "WatchedItem and WatchedEpisode IDs must match" }

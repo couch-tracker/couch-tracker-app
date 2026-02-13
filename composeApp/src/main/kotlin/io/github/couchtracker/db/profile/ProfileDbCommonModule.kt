@@ -26,14 +26,14 @@ val ProfileDbCommonModule = module {
                 addDateAdapter = InstantColumnAdapter,
             ),
             WatchedEpisodeAdapter = WatchedEpisode.Adapter(
-                itemIdAdapter = ExternalEpisodeId.columnAdapter(),
+                episodeIdAdapter = ExternalEpisodeId.columnAdapter(),
             ),
             WatchedItemAdapter = WatchedItem.Adapter(
                 addedAtAdapter = InstantColumnAdapter,
                 watchAtAdapter = PartialDateTimeColumnAdapter,
             ),
             WatchedMovieAdapter = WatchedMovie.Adapter(
-                itemIdAdapter = ExternalMovieId.columnAdapter(),
+                movieIdAdapter = ExternalMovieId.columnAdapter(),
             ),
             WatchedItemDimensionAdapter = WatchedItemDimension.Adapter(
                 appliesToAdapter = EnumColumnAdapter<WatchedItemType>().jsonSet(),

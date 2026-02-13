@@ -24,14 +24,14 @@ sealed interface WatchedItemSheetMode {
         data class Movie(override val itemId: ExternalMovieId) : New {
 
             override fun save(db: ProfileData, watchedItem: WatchedItem) {
-                db.watchedMovieQueries.insert(id = watchedItem.id, itemId = itemId)
+                db.watchedMovieQueries.insert(id = watchedItem.id, movieId = itemId)
             }
         }
 
         data class Episode(override val itemId: ExternalEpisodeId) : New {
 
             override fun save(db: ProfileData, watchedItem: WatchedItem) {
-                db.watchedEpisodeQueries.insert(id = watchedItem.id, itemId = itemId)
+                db.watchedEpisodeQueries.insert(id = watchedItem.id, episodeId = itemId)
             }
         }
     }
