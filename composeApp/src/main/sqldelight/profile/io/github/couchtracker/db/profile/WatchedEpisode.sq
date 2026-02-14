@@ -3,13 +3,15 @@ import io.github.couchtracker.db.profile.episode.ExternalEpisodeId;
 CREATE TABLE WatchedEpisode (
   id INTEGER PRIMARY KEY NOT NULL,
   episodeId TEXT AS ExternalEpisodeId NOT NULL,
+  session INTEGER NOT NULL,
 
-  FOREIGN KEY(id) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY(id) REFERENCES WatchedItem(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY(session) REFERENCES WatchedEpisodeSession(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 selectAll:
 SELECT * FROM WatchedEpisode;
 
 insert:
-INSERT INTO WatchedEpisode(id, episodeId)
-VALUES (:id, :episodeId);
+INSERT INTO WatchedEpisode(id, episodeId, session)
+VALUES (:id, :episodeId, :session);

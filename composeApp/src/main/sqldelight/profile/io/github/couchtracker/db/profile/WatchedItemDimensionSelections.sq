@@ -3,6 +3,8 @@
  *
  * Normally these would attach to the relevant `WatchedItem` directly, but having this table is more flexible as it
  * allows a set of values to exist also for other entity types (e.g. an episode watch session).
+ *
+ * Please note each `WatchedItemDimensionSelections` should be attached to one and only one entity.
  */
 CREATE TABLE WatchedItemDimensionSelections(
   id INTEGER PRIMARY KEY NOT NULL

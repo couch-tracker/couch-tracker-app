@@ -28,6 +28,9 @@ val ProfileDbCommonModule = module {
             WatchedEpisodeAdapter = WatchedEpisode.Adapter(
                 episodeIdAdapter = ExternalEpisodeId.columnAdapter(),
             ),
+            WatchedEpisodeSessionAdapter = WatchedEpisodeSession.Adapter(
+                showIdAdapter = ExternalShowId.columnAdapter(),
+            ),
             WatchedItemAdapter = WatchedItem.Adapter(
                 addedAtAdapter = InstantColumnAdapter,
                 watchAtAdapter = PartialDateTimeColumnAdapter,
