@@ -1,0 +1,53 @@
+import io.github.couchtracker.db.profile.show.ExternalShowId;
+import kotlin.Boolean;
+
+/**
+ * A watched episode session groups watched episodes together for the user.
+ *
+ * This serves three main purposes:
+ * - Allows the user to organize their watchings, so that each "run" can be clearly divided
+ * - Allows the app to know, based on which is active, what "next episode" to show for each show
+ * - Allows the user to have a series of preset dimension selections, so that it doesn't have to set it for each episode
+ */
+CREATE TABLE WatchedEpisodeSession (
+  id INTEGER PRIMARY KEY NOT NULL,
+  showId TEXT AS ExternalShowId NOT NULL,
+
+  /**
+   * An optional user-given name for this session.
+   * Example: "Covid re-watch"
+   */
+  name TEXT,
+
+  /**
+   * An optional user-given description, which can be long and can be used to note down additional information.
+0   */
+  description TEXT,
+
+  /**
+   * Whether this session is "active", which means that the user is still actively watching episodes on it.
+   * While rare, there can be multiple active watched episode sessions for the same show, indicating that the user is
+   * watching the show more than once at the same time (for instance, they're re-watching it from scratch, while also
+   * wathing new episodes as they come out in parallel).
+   * This serves as a suggestion to the app to show what next episode(s) to watch to show, and to decide which watch
+   * session to use by default for new episodes.
+   */
+  isActive INTEGER AS Boolean NOT NULL,
+
+  /**
+   * Contains the default dimension selections that will be applied to each episode upon viewing.
+   * These are only meant to be a pre-set to help the user: to actually be applied they have to be copied to the
+   * `WatchedItemDimensionSelections` references by each `WatchedItem`.
+   */
+  defaultDimensionSelections INTEGER NOT NULL,
+
+  FOREIGN KEY(defaultDimensionSelections) REFERENCES WatchedItemDimensionSelections(id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+selectAll:
+SELECT * FROM WatchedEpisodeSession;
+
+insert:
+INSERT INTO WatchedEpisodeSession(showId, name, isActive, defaultDimensionSelections)
+VALUES (:showId, :name, :isActive, :defaultDimensionSelections)
+RETURNING *;

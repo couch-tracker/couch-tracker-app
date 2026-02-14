@@ -49,6 +49,7 @@ sealed class WatchedItemWrapper {
 
         init {
             require(watchedItem.id == watchedMovie.id) { "WatchedItem and WatchedMovie IDs must match" }
+            require(selections.id == watchedItem.dimensionSelections) { "WatchedItem selections and given selections wrapper must match" }
         }
     }
 
@@ -56,12 +57,15 @@ sealed class WatchedItemWrapper {
         override val watchedItem: WatchedItem,
         val watchedEpisode: WatchedEpisode,
         override val selections: WatchedItemDimensionSelectionsWrapper,
+        val session: WatchedEpisodeSessionWrapper,
     ) : WatchedItemWrapper() {
 
         override val itemId get() = watchedEpisode.episodeId
 
         init {
             require(watchedItem.id == watchedEpisode.id) { "WatchedItem and WatchedEpisode IDs must match" }
+            require(selections.id == watchedItem.dimensionSelections) { "WatchedItem selections and given selections wrapper must match" }
+            require(session.id == watchedEpisode.session) { "WatchedItem session and given session wrapper must match" }
         }
     }
 
@@ -81,11 +85,16 @@ sealed class WatchedItemWrapper {
             val watchedEpisodes = db.watchedEpisodeQueries.selectAll().executeAsList().associateBy { it.id }
             val selectionsById = selections.associateBy { it.id }
 
+            fun findSelections(id: Long) = selectionsById[id] ?: error("Unable to find WatchedItemDimensionSelections with id $id")
+
+            val watchedEpisodeSessions = db.watchedEpisodeSessionQueries.selectAll().executeAsList()
+                .map { WatchedEpisodeSessionWrapper(it, findSelections(it.defaultDimensionSelections)) }
+                .associateBy { it.id }
+
             return watchedItems.map { watchedItem ->
                 val watchedMovie = watchedMovies[watchedItem.id]
                 val watchedEpisode = watchedEpisodes[watchedItem.id]
-                val selections = selectionsById[watchedItem.dimensionSelections]
-                    ?: error("Unable to find WatchedItemDimensionSelections with id ${watchedItem.dimensionSelections}")
+                val selections = findSelections(watchedItem.dimensionSelections)
                 when {
                     watchedMovie != null -> Movie(
                         watchedItem = watchedItem,
@@ -96,6 +105,8 @@ sealed class WatchedItemWrapper {
                         watchedItem = watchedItem,
                         watchedEpisode = watchedEpisode,
                         selections = selections,
+                        session = watchedEpisodeSessions[watchedEpisode.session]
+                            ?: error("Unable to find watched episode session with id ${watchedEpisode.session}"),
                     )
                     else -> error("Unknown type of watched item $watchedItem")
                 }

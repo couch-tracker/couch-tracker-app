@@ -2,6 +2,7 @@ package io.github.couchtracker.ui.screens.watchedItem
 
 import io.github.couchtracker.db.profile.ExternalId
 import io.github.couchtracker.db.profile.ProfileData
+import io.github.couchtracker.db.profile.WatchedEpisodeSession
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
@@ -28,10 +29,10 @@ sealed interface WatchedItemSheetMode {
             }
         }
 
-        data class Episode(override val itemId: ExternalEpisodeId) : New {
+        data class Episode(override val itemId: ExternalEpisodeId, val session: WatchedEpisodeSession) : New {
 
             override fun save(db: ProfileData, watchedItem: WatchedItem) {
-                db.watchedEpisodeQueries.insert(id = watchedItem.id, episodeId = itemId)
+                db.watchedEpisodeQueries.insert(id = watchedItem.id, episodeId = itemId, session = session.id)
             }
         }
     }
