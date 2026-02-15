@@ -4,13 +4,11 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.couchtracker.db.profile.show.ExternalShowId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.utils.api.ApiLoadable
 
 class ShowScreenViewModel(
     application: Application,
-    val externalShowId: ExternalShowId,
     val showId: TmdbShowId,
 ) : AndroidViewModel(
     application = application,
@@ -30,6 +28,6 @@ class ShowScreenViewModel(
     val allLoadables: List<ApiLoadable<*>> get() = baseViewModel.flowCollector.currentValues
 
     fun retryAll() {
-        baseViewModel.apiCallHelper.retryAll()
+        baseViewModel.retryAll()
     }
 }

@@ -61,8 +61,7 @@ private const val LOG_TAG = "ShowScreen"
 data class ShowScreen(val showId: String) : Screen() {
     @Composable
     override fun content() {
-        val externalShowId = ExternalShowId.parse(this@ShowScreen.showId)
-        val showId = when (externalShowId) {
+        val showId = when (val externalShowId = ExternalShowId.parse(this@ShowScreen.showId)) {
             is TmdbExternalShowId -> {
                 externalShowId.id
             }
@@ -73,7 +72,6 @@ data class ShowScreen(val showId: String) : Screen() {
             viewModel {
                 ShowScreenViewModel(
                     application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
-                    externalShowId = externalShowId,
                     showId = showId,
                 )
             },

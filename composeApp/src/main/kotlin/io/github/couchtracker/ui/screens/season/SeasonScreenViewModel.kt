@@ -4,18 +4,18 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.couchtracker.db.profile.season.ExternalSeasonId
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.api.FlowRetryToken
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
 
 class SeasonScreenViewModel(
     application: Application,
-    val externalSeasonId: ExternalSeasonId,
     val seasonId: TmdbSeasonId,
+    val retryToken: FlowRetryToken = FlowRetryToken(),
 ) : AndroidViewModel(
     application = application,
 ) {
@@ -24,12 +24,14 @@ class SeasonScreenViewModel(
         application = application,
         scope = viewModelScope,
         seasonId = seasonId,
+        retryToken = retryToken,
         flowCollector = flowCollector,
     )
     private val showViewModel = ShowScreenViewModelHelper(
         application = application,
         scope = viewModelScope,
         showId = seasonId.showId,
+        retryToken = retryToken,
         flowCollector = flowCollector,
     )
 
@@ -55,7 +57,7 @@ class SeasonScreenViewModel(
     val allLoadables: List<ApiLoadable<*>> get() = flowCollector.currentValues
 
     fun retryAll() {
-        baseViewModel.apiCallHelper.retryAll()
-        showViewModel.apiCallHelper.retryAll()
+        baseViewModel.retryAll()
+        showViewModel.retryAll()
     }
 }

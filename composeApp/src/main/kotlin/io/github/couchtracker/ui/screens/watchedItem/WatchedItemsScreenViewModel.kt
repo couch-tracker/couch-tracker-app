@@ -60,7 +60,7 @@ sealed interface WatchedItemsScreenViewModel {
         override val colorScheme by baseViewModel.colorScheme()
 
         override fun retryAll() {
-            baseViewModel.apiCallHelper.retryAll()
+            baseViewModel.retryAll()
         }
     }
 }
