@@ -11,6 +11,8 @@
     <string name="delete_action">Delete</string>
     <string name="edit_action">Edit</string>
 
+    <string name="optional_field">%1$s (optional)</string>
+
     <string name="more_options">More options</string>
     <string name="error_loading_items">Error loading items</string>
     <string name="error_loading_items_x">Error loading items: %1$s</string>
@@ -70,6 +72,7 @@
     <string name="date_and_time_precision_year">Year</string>
     <string name="date_and_time_precision_month">Month</string>
     <string name="date_and_time_precision_date">Date</string>
+    <string name="date_and_time_range_format">%1$s – %2$s</string>
 
     <string name="select_time_zone">Select time zone</string>
     <string name="timezone_category_other">Other</string>
@@ -154,4 +157,33 @@
 
     <string name="bookmark_add">Add to bookmarks</string>
     <string name="bookmark_remove">Remove form bookmarks</string>
+
+    <string name="watch_sessions">Watch sessions</string>
+    <string name="watch_session_info">Each episode you watch belongs to a watch session, which lets you group your viewings together logically. If you rewatch a show from the beginning, you can create a new watch session. Your progress, next episode to watch, and related information are all tied to active watch sessions.</string>
+    <string name="add_watch_session">Add watch session</string>
+    <string name="edit_watch_session">Edit watch session</string>
+    <string name="active_watch_sessions">Active watch sessions</string>
+    <string name="inactive_watch_sessions">Inactive watch sessions</string>
+    <string name="watch_session_dialog_info">The viewing preset will automatically apply to each new viewing in this watch session. Individual viewings can override it. Changes to the preset won\'t affect existing viewings.</string>
+    <string name="watch_session_name">Name</string>
+    <string name="watch_session_description">Description</string>
+    <string name="watch_session_preset">Viewing preset</string>
+    <string name="watch_session_active">Active</string>
+    <string name="watch_session_empty_preset">No selected preset</string>
+    <string name="unnamed_watch_session">Unnamed watch session</string>
+    <string name="no_watch_sessions">No watch sessions</string>
+    <string name="no_active_watch_sessions">No active watch sessions</string>
+    <string name="no_watched_episodes_in_this_session">No watched episodes in this session</string>
+    <plurals name="x_watched_episodes_in_this_session">
+        <item quantity="one">%1$d watched episode in this session</item>
+        <item quantity="other">%1$d watched episodes in this session</item>
+    </plurals>
+    <string name="delete_watch_session_dialog_title">Delete watch session?</string>
+    <string name="delete_watch_session_dialog_description">This watch session, along with all associated episode viewings, will be permanently deleted</string>
+    <plurals name="delete_watch_session_dialog_viewings_detail_count">
+        <item quantity="one">%1$d episode viewing will be permanently deleted</item>
+        <item quantity="other">%1$d episode viewings will be permanently deleted</item>
+    </plurals>
+    <string name="delete_watch_session_dialog_viewings_detail_first_viewing">First viewing</string>
+    <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Last viewing</string>
 </resources>

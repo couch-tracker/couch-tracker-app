@@ -28,6 +28,7 @@ fun <S : Any, O> ProfileDbActionDialog(
     confirmButtonColors: ButtonColors = ButtonDefaults.textButtonColors(),
     dismissText: @Composable (state: S) -> Unit = { Text(android.R.string.cancel.str()) },
     onError: (ProfileDbError) -> Unit = { onDismissRequest() },
+    additionalButtons: @Composable (state: S) -> Unit = { },
 ) {
     val action = rememberProfileDbActionState<O>(
         onSuccess = {
@@ -65,6 +66,7 @@ fun <S : Any, O> ProfileDbActionDialog(
                 TextButton(onClick = onDismissRequest, enabled = !action.isLoading) {
                     dismissText(state)
                 }
+                additionalButtons(state)
             },
         )
     }

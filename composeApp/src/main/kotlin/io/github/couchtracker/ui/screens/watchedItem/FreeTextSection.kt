@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 
 @Composable
-fun WatchedItemSheetScope.FreeTextSection(
+fun WatchedItemSelectionsScope.FreeTextSection(
     enabled: Boolean,
     selection: WatchedItemDimensionSelection.FreeText,
     onSelectionChange: (WatchedItemDimensionSelection.FreeText) -> Unit,

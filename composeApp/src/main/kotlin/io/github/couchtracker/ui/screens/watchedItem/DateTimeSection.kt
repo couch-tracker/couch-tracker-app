@@ -192,7 +192,7 @@ fun DateTimeSectionDialog(sectionState: DateTimeSectionState) {
 
 @Composable
 @OptIn(ExperimentalAnimationApi::class)
-fun WatchedItemSheetScope.DateTimeSection(
+fun WatchedItemSelectionsScope.DateTimeSection(
     enabled: Boolean,
     sectionState: DateTimeSectionState,
     watchedItemType: WatchedItemType,

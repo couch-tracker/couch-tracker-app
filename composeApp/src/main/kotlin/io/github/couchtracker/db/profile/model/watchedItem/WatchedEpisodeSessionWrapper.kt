@@ -1,5 +1,6 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
+import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisodeSession
 
 data class WatchedEpisodeSessionWrapper(
@@ -16,6 +17,20 @@ data class WatchedEpisodeSessionWrapper(
     init {
         require(defaultDimensionSelections.id == watchedEpisodeSession.defaultDimensionSelections) {
             "WatchedEpisodeSession defaultDimensionSelections and given selections wrapper must match"
+        }
+    }
+
+    companion object {
+        fun load(
+            db: ProfileData,
+            selections: List<WatchedItemDimensionSelectionsWrapper>,
+        ): List<WatchedEpisodeSessionWrapper> {
+            val selectionsById = selections.associateBy { it.id }
+
+            fun findSelections(id: Long) = selectionsById[id] ?: error("Unable to find WatchedItemDimensionSelections with id $id")
+
+            return db.watchedEpisodeSessionQueries.selectAll().executeAsList()
+                .map { WatchedEpisodeSessionWrapper(it, findSelections(it.defaultDimensionSelections)) }
         }
     }
 }

@@ -48,6 +48,15 @@ selectAll:
 SELECT * FROM WatchedEpisodeSession;
 
 insert:
-INSERT INTO WatchedEpisodeSession(showId, name, isActive, defaultDimensionSelections)
-VALUES (:showId, :name, :isActive, :defaultDimensionSelections)
+INSERT INTO WatchedEpisodeSession(showId, name, description, isActive, defaultDimensionSelections)
+VALUES (:showId, :name, :description, :isActive, :defaultDimensionSelections)
 RETURNING *;
+
+update:
+UPDATE WatchedEpisodeSession
+SET name = :name, description = :description, isActive = :isActive
+WHERE id = :id
+RETURNING *;
+
+delete:
+DELETE FROM WatchedEpisodeSession WHERE id = :id;
