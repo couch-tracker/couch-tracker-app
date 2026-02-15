@@ -32,21 +32,25 @@ import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiCallHelper
 import io.github.couchtracker.utils.api.ApiException
 import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.api.FlowRetryToken
+import io.github.couchtracker.utils.api.callApi
+import io.github.couchtracker.utils.api.callApiWithCache
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import org.koin.mp.KoinPlatform
 import kotlin.time.Duration
 
@@ -55,13 +59,11 @@ import kotlin.time.Duration
  */
 class MovieScreenViewModelHelper(
     val application: Application,
-    scope: CoroutineScope,
+    val scope: CoroutineScope,
     movieId: TmdbMovieId,
-    val apiCallHelper: ApiCallHelper<TmdbMovie> = ApiCallHelper(
-        scope = scope,
-        item = AppSettings.get { Tmdb.Languages }
-            .map { languages -> TmdbMovie(movieId, languages.current) },
-    ),
+    val retryToken: FlowRetryToken = FlowRetryToken(),
+    val tmdbMovie: Flow<TmdbMovie> = AppSettings.get { Tmdb.Languages }
+        .map { languages -> TmdbMovie(movieId, languages.current) },
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
 
@@ -88,7 +90,8 @@ class MovieScreenViewModelHelper(
         val directorsString: String?,
     )
 
-    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> = apiCallHelper.callApiWithCache(
+    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> = tmdbMovie.callApiWithCache(
+        retryToken = retryToken,
         cachedData = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getMovie(it)?.toBaseDetails() },
         fullDataFlow = {
             it.details.map { result -> result.map { details -> details.toDetails() } }
@@ -119,7 +122,7 @@ class MovieScreenViewModelHelper(
 
     fun images(): State<ApiLoadable<List<ImageModel>>> {
         return flowCollector.collectFlow(
-            flow = apiCallHelper.callApi { it.images }.map { result ->
+            flow = tmdbMovie.callApi(retryToken) { it.images }.map { result ->
                 result.mapResult { images ->
                     images
                         .linearize()
@@ -131,7 +134,7 @@ class MovieScreenViewModelHelper(
 
     fun credits(): State<ApiLoadable<Credits>> {
         return flowCollector.collectFlow(
-            flow = apiCallHelper.callApi { it.credits }.map { result ->
+            flow = tmdbMovie.callApi(retryToken) { it.credits }.map { result ->
                 result.mapResult { credits ->
                     val directors = credits.crew.directors()
                     Credits(
@@ -174,4 +177,8 @@ class MovieScreenViewModelHelper(
         year = releaseDate?.year,
         backdrop = backdrop?.toImageModelWithPlaceholder(),
     )
+
+    fun retryAll() {
+        scope.launch { retryToken.retryAll() }
+    }
 }

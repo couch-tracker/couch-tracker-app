@@ -30,6 +30,6 @@ class MovieScreenViewModel(
     val allLoadables: List<ApiLoadable<*>> get() = baseViewModel.flowCollector.currentValues
 
     fun retryAll() {
-        baseViewModel.apiCallHelper.retryAll()
+        baseViewModel.retryAll()
     }
 }

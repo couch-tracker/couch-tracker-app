@@ -34,21 +34,25 @@ import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiCallHelper
 import io.github.couchtracker.utils.api.ApiException
 import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.api.FlowRetryToken
+import io.github.couchtracker.utils.api.callApi
+import io.github.couchtracker.utils.api.callApiWithCache
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import org.koin.mp.KoinPlatform
 
 /**
@@ -56,13 +60,11 @@ import org.koin.mp.KoinPlatform
  */
 class ShowScreenViewModelHelper(
     val application: Application,
-    scope: CoroutineScope,
+    val scope: CoroutineScope,
     val showId: TmdbShowId,
-    val apiCallHelper: ApiCallHelper<TmdbShow> = ApiCallHelper(
-        scope = scope,
-        item = AppSettings.get { Tmdb.Languages }
-            .map { languages -> TmdbShow(showId, languages.current) },
-    ),
+    val retryToken: FlowRetryToken = FlowRetryToken(),
+    val tmdbShow: Flow<TmdbShow> = AppSettings.get { Tmdb.Languages }
+        .map { languages -> TmdbShow(showId, languages.current) },
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
 
@@ -89,7 +91,8 @@ class ShowScreenViewModelHelper(
         val crew: List<CrewCompactListItemModel>,
     )
 
-    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> = apiCallHelper.callApiWithCache(
+    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> = tmdbShow.callApiWithCache(
+        retryToken = retryToken,
         cachedData = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getShow(it)?.toBaseDetails() },
         fullDataFlow = {
             it.details.map { result -> result.map { details -> details.toDetails() } }
@@ -120,7 +123,7 @@ class ShowScreenViewModelHelper(
 
     fun images(): State<ApiLoadable<List<ImageModel>>> {
         return flowCollector.collectFlow(
-            flow = apiCallHelper.callApi { it.images }.map { result ->
+            flow = tmdbShow.callApi(retryToken) { it.images }.map { result ->
                 result.mapResult { images ->
                     images
                         .linearize()
@@ -132,7 +135,7 @@ class ShowScreenViewModelHelper(
 
     fun credits(): State<ApiLoadable<Credits>> {
         return flowCollector.collectFlow(
-            flow = apiCallHelper.callApi { it.aggregateCredits }.map { result ->
+            flow = tmdbShow.callApi(retryToken) { it.aggregateCredits }.map { result ->
                 result.mapResult { credits ->
                     Credits(
                         cast = credits.cast.toCastPortraitModel(application),
@@ -177,4 +180,8 @@ class ShowScreenViewModelHelper(
         year = firstAirDate?.year,
         backdrop = backdrop?.toImageModelWithPlaceholder(),
     )
+
+    fun retryAll() {
+        scope.launch { retryToken.retryAll() }
+    }
 }

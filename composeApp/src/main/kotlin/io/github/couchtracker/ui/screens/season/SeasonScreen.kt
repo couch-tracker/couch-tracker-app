@@ -46,8 +46,7 @@ private const val LOG_TAG = "SeasonScreen"
 data class SeasonScreen(val seasonId: String) : Screen() {
     @Composable
     override fun content() {
-        val externalSeasonId = ExternalSeasonId.parse(this@SeasonScreen.seasonId)
-        val seasonId = when (externalSeasonId) {
+        val seasonId = when (val externalSeasonId = ExternalSeasonId.parse(this@SeasonScreen.seasonId)) {
             is TmdbExternalSeasonId -> {
                 externalSeasonId.id
             }
@@ -58,7 +57,6 @@ data class SeasonScreen(val seasonId: String) : Screen() {
             viewModel {
                 SeasonScreenViewModel(
                     application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
-                    externalSeasonId = externalSeasonId,
                     seasonId = seasonId,
                 )
             },

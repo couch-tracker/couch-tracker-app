@@ -12,13 +12,16 @@ import io.github.couchtracker.ui.components.EpisodeListItemModel
 import io.github.couchtracker.ui.isWorthDisplayingAltSeasonName
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.utils.FlowToStateCollector
-import io.github.couchtracker.utils.api.ApiCallHelper
 import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.api.FlowRetryToken
+import io.github.couchtracker.utils.api.callApi
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
 /**
@@ -26,13 +29,11 @@ import kotlinx.datetime.LocalDate
  */
 class SeasonScreenViewModelHelper(
     val application: Application,
-    scope: CoroutineScope,
+    val scope: CoroutineScope,
     val seasonId: TmdbSeasonId,
-    val apiCallHelper: ApiCallHelper<TmdbSeason> = ApiCallHelper(
-        scope = scope,
-        item = AppSettings.get { Tmdb.Languages }
-            .map { languages -> TmdbSeason(seasonId, languages.current) },
-    ),
+    val retryToken: FlowRetryToken = FlowRetryToken(),
+    val tmdbSeason: Flow<TmdbSeason> = AppSettings.get { Tmdb.Languages }
+        .map { languages -> TmdbSeason(seasonId, languages.current) },
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
 
@@ -49,7 +50,7 @@ class SeasonScreenViewModelHelper(
 
     fun details(): State<ApiLoadable<Details>> {
         return flowCollector.collectFlow(
-            flow = apiCallHelper.callApi { it.details }.map { result ->
+            flow = tmdbSeason.callApi(retryToken) { it.details }.map { result ->
                 result.mapResult { tmdbSeasonDetails ->
                     Details(
                         number = tmdbSeasonDetails.seasonNumber,
@@ -65,5 +66,9 @@ class SeasonScreenViewModelHelper(
                 }
             },
         )
+    }
+
+    fun retryAll() {
+        scope.launch { retryToken.retryAll() }
     }
 }
