@@ -106,6 +106,11 @@ data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
     fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
 
     companion object {
+        val COLUMN_ADAPTER: ColumnAdapter<TmdbEpisodeId, String> = object : ColumnAdapter<TmdbEpisodeId, String> {
+            override fun decode(databaseValue: String) = ofValue(databaseValue)
+            override fun encode(value: TmdbEpisodeId) = value.toString()
+        }
+
         fun ofValue(value: String): TmdbEpisodeId {
             val (show, rest) = value.split('-', limit = 2).also {
                 require(it.size == 2) { "Invalid serialized TMDB episode ID: $value" }

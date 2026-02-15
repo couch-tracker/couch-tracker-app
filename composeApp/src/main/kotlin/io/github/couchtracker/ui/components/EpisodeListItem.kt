@@ -51,7 +51,7 @@ fun EpisodeListItem(
             Surface(shape = MaterialTheme.shapes.small) {
                 AsyncImage(
                     with(LocalDensity.current) {
-                        episode.poster?.getCoilModel(STILL_WIDTH.roundToPx(), STILL_HEIGHT.roundToPx())
+                        episode.backdrop?.getCoilModel(STILL_WIDTH.roundToPx(), STILL_HEIGHT.roundToPx())
                     },
                     modifier = Modifier.size(STILL_WIDTH, STILL_HEIGHT),
                     contentDescription = null,
@@ -94,7 +94,7 @@ fun EpisodeListItem(
 data class EpisodeListItemModel(
     val name: String?,
     val number: String,
-    val poster: ImageModel?,
+    val backdrop: ImageModel?,
     val firstAirDate: String?,
     val runtime: String?,
     val tmdbRating: TmdbRating?,
@@ -105,7 +105,7 @@ data class EpisodeListItemModel(
             return EpisodeListItemModel(
                 name = episode.name,
                 number = context.getString(R.string.episode_x, episode.episodeNumber),
-                poster = episode.backdropImage?.toImageModelWithPlaceholder(),
+                backdrop = episode.backdropImage?.toImageModelWithPlaceholder(),
                 firstAirDate = episode.airDate?.let {
                     PartialDateTime.Local.Date(it)
                         .localized(

@@ -21,6 +21,7 @@ import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.composable
+import io.github.couchtracker.ui.screens.episodes.EpisodeScreen
 import io.github.couchtracker.ui.screens.main.MainScreen
 import io.github.couchtracker.ui.screens.main.SearchScreen
 import io.github.couchtracker.ui.screens.movie.MovieScreen
@@ -76,6 +77,7 @@ fun App() {
                                 composable<MovieScreen>()
                                 composable<ShowScreen>()
                                 composable<SeasonScreen>()
+                                composable<EpisodeScreen>()
                                 composable<WatchedItemsScreen>()
                                 settings()
                             }

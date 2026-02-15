@@ -1,5 +1,6 @@
 package io.github.couchtracker.ui.components
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +38,8 @@ fun MediaScreenScaffold(
     title: String,
     backdrop: ImageModel?,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    belowAppBar: @Composable ColumnScope.() -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
@@ -54,7 +57,14 @@ fun MediaScreenScaffold(
                 modifier = modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                 containerColor = Color.Transparent,
                 topBar = {
-                    OverviewScreenComponents.Header(title, backdrop, topAppBarScrollBehavior, backgroundColor)
+                    OverviewScreenComponents.Header(
+                        title = title,
+                        backdrop = backdrop,
+                        scrollBehavior = topAppBarScrollBehavior,
+                        backgroundColor = backgroundColor,
+                        subtitle = subtitle,
+                        belowAppBar = belowAppBar,
+                    )
                 },
                 floatingActionButton = floatingActionButton,
                 snackbarHost = { SnackbarHost(snackbarHostState) },

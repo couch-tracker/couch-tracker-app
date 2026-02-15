@@ -5,6 +5,7 @@ import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.common.SqliteDriverFactory
 import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
+import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbSeasonId
@@ -68,6 +69,17 @@ val TmdbCacheDbModule = lazyEagerModule {
                 tmdbIdAdapter = TmdbSeasonId.COLUMN_ADAPTER,
                 languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
                 detailsAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            EpisodeDetailsCacheAdapter = EpisodeDetailsCache.Adapter(
+                tmdbIdAdapter = TmdbEpisodeId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
+                detailsAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            EpisodeImagesCacheAdapter = EpisodeImagesCache.Adapter(
+                tmdbIdAdapter = TmdbEpisodeId.COLUMN_ADAPTER,
+                imagesAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
         )

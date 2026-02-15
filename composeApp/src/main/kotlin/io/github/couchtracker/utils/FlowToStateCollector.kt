@@ -1,7 +1,11 @@
 package io.github.couchtracker.utils
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +22,8 @@ class FlowToStateCollector<T>(
     val scope: CoroutineScope,
 ) {
     private val allStates = mutableListOf<State<T>>()
-    val currentValues: List<T> get() = allStates.map { it.value }
+    private val childCollectors = mutableStateListOf<FlowToStateCollector<out T>>()
+    val currentValues: List<T> get() = allStates.map { it.value } + childCollectors.flatMap { it.currentValues }
 
     fun <I : T> collectFlow(
         flow: Flow<I>,
@@ -31,6 +36,19 @@ class FlowToStateCollector<T>(
         }
         allStates.add(state)
         return state
+    }
+
+    @Composable
+    fun childCollector(): FlowToStateCollector<T> {
+        val scope = rememberCoroutineScope()
+        val childCollector = FlowToStateCollector<T>(scope)
+        DisposableEffect(scope) {
+            childCollectors.add(childCollector)
+            onDispose {
+                childCollectors.remove(childCollector)
+            }
+        }
+        return childCollector
     }
 }
 

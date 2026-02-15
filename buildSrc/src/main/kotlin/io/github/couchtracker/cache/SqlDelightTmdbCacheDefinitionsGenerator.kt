@@ -65,8 +65,21 @@ private val CACHES = listOf(
         hasLanguage = true,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbSeasonDetail"),
     ),
+    // Episode
+    SqlTmdbModelCache(
+        name = "EpisodeDetailsCache",
+        key = TmdbModelKey.EPISODE_ID,
+        hasLanguage = true,
+        value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbEpisodeDetail"),
+    ),
+    SqlTmdbModelCache(
+        name = "EpisodeImagesCache",
+        key = TmdbModelKey.EPISODE_ID,
+        hasLanguage = false,
+        value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
+    ),
 ).also { cachesDefinitions ->
-    check(cachesDefinitions.distinctBy { it.name }.size == cachesDefinitions.size){
+    check(cachesDefinitions.distinctBy { it.name }.size == cachesDefinitions.size) {
         "Duplicate cache names"
     }
 }

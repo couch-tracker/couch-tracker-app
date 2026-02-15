@@ -21,7 +21,12 @@ data class TmdbShow(
         initialRequestInput = emptyList(),
         downloader = { appendToResponse ->
             tmdbDownloadResult(logTag = "${id.toExternalId().serialize()}-batched-details") { tmdb ->
-                tmdb.show.getDetails(id.value, languages.apiLanguage.apiParameter, appendToResponse.ifEmpty { null })
+                tmdb.show.getDetails(
+                    showId = id.value,
+                    language = languages.apiLanguage.apiParameter,
+                    appendResponses = appendToResponse.ifEmpty { null },
+                    includeImageLanguages = "null",
+                )
             }
         },
     )

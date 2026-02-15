@@ -29,12 +29,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabIndicatorScope
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -140,22 +142,57 @@ object OverviewScreenComponents {
             containerColor = Color.Transparent,
             contentColor = color,
             divider = {},
-            indicator = {
-                TabRowDefaults.PrimaryIndicator(
-                    Modifier.tabIndicatorOffset(pagerState.currentPage, matchContentSize = true),
-                    width = Dp.Unspecified,
-                    color = color,
-                )
-            },
+            indicator = { PagerIndicator(pagerState, color) },
         ) {
-            for (page in 0..<pagerState.pageCount) {
-                Tab(
-                    selected = page == pagerState.currentPage,
-                    unselectedContentColor = unselectedColor,
-                    onClick = { onPageClick(page) },
-                ) {
-                    HeaderTab(tabText(page))
-                }
+            PagerTabs(pagerState, unselectedColor, onPageClick, tabText)
+        }
+    }
+
+    @Composable
+    fun HeaderScrollableTabRow(
+        pagerState: PagerState,
+        tabText: @Composable (Int) -> String,
+        onPageClick: (Int) -> Unit,
+    ) {
+        val color = MaterialTheme.colorScheme.contentColorFor(MaterialTheme.colorScheme.background)
+        val unselectedColor = lerp(MaterialTheme.colorScheme.background, color, UNSELECTED_TABS_ALPHA)
+        PrimaryScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            containerColor = Color.Transparent,
+            contentColor = color,
+            divider = {},
+            indicator = { PagerIndicator(pagerState, color) },
+        ) {
+            PagerTabs(pagerState, unselectedColor, onPageClick, tabText)
+        }
+    }
+
+    @Composable
+    private fun TabIndicatorScope.PagerIndicator(
+        pagerState: PagerState,
+        color: Color,
+    ) {
+        TabRowDefaults.PrimaryIndicator(
+            Modifier.tabIndicatorOffset(pagerState.currentPage, matchContentSize = true),
+            width = Dp.Unspecified,
+            color = color,
+        )
+    }
+
+    @Composable
+    private fun PagerTabs(
+        pagerState: PagerState,
+        unselectedColor: Color,
+        onPageClick: (Int) -> Unit,
+        tabText: @Composable ((Int) -> String),
+    ) {
+        for (page in 0..<pagerState.pageCount) {
+            Tab(
+                selected = page == pagerState.currentPage,
+                unselectedContentColor = unselectedColor,
+                onClick = { onPageClick(page) },
+            ) {
+                HeaderTab(tabText(page))
             }
         }
     }
@@ -184,9 +221,9 @@ object OverviewScreenComponents {
         retryMessage: String = R.string.error_loading_data.str(),
         retryAction: String = R.string.retry_action.str(),
     ) {
-        val loadable = loadable()
-        LaunchedEffect(snackbarHostState, loadable, onRetry, retryMessage, retryAction) {
-            if (loadable.any { it is Loadable.Loaded && it.value is Result.Error }) {
+        val inError = loadable().any { it is Loadable.Loaded && it.value is Result.Error }
+        LaunchedEffect(snackbarHostState, inError, onRetry, retryMessage, retryAction) {
+            if (inError) {
                 val result = snackbarHostState.showSnackbar(
                     retryMessage,
                     actionLabel = retryAction,
@@ -328,6 +365,14 @@ object OverviewScreenComponents {
         }
     }
 
+    fun LazyListScope.title(title: ApiLoadable<String?>) {
+        textBlock(
+            key = "title",
+            text = title,
+            placeholderLines = 1,
+        )
+    }
+
     fun LazyListScope.tagline(tagline: ApiLoadable<String?>) {
         textBlock(
             key = "tagline",
@@ -440,9 +485,13 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.castSection(people: ApiLoadable<List<CastPortraitModel>>, totalHeight: Int) {
+    fun LazyListScope.castSection(
+        people: ApiLoadable<List<CastPortraitModel>>,
+        totalHeight: Int,
+        title: SizeAwareLazyListScope.() -> Unit = { textBlock("cast-title", R.string.section_cast) },
+    ) {
         sectionWithPlaceholder(
-            title = { textBlock("cast-title", R.string.section_cast) },
+            title = title,
             contentKey = "cast-content",
             content = people
                 .mapError { return }

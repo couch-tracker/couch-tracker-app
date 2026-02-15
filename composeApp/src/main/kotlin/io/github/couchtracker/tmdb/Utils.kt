@@ -7,8 +7,6 @@ import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbEpisode
-import app.moviebase.tmdb.model.TmdbFileImage
-import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import app.moviebase.tmdb.model.TmdbShowDetail
 import coil3.imageLoader
@@ -55,10 +53,6 @@ suspend fun ImageModel.extractColorScheme(ctx: Context): ColorScheme? {
 fun TmdbImage.toImageModelWithPlaceholder(): ImageModel {
     val smallUrl = TmdbImageUrlBuilder.build(this, PALETTE_IMAGE_SIZE, PALETTE_IMAGE_SIZE)
     return toImageModel().copy(placeholderUrl = ImageUrlProvider.Constant(smallUrl))
-}
-
-fun TmdbImages.linearize(): List<TmdbFileImage> {
-    return (backdrops + posters).sortedByDescending { it.voteAverage }
 }
 
 fun List<TmdbCrew>.directors(): List<TmdbCrew> {

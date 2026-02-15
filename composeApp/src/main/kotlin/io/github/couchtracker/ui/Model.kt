@@ -7,6 +7,7 @@ import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbFileImage
+import app.moviebase.tmdb.model.TmdbImages
 import coil3.request.ImageRequest
 
 data class ImageModel(
@@ -61,10 +62,32 @@ fun TmdbImage.toImageModel(): ImageModel {
     )
 }
 
-fun TmdbFileImage.toImageModel(type: TmdbImageType): ImageModel {
+private fun TmdbFileImage.toImageModel(type: TmdbImageType): ImageModel {
     return ImageModel(
         url = ImageUrlProvider.TmdbFileImage(this, type),
         aspectRatio = aspectRatio,
         placeholderUrl = null,
     )
+}
+
+fun TmdbImages.toImageModel(
+    includeBackdrops: Boolean = true,
+    includePosters: Boolean = true,
+    includeStills: Boolean = true,
+    includeLogos: Boolean = true,
+): List<ImageModel> {
+    val ret = mutableListOf<Pair<ImageModel, Float?>>()
+    if (includeBackdrops) {
+        backdrops.mapTo(ret) { it.toImageModel(TmdbImageType.BACKDROP) to it.voteAverage }
+    }
+    if (includePosters) {
+        posters.mapTo(ret) { it.toImageModel(TmdbImageType.POSTER) to it.voteAverage }
+    }
+    if (includeStills) {
+        stills.mapTo(ret) { it.toImageModel(TmdbImageType.BACKDROP) to it.voteAverage }
+    }
+    if (includeLogos) {
+        logos.mapTo(ret) { it.toImageModel(TmdbImageType.LOGO) to it.voteAverage }
+    }
+    return ret.sortedByDescending { it.second }.map { it.first }
 }

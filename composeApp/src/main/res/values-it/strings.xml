@@ -65,6 +65,7 @@
     <string name="section_images">Immagini</string>
     <string name="section_cast">Cast</string>
     <string name="section_crew">Troupe</string>
+    <string name="section_guest_stars">Ospiti speciali</string>
 
     <string name="date_and_time">Data e ora</string>
     <string name="date_and_time_dialog_precision">Precisione:</string>
@@ -116,6 +117,7 @@
     <string name="season_x">Stagione %1$d</string>
     <string name="season_specials">Extra</string>
     <string name="episode_x">Episodio %1$d</string>
+    <string name="show_dash_season">%1$s - %2$s</string>
 
     <string name="mark_movie_as_watched">Segna come visto</string>
     <string name="mark_episode_as_watched">Segna come visto</string>

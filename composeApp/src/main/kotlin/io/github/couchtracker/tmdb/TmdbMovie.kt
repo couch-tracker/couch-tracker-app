@@ -22,7 +22,12 @@ data class TmdbMovie(
         initialRequestInput = emptyList(),
         downloader = { appendToResponse ->
             tmdbDownloadResult(logTag = "${id.toExternalId().serialize()}-batched-details") { tmdb ->
-                tmdb.movies.getDetails(id.value, languages.apiLanguage.apiParameter, appendToResponse.ifEmpty { null })
+                tmdb.movies.getDetails(
+                    movieId = id.value,
+                    language = languages.apiLanguage.apiParameter,
+                    appendResponses = appendToResponse.ifEmpty { null },
+                    includeImageLanguages = "null",
+                )
             }
         },
     )

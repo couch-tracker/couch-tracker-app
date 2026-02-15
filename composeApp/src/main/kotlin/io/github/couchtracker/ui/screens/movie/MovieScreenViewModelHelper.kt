@@ -3,7 +3,6 @@ package io.github.couchtracker.ui.screens.movie
 import android.app.Application
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.State
-import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.R
@@ -18,7 +17,6 @@ import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.directors
 import io.github.couchtracker.tmdb.extractColorScheme
 import io.github.couchtracker.tmdb.language
-import io.github.couchtracker.tmdb.linearize
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
@@ -124,9 +122,7 @@ class MovieScreenViewModelHelper(
         return flowCollector.collectFlow(
             flow = tmdbMovie.callApi(retryToken) { it.images }.map { result ->
                 result.mapResult { images ->
-                    images
-                        .linearize()
-                        .map { it.toImageModel(TmdbImageType.BACKDROP) }
+                    images.toImageModel(includeLogos = false)
                 }
             },
         )
