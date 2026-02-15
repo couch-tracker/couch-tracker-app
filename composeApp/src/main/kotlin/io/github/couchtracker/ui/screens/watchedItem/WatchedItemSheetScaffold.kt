@@ -68,7 +68,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
-import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelectionsState
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
@@ -83,8 +82,6 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
-
-object WatchedItemSheetScope
 
 @Stable
 class WatchedItemSheetScaffoldState(
@@ -232,30 +229,6 @@ private fun WatchedItemSheetContent(
 
     val enabled = !saveAction.isLoading
 
-    @Composable
-    fun WatchedItemSheetScope.DimensionSection(selection: WatchedItemDimensionSelection<*>) {
-        when (selection) {
-            is WatchedItemDimensionSelection.Choice -> ChoiceSection(
-                enabled = enabled,
-                selection = selection,
-                onSelectionChange = selections::update,
-            )
-
-            is WatchedItemDimensionSelection.Language -> LanguageSection(
-                enabled = enabled,
-                mediaLanguages = mediaLanguages(),
-                selection = selection,
-                onSelectionChange = selections::update,
-            )
-
-            is WatchedItemDimensionSelection.FreeText -> FreeTextSection(
-                enabled = enabled,
-                selection = selection,
-                onSelectionChange = selections::update,
-            )
-        }
-    }
-
     BoxWithConstraints {
         ProfileDbErrorDialog(saveAction)
         if (selections.sheetMode is WatchedItemSheetMode.Edit) {
@@ -268,7 +241,7 @@ private fun WatchedItemSheetContent(
 
         val c = this.constraints
         LazyColumn(state = lazyListState, modifier = Modifier.animateContentSize()) {
-            WatchedItemSheetScope.apply {
+            WatchedItemSelectionsScope.apply {
                 item {
                     Column(
                         Modifier.onPlaced {
@@ -293,7 +266,12 @@ private fun WatchedItemSheetContent(
                         DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, mediaRuntime)
                         for (selection in selections.dimensions.filter { it.dimension.isImportant }) {
                             AnimatedVisibility(visible = selection.dimension.isEnabled(selections.dimensions)) {
-                                DimensionSection(selection)
+                                DimensionSection(
+                                    enabled = enabled,
+                                    selection = selection,
+                                    mediaLanguages = mediaLanguages,
+                                    onSelectionChange = selections::update,
+                                )
                             }
                         }
                     }
@@ -302,7 +280,12 @@ private fun WatchedItemSheetContent(
                     if (selection.dimension.isEnabled(selections.dimensions)) {
                         item(key = selection.dimension.id) {
                             BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight, modifier = Modifier.animateItem()) {
-                                DimensionSection(selection)
+                                DimensionSection(
+                                    enabled = enabled,
+                                    selection = selection,
+                                    mediaLanguages = mediaLanguages,
+                                    onSelectionChange = selections::update,
+                                )
                             }
                         }
                     }
@@ -431,7 +414,7 @@ private fun ButtonRow(
 
 @Composable
 @Suppress("UnusedReceiverParameter")
-fun WatchedItemSheetScope.Section(
+fun WatchedItemSelectionsScope.Section(
     title: Text,
     validity: WatchedItemDimensionSelectionValidity,
     modifier: Modifier = Modifier,

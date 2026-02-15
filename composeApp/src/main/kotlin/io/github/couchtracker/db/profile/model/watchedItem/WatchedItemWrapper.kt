@@ -79,17 +79,16 @@ sealed class WatchedItemWrapper {
         fun load(
             db: ProfileData,
             selections: List<WatchedItemDimensionSelectionsWrapper>,
+            watchedEpisodeSessions: List<WatchedEpisodeSessionWrapper>,
         ): List<WatchedItemWrapper> {
             val watchedItems = db.watchedItemQueries.selectAll().executeAsList()
             val watchedMovies = db.watchedMovieQueries.selectAll().executeAsList().associateBy { it.id }
             val watchedEpisodes = db.watchedEpisodeQueries.selectAll().executeAsList().associateBy { it.id }
+            val watchedEpisodeSessions = watchedEpisodeSessions.associateBy { it.id }
+
             val selectionsById = selections.associateBy { it.id }
 
             fun findSelections(id: Long) = selectionsById[id] ?: error("Unable to find WatchedItemDimensionSelections with id $id")
-
-            val watchedEpisodeSessions = db.watchedEpisodeSessionQueries.selectAll().executeAsList()
-                .map { WatchedEpisodeSessionWrapper(it, findSelections(it.defaultDimensionSelections)) }
-                .associateBy { it.id }
 
             return watchedItems.map { watchedItem ->
                 val watchedMovie = watchedMovies[watchedItem.id]

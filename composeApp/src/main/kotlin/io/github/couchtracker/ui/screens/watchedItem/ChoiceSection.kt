@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 
 @Composable
-fun WatchedItemSheetScope.ChoiceSection(
+fun WatchedItemSelectionsScope.ChoiceSection(
     enabled: Boolean,
     selection: WatchedItemDimensionSelection.Choice,
     onSelectionChange: (WatchedItemDimensionSelection.Choice) -> Unit,
