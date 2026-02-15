@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -190,7 +191,10 @@ private fun WatchedItemListItem(
         },
         supportingContent = {
             Column {
-                WatchedItemDimensionSelections(watchedItem.dimensions)
+                WatchedItemDimensionSelections(
+                    selections = watchedItem.dimensions,
+                    emptyPlaceholder = { Text(R.string.watched_item_no_additional_information.str(), fontStyle = FontStyle.Italic) },
+                )
                 WatchedItemProgress(
                     state = progressState,
                     type = watchedItem.type(),

@@ -2,6 +2,8 @@ package io.github.couchtracker.db.profile
 
 import android.util.Log
 import io.github.couchtracker.db.profile.externalids.BookmarkableExternalId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionsWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
@@ -15,8 +17,13 @@ private const val LOG_TAG = "FullProfileData"
 data class FullProfileData(
     val bookmarkedItems: Map<BookmarkableExternalId, BookmarkedItem>,
     val watchedItems: List<WatchedItemWrapper>,
+    val watchedEpisodeSessions: Map<ExternalShowId, List<WatchedEpisodeSessionWrapper>>,
     val watchedItemDimensions: List<WatchedItemDimensionWrapper>,
 ) {
+
+    val watchedEpisodesBySession: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>> = watchedItems
+        .filterIsInstance<WatchedItemWrapper.Episode>()
+        .groupBy { it.session }
 
     companion object {
 
@@ -26,9 +33,11 @@ data class FullProfileData(
                 withContext(coroutineContext) {
                     val watchedItemDimensions = WatchedItemDimensionWrapper.load(db)
                     val watchedItemDimensionSelections = WatchedItemDimensionSelectionsWrapper.load(db, watchedItemDimensions)
+                    val watchedEpisodeSessions = WatchedEpisodeSessionWrapper.load(db, watchedItemDimensionSelections)
                     FullProfileData(
                         bookmarkedItems = db.bookmarkedItemQueries.selectAll().executeAsList().associateBy { it.itemId },
-                        watchedItems = WatchedItemWrapper.load(db, watchedItemDimensionSelections),
+                        watchedItems = WatchedItemWrapper.load(db, watchedItemDimensionSelections, watchedEpisodeSessions),
+                        watchedEpisodeSessions = watchedEpisodeSessions.groupBy { it.showId },
                         watchedItemDimensions = watchedItemDimensions,
                     )
                 }

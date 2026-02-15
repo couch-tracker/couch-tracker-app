@@ -12,6 +12,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -69,7 +70,6 @@ data class ShowScreen(val showId: String) : Screen() {
             is TmdbExternalShowId -> externalShowId.id
             is UnknownExternalShowId -> TODO()
         }
-
         Content(
             viewModel {
                 ShowScreenViewModel(
@@ -188,11 +188,15 @@ private fun ShowScreenContent(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ShowToolbar(externalShowId: ExternalShowId) {
+    val navController = LocalNavController.current
     HorizontalFloatingToolbar(
         expanded = false,
         content = {
             IconButton(onClick = { /* TODO */ }) {
                 Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
+            }
+            IconButton(onClick = { navController.navigateToEpisodeWatchSessions(externalShowId) }) {
+                Icon(Icons.Outlined.Layers, contentDescription = R.string.watch_sessions.str())
             }
             BookmarkIconButton(externalShowId)
         },

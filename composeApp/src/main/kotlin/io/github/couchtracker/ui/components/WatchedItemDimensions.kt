@@ -3,29 +3,34 @@ package io.github.couchtracker.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.utils.Text
-import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.toIcon
 
 /**
  * Lists in a [FlowRow] all the given [WatchedItemDimensionSelection] using the icon if it exists, or the name.
  */
 @Composable
-fun WatchedItemDimensionSelections(selections: List<WatchedItemDimensionSelection<*>>) {
+fun WatchedItemDimensionSelections(
+    selections: List<WatchedItemDimensionSelection<*>>,
+    emptyPlaceholder: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val infoList = remember(selections) { selections.getDimensionInfoList() }
     FlowRow(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (infoList.isEmpty()) {
-            Text(R.string.watched_item_no_additional_information.str(), fontStyle = FontStyle.Italic)
+            emptyPlaceholder()
         } else {
             for (info in infoList) {
                 when (info) {
@@ -64,7 +69,10 @@ private fun List<WatchedItemDimensionSelection<*>>.getDimensionInfoList(): List<
                 listOf(WatchedItemDimensionInfo.Text(Text.Literal(language.toString())))
             }.orEmpty()
 
-            is WatchedItemDimensionSelection.FreeText -> emptyList() // We can't display free text, no-op
+            is WatchedItemDimensionSelection.FreeText -> when {
+                selection.isEmpty() -> emptyList()
+                else -> listOf(WatchedItemDimensionInfo.Icon(Icons.AutoMirrored.Outlined.Article.toIcon()))
+            }
         }
     }
 }

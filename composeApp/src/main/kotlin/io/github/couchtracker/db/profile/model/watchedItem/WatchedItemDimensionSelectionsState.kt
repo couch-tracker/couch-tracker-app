@@ -14,7 +14,7 @@ class WatchedItemDimensionSelectionsState(
     dimensions: List<WatchedItemDimensionSelection<*>>,
 ) {
     private var dimensionsMap by mutableStateOf(dimensions.associateBy { it.dimension })
-    val dimensions get() = dimensionsMap.values
+    val dimensions get() = dimensionsMap.values.toList()
 
     fun isValid(): Boolean {
         return dimensions.all { it.validity() is WatchedItemDimensionSelectionValidity.Valid }
@@ -85,7 +85,8 @@ fun rememberWatchedItemDimensionSelectionsState(
             is WatchedItemDimensionSelectionsMode.Edit -> {
                 WatchedItemDimensionSelectionsState(
                     mode = mode,
-                    dimensions = mode.selections.dimensions,
+                    dimensions = mode.selections.dimensions
+                        .filter { watchedItemType in it.dimension.appliesTo || !it.isEmpty() },
                 )
             }
         }

@@ -6,7 +6,6 @@ import io.github.couchtracker.db.common.adapters.map
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
-import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
@@ -40,7 +39,7 @@ value class TmdbShowId(override val value: Int) : TmdbIntId {
         requireTmdbId(value)
     }
 
-    fun toExternalId(): ExternalShowId = TmdbExternalShowId(this)
+    fun toExternalId() = TmdbExternalShowId(this)
 
     fun season(number: Int) = TmdbSeasonId(showId = this, number = number)
 
