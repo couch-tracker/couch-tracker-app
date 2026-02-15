@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.season.ExternalSeasonId
 import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.season.UnknownExternalSeasonId
@@ -34,6 +35,7 @@ import io.github.couchtracker.ui.components.EpisodeListItem
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
+import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
@@ -135,6 +137,7 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
     viewModel: SeasonScreenViewModel,
     modifier: Modifier = Modifier,
 ) {
+    val navController = LocalNavController.current
     val episodes = viewModel.details.mapResult { it.episodes }
     LoadableScreen(
         episodes,
@@ -152,12 +155,10 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             items(episodes.size) { index ->
-                val (_, episode) = episodes[index]
+                val (episodeId, episode) = episodes[index]
                 EpisodeListItem(
                     episode,
-                    onClick = {
-                        // TODO: navigate to episode
-                    },
+                    onClick = { navController.navigateToEpisode(episodeId) },
                     isFirstInList = index == 0,
                     isLastInList = index == episodes.size - 1,
                 )

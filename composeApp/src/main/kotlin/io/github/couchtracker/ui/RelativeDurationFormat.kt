@@ -15,11 +15,6 @@ import io.github.couchtracker.utils.rememberTickingValue
 import io.github.couchtracker.utils.toIbmIcuTimeUnit
 import io.github.couchtracker.utils.toULocale
 import io.github.couchtracker.utils.unitPart
-import kotlin.collections.filter
-import kotlin.collections.ifEmpty
-import kotlin.collections.last
-import kotlin.collections.map
-import kotlin.collections.minOf
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.DurationUnit

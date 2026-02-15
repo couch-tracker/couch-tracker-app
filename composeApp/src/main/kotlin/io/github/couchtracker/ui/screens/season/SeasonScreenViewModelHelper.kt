@@ -10,6 +10,8 @@ import io.github.couchtracker.tmdb.TmdbSeason
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.ui.components.EpisodeListItemModel
 import io.github.couchtracker.ui.isWorthDisplayingAltSeasonName
+import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
+import io.github.couchtracker.ui.seasonNameSubtitle
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.api.ApiLoadable
@@ -17,6 +19,7 @@ import io.github.couchtracker.utils.api.FlowRetryToken
 import io.github.couchtracker.utils.api.callApi
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.mapResult
+import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +39,13 @@ class SeasonScreenViewModelHelper(
         .map { languages -> TmdbSeason(seasonId, languages.current) },
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
+    val showViewModel = ShowScreenViewModelHelper(
+        application = application,
+        scope = scope,
+        showId = seasonId.showId,
+        flowCollector = flowCollector,
+        retryToken = retryToken,
+    )
 
     data class Details(
         val number: Int,
@@ -66,6 +76,16 @@ class SeasonScreenViewModelHelper(
                 }
             },
         )
+    }
+
+    fun subtitle(
+        details: ApiLoadable<Details>,
+        showBaseDetails: ApiLoadable<ShowScreenViewModelHelper.BaseDetails>,
+    ): ApiLoadable<String?> {
+        return details.mapResult { season ->
+            val show = showBaseDetails.resultValueOrNull()
+            seasonNameSubtitle(application, season.displayDefaultName, show?.name, season.defaultName)
+        }
     }
 
     fun retryAll() {
