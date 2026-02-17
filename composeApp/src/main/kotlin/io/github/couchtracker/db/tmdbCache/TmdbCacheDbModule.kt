@@ -7,6 +7,7 @@ import io.github.couchtracker.db.common.adapters.InstantColumnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbLanguagesFilter
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -36,11 +37,13 @@ val TmdbCacheDbModule = lazyEagerModule {
             ),
             MovieCreditsCacheAdapter = MovieCreditsCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
                 creditsAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
             MovieImagesCacheAdapter = MovieImagesCache.Adapter(
                 tmdbIdAdapter = TmdbMovieId.COLUMN_ADAPTER,
+                languagesAdapter = TmdbLanguagesFilter.COLUMN_ADAPTER,
                 imagesAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
@@ -57,11 +60,13 @@ val TmdbCacheDbModule = lazyEagerModule {
             ),
             ShowImagesCacheAdapter = ShowImagesCache.Adapter(
                 tmdbIdAdapter = TmdbShowId.COLUMN_ADAPTER,
+                languagesAdapter = TmdbLanguagesFilter.COLUMN_ADAPTER,
                 imagesAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
             ShowAggregateCreditsCacheAdapter = ShowAggregateCreditsCache.Adapter(
                 tmdbIdAdapter = TmdbShowId.COLUMN_ADAPTER,
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
                 creditsAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
@@ -79,6 +84,7 @@ val TmdbCacheDbModule = lazyEagerModule {
             ),
             EpisodeImagesCacheAdapter = EpisodeImagesCache.Adapter(
                 tmdbIdAdapter = TmdbEpisodeId.COLUMN_ADAPTER,
+                languagesAdapter = TmdbLanguagesFilter.COLUMN_ADAPTER,
                 imagesAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),

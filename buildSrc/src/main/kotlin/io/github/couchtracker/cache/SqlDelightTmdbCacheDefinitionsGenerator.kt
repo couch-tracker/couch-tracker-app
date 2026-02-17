@@ -12,70 +12,68 @@ private val CACHES = listOf(
     SqlTmdbModelCache(
         name = "MovieDetailsCache",
         key = TmdbModelKey.MOVIE_ID,
-        hasLanguage = true,
+        languageKey = LANGUAGE_COLUMN,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbMovieDetail"),
     ),
     SqlTmdbModelCache(
         name = "MovieReleaseDatesCache",
         key = TmdbModelKey.MOVIE_ID,
-        hasLanguage = false,
         value = SqlColumn.text("releaseDates", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbReleaseDates>"),
     ),
     SqlTmdbModelCache(
         name = "MovieCreditsCache",
         key = TmdbModelKey.MOVIE_ID,
-        hasLanguage = false,
+        languageKey = LANGUAGE_COLUMN,
         value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbCredits"),
     ),
     SqlTmdbModelCache(
         name = "MovieImagesCache",
         key = TmdbModelKey.MOVIE_ID,
-        hasLanguage = false,
+        languageKey = LANGUAGES_FILTER_COLUMN,
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
     ),
     SqlTmdbModelCache(
         name = "MovieVideosCache",
         key = TmdbModelKey.MOVIE_ID,
-        hasLanguage = false,
         value = SqlColumn.text("videos", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbVideo>"),
     ),
     // Show
     SqlTmdbModelCache(
         name = "ShowDetailsCache",
         key = TmdbModelKey.SHOW_ID,
-        hasLanguage = true,
+        languageKey = LANGUAGE_COLUMN,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbShowDetail"),
     ),
     SqlTmdbModelCache(
         name = "ShowImagesCache",
         key = TmdbModelKey.SHOW_ID,
-        hasLanguage = false,
+        languageKey = LANGUAGES_FILTER_COLUMN,
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
     ),
     SqlTmdbModelCache(
         name = "ShowAggregateCreditsCache",
         key = TmdbModelKey.SHOW_ID,
-        hasLanguage = false,
+        languageKey = LANGUAGE_COLUMN, //TODO?
         value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbAggregateCredits"),
     ),
     // Season
     SqlTmdbModelCache(
         name = "SeasonDetailsCache",
         key = TmdbModelKey.SEASON_ID,
-        hasLanguage = true,
+        languageKey = LANGUAGE_COLUMN,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbSeasonDetail"),
     ),
     // Episode
     SqlTmdbModelCache(
         name = "EpisodeDetailsCache",
         key = TmdbModelKey.EPISODE_ID,
-        hasLanguage = true,
+        languageKey = LANGUAGE_COLUMN,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbEpisodeDetail"),
     ),
     SqlTmdbModelCache(
         name = "EpisodeImagesCache",
         key = TmdbModelKey.EPISODE_ID,
-        hasLanguage = false,
+        languageKey = LANGUAGES_FILTER_COLUMN,
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
     ),
 ).also { cachesDefinitions ->

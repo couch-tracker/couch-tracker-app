@@ -3,8 +3,8 @@ package io.github.couchtracker.tmdb
 import androidx.collection.LruCache
 
 class TmdbBaseMemoryCache {
-    private val movieCache = LruCache<TmdbBaseCacheKey<TmdbMovieId>, BaseTmdbMovie>(32)
-    private val showCache = LruCache<TmdbBaseCacheKey<TmdbShowId>, BaseTmdbShow>(32)
+    private val movieCache = LruCache<TmdbBaseCacheKey<TmdbMovieId, TmdbLanguage>, BaseTmdbMovie>(32)
+    private val showCache = LruCache<TmdbBaseCacheKey<TmdbShowId, TmdbLanguage>, BaseTmdbShow>(32)
 
     fun registerItem(movie: BaseTmdbMovie) {
         movieCache.put(movie.key, movie)
@@ -14,15 +14,12 @@ class TmdbBaseMemoryCache {
         showCache.put(show.key, show)
     }
 
-    fun getMovie(movie: TmdbMovie): BaseTmdbMovie? = movieCache[movie.baseCacheKey]
+    fun getMovie(movie: TmdbMovieId, language: TmdbLanguage): BaseTmdbMovie? = movieCache[TmdbBaseCacheKey(movie, language)]
 
-    fun getShow(show: TmdbShow): BaseTmdbShow? = showCache[show.baseCacheKey]
+    fun getShow(show: TmdbShowId, language: TmdbLanguage): BaseTmdbShow? = showCache[TmdbBaseCacheKey(show, language)]
 }
 
-data class TmdbBaseCacheKey<ID : TmdbId>(
+data class TmdbBaseCacheKey<ID : TmdbId, L>(
     val id: ID,
-    val language: TmdbLanguage,
+    val language: L,
 )
-
-val TmdbMovie.baseCacheKey get() = TmdbBaseCacheKey(id = id, language = languages.apiLanguage)
-val TmdbShow.baseCacheKey get() = TmdbBaseCacheKey(id = id, language = languages.apiLanguage)

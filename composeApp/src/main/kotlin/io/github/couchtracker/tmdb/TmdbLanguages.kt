@@ -23,6 +23,8 @@ value class TmdbLanguages(val languages: List<TmdbLanguage>) {
      */
     val apiLanguage get() = languages.first()
 
+    fun toTmdbLanguagesFilter() = TmdbLanguagesFilter(languages.toSet())
+
     fun tryPlus(another: TmdbLanguage) = TmdbLanguages((languages + another).distinct())
 
     fun tryMinus(another: TmdbLanguage) = if (size > 1) TmdbLanguages(languages - another) else this

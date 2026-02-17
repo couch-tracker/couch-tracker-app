@@ -8,24 +8,18 @@ import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.ui.screens.episodes.EpisodesScreenViewModelHelper.EpisodeViewModelHelper
-import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.api.ApiLoadable
-import io.github.couchtracker.utils.api.FlowRetryToken
 
 class EpisodesScreenViewModel(
     application: Application,
     val seasonId: TmdbSeasonId,
-    val retryToken: FlowRetryToken = FlowRetryToken(),
 ) : AndroidViewModel(
     application = application,
 ) {
-    val flowCollector = FlowToStateCollector<ApiLoadable<*>>(viewModelScope)
     private val baseViewModel = EpisodesScreenViewModelHelper(
         application = application,
         scope = viewModelScope,
         seasonId = seasonId,
-        retryToken = retryToken,
-        flowCollector = flowCollector,
     )
 
     val seasonDetails by baseViewModel.seasonDetails()

@@ -5,22 +5,23 @@ import io.github.couchtracker.SqlFunction
 import io.github.couchtracker.SqlItem
 import io.github.couchtracker.SqlTable
 
-private val LANGUAGE_COLUMN = SqlColumn.text("language", "io.github.couchtracker.tmdb.TmdbLanguage")
+internal val LANGUAGE_COLUMN = SqlColumn.text("language", "io.github.couchtracker.tmdb.TmdbLanguage")
+internal val LANGUAGES_FILTER_COLUMN = SqlColumn.text("languages", "io.github.couchtracker.tmdb.TmdbLanguagesFilter")
 private val LAST_UPDATE_COLUMN = SqlColumn.text("lastUpdate", "kotlin.time.Instant")
 
 internal data class SqlTmdbModelCache(
     val name: String,
     val key: TmdbModelKey,
-    val hasLanguage: Boolean,
     val value: SqlColumn,
+    val languageKey: SqlColumn? = null,
 ) : SqlItem {
 
     private val table = SqlTable(
         name = name,
         keys = buildList {
             add(key.column)
-            if (hasLanguage) {
-                add(LANGUAGE_COLUMN)
+            if (languageKey != null) {
+                add(languageKey)
             }
         },
         columns = listOf(value, LAST_UPDATE_COLUMN),

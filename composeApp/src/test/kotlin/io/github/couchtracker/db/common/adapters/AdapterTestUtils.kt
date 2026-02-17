@@ -36,7 +36,7 @@ suspend fun <T : Any, S> FunSpecContainerScope.testColumnAdapter(
     context("valid values") {
         context("should decode correctly") {
             withData(nameFn = { it.decodedValue.toString() }, valid) { testCase ->
-                withData(nameFn = { it.toString() }, testCase.databaseValues) { databaseValue ->
+                withData(nameFn = { it.toString().ifEmpty { "<empty>" } }, testCase.databaseValues) { databaseValue ->
                     columnAdapter.decode(databaseValue) shouldBe testCase.decodedValue
                 }
             }
