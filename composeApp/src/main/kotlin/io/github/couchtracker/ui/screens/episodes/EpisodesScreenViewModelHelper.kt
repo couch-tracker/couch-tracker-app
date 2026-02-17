@@ -13,13 +13,14 @@ import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
 import io.github.couchtracker.intl.datetime.localized
-import io.github.couchtracker.settings.AppSettings
-import io.github.couchtracker.tmdb.TmdbEpisode
+import io.github.couchtracker.tmdb.TmdbApiContext
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbRating
-import io.github.couchtracker.tmdb.TmdbSeason
 import io.github.couchtracker.tmdb.TmdbSeasonId
+import io.github.couchtracker.tmdb.details
+import io.github.couchtracker.tmdb.images
 import io.github.couchtracker.tmdb.runtime
+import io.github.couchtracker.tmdb.tmdbApiContext
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
@@ -33,14 +34,11 @@ import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.api.ApiLoadable
-import io.github.couchtracker.utils.api.FlowRetryToken
-import io.github.couchtracker.utils.api.callApi
 import io.github.couchtracker.utils.collectFlow
+import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
-import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
@@ -52,16 +50,14 @@ class EpisodesScreenViewModelHelper(
     val application: Application,
     val scope: CoroutineScope,
     val seasonId: TmdbSeasonId,
-    val retryToken: FlowRetryToken = FlowRetryToken(),
-    val tmdbSeason: Flow<TmdbSeason> = AppSettings.get { Tmdb.Languages }
-        .map { languages -> TmdbSeason(seasonId, languages.current) },
+    val apiContext: TmdbApiContext = tmdbApiContext(),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
     val showViewModel = ShowScreenViewModelHelper(
         application = application,
         scope = scope,
         showId = seasonId.showId,
-        retryToken = retryToken,
+        apiContext = apiContext,
         flowCollector = flowCollector,
     )
 
@@ -93,36 +89,38 @@ class EpisodesScreenViewModelHelper(
 
     fun seasonDetails(): State<ApiLoadable<SeasonDetails>> {
         return flowCollector.collectFlow(
-            flow = tmdbSeason.callApi(retryToken) { it.details }.map { result ->
-                result.mapResult { tmdbSeasonDetails ->
-                    SeasonDetails(
-                        number = tmdbSeasonDetails.seasonNumber,
-                        name = tmdbSeasonDetails.name,
-                        defaultName = seasonNumberToString(application, tmdbSeasonDetails.seasonNumber),
-                        episodes = tmdbSeasonDetails.episodes.orEmpty().map { episode ->
-                            val id = TmdbEpisodeId(seasonId, episode.episodeNumber)
-                            val runtime = episode.runtime()
-                            EpisodeBaseDetails(
-                                externalId = TmdbExternalEpisodeId(id),
-                                tmdbEpisodeId = id,
-                                name = episode.name,
-                                number = application.getString(R.string.episode_x, episode.episodeNumber),
-                                firstAirDate = episode.airDate?.let {
-                                    PartialDateTime.Local.Date(it)
-                                        .localized(
-                                            YearSkeleton.NUMERIC,
-                                            MonthSkeleton.WIDE,
-                                            DayOfMonthSkeleton.NUMERIC,
-                                            DayOfWeekSkeleton.WIDE,
-                                        )
-                                        .localize()
-                                },
-                                runtime = runtime,
-                                runtimeString = runtime?.format(),
-                                tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
-                            )
-                        },
-                    )
+            flow = apiContext { languages ->
+                seasonId.details(languages.apiLanguage).map { result ->
+                    result.map { tmdbSeasonDetails ->
+                        SeasonDetails(
+                            number = tmdbSeasonDetails.seasonNumber,
+                            name = tmdbSeasonDetails.name,
+                            defaultName = seasonNumberToString(application, tmdbSeasonDetails.seasonNumber),
+                            episodes = tmdbSeasonDetails.episodes.orEmpty().map { episode ->
+                                val id = TmdbEpisodeId(seasonId, episode.episodeNumber)
+                                val runtime = episode.runtime()
+                                EpisodeBaseDetails(
+                                    externalId = TmdbExternalEpisodeId(id),
+                                    tmdbEpisodeId = id,
+                                    name = episode.name,
+                                    number = application.getString(R.string.episode_x, episode.episodeNumber),
+                                    firstAirDate = episode.airDate?.let {
+                                        PartialDateTime.Local.Date(it)
+                                            .localized(
+                                                YearSkeleton.NUMERIC,
+                                                MonthSkeleton.WIDE,
+                                                DayOfMonthSkeleton.NUMERIC,
+                                                DayOfWeekSkeleton.WIDE,
+                                            )
+                                            .localize()
+                                    },
+                                    runtime = runtime,
+                                    runtimeString = runtime?.format(),
+                                    tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
+                                )
+                            },
+                        )
+                    }
                 }
             },
         )
@@ -142,20 +140,20 @@ class EpisodesScreenViewModelHelper(
         val application: Application,
         val scope: CoroutineScope,
         val episodeId: TmdbEpisodeId,
-        val retryToken: FlowRetryToken = FlowRetryToken(),
-        val tmdbEpisode: Flow<TmdbEpisode> = AppSettings.get { Tmdb.Languages }
-            .map { languages -> TmdbEpisode(episodeId, languages.current) },
+        val apiContext: TmdbApiContext = tmdbApiContext(),
         val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
     ) {
         fun details(): State<ApiLoadable<EpisodeFullDetails>> {
             return flowCollector.collectFlow(
-                flow = tmdbEpisode.callApi(retryToken) { it.details }.map {
-                    it.mapResult { tmdbEpisodeDetails ->
-                        EpisodeFullDetails(
-                            overview = tmdbEpisodeDetails.overview,
-                            crew = tmdbEpisodeDetails.crew.orEmpty().toCrewCompactListItemModel(application),
-                            guestStars = tmdbEpisodeDetails.guestStars.orEmpty().toCastPortraitModel(),
-                        )
+                flow = apiContext { languages ->
+                    episodeId.details(languages.apiLanguage).map { result ->
+                        result.map { tmdbEpisodeDetails ->
+                            EpisodeFullDetails(
+                                overview = tmdbEpisodeDetails.overview,
+                                crew = tmdbEpisodeDetails.crew.orEmpty().toCrewCompactListItemModel(application),
+                                guestStars = tmdbEpisodeDetails.guestStars.orEmpty().toCastPortraitModel(),
+                            )
+                        }
                     }
                 },
             )
@@ -163,8 +161,12 @@ class EpisodesScreenViewModelHelper(
 
         fun images(): State<ApiLoadable<List<ImageModel>>> {
             return flowCollector.collectFlow(
-                tmdbEpisode.callApi(retryToken) { episode -> episode.images }.map { images ->
-                    images.mapResult { it.toImageModel(includeLogos = false) }
+                apiContext { languages ->
+                    episodeId.images(languages.toTmdbLanguagesFilter()).map { result ->
+                        result.map { images ->
+                            images.toImageModel(includeLogos = false)
+                        }
+                    }
                 },
             )
         }
@@ -178,12 +180,12 @@ class EpisodesScreenViewModelHelper(
             application = application,
             scope = scope,
             episodeId = episode,
-            retryToken = retryToken,
+            apiContext = apiContext,
             flowCollector = flowCollector,
         )
     }
 
     fun retryAll() {
-        scope.launch { retryToken.retryAll() }
+        scope.launch { apiContext.retryAll() }
     }
 }

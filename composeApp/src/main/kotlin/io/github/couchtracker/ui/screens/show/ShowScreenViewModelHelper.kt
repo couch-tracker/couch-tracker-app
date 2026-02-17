@@ -11,16 +11,19 @@ import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.BaseTmdbShow
+import io.github.couchtracker.tmdb.TmdbApiContext
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbSeasonId
-import io.github.couchtracker.tmdb.TmdbShow
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.tmdb.aggregateCredits
+import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.extractColorScheme
+import io.github.couchtracker.tmdb.images
 import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.rating
+import io.github.couchtracker.tmdb.tmdbApiContext
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
@@ -34,16 +37,11 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.api.ApiException
 import io.github.couchtracker.utils.api.ApiLoadable
-import io.github.couchtracker.utils.api.FlowRetryToken
-import io.github.couchtracker.utils.api.callApi
-import io.github.couchtracker.utils.api.callApiWithCache
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
-import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,9 +58,7 @@ class ShowScreenViewModelHelper(
     val application: Application,
     val scope: CoroutineScope,
     val showId: TmdbShowId,
-    val retryToken: FlowRetryToken = FlowRetryToken(),
-    val tmdbShow: Flow<TmdbShow> = AppSettings.get { Tmdb.Languages }
-        .map { languages -> TmdbShow(showId, languages.current) },
+    val apiContext: TmdbApiContext = tmdbApiContext(),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
 
@@ -89,13 +85,16 @@ class ShowScreenViewModelHelper(
         val crew: List<CrewCompactListItemModel>,
     )
 
-    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> = tmdbShow.callApiWithCache(
-        retryToken = retryToken,
-        cachedData = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getShow(it)?.toBaseDetails() },
-        fullDataFlow = {
-            it.details.map { result -> result.map { details -> details.toDetails() } }
-        },
-    ).shareIn(scope, SharingStarted.Lazily, 1)
+    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> =
+        apiContext.withCache(
+            cacheFn = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getShow(showId, it.apiLanguage)?.toBaseDetails() },
+        ) { languages ->
+            showId.details(languages.apiLanguage).map {
+                it.map { details ->
+                    details.toDetails()
+                }
+            }
+        }.shareIn(scope, SharingStarted.Lazily, 1)
 
     fun baseDetails(): State<ApiLoadable<BaseDetails>> {
         return flowCollector.collectFlow(baseAndFullDetails.map { it.first })
@@ -121,9 +120,11 @@ class ShowScreenViewModelHelper(
 
     fun images(): State<ApiLoadable<List<ImageModel>>> {
         return flowCollector.collectFlow(
-            flow = tmdbShow.callApi(retryToken) { it.images }.map { result ->
-                result.mapResult { images ->
-                    images.toImageModel(includeLogos = false)
+            flow = apiContext { languages ->
+                showId.images(languages.toTmdbLanguagesFilter()).map {
+                    it.map { images ->
+                        images.toImageModel(includeLogos = false)
+                    }
                 }
             },
         )
@@ -131,12 +132,14 @@ class ShowScreenViewModelHelper(
 
     fun credits(): State<ApiLoadable<Credits>> {
         return flowCollector.collectFlow(
-            flow = tmdbShow.callApi(retryToken) { it.aggregateCredits }.map { result ->
-                result.mapResult { credits ->
-                    Credits(
-                        cast = credits.cast.toCastPortraitModel(application),
-                        crew = credits.crew.toCrewCompactListItemModel(application),
-                    )
+            flow = apiContext { languages ->
+                showId.aggregateCredits(languages.apiLanguage).map {
+                    it.map { credits ->
+                        Credits(
+                            cast = credits.cast.toCastPortraitModel(application),
+                            crew = credits.crew.toCrewCompactListItemModel(application),
+                        )
+                    }
                 }
             },
         )
@@ -178,6 +181,6 @@ class ShowScreenViewModelHelper(
     )
 
     fun retryAll() {
-        scope.launch { retryToken.retryAll() }
+        scope.launch { apiContext.retryAll() }
     }
 }

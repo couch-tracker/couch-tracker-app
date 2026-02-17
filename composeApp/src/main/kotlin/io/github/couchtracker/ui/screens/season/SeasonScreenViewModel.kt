@@ -6,12 +6,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.utils.api.ApiLoadable
-import io.github.couchtracker.utils.api.FlowRetryToken
 
 class SeasonScreenViewModel(
     application: Application,
     val seasonId: TmdbSeasonId,
-    val retryToken: FlowRetryToken = FlowRetryToken(),
 ) : AndroidViewModel(
     application = application,
 ) {
@@ -19,7 +17,6 @@ class SeasonScreenViewModel(
         application = application,
         scope = viewModelScope,
         seasonId = seasonId,
-        retryToken = retryToken,
     )
 
     val details by baseViewModel.details()

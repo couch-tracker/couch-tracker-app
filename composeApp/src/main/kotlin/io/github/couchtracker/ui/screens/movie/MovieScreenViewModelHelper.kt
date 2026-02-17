@@ -8,17 +8,20 @@ import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.intl.formatAndList
-import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.BaseTmdbMovie
+import io.github.couchtracker.tmdb.TmdbApiContext
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
-import io.github.couchtracker.tmdb.TmdbMovie
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbRating
+import io.github.couchtracker.tmdb.credits
+import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.directors
 import io.github.couchtracker.tmdb.extractColorScheme
+import io.github.couchtracker.tmdb.images
 import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.runtime
+import io.github.couchtracker.tmdb.tmdbApiContext
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
@@ -32,16 +35,11 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.api.ApiException
 import io.github.couchtracker.utils.api.ApiLoadable
-import io.github.couchtracker.utils.api.FlowRetryToken
-import io.github.couchtracker.utils.api.callApi
-import io.github.couchtracker.utils.api.callApiWithCache
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
-import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -58,10 +56,8 @@ import kotlin.time.Duration
 class MovieScreenViewModelHelper(
     val application: Application,
     val scope: CoroutineScope,
-    movieId: TmdbMovieId,
-    val retryToken: FlowRetryToken = FlowRetryToken(),
-    val tmdbMovie: Flow<TmdbMovie> = AppSettings.get { Tmdb.Languages }
-        .map { languages -> TmdbMovie(movieId, languages.current) },
+    val movieId: TmdbMovieId,
+    val apiContext: TmdbApiContext = tmdbApiContext(),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
 
@@ -88,13 +84,16 @@ class MovieScreenViewModelHelper(
         val directorsString: String?,
     )
 
-    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> = tmdbMovie.callApiWithCache(
-        retryToken = retryToken,
-        cachedData = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getMovie(it)?.toBaseDetails() },
-        fullDataFlow = {
-            it.details.map { result -> result.map { details -> details.toDetails() } }
-        },
-    ).shareIn(scope, SharingStarted.Lazily, 1)
+    private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> =
+        apiContext.withCache(
+            cacheFn = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getMovie(movieId, it.apiLanguage)?.toBaseDetails() },
+        ) { languages ->
+            movieId.details(languages.apiLanguage).map { result ->
+                result.map { details ->
+                    details.toDetails()
+                }
+            }
+        }.shareIn(scope, SharingStarted.Lazily, 1)
 
     fun baseDetails(): State<ApiLoadable<BaseDetails>> {
         return flowCollector.collectFlow(baseAndFullDetails.map { it.first })
@@ -120,9 +119,11 @@ class MovieScreenViewModelHelper(
 
     fun images(): State<ApiLoadable<List<ImageModel>>> {
         return flowCollector.collectFlow(
-            flow = tmdbMovie.callApi(retryToken) { it.images }.map { result ->
-                result.mapResult { images ->
-                    images.toImageModel(includeLogos = false)
+            flow = apiContext { languages ->
+                movieId.images(languages.toTmdbLanguagesFilter()).map { result ->
+                    result.map { images ->
+                        images.toImageModel(includeLogos = false)
+                    }
                 }
             },
         )
@@ -130,18 +131,20 @@ class MovieScreenViewModelHelper(
 
     fun credits(): State<ApiLoadable<Credits>> {
         return flowCollector.collectFlow(
-            flow = tmdbMovie.callApi(retryToken) { it.credits }.map { result ->
-                result.mapResult { credits ->
-                    val directors = credits.crew.directors()
-                    Credits(
-                        cast = credits.cast.toCastPortraitModel(),
-                        crew = credits.crew.toCrewCompactListItemModel(application),
-                        directorsString = if (directors.isEmpty()) {
-                            null
-                        } else {
-                            application.getString(R.string.movie_by_director, formatAndList(directors.map { it.name }))
-                        },
-                    )
+            flow = apiContext { languages ->
+                movieId.credits(languages.apiLanguage).map { result ->
+                    result.map { credits ->
+                        val directors = credits.crew.directors()
+                        Credits(
+                            cast = credits.cast.toCastPortraitModel(),
+                            crew = credits.crew.toCrewCompactListItemModel(application),
+                            directorsString = if (directors.isEmpty()) {
+                                null
+                            } else {
+                                application.getString(R.string.movie_by_director, formatAndList(directors.map { it.name }))
+                            },
+                        )
+                    }
                 }
             },
         )
@@ -175,6 +178,6 @@ class MovieScreenViewModelHelper(
     )
 
     fun retryAll() {
-        scope.launch { retryToken.retryAll() }
+        scope.launch { apiContext.retryAll() }
     }
 }

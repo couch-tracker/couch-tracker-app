@@ -1,83 +1,85 @@
 package io.github.couchtracker.tmdb
 
-import app.moviebase.tmdb.model.AppendResponse
+import app.moviebase.tmdb.model.TmdbCredits
+import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
-import io.github.couchtracker.utils.api.BatchDownloader
-import kotlin.collections.ifEmpty
+import app.moviebase.tmdb.model.TmdbReleaseDates
+import app.moviebase.tmdb.model.TmdbVideo
+import io.github.couchtracker.utils.api.ApiResult
+import kotlinx.coroutines.flow.Flow
 import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 
-private typealias MovieDetailsDownloader = BatchDownloadableFlowBuilder<TmdbMovieId, List<AppendResponse>, TmdbMovieDetail>
-
-/**
- * Class that represents a TMDB movie.
- * It holds no data, but provides the means to get all information,
- * either by downloading them or loading them from cache.
- */
-data class TmdbMovie(
-    val id: TmdbMovieId,
-    val languages: TmdbLanguages,
-) {
-
-    private val detailsBatchDownloader = BatchDownloader<List<AppendResponse>, TmdbMovieDetail>(
-        initialRequestInput = emptyList(),
-        downloader = { appendToResponse ->
-            tmdbDownloadResult(logTag = "${id.toExternalId().serialize()}-batched-details") { tmdb ->
-                tmdb.movies.getDetails(
-                    movieId = id.value,
-                    language = languages.apiLanguage.apiParameter,
-                    appendResponses = appendToResponse.ifEmpty { null },
-                    includeImageLanguages = "null",
-                )
-            }
+fun TmdbMovieId.details(language: TmdbLanguage): Flow<ApiResult<TmdbMovieDetail>> {
+    return tmdbLocalizedCachedDownload(
+        id = this,
+        logTag = "details",
+        language = language,
+        loadFromCacheFn = { movieDetailsCacheQueries::get },
+        putInCacheFn = { movieDetailsCacheQueries::put },
+        download = { tmdb ->
+            tmdb.movies.getDetails(
+                movieId = value,
+                language = language.apiParameter,
+            )
         },
     )
-    val details = detailsDownloader("details") { it }
-        .extractFromResponse { it }
-        .localized(
-            language = languages.apiLanguage,
-            loadFromCacheFn = { cache -> cache.movieDetailsCacheQueries::get },
-            putInCacheFn = { cache -> cache.movieDetailsCacheQueries::put },
-        )
-        .flow(detailsBatchDownloader)
-    val credits = detailsDownloader("credits") { it + AppendResponse.CREDITS }
-        .extractNonNullFromResponse(TmdbMovieDetail::credits)
-        .notLocalized(
-            loadFromCacheFn = { cache -> cache.movieCreditsCacheQueries::get },
-            putInCacheFn = { cache -> cache.movieCreditsCacheQueries::put },
-        )
-        .flow(detailsBatchDownloader)
-    val images = detailsDownloader("images") { it + AppendResponse.IMAGES }
-        .extractNonNullFromResponse(TmdbMovieDetail::images)
-        .notLocalized(
-            loadFromCacheFn = { cache -> cache.movieImagesCacheQueries::get },
-            putInCacheFn = { cache -> cache.movieImagesCacheQueries::put },
-        )
-        .flow(detailsBatchDownloader)
-    val videos = detailsDownloader("videos") { it + AppendResponse.VIDEOS }
-        .extractNonNullFromResponse("videos") { it.videos?.results }
-        .notLocalized(
-            loadFromCacheFn = { cache -> cache.movieVideosCacheQueries::get },
-            putInCacheFn = { cache -> cache.movieVideosCacheQueries::put },
-        )
-        .flow(detailsBatchDownloader)
-    val releaseDates = detailsDownloader("release_dates") { it + AppendResponse.RELEASES_DATES }
-        .extractNonNullFromResponse("release_dates") { it.releaseDates?.results }
-        .notLocalized(
-            loadFromCacheFn = { cache -> cache.movieReleaseDatesCacheQueries::get },
-            putInCacheFn = { cache -> cache.movieReleaseDatesCacheQueries::put },
-        )
-        .flow(detailsBatchDownloader, expiration = TMDB_CACHE_EXPIRATION_FAST)
+}
 
-    private fun detailsDownloader(
-        logTag: String,
-        prepareRequest: (List<AppendResponse>) -> List<AppendResponse>,
-    ): MovieDetailsDownloader {
-        return MovieDetailsDownloader(
-            id = id,
-            logTag = "${id.toExternalId().serialize()}-$logTag",
-            prepareRequest = prepareRequest,
-        )
-    }
+fun TmdbMovieId.releaseDates(): Flow<ApiResult<List<TmdbReleaseDates>>> {
+    return tmdbCachedDownload(
+        id = this,
+        logTag = "release_dates",
+        loadFromCacheFn = { movieReleaseDatesCacheQueries::get },
+        putInCacheFn = { movieReleaseDatesCacheQueries::put },
+        download = { tmdb ->
+            tmdb.movies.getReleaseDates(value).results
+        },
+    )
+}
+
+fun TmdbMovieId.credits(language: TmdbLanguage): Flow<ApiResult<TmdbCredits>> {
+    return tmdbLocalizedCachedDownload(
+        id = this,
+        logTag = "credits",
+        language = language,
+        loadFromCacheFn = { movieCreditsCacheQueries::get },
+        putInCacheFn = { movieCreditsCacheQueries::put },
+        download = { tmdb ->
+            tmdb.movies.getCredits(
+                movieId = value,
+                language = language.apiParameter,
+            )
+        },
+    )
+}
+
+fun TmdbMovieId.images(languages: TmdbLanguagesFilter): Flow<ApiResult<TmdbImages>> {
+    return tmdbLocalizedCachedDownload(
+        id = this,
+        logTag = "images",
+        language = languages,
+        loadFromCacheFn = { movieImagesCacheQueries::get },
+        putInCacheFn = { movieImagesCacheQueries::put },
+        download = { tmdb ->
+            tmdb.movies.getImages(
+                movieId = value,
+                includeImageLanguage = languages.apiParameter(),
+            )
+        },
+    )
+}
+
+fun TmdbMovieId.videos(): Flow<ApiResult<List<TmdbVideo>>> {
+    // TODO: make localized
+    return tmdbCachedDownload(
+        id = this,
+        logTag = "videos",
+        loadFromCacheFn = { movieVideosCacheQueries::get },
+        putInCacheFn = { movieVideosCacheQueries::put },
+        download = { tmdb ->
+            tmdb.movies.getVideos(value).results
+        },
+    )
 }
 
 val TmdbMovieDetail.tmdbMovieId get() = TmdbMovieId(id)
