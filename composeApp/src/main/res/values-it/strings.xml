@@ -35,17 +35,18 @@
 
     <string name="item_tile_with_year">%1$s (%2$d)</string>
 
-    <string name="main_section_home">Home</string>
     <string name="main_section_shows">Serie</string>
     <string name="main_section_movies">Film</string>
+    <string name="main_section_profile">Profilo</string>
+    <string name="main_section_search">Cerca</string>
 
-    <string name="tab_home_history">Cronologia</string>
-    <string name="tab_home_up_next">Prossimi</string>
-    <string name="tab_home_explore">Esplora</string>
-    <string name="tab_home_calendar">Calendario</string>
+    <string name="tab_profile_history">Cronologia</string>
+    <string name="tab_profile_lists">Liste</string>
+    <string name="tab_profile_stats">Statistiche</string>
 
     <string name="tab_shows_history">Cronologia</string>
     <string name="tab_shows_watchlist">Watchlist</string>
+    <string name="tab_shows_following">Seguite</string>
     <string name="tab_shows_up_next">Prossimi</string>
     <string name="tab_shows_calendar">Calendario</string>
     <string name="tab_shows_explore">Esplora</string>
@@ -56,7 +57,6 @@
 
     <string name="tab_movies_history">Cronologia</string>
     <string name="tab_movies_watchlist">Watchlist</string>
-    <string name="tab_movies_up_next">Prossimi</string>
     <string name="tab_movies_calendar">Calendario</string>
     <string name="tab_movies_explore">Esplora</string>
 

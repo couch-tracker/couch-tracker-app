@@ -50,7 +50,8 @@ fun ShowSection(
     viewModel: ShowSectionViewModel = viewModel(),
 ) {
     val navController = LocalNavController.current
-    val pagerState = rememberPagerState(initialPage = ShowTab.UP_NEXT.ordinal) { ShowTab.entries.size }
+    // TODO: open up next as a first tab
+    val pagerState = rememberPagerState(initialPage = ShowTab.EXPLORE.ordinal) { ShowTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
@@ -67,11 +68,32 @@ fun ShowSection(
         page = { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 when (ShowTab.entries[page]) {
-                    ShowTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
-                    ShowTab.WATCHLIST -> WipMessageComposable(gitHubIssueId = 130)
-                    ShowTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
+                    ShowTab.HISTORY -> WipMessageComposable(
+                        gitHubIssueId = 126,
+                        description = "All watched episodes of any show",
+                    )
+                    ShowTab.WATCHLIST -> WipMessageComposable(
+                        gitHubIssueId = 130,
+                        description = "Shows explicitly bookmarked without any watch session",
+                    )
+                    ShowTab.FOLLOWING -> WipMessageComposable(
+                        gitHubIssueId = 130,
+                        description = "" +
+                            "Shows explicitly bookmarked with an active un-finished watch session.\n" +
+                            "A button at the bottom opens the screen with the other bookmarked shows, " +
+                            "i.e. shows where all (>0) watch sessions are inactive or finished",
+                    )
+                    ShowTab.UP_NEXT -> WipMessageComposable(
+                        gitHubIssueId = 127,
+                        description = "" +
+                            "- For each active watch session of a bookmarked show, the next unwatched episode\n" +
+                            "- For each bookmarked show, without any watch sessions, the pilot",
+                    )
                     ShowTab.EXPLORE -> ShowListComposable(viewModel.exploreState)
-                    ShowTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+                    ShowTab.CALENDAR -> WipMessageComposable(
+                        gitHubIssueId = 129,
+                        description = "A calendar of the episodes of bookmarked shows",
+                    )
                 }
             }
         },
@@ -97,6 +119,7 @@ private enum class ShowTab(
 ) {
     HISTORY(R.string.tab_shows_history),
     WATCHLIST(R.string.tab_shows_watchlist),
+    FOLLOWING(R.string.tab_shows_following),
     UP_NEXT(R.string.tab_shows_up_next),
     CALENDAR(R.string.tab_shows_calendar),
     EXPLORE(R.string.tab_shows_explore),

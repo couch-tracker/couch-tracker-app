@@ -5,8 +5,9 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.only
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 
@@ -35,11 +37,14 @@ data object MainScreen : Screen() {
     override fun content() = Content()
 }
 
+private val DEFAULT_SECTION = Section.SHOWS
+
 @Composable
 private fun Content() {
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)
     val navController = rememberNavController()
-    val currentSection = navController.currentBackStackEntryAsState().value?.destination?.route?.let { Section.fromId(it) } ?: Section.HOME
+    val currentSection =
+        navController.currentBackStackEntryAsState().value?.destination?.route?.let { Section.fromId(it) } ?: DEFAULT_SECTION
 
     // TODO: animate color changes
     MaterialTheme(colorScheme = currentSection.colorScheme) {
@@ -67,13 +72,8 @@ private fun Content() {
             content = { innerPadding ->
                 NavHost(
                     navController = navController,
-                    startDestination = Section.HOME.id,
+                    startDestination = DEFAULT_SECTION.id,
                 ) {
-                    composable(Section.HOME.id) {
-                        MaterialTheme(colorScheme = Section.HOME.colorScheme) {
-                            HomeSection(innerPadding)
-                        }
-                    }
                     composable(Section.SHOWS.id) {
                         MaterialTheme(colorScheme = Section.SHOWS.colorScheme) {
                             ShowSection(innerPadding)
@@ -82,6 +82,18 @@ private fun Content() {
                     composable(Section.MOVIES.id) {
                         MaterialTheme(colorScheme = Section.MOVIES.colorScheme) {
                             MoviesSection(innerPadding)
+                        }
+                    }
+                    composable(Section.PROFILE.id) {
+                        MaterialTheme(colorScheme = Section.PROFILE.colorScheme) {
+                            ProfileSection(innerPadding)
+                        }
+                    }
+                    composable(Section.SEARCH.id) {
+                        MaterialTheme(colorScheme = Section.SEARCH.colorScheme) {
+                            WipMessageComposable(
+                                gitHubIssueId = 181,
+                            )
                         }
                     }
                 }
@@ -98,9 +110,10 @@ private enum class Section(
     val icon: ImageVector,
     val colorScheme: ColorScheme,
 ) {
-    HOME("home", R.string.main_section_home, Icons.Filled.Home, ColorSchemes.Common),
     SHOWS("shows", R.string.main_section_shows, Icons.Filled.Tv, ColorSchemes.Show),
     MOVIES("movies", R.string.main_section_movies, Icons.Filled.Movie, ColorSchemes.Movie),
+    PROFILE("profile", R.string.main_section_profile, Icons.Filled.Person, ColorSchemes.Common),
+    SEARCH("search", R.string.main_section_search, Icons.Filled.Search, ColorSchemes.Common),
     ;
 
     companion object {

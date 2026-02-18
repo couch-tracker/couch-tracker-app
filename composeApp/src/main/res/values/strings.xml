@@ -33,17 +33,18 @@
 
     <string name="item_tile_with_year">%1$s (%2$d)</string>
 
-    <string name="main_section_home">Home</string>
     <string name="main_section_shows">Shows</string>
     <string name="main_section_movies">Movies</string>
+    <string name="main_section_profile">Profile</string>
+    <string name="main_section_search">Search</string>
 
-    <string name="tab_home_history">History</string>
-    <string name="tab_home_up_next">Up next</string>
-    <string name="tab_home_explore">Explore</string>
-    <string name="tab_home_calendar">Calendar</string>
+    <string name="tab_profile_history">History</string>
+    <string name="tab_profile_lists">Lists</string>
+    <string name="tab_profile_stats">Stats</string>
 
     <string name="tab_shows_history">History</string>
     <string name="tab_shows_watchlist">Watchlist</string>
+    <string name="tab_shows_following">Following</string>
     <string name="tab_shows_up_next">Up next</string>
     <string name="tab_shows_calendar">Calendar</string>
     <string name="tab_shows_explore">Explore</string>
@@ -54,7 +55,6 @@
 
     <string name="tab_movies_history">History</string>
     <string name="tab_movies_watchlist">Watchlist</string>
-    <string name="tab_movies_up_next">Up next</string>
     <string name="tab_movies_calendar">Calendar</string>
     <string name="tab_movies_explore">Explore</string>
 

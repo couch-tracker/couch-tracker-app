@@ -13,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -210,7 +210,8 @@ private fun MovieToolbar(
                 }
             }
             IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.Default.FavoriteBorder, contentDescription = "TODO") // TODO
+                // Use Icons.Filled.BookmarkRemove when bookmarked
+                Icon(Icons.Outlined.BookmarkAdd, contentDescription = "TODO") // TODO
             }
         },
     )

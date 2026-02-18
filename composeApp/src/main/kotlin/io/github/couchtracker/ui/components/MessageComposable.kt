@@ -73,6 +73,7 @@ fun ErrorMessageComposable(
 @Composable
 fun WipMessageComposable(
     gitHubIssueId: Int,
+    description: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -82,7 +83,11 @@ fun WipMessageComposable(
         modifier = modifier,
         icon = Icons.Filled.Construction,
         message = "Under construction",
-        details = "This part of the app is still under construction. See GitHub issue below.",
+        details = if (description != null) {
+            "$description\n\n"
+        } else {
+            ""
+        } + "This part of the app is still under construction. See GitHub issue below.",
     ) {
         Spacer(Modifier.height(24.dp))
         OutlinedButton(onClick = { uriHandler.openUri(githubUri) }) {

@@ -66,11 +66,19 @@ fun MoviesSection(
         page = { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 when (MovieTab.entries[page]) {
-                    MovieTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
+                    MovieTab.HISTORY -> WipMessageComposable(
+                        gitHubIssueId = 126,
+                        description = "All watched movies",
+                    )
                     MovieTab.EXPLORE -> MovieListComposable(viewModel.exploreState)
-                    MovieTab.WATCHLIST -> WipMessageComposable(gitHubIssueId = 130)
-                    MovieTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
-                    MovieTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+                    MovieTab.WATCHLIST -> WipMessageComposable(
+                        gitHubIssueId = 130,
+                        description = "All bookmarked movies (watching a movie removes it from the bookmarks)",
+                    )
+                    MovieTab.CALENDAR -> WipMessageComposable(
+                        gitHubIssueId = 129,
+                        description = "A calendar of bookmarked movies, all 'relevant' releases",
+                    )
                 }
             }
         },
@@ -97,7 +105,6 @@ enum class MovieTab(
     HISTORY(R.string.tab_movies_history),
     EXPLORE(R.string.tab_movies_explore),
     WATCHLIST(R.string.tab_movies_watchlist),
-    UP_NEXT(R.string.tab_movies_up_next),
     CALENDAR(R.string.tab_movies_calendar),
 }
 

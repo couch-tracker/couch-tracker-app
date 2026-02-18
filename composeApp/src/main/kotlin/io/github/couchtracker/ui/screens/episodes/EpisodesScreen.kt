@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -300,9 +299,6 @@ private fun EpisodeToolbar(
                 IconButton(onClick = { /* TODO: navigate to viewing history */ }) {
                     Icon(Icons.Default.Checklist, contentDescription = R.string.viewing_history.str())
                 }
-            }
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.Default.FavoriteBorder, contentDescription = "TODO") // TODO
             }
         },
     )
