@@ -87,9 +87,9 @@ fun NavController.navigateToShow(id: TmdbShowId, preloadData: BaseTmdbShow?) {
 }
 
 private enum class ShowScreenTab {
-    VIEWING_HISTORY,
-    SEASONS,
     DETAILS,
+    SEASONS,
+    VIEWING_HISTORY,
 }
 
 @Composable

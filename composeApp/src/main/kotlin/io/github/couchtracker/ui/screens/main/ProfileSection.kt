@@ -29,9 +29,9 @@ import io.github.couchtracker.ui.screens.settings.MainSettingsScreen
 import io.github.couchtracker.utils.str
 
 @Composable
-fun HomeSection(innerPadding: PaddingValues) {
+fun ProfileSection(innerPadding: PaddingValues) {
     val navController = LocalNavController.current
-    val pagerState = rememberPagerState(initialPage = HomeTab.UP_NEXT.ordinal) { HomeTab.entries.size }
+    val pagerState = rememberPagerState(initialPage = ProfileTab.LISTS.ordinal) { ProfileTab.entries.size }
 
     MainSection(
         innerPadding = innerPadding,
@@ -45,25 +45,34 @@ fun HomeSection(innerPadding: PaddingValues) {
             )
             AppbarMoreMenu()
         },
-        tabText = { page -> Text(text = HomeTab.entries[page].displayName.str()) },
+        tabText = { page -> Text(text = ProfileTab.entries[page].displayName.str()) },
         page = { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                when (HomeTab.entries[page]) {
-                    HomeTab.HISTORY -> WipMessageComposable(gitHubIssueId = 126)
-                    HomeTab.UP_NEXT -> WipMessageComposable(gitHubIssueId = 127)
-                    HomeTab.EXPLORE -> WipMessageComposable(gitHubIssueId = 128)
-                    HomeTab.CALENDAR -> WipMessageComposable(gitHubIssueId = 129)
+                when (ProfileTab.entries[page]) {
+                    ProfileTab.HISTORY -> WipMessageComposable(
+                        gitHubIssueId = 126,
+                        description = "All watched items",
+                    )
+                    ProfileTab.LISTS -> {
+                        WipMessageComposable(
+                            gitHubIssueId = 182,
+                            description = "The list of lists",
+                        )
+                    }
+                    ProfileTab.STATS -> WipMessageComposable(
+                        gitHubIssueId = 180,
+                        description = "Statistics about your profile",
+                    )
                 }
             }
         },
     )
 }
 
-private enum class HomeTab(@StringRes val displayName: Int) {
-    HISTORY(R.string.tab_home_history),
-    UP_NEXT(R.string.tab_home_up_next),
-    EXPLORE(R.string.tab_home_explore),
-    CALENDAR(R.string.tab_home_calendar),
+private enum class ProfileTab(@StringRes val displayName: Int) {
+    HISTORY(R.string.tab_profile_history),
+    LISTS(R.string.tab_profile_lists),
+    STATS(R.string.tab_profile_stats),
 }
 
 @Composable
