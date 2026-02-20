@@ -1,12 +1,11 @@
 package io.github.couchtracker.db.profile.externalids
 
+import io.github.couchtracker.db.profile.externalids.ExternalId.SealedInterfacesCompanion
+
 /**
  * Base interface for all IDs of external providers that are inside the profile's database.
  *
  * It is composed of two main components: [provider] and [value].
- *
- * This interface should be extended directly only by sealed interfaces that represent a type of external ID (e.g. movie ID, show ID, etc.).
- * The companion object of these sealed interfaces should extend [SealedInterfacesCompanion].
  *
  * The sealed interfaces extending [ExternalId] should always have an "unknown" data class inheritor that can be used as a fallback in case
  * the [provider] is not known, either because the app is outdated or because the user/a different app added to the DB unsupported IDs.
@@ -22,10 +21,12 @@ sealed interface ExternalId {
     val value: String
 
     /**
-     * Serializes this ID to a [String] in the format `<provider>-<value>` (e.g. `tmdb-1234`).
+     * Serializes this ID to a [String] in a format that also includes its type (i.e. `<type>-<provider>-<value>` (e.g. `movie-tmdb-1234`)).
+     *
+     * If the type is unnecessary, see [SealedInterfacesCompanion.serialize].
      */
     fun serialize(): String {
-        return "$provider-$value"
+        return "${type().companion.typeName}-$provider-$value"
     }
 
     /**
@@ -55,13 +56,23 @@ sealed interface ExternalId {
      * kotlin-reflect.
      * @property unknownProvider given a provider and type, must return a fallback [EID] instance that can hold arbitrary values.
      */
-    abstract class SealedInterfacesCompanion<out EID : ExternalId>(
+    abstract class SealedInterfacesCompanion<EID : ExternalId>(
+        val typeName: String,
         private val inheritors: List<InheritorsCompanion<EID>>,
         private val unknownProvider: (provider: String, value: String) -> EID,
     ) {
 
         /**
-         * Parses the given [value] into the appropriate [EID] instance.
+         * Serializes this ID to a [String] in the format `<provider>-<value>` (e.g. `tmdb-1234`).
+         *
+         * If the type is also necessary, see [ExternalId.serialize]
+         */
+        fun serialize(value: EID): String {
+            return "${value.provider}-${value.value}"
+        }
+
+        /**
+         * Parses the given [value] (output of [serialize]) into the appropriate [EID] instance.
          *
          * In case the given [value] is of an unknown provider, this method will NOT throw and just provide a fallback [EID] that
          * holds arbitrary values. Check [EID]'s inheritors.
@@ -74,6 +85,23 @@ sealed interface ExternalId {
     }
 
     companion object {
+
+        /**
+         * Parses the given [value] (output of [ExternalId.serialize]) into the given [EID] instance.
+         *
+         * @throws IllegalArgumentException if the [value] is invalid or if it is a valid [ExternalId] but is not a valid [EID].
+         */
+        inline fun <reified EID : ExternalId> parse(value: String): EID {
+            val (typeStr, externalId) = value.split("-", limit = 2).also {
+                require(it.size == 2) { "Invalid serialized TypedExternalId" }
+            }
+            val type = ExternalIdType.entries.singleOrNull { it.companion.typeName == typeStr }
+                ?: throw IllegalArgumentException("Invalid external ID type '$typeStr'")
+            when (val id = type.companion.parse(externalId)) {
+                is EID -> return id
+                else -> throw IllegalArgumentException("External ID type ${id.type()} is not suitable for ${EID::class}")
+            }
+        }
 
         private fun <EID : ExternalId> parse(
             serializedValue: String,
@@ -91,4 +119,20 @@ sealed interface ExternalId {
             return decoder.ofValue(value)
         }
     }
+}
+
+@PublishedApi
+internal enum class ExternalIdType(val companion: SealedInterfacesCompanion<*>) {
+    MOVIE(ExternalMovieId),
+    SHOW(ExternalShowId),
+    SEASON(ExternalSeasonId),
+    EPISODE(ExternalEpisodeId),
+}
+
+@PublishedApi
+internal fun ExternalId.type() = when (this) {
+    is ExternalMovieId -> ExternalIdType.MOVIE
+    is ExternalShowId -> ExternalIdType.SHOW
+    is ExternalSeasonId -> ExternalIdType.SEASON
+    is ExternalEpisodeId -> ExternalIdType.EPISODE
 }

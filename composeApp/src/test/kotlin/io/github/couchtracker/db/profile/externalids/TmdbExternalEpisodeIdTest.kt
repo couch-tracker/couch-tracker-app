@@ -11,9 +11,9 @@ class TmdbExternalEpisodeIdTest : FunSpec(
         context("ofValue()") {
             context("works with valid values") {
                 withData(
-                    "1234-0x1" to TmdbExternalEpisodeId(TmdbShowId(1234).season(0).episode(1)),
-                    "1234-1x2" to TmdbExternalEpisodeId(TmdbShowId(1234).season(1).episode(2)),
-                    "2222-55x440" to TmdbExternalEpisodeId(TmdbShowId(2222).season(55).episode(440)),
+                    "1234-s0e1" to TmdbExternalEpisodeId(TmdbShowId(1234).season(0).episode(1)),
+                    "1234-s1e2" to TmdbExternalEpisodeId(TmdbShowId(1234).season(1).episode(2)),
+                    "2222-s55e440" to TmdbExternalEpisodeId(TmdbShowId(2222).season(55).episode(440)),
                 ) { (value, expected) ->
                     TmdbExternalEpisodeId.ofValue(value) shouldBe expected
                 }
@@ -21,13 +21,13 @@ class TmdbExternalEpisodeIdTest : FunSpec(
 
             context("fails with invalid values") {
                 withData(
-                    "1111-1x1x1",
-                    "1234-5-6",
+                    "1111-s1e1e1",
+                    "1234-5x6",
                     "1234",
-                    "  1111-1x1",
-                    "1111-1x1   ",
-                    "1234--1x5",
-                    "1234-1x-5",
+                    "  1111-s1e1",
+                    "1111-s1e1   ",
+                    "1234--s1e5",
+                    "1234-s1e-5",
                 ) { value ->
                     shouldThrow<IllegalArgumentException> {
                         TmdbExternalEpisodeId.ofValue(value)
