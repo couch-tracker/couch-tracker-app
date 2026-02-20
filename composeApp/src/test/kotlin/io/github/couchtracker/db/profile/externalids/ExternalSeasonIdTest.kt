@@ -1,27 +1,24 @@
 package io.github.couchtracker.db.profile.externalids
 
-import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.TmdbSeasonId
+import io.github.couchtracker.tmdb.TmdbShowId
 import io.kotest.core.spec.style.FunSpec
 
-class ExternalMovieIdTest : FunSpec(
+class ExternalSeasonIdTest : FunSpec(
     {
         testParseAndSerialize(
-            type = ExternalMovieId,
+            type = ExternalSeasonId,
             validTestCases = listOf(
                 ExternalIdParseSerializeTest(
-                    id = TmdbExternalMovieId(TmdbMovieId(1234)),
-                    values = listOf("tmdb-1234"),
+                    id = TmdbExternalSeasonId(TmdbSeasonId(showId = TmdbShowId(1234), number = 1)),
+                    values = listOf("tmdb-1234-s1", "tmdb-1234-s01", "tmdb-001234-s000001"),
                 ),
                 ExternalIdParseSerializeTest(
-                    id = TmdbExternalMovieId(TmdbMovieId(999_999_999)),
-                    values = listOf("tmdb-999999999"),
+                    id = TmdbExternalSeasonId(TmdbSeasonId(showId = TmdbShowId(99_999), number = 0)),
+                    values = listOf("tmdb-99999-s0"),
                 ),
                 ExternalIdParseSerializeTest(
-                    id = TmdbExternalMovieId(TmdbMovieId(1)),
-                    values = listOf("tmdb-1"),
-                ),
-                ExternalIdParseSerializeTest(
-                    id = UnknownExternalMovieId("abcd", "qwerty"),
+                    id = UnknownExternalSeasonId("abcd", "qwerty"),
                     values = listOf("abcd-qwerty"),
                 ),
             ),

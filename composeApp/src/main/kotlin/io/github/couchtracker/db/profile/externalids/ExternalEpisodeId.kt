@@ -10,6 +10,7 @@ package io.github.couchtracker.db.profile.externalids
 sealed interface ExternalEpisodeId : ExternalId {
 
     companion object : ExternalId.SealedInterfacesCompanion<ExternalEpisodeId>(
+        typeName = "episode",
         inheritors = listOf(TmdbExternalEpisodeId),
         unknownProvider = ::UnknownExternalEpisodeId,
     )

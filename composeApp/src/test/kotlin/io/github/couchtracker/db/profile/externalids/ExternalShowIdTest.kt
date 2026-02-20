@@ -1,36 +1,36 @@
 package io.github.couchtracker.db.profile.externalids
 
 import io.github.couchtracker.tmdb.TmdbShowId
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.datatest.withData
-import io.kotest.matchers.shouldBe
 
 class ExternalShowIdTest : FunSpec(
     {
-        context("parse()") {
-            context("works") {
-                withData(
-                    "tmdb-1234" to TmdbExternalShowId(TmdbShowId(1234)),
-                    "tmdb-9999" to TmdbExternalShowId(TmdbShowId(9999)),
-                    "abcd-qwerty" to UnknownExternalShowId("abcd", "qwerty"),
-                ) { (id, expected) ->
-                    ExternalShowId.parse(id) shouldBe expected
-                }
-            }
-
-            context("fails with invalid IDs") {
-                withData(
-                    nameFn = { it.ifBlank { "<blank>" } },
-                    "tmdb-abcd",
-                    "aaaaaaaaa",
-                    "   ",
-                ) { id ->
-                    shouldThrow<IllegalArgumentException> {
-                        ExternalShowId.parse(id)
-                    }
-                }
-            }
-        }
+        testParseAndSerialize(
+            type = ExternalShowId,
+            validTestCases = listOf(
+                ExternalIdParseSerializeTest(
+                    id = TmdbExternalShowId(TmdbShowId(1234)),
+                    values = listOf("tmdb-1234", "tmdb-01234", "tmdb-00000001234"),
+                ),
+                ExternalIdParseSerializeTest(
+                    id = TmdbExternalShowId(TmdbShowId(999_999)),
+                    values = listOf("tmdb-999999"),
+                ),
+                ExternalIdParseSerializeTest(
+                    id = TmdbExternalShowId(TmdbShowId(1)),
+                    values = listOf("tmdb-1"),
+                ),
+                ExternalIdParseSerializeTest(
+                    id = UnknownExternalShowId("abcd", "qwerty"),
+                    values = listOf("abcd-qwerty"),
+                ),
+            ),
+            invalidValues = listOf(
+                "tmdb-abcd",
+                "aaaaaaaaa",
+                "   ",
+                "",
+            ),
+        )
     },
 )

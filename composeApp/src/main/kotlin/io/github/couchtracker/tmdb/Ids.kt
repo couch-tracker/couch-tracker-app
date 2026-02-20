@@ -58,7 +58,7 @@ data class TmdbSeasonId(val showId: TmdbShowId, val number: Int) : TmdbId {
         require(number >= 0) { "Season number cannot be negative, $number given" }
     }
 
-    override fun toString(): String = "${showId.value}-$number"
+    override fun toString(): String = "${showId.value}-s$number"
 
     fun episode(number: Int) = TmdbEpisodeId(seasonId = this, number = number)
 
@@ -79,10 +79,11 @@ data class TmdbSeasonId(val showId: TmdbShowId, val number: Int) : TmdbId {
             }
 
             val showId = TmdbShowId(show.toIntOrNull() ?: partError("show ID"))
+            if (!seasonNumber.startsWith('s')) partError("season number (must start with literal 's')")
 
             return TmdbSeasonId(
                 showId = showId,
-                number = seasonNumber.toIntOrNull() ?: partError("season number"),
+                number = seasonNumber.drop(1).toIntOrNull() ?: partError("season number"),
             )
         }
     }
@@ -101,7 +102,7 @@ data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
         number = episodeNumber,
     )
 
-    override fun toString() = "${showId.value}-${seasonId.number}x$number"
+    override fun toString() = "${showId.value}-s${seasonId.number}e$number"
 
     fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
 
@@ -120,7 +121,9 @@ data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
             }
 
             val showId = TmdbShowId(show.toIntOrNull() ?: partError("show ID"))
-            val (seasonNumber, episodeNumber) = rest.split('x', limit = 2).also {
+            if (!rest.startsWith('s')) partError("season number (must start with literal 's')")
+
+            val (seasonNumber, episodeNumber) = rest.drop(1).split('e', limit = 2).also {
                 require(it.size == 2) { "Invalid serialized TMDB episode ID: $value" }
             }
 

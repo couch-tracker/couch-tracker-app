@@ -7,9 +7,10 @@ package io.github.couchtracker.db.profile.externalids
  *
  * @see ExternalId
  */
-sealed interface ExternalShowId : ExternalId {
+sealed interface ExternalShowId : ExternalId, BookmarkableExternalId {
 
     companion object : ExternalId.SealedInterfacesCompanion<ExternalShowId>(
+        typeName = "show",
         inheritors = listOf(TmdbExternalShowId),
         unknownProvider = ::UnknownExternalShowId,
     )
