@@ -31,9 +31,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.show.ExternalShowId
-import io.github.couchtracker.db.profile.show.TmdbExternalShowId
-import io.github.couchtracker.db.profile.show.UnknownExternalShowId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShowId

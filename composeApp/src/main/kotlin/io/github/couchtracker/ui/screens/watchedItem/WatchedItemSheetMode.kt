@@ -1,12 +1,12 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
-import io.github.couchtracker.db.profile.ExternalId
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisodeSession
 import io.github.couchtracker.db.profile.WatchedItem
-import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalId
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
-import io.github.couchtracker.db.profile.movie.ExternalMovieId
 
 /**
  * Represents the mode to open a [WatchedItemSheetScaffold].

@@ -1,4 +1,4 @@
-package io.github.couchtracker.db.profile.episode
+package io.github.couchtracker.db.profile.externalids
 
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.kotest.assertions.throwables.shouldThrow

@@ -1,4 +1,4 @@
-import io.github.couchtracker.db.profile.movie.ExternalMovieId;
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId;
 
 CREATE TABLE WatchedMovie (
   id INTEGER PRIMARY KEY NOT NULL,

@@ -3,11 +3,11 @@ package io.github.couchtracker.db.profile.model.watchedItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.ExternalId
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisode
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.WatchedMovie
+import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTimeGroup
 import io.github.couchtracker.intl.datetime.localizedFull

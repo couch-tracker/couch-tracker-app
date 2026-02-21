@@ -25,9 +25,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.db.profile.season.ExternalSeasonId
-import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
-import io.github.couchtracker.db.profile.season.UnknownExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalSeasonId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen

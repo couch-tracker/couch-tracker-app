@@ -1,21 +1,21 @@
-package io.github.couchtracker.db.profile.movie
+package io.github.couchtracker.db.profile.externalids
 
-import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 
-class ExternalMovieIdTest : FunSpec(
+class ExternalEpisodeIdTest : FunSpec(
     {
         context("parse()") {
             context("works") {
                 withData(
-                    "tmdb-1234" to TmdbExternalMovieId(TmdbMovieId(1234)),
-                    "tmdb-9999" to TmdbExternalMovieId(TmdbMovieId(9999)),
-                    "abcd-qwerty" to UnknownExternalMovieId("abcd", "qwerty"),
+                    "tmdb-1234-1x5" to TmdbExternalEpisodeId(TmdbEpisodeId(showId = 1234, seasonNumber = 1, episodeNumber = 5)),
+                    "tmdb-9999-4x3" to TmdbExternalEpisodeId(TmdbEpisodeId(showId = 9999, seasonNumber = 4, episodeNumber = 3)),
+                    "abcd-qwerty" to UnknownExternalEpisodeId("abcd", "qwerty"),
                 ) { (id, expected) ->
-                    ExternalMovieId.parse(id) shouldBe expected
+                    ExternalEpisodeId.parse(id) shouldBe expected
                 }
             }
 
@@ -27,7 +27,7 @@ class ExternalMovieIdTest : FunSpec(
                     "   ",
                 ) { id ->
                     shouldThrow<IllegalArgumentException> {
-                        ExternalMovieId.parse(id)
+                        ExternalEpisodeId.parse(id)
                     }
                 }
             }

@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberCoroutineScope
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
-import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton

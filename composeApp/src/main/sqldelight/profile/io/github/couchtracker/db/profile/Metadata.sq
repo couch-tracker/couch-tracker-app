@@ -1,6 +1,3 @@
-import io.github.couchtracker.db.profile.show.ExternalShowId;
-import kotlin.time.Instant;
-
 /**
  * Contains metadata about the database.
  */

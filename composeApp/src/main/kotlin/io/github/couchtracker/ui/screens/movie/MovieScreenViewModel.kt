@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.couchtracker.db.profile.movie.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.utils.api.ApiLoadable
 

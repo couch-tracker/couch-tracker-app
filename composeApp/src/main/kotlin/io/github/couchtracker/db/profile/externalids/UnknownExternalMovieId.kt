@@ -1,4 +1,4 @@
-package io.github.couchtracker.db.profile.movie
+package io.github.couchtracker.db.profile.externalids
 
 data class UnknownExternalMovieId(
     override val provider: String,

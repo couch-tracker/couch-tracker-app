@@ -1,6 +1,4 @@
-package io.github.couchtracker.db.profile.season
-
-import io.github.couchtracker.db.profile.ExternalId
+package io.github.couchtracker.db.profile.externalids
 
 /**
  * Any external ID representing a season.

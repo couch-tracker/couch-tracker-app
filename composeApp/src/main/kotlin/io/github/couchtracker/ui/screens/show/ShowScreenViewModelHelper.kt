@@ -8,8 +8,8 @@ import app.moviebase.tmdb.model.TmdbShowCreatedBy
 import app.moviebase.tmdb.model.TmdbShowDetail
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
-import io.github.couchtracker.db.profile.season.ExternalSeasonId
-import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.BaseTmdbShow

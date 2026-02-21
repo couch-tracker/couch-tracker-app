@@ -1,4 +1,4 @@
-package io.github.couchtracker.db.profile
+package io.github.couchtracker.db.profile.externalids
 
 /**
  * Base interface for all IDs of external providers that are inside the profile's database.
@@ -16,7 +16,7 @@ package io.github.couchtracker.db.profile
  * @property provider the name of the external provider (e.g. `tmdb`).
  * @property value the external ID. It can be anything that uniquely identifies the external resource.
  */
-interface ExternalId {
+sealed interface ExternalId {
 
     val provider: String
     val value: String
