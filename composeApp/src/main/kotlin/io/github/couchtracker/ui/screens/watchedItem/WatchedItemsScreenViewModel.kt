@@ -7,9 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.Bcp47Language
-import io.github.couchtracker.db.profile.ExternalId
+import io.github.couchtracker.db.profile.externalids.ExternalId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.screens.movie.MovieScreenViewModelHelper

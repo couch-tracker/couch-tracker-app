@@ -49,9 +49,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
-import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
-import io.github.couchtracker.db.profile.episode.UnknownExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen

@@ -40,10 +40,10 @@ import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.db.profile.movie.ExternalMovieId
-import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
-import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovieId

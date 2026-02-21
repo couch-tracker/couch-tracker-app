@@ -2,8 +2,8 @@ package io.github.couchtracker.ui.screens.season
 
 import android.app.Application
 import androidx.compose.runtime.State
-import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
-import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeason

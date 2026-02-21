@@ -1,4 +1,4 @@
-import io.github.couchtracker.db.profile.show.ExternalShowId;
+import io.github.couchtracker.db.profile.externalids.ExternalShowId;
 import kotlin.time.Instant;
 
 /**

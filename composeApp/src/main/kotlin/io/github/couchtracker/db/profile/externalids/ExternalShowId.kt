@@ -1,6 +1,4 @@
-package io.github.couchtracker.db.profile.show
-
-import io.github.couchtracker.db.profile.ExternalId
+package io.github.couchtracker.db.profile.externalids
 
 /**
  * Any external ID representing a show.

@@ -3,14 +3,14 @@ package io.github.couchtracker.tmdb
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import io.github.couchtracker.db.common.adapters.map
-import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
-import io.github.couchtracker.db.profile.episode.TmdbExternalEpisodeId
-import io.github.couchtracker.db.profile.movie.ExternalMovieId
-import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
-import io.github.couchtracker.db.profile.season.ExternalSeasonId
-import io.github.couchtracker.db.profile.season.TmdbExternalSeasonId
-import io.github.couchtracker.db.profile.show.ExternalShowId
-import io.github.couchtracker.db.profile.show.TmdbExternalShowId
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 
 sealed interface TmdbId
 

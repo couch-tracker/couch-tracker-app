@@ -10,11 +10,11 @@ import io.github.couchtracker.db.common.adapters.columnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.db.common.adapters.jsonSet
 import io.github.couchtracker.db.profile.defaultdata.ProfileDefaultDataHandler
-import io.github.couchtracker.db.profile.episode.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionType
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.db.profile.movie.ExternalMovieId
-import io.github.couchtracker.db.profile.show.ExternalShowId
 import org.koin.dsl.module
 
 val ProfileDbCommonModule = module {

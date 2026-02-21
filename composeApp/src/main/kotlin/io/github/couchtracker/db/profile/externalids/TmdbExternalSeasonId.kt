@@ -1,6 +1,5 @@
-package io.github.couchtracker.db.profile.season
+package io.github.couchtracker.db.profile.externalids
 
-import io.github.couchtracker.db.profile.ExternalId
 import io.github.couchtracker.tmdb.TmdbSeasonId
 
 @JvmInline

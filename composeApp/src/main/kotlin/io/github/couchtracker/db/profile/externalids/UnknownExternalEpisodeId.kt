@@ -1,4 +1,4 @@
-package io.github.couchtracker.db.profile.episode
+package io.github.couchtracker.db.profile.externalids
 
 data class UnknownExternalEpisodeId(
     override val provider: String,

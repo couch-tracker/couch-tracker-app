@@ -32,13 +32,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
-import io.github.couchtracker.db.profile.movie.ExternalMovieId
-import io.github.couchtracker.db.profile.movie.TmdbExternalMovieId
-import io.github.couchtracker.db.profile.movie.UnknownExternalMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
