@@ -45,7 +45,7 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
-import io.github.couchtracker.ui.screens.season.navigateToSeason
+import io.github.couchtracker.ui.screens.seasons.navigateToSeason
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
