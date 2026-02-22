@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.episodes
 
 import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,6 +69,15 @@ class EpisodesScreenViewModelHelper(
         val episodes: List<EpisodeBaseDetails>,
     ) {
         val displayDefaultName = isWorthDisplayingAltSeasonName(name, number, defaultName)
+
+        fun subtitle(context: Context, showName: String?): String? {
+            return seasonNameSubtitle(
+                context,
+                displayDefaultName,
+                showName,
+                defaultName,
+            )
+        }
     }
 
     data class EpisodeBaseDetails(

@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -148,6 +149,7 @@ private fun EpisodeScreenContent(
         initialPage = seasonDetails.episodes.indexOfFirst { it.externalId == initialEpisode },
         pageCount = { seasonDetails.episodes.size },
     )
+    val selectedEpisode = seasonDetails.episodes[pagerState.currentPage]
     val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
     val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing EpisodeScreenContent")
@@ -157,8 +159,11 @@ private fun EpisodeScreenContent(
             containerColor = backgroundColor,
             topBar = {
                 OverviewScreenComponents.Header(
-                    title = seasonDetails.name,
-                    subtitle = viewModel.seasonSubtitle.resultValueOrNull(),
+                    title = selectedEpisode.name ?: selectedEpisode.number,
+                    subtitle = seasonDetails.subtitle(
+                        context = LocalContext.current,
+                        showName = viewModel.showBaseDetails.resultValueOrNull()?.name,
+                    ),
                     backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
                     scrollBehavior = scrollBehavior,
                     backgroundColor = { backgroundColor },
@@ -256,7 +261,7 @@ private fun OverviewScreenComponents.EpisodeDetailsContent(
         section({ textBlock("airDate", Loadable.value(episodeDetails.firstAirDate)) }) {
             tags(Loadable.value(tags))
         }
-        section(title = { title(Loadable.value(episodeDetails.name)) }) {
+        section(title = {}) {
             overview(overview)
         }
         imagesSection(episodeModel.images, totalHeight = totalHeight)
