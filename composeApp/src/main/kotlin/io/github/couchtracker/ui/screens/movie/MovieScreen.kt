@@ -94,7 +94,7 @@ fun NavController.navigateToMovie(id: TmdbMovieId, preloadData: BaseTmdbMovie?) 
     if (preloadData != null) {
         KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().registerItem(preloadData)
     }
-    navigate(MovieScreen(id.toExternalId().serialize()))
+    navigate(MovieScreen(ExternalMovieId.serialize(id.toExternalId())))
 }
 
 @Composable

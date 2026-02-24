@@ -83,7 +83,7 @@ fun NavController.navigateToShow(id: TmdbShowId, preloadData: BaseTmdbShow?) {
     if (preloadData != null) {
         KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().registerItem(preloadData)
     }
-    navigate(ShowScreen(id.toExternalId().serialize()))
+    navigate(ShowScreen(ExternalShowId.serialize(id.toExternalId())))
 }
 
 private enum class ShowScreenTab {
