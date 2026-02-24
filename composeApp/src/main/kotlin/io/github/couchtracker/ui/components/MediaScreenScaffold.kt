@@ -23,39 +23,28 @@ import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffoldState
 import kotlin.time.Duration
 
-/**
- * Scaffold for a screen showing of a media. Includes [WatchedItemSheetScaffold].
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MediaScreenScaffold(
-    watchedItemSheetScaffoldState: WatchedItemSheetScaffoldState,
     backgroundColor: () -> Color,
     colorScheme: ColorScheme,
-    watchedItemType: WatchedItemType,
-    mediaRuntime: () -> Duration?,
-    mediaLanguages: () -> List<Bcp47Language>,
     title: String,
     backdrop: ImageModel?,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     belowAppBar: @Composable ColumnScope.() -> Unit = {},
+    containerColor: () -> Color = backgroundColor,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},
+    scaffoldContainer: @Composable (scaffold: @Composable () -> Unit) -> Unit = { it() },
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     MaterialTheme(colorScheme = colorScheme) {
-        WatchedItemSheetScaffold(
-            scaffoldState = watchedItemSheetScaffoldState,
-            watchedItemType = watchedItemType,
-            mediaRuntime = mediaRuntime,
-            mediaLanguages = mediaLanguages,
-            containerColor = backgroundColor,
-        ) {
+        scaffoldContainer {
             Scaffold(
                 modifier = modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
-                containerColor = Color.Transparent,
+                containerColor = containerColor(),
                 topBar = {
                     OverviewScreenComponents.Header(
                         title = title,
@@ -72,4 +61,49 @@ fun MediaScreenScaffold(
             )
         }
     }
+}
+
+/**
+ * Scaffold for a screen showing of a media. Includes [WatchedItemSheetScaffold].
+ */
+@Composable
+fun WatchableMediaScreenScaffold(
+    watchedItemSheetScaffoldState: WatchedItemSheetScaffoldState,
+    backgroundColor: () -> Color,
+    colorScheme: ColorScheme,
+    watchedItemType: WatchedItemType,
+    mediaRuntime: () -> Duration?,
+    mediaLanguages: () -> List<Bcp47Language>,
+    title: String,
+    backdrop: ImageModel?,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    belowAppBar: @Composable ColumnScope.() -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    floatingActionButton: @Composable () -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit,
+) {
+    MediaScreenScaffold(
+        backgroundColor = backgroundColor,
+        colorScheme = colorScheme,
+        title = title,
+        backdrop = backdrop,
+        modifier = modifier,
+        subtitle = subtitle,
+        containerColor = { Color.Transparent },
+        snackbarHostState = snackbarHostState,
+        floatingActionButton = floatingActionButton,
+        scaffoldContainer = { scaffold ->
+            WatchedItemSheetScaffold(
+                scaffoldState = watchedItemSheetScaffoldState,
+                watchedItemType = watchedItemType,
+                mediaRuntime = mediaRuntime,
+                mediaLanguages = mediaLanguages,
+                containerColor = backgroundColor,
+                content = scaffold,
+            )
+        },
+        belowAppBar = belowAppBar,
+        content = content,
+    )
 }

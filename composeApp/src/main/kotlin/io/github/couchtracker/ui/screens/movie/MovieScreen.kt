@@ -50,9 +50,9 @@ import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
-import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
+import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
@@ -143,7 +143,7 @@ private fun MovieScreenContent(
     val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
     val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing MovieScreenContent")
-    MediaScreenScaffold(
+    WatchableMediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = colorScheme,
         watchedItemType = WatchedItemType.MOVIE,
