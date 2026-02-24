@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.outlined.BookmarkAdd
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
@@ -25,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,8 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import io.github.couchtracker.LocalFullProfileDataContext
-import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
@@ -49,12 +42,13 @@ import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.BookmarkIconButton
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
+import io.github.couchtracker.ui.components.WatchedItemsIconButton
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
-import io.github.couchtracker.ui.screens.watchedItem.navigateToWatchedItems
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
@@ -184,9 +178,6 @@ private fun MovieToolbar(
     expanded: Boolean,
     onMarkAsWatched: () -> Unit,
 ) {
-    val navController = LocalNavController.current
-    val fullProfileData = LocalFullProfileDataContext.current
-    val watchCount = fullProfileData.watchedItems.count { it.itemId == externalMovieId }
     HorizontalFloatingToolbar(
         expanded = expanded,
         floatingActionButton = {
@@ -198,21 +189,8 @@ private fun MovieToolbar(
             IconButton(onClick = { /* TODO */ }) {
                 Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
             }
-            BadgedBox(
-                badge = {
-                    if (watchCount > 0) {
-                        Badge { Text(watchCount.toString()) }
-                    }
-                },
-            ) {
-                IconButton(onClick = { navController.navigateToWatchedItems(externalMovieId) }) {
-                    Icon(Icons.Default.Checklist, contentDescription = R.string.viewing_history.str())
-                }
-            }
-            IconButton(onClick = { /* TODO */ }) {
-                // Use Icons.Filled.BookmarkRemove when bookmarked
-                Icon(Icons.Outlined.BookmarkAdd, contentDescription = "TODO") // TODO
-            }
+            WatchedItemsIconButton(externalMovieId)
+            BookmarkIconButton(externalMovieId)
         },
     )
 }

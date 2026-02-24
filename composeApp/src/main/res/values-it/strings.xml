@@ -156,4 +156,7 @@
     <string name="add_language">Aggiungi lingua</string>
     <string name="remove_language">Rimuovi lingua</string>
     <string name="drag_handle">Maniglia</string>
+
+    <string name="bookmark_add">Aggiungi agli elementi salvati</string>
+    <string name="bookmark_remove">Rimuovi dagli elementi salvati</string>
 </resources>

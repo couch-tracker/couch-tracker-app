@@ -14,9 +14,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
@@ -30,7 +27,6 @@ import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -48,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
@@ -59,6 +54,7 @@ import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.ui.components.WatchedItemsIconButton
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
 import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.Loadable
@@ -281,8 +277,6 @@ private fun EpisodeToolbar(
     expanded: Boolean,
     onMarkAsWatched: () -> Unit,
 ) {
-    val fullProfileData = LocalFullProfileDataContext.current
-    val watchCount = fullProfileData.watchedItems.count { it.itemId == externalEpisodeId }
     HorizontalFloatingToolbar(
         expanded = expanded,
         floatingActionButton = {
@@ -294,17 +288,7 @@ private fun EpisodeToolbar(
             IconButton(onClick = { /* TODO */ }) {
                 Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
             }
-            BadgedBox(
-                badge = {
-                    if (watchCount > 0) {
-                        Badge { Text(watchCount.toString()) }
-                    }
-                },
-            ) {
-                IconButton(onClick = { /* TODO: navigate to viewing history */ }) {
-                    Icon(Icons.Default.Checklist, contentDescription = R.string.viewing_history.str())
-                }
-            }
+            WatchedItemsIconButton(externalEpisodeId)
         },
     )
 }

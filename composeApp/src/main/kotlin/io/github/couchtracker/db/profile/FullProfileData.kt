@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.profile
 
 import android.util.Log
+import io.github.couchtracker.db.profile.externalids.BookmarkableExternalId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionsWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
@@ -12,7 +13,7 @@ import kotlin.time.measureTimedValue
 private const val LOG_TAG = "FullProfileData"
 
 data class FullProfileData(
-    val showCollection: List<ShowInCollection>,
+    val bookmarkedItems: Map<BookmarkableExternalId, BookmarkedItem>,
     val watchedItems: List<WatchedItemWrapper>,
     val watchedItemDimensions: List<WatchedItemDimensionWrapper>,
 ) {
@@ -26,7 +27,7 @@ data class FullProfileData(
                     val watchedItemDimensions = WatchedItemDimensionWrapper.load(db)
                     val watchedItemDimensionSelections = WatchedItemDimensionSelectionsWrapper.load(db, watchedItemDimensions)
                     FullProfileData(
-                        showCollection = db.showInCollectionQueries.selectShowCollection().executeAsList(),
+                        bookmarkedItems = db.bookmarkedItemQueries.selectAll().executeAsList().associateBy { it.itemId },
                         watchedItems = WatchedItemWrapper.load(db, watchedItemDimensionSelections),
                         watchedItemDimensions = watchedItemDimensions,
                     )

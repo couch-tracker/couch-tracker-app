@@ -10,7 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -33,6 +39,7 @@ import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.BookmarkIconButton
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
@@ -114,6 +121,7 @@ private fun Content(viewModel: ShowScreenViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ShowScreenContent(
     viewModel: ShowScreenViewModel,
@@ -139,6 +147,9 @@ private fun ShowScreenContent(
         backgroundColor = { backgroundColor },
         title = viewModel.baseDetails.resultValueOrNull()?.name.orEmpty(),
         backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
+        floatingActionButton = {
+            ShowToolbar(externalShowId = viewModel.showId.toExternalId())
+        },
         snackbarHostState = snackbarHostState,
         belowAppBar = {
             OverviewScreenComponents.HeaderTabRow(
@@ -170,6 +181,20 @@ private fun ShowScreenContent(
                     ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
                 }
             }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ShowToolbar(externalShowId: ExternalShowId) {
+    HorizontalFloatingToolbar(
+        expanded = false,
+        content = {
+            IconButton(onClick = { /* TODO */ }) {
+                Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
+            }
+            BookmarkIconButton(externalShowId)
         },
     )
 }
