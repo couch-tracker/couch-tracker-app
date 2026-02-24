@@ -45,8 +45,8 @@ import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
-import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.MessageComposable
+import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
@@ -113,7 +113,7 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
     val backgroundColor by animateColorAsState(colorScheme.background)
-    MediaScreenScaffold(
+    WatchableMediaScreenScaffold(
         watchedItemSheetScaffoldState = scaffoldState,
         colorScheme = colorScheme,
         backgroundColor = { backgroundColor },

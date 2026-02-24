@@ -11,20 +11,14 @@ import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,6 +35,7 @@ import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
+import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
@@ -130,7 +125,6 @@ private fun ShowScreenContent(
         initialPage = ShowScreenTab.entries.indexOf(ShowScreenTab.DETAILS),
         pageCount = { ShowScreenTab.entries.size },
     )
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
@@ -140,52 +134,44 @@ private fun ShowScreenContent(
     val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
     val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing ShowScreenContent")
-    MaterialTheme(colorScheme = colorScheme) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = backgroundColor,
-            topBar = {
-                OverviewScreenComponents.Header(
-                    title = viewModel.baseDetails.resultValueOrNull()?.name.orEmpty(),
-                    backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
-                    scrollBehavior = scrollBehavior,
-                    backgroundColor = { backgroundColor },
-                    belowAppBar = {
-                        OverviewScreenComponents.HeaderTabRow(
-                            pagerState = pagerState,
-                            tabText = { page ->
-                                when (ShowScreenTab.entries[page]) {
-                                    ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
-                                    ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
-                                    ShowScreenTab.DETAILS -> R.string.tab_show_details.str()
-                                }
-                            },
-                            onPageClick = { page ->
-                                coroutineScope.launch { pagerState.animateScrollToPage(page) }
-                            },
-                        )
-                    },
-                )
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            content = { innerPadding ->
-                HorizontalPager(pagerState, modifier = Modifier.fillMaxSize()) { page ->
+    MediaScreenScaffold(
+        colorScheme = colorScheme,
+        backgroundColor = { backgroundColor },
+        title = viewModel.baseDetails.resultValueOrNull()?.name.orEmpty(),
+        backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
+        snackbarHostState = snackbarHostState,
+        belowAppBar = {
+            OverviewScreenComponents.HeaderTabRow(
+                pagerState = pagerState,
+                tabText = { page ->
                     when (ShowScreenTab.entries[page]) {
-                        ShowScreenTab.DETAILS -> OverviewScreenComponents.ShowDetailsContent(
-                            innerPadding = innerPadding,
-                            viewModel = viewModel,
-                            totalHeight = totalHeight,
-                        )
-                        ShowScreenTab.SEASONS -> OverviewScreenComponents.SeasonsContent(
-                            innerPadding = innerPadding,
-                            viewModel = viewModel,
-                        )
-                        ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
+                        ShowScreenTab.VIEWING_HISTORY -> R.string.tab_show_viewing_history.str()
+                        ShowScreenTab.SEASONS -> R.string.tab_show_seasons.str()
+                        ShowScreenTab.DETAILS -> R.string.tab_show_details.str()
                     }
+                },
+                onPageClick = { page ->
+                    coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                },
+            )
+        },
+        content = { innerPadding ->
+            HorizontalPager(pagerState, modifier = Modifier.fillMaxSize()) { page ->
+                when (ShowScreenTab.entries[page]) {
+                    ShowScreenTab.DETAILS -> OverviewScreenComponents.ShowDetailsContent(
+                        innerPadding = innerPadding,
+                        viewModel = viewModel,
+                        totalHeight = totalHeight,
+                    )
+                    ShowScreenTab.SEASONS -> OverviewScreenComponents.SeasonsContent(
+                        innerPadding = innerPadding,
+                        viewModel = viewModel,
+                    )
+                    ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
                 }
-            },
-        )
-    }
+            }
+        },
+    )
 }
 
 @Composable
