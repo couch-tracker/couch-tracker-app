@@ -10,7 +10,9 @@ import io.github.couchtracker.db.common.adapters.columnAdapter
 import io.github.couchtracker.db.common.adapters.jsonAdapter
 import io.github.couchtracker.db.common.adapters.jsonSet
 import io.github.couchtracker.db.profile.defaultdata.ProfileDefaultDataHandler
+import io.github.couchtracker.db.profile.externalids.BookmarkableExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionType
@@ -21,8 +23,8 @@ val ProfileDbCommonModule = module {
     factory<ProfileData> { params ->
         ProfileData(
             driver = params.get(),
-            ShowInCollectionAdapter = ShowInCollection.Adapter(
-                showIdAdapter = ExternalShowId.columnAdapter(),
+            BookmarkedItemAdapter = BookmarkedItem.Adapter(
+                itemIdAdapter = ExternalId.columnAdapter<BookmarkableExternalId>(),
                 addDateAdapter = InstantColumnAdapter,
             ),
             WatchedEpisodeAdapter = WatchedEpisode.Adapter(

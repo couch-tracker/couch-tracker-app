@@ -151,4 +151,7 @@
     <string name="add_language">Add language</string>
     <string name="remove_language">Remove language</string>
     <string name="drag_handle">Drag handle</string>
+
+    <string name="bookmark_add">Add to bookmarks</string>
+    <string name="bookmark_remove">Remove form bookmarks</string>
 </resources>
