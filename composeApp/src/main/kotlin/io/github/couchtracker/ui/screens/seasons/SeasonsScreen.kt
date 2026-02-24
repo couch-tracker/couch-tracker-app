@@ -70,7 +70,7 @@ data class SeasonsScreen(val seasonId: String) : Screen() {
 }
 
 fun NavController.navigateToSeason(id: ExternalSeasonId) {
-    navigate(SeasonsScreen(id.serialize()))
+    navigate(SeasonsScreen(ExternalSeasonId.serialize(id)))
 }
 
 @Composable

@@ -7,7 +7,7 @@ package io.github.couchtracker.db.profile.externalids
  *
  * @see ExternalId
  */
-sealed interface ExternalMovieId : ExternalId, BookmarkableExternalId {
+sealed interface ExternalMovieId : ExternalId, WatchableExternalId, BookmarkableExternalId {
 
     companion object : ExternalId.SealedInterfacesCompanion<ExternalMovieId>(
         typeName = "movie",

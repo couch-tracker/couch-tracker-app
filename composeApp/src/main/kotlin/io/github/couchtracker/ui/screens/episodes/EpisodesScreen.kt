@@ -96,7 +96,7 @@ data class EpisodeScreen(val episodeId: String) : Screen() {
 }
 
 fun NavController.navigateToEpisode(id: ExternalEpisodeId) {
-    navigate(EpisodeScreen(id.serialize()))
+    navigate(EpisodeScreen(ExternalEpisodeId.serialize(id)))
 }
 
 @Composable
