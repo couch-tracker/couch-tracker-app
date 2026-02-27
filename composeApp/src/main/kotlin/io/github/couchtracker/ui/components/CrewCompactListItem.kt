@@ -72,7 +72,7 @@ fun CrewCompactListItem(crew: CrewCompactListItemModel?) {
 
 data class CrewCompactListItemModel(
     val id: TmdbPersonId,
-    val name: String,
+    val name: String?,
     val posterModel: ImageModel?,
     val departments: Set<TmdbDepartment>,
     val departmentsString: String?,

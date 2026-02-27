@@ -26,9 +26,9 @@ import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
-import io.github.couchtracker.ui.isWorthDisplayingAltSeasonName
+import io.github.couchtracker.ui.SeasonNames
+import io.github.couchtracker.ui.names
 import io.github.couchtracker.ui.rememberPlaceholderPainter
-import io.github.couchtracker.ui.seasonNumberToString
 
 private val POSTER_WIDTH = 64.dp
 private val POSTER_HEIGHT = 96.dp
@@ -58,12 +58,12 @@ fun SeasonListItem(
             }
         },
         overlineContent = {
-            if (season.displayDefaultName) {
-                Text(season.defaultName)
+            if (season.names.secondaryName != null) {
+                Text(season.names.secondaryName)
             }
         },
         content = {
-            Text(season.name, style = MaterialTheme.typography.titleMedium)
+            Text(season.names.mainName, style = MaterialTheme.typography.titleMedium)
         },
         supportingContent = {
             TagsRow(
@@ -86,22 +86,19 @@ fun SeasonListItem(
 
 data class SeasonListItemModel(
     val number: Int,
-    val name: String,
-    val defaultName: String,
+    val names: SeasonNames,
     val poster: ImageModel?,
     val firstAirDate: String?,
     val episodesCount: String,
     val tmdbRating: TmdbRating?,
 ) {
-    val displayDefaultName = isWorthDisplayingAltSeasonName(name, number, defaultName)
 
     companion object {
         suspend fun fromTmdbSeason(context: Context, season: TmdbSeason): SeasonListItemModel {
             val episodes = season.episodeCount ?: 0
             return SeasonListItemModel(
                 number = season.seasonNumber,
-                name = season.name,
-                defaultName = seasonNumberToString(context, season.seasonNumber),
+                names = season.names(context),
                 poster = season.posterImage?.toImageModelWithPlaceholder(),
                 firstAirDate = season.airDate?.let {
                     PartialDateTime.Local.YearMonth(it.year, it.month)

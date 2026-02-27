@@ -115,6 +115,7 @@
     <string name="season_specials">Specials</string>
     <string name="episode_x">Episode %1$d</string>
     <string name="show_dash_season">%1$s - %2$s</string>
+    <string name="season_name_parenthesis_default_name">%1$s (%2$s)</string>
 
     <string name="mark_movie_as_watched">Mark as watched</string>
     <string name="mark_episode_as_watched">Mark as watched</string>

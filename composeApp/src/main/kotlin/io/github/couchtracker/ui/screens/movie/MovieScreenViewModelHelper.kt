@@ -62,7 +62,7 @@ class MovieScreenViewModelHelper(
 ) {
 
     data class BaseDetails(
-        val title: String,
+        val title: String?,
         val overview: String?,
         val year: Int?,
         val backdrop: ImageModel?,
@@ -75,7 +75,7 @@ class MovieScreenViewModelHelper(
         val rating: TmdbRating?,
         val runtime: Duration?,
         val runtimeString: String?,
-        val tagline: String,
+        val tagline: String?,
     )
 
     data class Credits(
@@ -141,7 +141,7 @@ class MovieScreenViewModelHelper(
                             directorsString = if (directors.isEmpty()) {
                                 null
                             } else {
-                                application.getString(R.string.movie_by_director, formatAndList(directors.map { it.name }))
+                                application.getString(R.string.movie_by_director, formatAndList(directors.mapNotNull { it.name }))
                             },
                         )
                     }

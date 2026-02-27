@@ -19,7 +19,6 @@ import io.github.couchtracker.tmdb.tmdbApiContext
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.EpisodeListItemModel
-import io.github.couchtracker.ui.isWorthDisplayingAltSeasonName
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
@@ -51,7 +50,7 @@ class SeasonsScreenViewModelHelper(
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
     class ShowDetails(
-        val name: String,
+        val name: String?,
         val backdrop: ImageModel?,
         val seasons: List<SeasonBaseDetails>,
     )
@@ -60,13 +59,11 @@ class SeasonsScreenViewModelHelper(
         val tmdbSeasonId: TmdbSeasonId,
         val externalId: ExternalSeasonId,
         val number: Int,
-        val name: String,
+        val name: String?,
         val defaultName: String,
         val overview: String?,
         val airDate: LocalDate?,
-    ) {
-        val displayDefaultName = isWorthDisplayingAltSeasonName(name, number, defaultName)
-    }
+    )
 
     data class SeasonFullDetails(
         val episodes: List<Pair<ExternalEpisodeId, EpisodeListItemModel>>,

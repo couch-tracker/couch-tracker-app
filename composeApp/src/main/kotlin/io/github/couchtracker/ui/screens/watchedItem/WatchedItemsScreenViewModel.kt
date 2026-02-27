@@ -20,7 +20,7 @@ import kotlin.time.Duration
 sealed interface WatchedItemsScreenViewModel {
 
     data class Details(
-        val title: String,
+        val title: String?,
         val runtime: Duration?,
         val originalLanguage: Bcp47Language?,
         val backdrop: ImageModel?,

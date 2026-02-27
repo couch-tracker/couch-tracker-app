@@ -78,7 +78,7 @@ fun CastPortrait(
 
 data class CastPortraitModel(
     val id: TmdbPersonId,
-    val name: String,
+    val name: String?,
     val posterModel: ImageModel?,
     val roles: List<String>,
     val episodesCount: Int? = null,
@@ -90,7 +90,7 @@ data class CastPortraitModel(
             return CastPortraitModel(
                 id = TmdbPersonId(cast.id),
                 name = cast.name,
-                roles = listOf(cast.character),
+                roles = listOfNotNull(cast.character),
                 posterModel = cast.profilePath?.let { path ->
                     TmdbImage(path, TmdbImageType.PROFILE).toImageModel()
                 },
@@ -105,7 +105,7 @@ data class CastPortraitModel(
                 CastPortraitModel(
                     id = TmdbPersonId(cast.id),
                     name = cast.name,
-                    roles = cast.roles.sortedByDescending { it.episodeCount }.map { it.character },
+                    roles = cast.roles.sortedByDescending { it.episodeCount }.mapNotNull { it.character },
                     posterModel = cast.profilePath?.let { path ->
                         TmdbImage(path, TmdbImageType.PROFILE).toImageModel()
                     },

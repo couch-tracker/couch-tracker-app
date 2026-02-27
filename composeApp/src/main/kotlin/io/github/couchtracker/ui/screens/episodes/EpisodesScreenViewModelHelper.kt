@@ -28,9 +28,7 @@ import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.format
-import io.github.couchtracker.ui.isWorthDisplayingAltSeasonName
 import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
-import io.github.couchtracker.ui.seasonNameSubtitle
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
@@ -64,19 +62,16 @@ class EpisodesScreenViewModelHelper(
 
     data class SeasonDetails(
         val number: Int,
-        val name: String,
+        val name: String?,
         val defaultName: String,
         val episodes: List<EpisodeBaseDetails>,
     ) {
-        val displayDefaultName = isWorthDisplayingAltSeasonName(name, number, defaultName)
-
         fun subtitle(context: Context, showName: String?): String? {
-            return seasonNameSubtitle(
-                context,
-                displayDefaultName,
-                showName,
-                defaultName,
-            )
+            return if (showName != null) {
+                context.getString(R.string.show_dash_season, showName, defaultName)
+            } else {
+                defaultName
+            }
         }
     }
 
@@ -92,7 +87,7 @@ class EpisodesScreenViewModelHelper(
     )
 
     class EpisodeFullDetails(
-        val overview: String,
+        val overview: String?,
         val crew: List<CrewCompactListItemModel>,
         val guestStars: List<CastPortraitModel>,
     )
@@ -142,7 +137,7 @@ class EpisodesScreenViewModelHelper(
     ): ApiLoadable<String?> {
         return seasonDetails.mapResult { season ->
             val show = showBaseDetails.resultValueOrNull()
-            seasonNameSubtitle(application, season.displayDefaultName, show?.name, season.defaultName)
+            season.subtitle(application, show?.name)
         }
     }
 

@@ -41,7 +41,7 @@ import kotlinx.datetime.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchedItemInfoDialog(
-    itemTitle: String,
+    itemTitle: String?,
     watchedItem: WatchedItemWrapper,
     onDismissRequest: () -> Unit,
     onEditRequest: () -> Unit,
@@ -58,7 +58,7 @@ fun WatchedItemInfoDialog(
                 Column {
                     Text(
                         modifier = Modifier.padding(20.dp),
-                        text = R.string.viewing_of_x.str(itemTitle),
+                        text = R.string.viewing_of_x.str(itemTitle.orEmpty()),
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     LazyColumn(

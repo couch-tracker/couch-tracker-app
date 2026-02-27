@@ -407,7 +407,7 @@ private fun SearchResult(
 
 private data class SearchResultItem(
     val posterModel: ImageModel?,
-    val title: String,
+    val title: String?,
     val type: SearchableMediaType,
     val tags: List<String>,
     val trailingInfo: String?,

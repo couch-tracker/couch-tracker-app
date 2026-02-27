@@ -63,7 +63,7 @@ class ShowScreenViewModelHelper(
 ) {
 
     data class BaseDetails(
-        val name: String,
+        val name: String?,
         val overview: String?,
         val year: Int?,
         val backdrop: ImageModel?,
@@ -76,7 +76,7 @@ class ShowScreenViewModelHelper(
         val genres: List<TmdbGenre>,
         val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
-        val tagline: String,
+        val tagline: String?,
         val seasons: List<Pair<ExternalSeasonId, SeasonListItemModel>>,
     )
 
@@ -163,7 +163,7 @@ class ShowScreenViewModelHelper(
             createdByString = if (createdBy.isEmpty()) {
                 null
             } else {
-                application.getString(R.string.show_by_creator, formatAndList(createdBy.map { it.name }))
+                application.getString(R.string.show_by_creator, formatAndList(createdBy.mapNotNull { it.name }))
             },
             seasons = seasons.map { season ->
                 val id = TmdbExternalSeasonId(TmdbSeasonId(showId, season.seasonNumber))
