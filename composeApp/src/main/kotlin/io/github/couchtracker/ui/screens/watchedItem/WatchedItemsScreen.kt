@@ -120,7 +120,7 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
         watchedItemType = viewModel.watchedItemType,
         mediaRuntime = { details.runtime },
         mediaLanguages = { listOfNotNull(details.originalLanguage) },
-        title = R.string.viewing_history_for_x.str(details.title),
+        title = R.string.viewing_history_for_x.str(details.title.orEmpty()),
         backdrop = details.backdrop,
         floatingActionButton = {
             FloatingActionButton(

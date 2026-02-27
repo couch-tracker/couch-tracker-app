@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -156,10 +155,7 @@ private fun EpisodeScreenContent(
             topBar = {
                 OverviewScreenComponents.Header(
                     title = selectedEpisode.name ?: selectedEpisode.number,
-                    subtitle = seasonDetails.subtitle(
-                        context = LocalContext.current,
-                        showName = viewModel.showBaseDetails.resultValueOrNull()?.name,
-                    ),
+                    subtitle = viewModel.seasonSubtitle.resultValueOrNull(),
                     backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
                     scrollBehavior = scrollBehavior,
                     backgroundColor = { backgroundColor },

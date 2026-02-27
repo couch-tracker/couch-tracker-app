@@ -126,7 +126,7 @@ private fun SeasonsScreenContent(
             containerColor = backgroundColor,
             topBar = {
                 OverviewScreenComponents.Header(
-                    title = selectedSeason.name,
+                    title = selectedSeason.name ?: selectedSeason.defaultName,
                     subtitle = showDetails.name,
                     backdrop = showDetails.backdrop,
                     scrollBehavior = scrollBehavior,

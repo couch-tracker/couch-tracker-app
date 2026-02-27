@@ -9,7 +9,7 @@ import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 /** Contains movie information that can be obtained from the result of any TMDB API call */
 data class BaseTmdbMovie(
     val key: TmdbBaseCacheKey<TmdbMovieId, TmdbLanguage>,
-    val title: String,
+    val title: String?,
     val overview: String?,
     val poster: TmdbImage?,
     val backdrop: TmdbImage?,

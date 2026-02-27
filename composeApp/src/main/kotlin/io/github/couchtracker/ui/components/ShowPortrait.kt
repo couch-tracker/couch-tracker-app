@@ -45,7 +45,7 @@ fun ShowPortrait(
         },
         label = {
             val label = when {
-                show == null -> ""
+                show?.name == null -> ""
                 show.year != null -> R.string.item_tile_with_year.str(show.name, show.year)
                 else -> show.name
             }
@@ -60,7 +60,7 @@ fun ShowPortrait(
 
 data class ShowPortraitModel(
     val id: TmdbShowId,
-    val name: String,
+    val name: String?,
     val year: Int?,
     val posterModel: ImageModel?,
 ) {

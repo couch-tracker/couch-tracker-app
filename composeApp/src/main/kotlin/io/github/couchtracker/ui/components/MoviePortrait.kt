@@ -57,9 +57,9 @@ fun MoviePortrait(
 
 data class MoviePortraitModel(
     val id: TmdbMovieId,
-    val title: String,
+    val title: String?,
     val year: Int?,
-    val titleWithYear: String,
+    val titleWithYear: String?,
     val posterModel: ImageModel?,
 ) {
     companion object {
