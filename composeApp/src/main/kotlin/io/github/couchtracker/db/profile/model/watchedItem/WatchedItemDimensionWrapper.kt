@@ -109,9 +109,9 @@ sealed interface WatchedItemDimensionWrapper : Comparable<WatchedItemDimensionWr
     override fun compareTo(other: WatchedItemDimensionWrapper) = manualSortIndex.compareTo(other.manualSortIndex)
 
     /**
-     * Returns whether this dimension should be visible, based on the current [selections].
+     * Returns whether this dimension is enabled, based on the current [dimensionSelections].
      */
-    fun isVisible(dimensionSelections: Collection<WatchedItemDimensionSelection<*>>): Boolean {
+    fun isEnabled(dimensionSelections: Collection<WatchedItemDimensionSelection<*>>): Boolean {
         if (enableIfs.isEmpty()) {
             // If there's no enable ifs it means the dimension is always visible
             return true

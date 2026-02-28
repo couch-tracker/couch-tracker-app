@@ -131,7 +131,7 @@ private fun LazyListScope.selectionSection(
     selection: WatchedItemDimensionSelection<*>,
     notEmptyContent: @Composable () -> Unit,
 ) {
-    if (selection.dimension.isVisible(watchedItem.dimensions) || !selection.isEmpty()) {
+    if (selection.dimension.isEnabled(watchedItem.dimensions) || !selection.isEmpty()) {
         section(title = selection.dimension.name.text) {
             if (selection.isEmpty()) {
                 Text(R.string.watched_item_no_information_available.str(), fontStyle = FontStyle.Italic)
