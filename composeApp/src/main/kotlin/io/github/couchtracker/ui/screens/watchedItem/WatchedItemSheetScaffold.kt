@@ -292,14 +292,14 @@ private fun WatchedItemSheetContent(
                         Spacer(Modifier.height(16.dp))
                         DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, mediaRuntime)
                         for (selection in selections.dimensions.filter { it.dimension.isImportant }) {
-                            AnimatedVisibility(visible = selection.dimension.isVisible(selections.dimensions)) {
+                            AnimatedVisibility(visible = selection.dimension.isEnabled(selections.dimensions)) {
                                 DimensionSection(selection)
                             }
                         }
                     }
                 }
                 for (selection in selections.dimensions.filterNot { it.dimension.isImportant }) {
-                    if (selection.dimension.isVisible(selections.dimensions)) {
+                    if (selection.dimension.isEnabled(selections.dimensions)) {
                         item(key = selection.dimension.id) {
                             BelowScrollLabelContainer(showAdvancedOptions, scrollLabelHeight, modifier = Modifier.animateItem()) {
                                 DimensionSection(selection)

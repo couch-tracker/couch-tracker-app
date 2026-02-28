@@ -1,42 +1,37 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.db.profile.ProfileData
-import io.github.couchtracker.db.profile.WatchedItemDimensionSelections
 import io.github.couchtracker.ui.screens.watchedItem.DateTimeSectionState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 
 class WatchedItemSelectionsState(
     val sheetMode: WatchedItemSheetMode,
     val datetime: DateTimeSectionState,
-    dimensions: List<WatchedItemDimensionSelection<*>>,
+    val dimensionsState: WatchedItemDimensionSelectionsState,
 ) {
-    private var dimensionsMap by mutableStateOf(dimensions.associateBy { it.dimension })
 
-    val dimensions get() = dimensionsMap.values
+    val dimensions get() = dimensionsState.dimensions
 
-    fun isValid(): Boolean {
-        return dimensions.all { it.validity() is WatchedItemDimensionSelectionValidity.Valid }
-    }
+    fun isValid() = dimensionsState.isValid()
 
     fun update(selection: WatchedItemDimensionSelection<*>) {
-        dimensionsMap = dimensionsMap.plus(selection.dimension to selection)
+        dimensionsState.update(selection)
     }
 
     fun save(db: ProfileData) {
         db.transaction {
+            val dimensionSelections = dimensionsState.save(db)
             val watchAt = datetime.dateTime?.dateTime
-            val dimensionsSelections = when (sheetMode) {
+            when (sheetMode) {
                 is WatchedItemSheetMode.New -> {
-                    val selectionsId = db.watchedItemDimensionSelectionsQueries.insert().executeAsOne()
-                    val watchedItem = db.watchedItemQueries.insert(watchAt = watchAt, dimensionSelections = selectionsId).executeAsOne()
+                    val watchedItem = db.watchedItemQueries.insert(
+                        watchAt = watchAt,
+                        dimensionSelections = dimensionSelections.id,
+                    ).executeAsOne()
                     sheetMode.save(db, watchedItem)
-                    WatchedItemDimensionSelections(selectionsId)
                 }
 
                 is WatchedItemSheetMode.Edit -> {
@@ -44,12 +39,7 @@ class WatchedItemSelectionsState(
                         id = sheetMode.watchedItem.id,
                         watchAt = watchAt,
                     ).executeAsOne()
-                    sheetMode.watchedItem.selections.watchedItemDimensionSelections
                 }
-            }
-
-            for (dimension in dimensions) {
-                dimension.save(db, dimensionsSelections)
             }
         }
     }
@@ -58,28 +48,28 @@ class WatchedItemSelectionsState(
 @Composable
 fun rememberWatchedItemSelectionsState(watchedItemType: WatchedItemType, mode: WatchedItemSheetMode): WatchedItemSelectionsState {
     val profileData = LocalFullProfileDataContext.current
+    val dimensionSelectionsState = rememberWatchedItemDimensionSelectionsState(
+        watchedItemType = watchedItemType,
+        mode = when (mode) {
+            is WatchedItemSheetMode.New -> WatchedItemDimensionSelectionsMode.New
+            is WatchedItemSheetMode.Edit -> WatchedItemDimensionSelectionsMode.Edit(mode.watchedItem.selections)
+        },
+    )
 
     // TODO make this savable
-    return remember(profileData, watchedItemType, mode) {
+    return remember(profileData, watchedItemType, mode, dimensionSelectionsState) {
         when (mode) {
-            is WatchedItemSheetMode.New -> {
-                val dimensions = profileData.watchedItemDimensions
-                    .filter { watchedItemType in it.appliesTo }
-                    .map { it.emptySelection() }
-                WatchedItemSelectionsState(
-                    sheetMode = mode,
-                    datetime = DateTimeSectionState(),
-                    dimensions = dimensions,
-                )
-            }
+            is WatchedItemSheetMode.New -> WatchedItemSelectionsState(
+                sheetMode = mode,
+                datetime = DateTimeSectionState(),
+                dimensionsState = dimensionSelectionsState,
+            )
 
-            is WatchedItemSheetMode.Edit -> {
-                WatchedItemSelectionsState(
-                    sheetMode = mode,
-                    datetime = DateTimeSectionState(mode.watchedItem.watchAt),
-                    dimensions = mode.watchedItem.dimensions,
-                )
-            }
+            is WatchedItemSheetMode.Edit -> WatchedItemSelectionsState(
+                sheetMode = mode,
+                datetime = DateTimeSectionState(mode.watchedItem.watchAt),
+                dimensionsState = dimensionSelectionsState,
+            )
         }
     }
 }
