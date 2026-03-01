@@ -14,15 +14,18 @@ object ColorSchemes {
     /**
      * [ColorScheme] for things int the app that are common between the media types (e.g. Home or People)
      */
-    val Common = Color.hsv(240f, 1f, 0.5f).generateColorScheme()
+    val CommonColor = Color.hsv(240f, 1f, 0.5f)
+    val Common = CommonColor.generateColorScheme()
 
     /**
      * [ColorScheme] for parts of the app that are related to TV shows
      */
-    val Show = Color.hsv(0f, 1f, 0.5f).generateColorScheme()
+    val ShowColor = Color.hsv(0f, 1f, 0.5f)
+    val Show = ShowColor.generateColorScheme()
 
     /**
      * [ColorScheme] for parts of the app that are related to Movies
      */
-    val Movie = Color.hsv(180f, 1f, 0.5f).generateColorScheme()
+    val MovieColor = Color.hsv(180f, 1f, 0.5f)
+    val Movie = MovieColor.generateColorScheme()
 }

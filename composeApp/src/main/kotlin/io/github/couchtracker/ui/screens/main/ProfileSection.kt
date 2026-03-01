@@ -37,6 +37,7 @@ fun ProfileSection(innerPadding: PaddingValues) {
         innerPadding = innerPadding,
         pagerState = pagerState,
         imageModel = R.drawable.sunset,
+        title = R.string.main_section_profile.str(),
         actions = {
             MainSectionDefaults.SearchButton(
                 onOpenSearch = {

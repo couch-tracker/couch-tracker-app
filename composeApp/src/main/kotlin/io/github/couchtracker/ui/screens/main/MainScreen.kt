@@ -1,6 +1,10 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.only
@@ -9,7 +13,6 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -18,15 +21,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.WipMessageComposable
+import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 
@@ -45,9 +52,13 @@ private fun Content() {
     val navController = rememberNavController()
     val currentSection =
         navController.currentBackStackEntryAsState().value?.destination?.route?.let { Section.fromId(it) } ?: DEFAULT_SECTION
+    val animationSpec = AnimationDefaults.NAV_HOST_FADE_ANIMATION_SPEC
 
-    // TODO: animate color changes
-    MaterialTheme(colorScheme = currentSection.colorScheme) {
+    val color by animateColorAsState(
+        targetValue = currentSection.color,
+        animationSpec = tween(AnimationDefaults.ANIMATION_DURATION_MS),
+    )
+    MaterialTheme(colorScheme = color.generateColorScheme()) {
         Scaffold(
             bottomBar = {
                 NavigationBar {
@@ -73,6 +84,8 @@ private fun Content() {
                 NavHost(
                     navController = navController,
                     startDestination = DEFAULT_SECTION.id,
+                    enterTransition = { fadeIn(animationSpec) },
+                    exitTransition = { fadeOut(animationSpec) },
                 ) {
                     composable(Section.SHOWS.id) {
                         MaterialTheme(colorScheme = Section.SHOWS.colorScheme) {
@@ -108,13 +121,15 @@ private enum class Section(
     @StringRes
     val displayName: Int,
     val icon: ImageVector,
-    val colorScheme: ColorScheme,
+    val color: Color,
 ) {
-    SHOWS("shows", R.string.main_section_shows, Icons.Filled.Tv, ColorSchemes.Show),
-    MOVIES("movies", R.string.main_section_movies, Icons.Filled.Movie, ColorSchemes.Movie),
-    PROFILE("profile", R.string.main_section_profile, Icons.Filled.Person, ColorSchemes.Common),
-    SEARCH("search", R.string.main_section_search, Icons.Filled.Search, ColorSchemes.Common),
+    SHOWS("shows", R.string.main_section_shows, Icons.Filled.Tv, ColorSchemes.ShowColor),
+    MOVIES("movies", R.string.main_section_movies, Icons.Filled.Movie, ColorSchemes.MovieColor),
+    PROFILE("profile", R.string.main_section_profile, Icons.Filled.Person, ColorSchemes.CommonColor),
+    SEARCH("search", R.string.main_section_search, Icons.Filled.Search, ColorSchemes.CommonColor),
     ;
+
+    val colorScheme = color.generateColorScheme()
 
     companion object {
         fun fromId(id: String) = entries.single { it.id == id }
