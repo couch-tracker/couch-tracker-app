@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Month
+import kotlinx.datetime.YearMonth
 
 class PartialDateTimeSortTest : FunSpec(
     {
@@ -207,9 +208,9 @@ class PartialDateTimeSortTest : FunSpec(
 
             result shouldBe mapOf(
                 PartialDateTimeGroup.Unknown to listOf(a),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2023, Month.DECEMBER)) to listOf(b),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2023, Month.DECEMBER))) to listOf(b),
                 PartialDateTimeGroup.Year(PartialDateTime.Local.Year(2024)) to listOf(c),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2024, Month.JANUARY)) to listOf(d, e, f, g),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2024, Month.JANUARY))) to listOf(d, e, f, g),
             )
         }
     },

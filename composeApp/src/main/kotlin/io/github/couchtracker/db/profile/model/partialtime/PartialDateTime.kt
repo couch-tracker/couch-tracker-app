@@ -24,6 +24,7 @@ import kotlinx.datetime.format.format
 import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.yearMonth
 import kotlin.time.Instant
 
 /**
@@ -138,7 +139,12 @@ sealed interface PartialDateTime {
             val month: Month
         }
 
-        sealed interface WithYearMonth : WithYear, WithMonth
+        sealed interface WithYearMonth : WithYear, WithMonth {
+            val yearMonth: kotlinx.datetime.YearMonth
+
+            override val year get() = yearMonth.year
+            override val month get() = yearMonth.month
+        }
 
         sealed interface WithDay : Local {
             val dayOfWeek: DayOfWeek
@@ -149,8 +155,7 @@ sealed interface PartialDateTime {
         sealed interface WithDate : WithYearMonth, WithDay {
             val date: LocalDate
 
-            override val year get() = date.year
-            override val month get() = date.month
+            override val yearMonth get() = date.yearMonth
             override val dayOfWeek get() = date.dayOfWeek
             override val dayOfMonth get() = date.day
             override val dayOfYear get() = date.dayOfYear
@@ -196,7 +201,7 @@ sealed interface PartialDateTime {
         /**
          * Represents a month in a given year, e.g. July 2024
          */
-        data class YearMonth(override val year: Int, override val month: Month) : Local, WithYearMonth {
+        data class YearMonth(override val yearMonth: kotlinx.datetime.YearMonth) : Local, WithYearMonth {
             override fun group() = PartialDateTimeGroup.YearMonth(this)
             override fun serialize() = format.format {
                 year = this@YearMonth.year
@@ -213,8 +218,7 @@ sealed interface PartialDateTime {
                 }
 
                 override fun fromComponents(components: DateTimeComponents) = YearMonth(
-                    year = requireNotNull(components.year),
-                    month = requireNotNull(components.month),
+                    yearMonth = components.toYearMonth(),
                 )
             }
         }
@@ -223,7 +227,7 @@ sealed interface PartialDateTime {
          * Represents a full date with no time component, e.g. 15th of July 2024
          */
         data class Date(override val date: LocalDate) : Local, WithDate {
-            override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(date.year, date.month))
+            override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(date.yearMonth))
             override fun serialize() = format.format { setDate(date) }
 
             override fun toInstant(zone: TimeZone) = date.atStartOfDayIn(zone)
@@ -239,7 +243,7 @@ sealed interface PartialDateTime {
          * Represents a full date and time, e.g. 15:00 15th of July 2024
          */
         data class DateTime(override val dateTime: LocalDateTime) : Local, WithDateTime {
-            override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(dateTime.year, dateTime.month))
+            override fun group() = PartialDateTimeGroup.YearMonth(YearMonth(dateTime.date.yearMonth))
             override fun serialize() = format.format { setDateTime(dateTime) }
 
             override fun toInstant(zone: TimeZone) = dateTime.toInstant(zone)

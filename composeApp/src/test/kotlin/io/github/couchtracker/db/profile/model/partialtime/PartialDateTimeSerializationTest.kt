@@ -13,6 +13,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.YearMonth
 
 private val LOCAL_TEST_CASES = listOf(
     ValidTestCase(
@@ -23,7 +24,7 @@ private val LOCAL_TEST_CASES = listOf(
     ValidTestCase(
         testName = "Year and Month",
         serialized = "2024-07",
-        value = Local.YearMonth(2024, Month.JULY),
+        value = Local.YearMonth(YearMonth(2024, Month.JULY)),
     ),
     ValidTestCase(
         testName = "Date",

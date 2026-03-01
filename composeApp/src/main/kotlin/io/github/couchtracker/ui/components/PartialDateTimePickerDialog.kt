@@ -43,6 +43,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.yearMonth
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -272,7 +273,7 @@ private fun selectedPartialDate(
     val localDate = selectedLocalDate(datePrecision, datePickerState) ?: return null
     return when (datePrecision) {
         DatePrecision.YEAR -> PartialDateTime.Local.Year(localDate.year)
-        DatePrecision.MONTH -> PartialDateTime.Local.YearMonth(localDate.year, localDate.month)
+        DatePrecision.MONTH -> PartialDateTime.Local.YearMonth(localDate.yearMonth)
         DatePrecision.DATE -> PartialDateTime.Local.Date(localDate)
     }
 }

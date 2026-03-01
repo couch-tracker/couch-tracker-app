@@ -3,6 +3,7 @@ package io.github.couchtracker.db.profile.model.partialtime
 import io.github.couchtracker.testComparables
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.datetime.Month
+import kotlinx.datetime.YearMonth
 
 class PartialDateTimeGroupSortTest : FunSpec(
     {
@@ -16,14 +17,14 @@ class PartialDateTimeGroupSortTest : FunSpec(
                 PartialDateTimeGroup.Year(PartialDateTime.Local.Year(2023)),
 
                 // Months must be sorted
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2023, Month.JANUARY)),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2023, Month.JUNE)),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2023, Month.DECEMBER)),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2023, Month.JANUARY))),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2023, Month.JUNE))),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2023, Month.DECEMBER))),
 
                 PartialDateTimeGroup.Year(PartialDateTime.Local.Year(2024)),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2024, Month.FEBRUARY)),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2024, Month.MARCH)),
-                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(2024, Month.OCTOBER)),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2024, Month.FEBRUARY))),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2024, Month.MARCH))),
+                PartialDateTimeGroup.YearMonth(PartialDateTime.Local.YearMonth(YearMonth(2024, Month.OCTOBER))),
             )
         }
     },

@@ -29,6 +29,7 @@ import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.SeasonNames
 import io.github.couchtracker.ui.names
 import io.github.couchtracker.ui.rememberPlaceholderPainter
+import kotlinx.datetime.yearMonth
 
 private val POSTER_WIDTH = 64.dp
 private val POSTER_HEIGHT = 96.dp
@@ -101,7 +102,7 @@ data class SeasonListItemModel(
                 names = season.names(context),
                 poster = season.posterImage?.toImageModelWithPlaceholder(),
                 firstAirDate = season.airDate?.let {
-                    PartialDateTime.Local.YearMonth(it.year, it.month)
+                    PartialDateTime.Local.YearMonth(it.yearMonth)
                         .localized(YearSkeleton.NUMERIC, MonthSkeleton.ABBREVIATED)
                         .localize()
                 },
