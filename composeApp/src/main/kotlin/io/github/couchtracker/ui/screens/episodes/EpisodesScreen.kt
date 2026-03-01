@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.R
@@ -61,6 +60,7 @@ import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -82,7 +82,7 @@ data class EpisodeScreen(val episodeId: String) : Screen() {
             externalEpisodeId,
             viewModel {
                 EpisodesScreenViewModel(
-                    application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                    application = viewModelApplication(),
                     seasonId = seasonId,
                 )
             },

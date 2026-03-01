@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
@@ -50,6 +49,7 @@ import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
@@ -65,7 +65,7 @@ data class WatchedItemsScreen(val itemId: String) : Screen() {
                 }
                 viewModel {
                     WatchedItemsScreenViewModel.Movie(
-                        application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                        application = viewModelApplication(),
                         movieId = movieId,
                     )
                 }

@@ -25,7 +25,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalNavController
@@ -42,6 +41,7 @@ import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
+import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -60,7 +60,7 @@ data class SeasonsScreen(val seasonId: String) : Screen() {
         Content(
             viewModel {
                 SeasonsScreenViewModel(
-                    application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                    application = viewModelApplication(),
                     showId = seasonId.showId,
                 )
             },
