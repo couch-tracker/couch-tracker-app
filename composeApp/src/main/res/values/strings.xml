@@ -89,7 +89,6 @@
     <string name="watched_item_no_information_available">No information available</string>
     <string name="too_many_choices_selected">Too many choices selected, the maximum is %d</string>
     <string name="viewing_history">Viewing history</string>
-    <string name="viewing_history_for_x">Viewing history for %1$s</string>
     <string name="viewing_of_x">Viewing of %1$s</string>
     <string name="delete_viewing_title">Delete viewing?</string>
     <string name="delete_viewing_description">The viewing will be permanently deleted from your profile</string>
