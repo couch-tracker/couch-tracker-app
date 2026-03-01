@@ -88,6 +88,16 @@ val TmdbCacheDbModule = lazyEagerModule {
                 imagesAdapter = jsonAdapter(),
                 lastUpdateAdapter = InstantColumnAdapter,
             ),
+            MovieGenresCacheAdapter = MovieGenresCache.Adapter(
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
+                genresAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
+            TvGenresCacheAdapter = TvGenresCache.Adapter(
+                languageAdapter = TmdbLanguage.COLUMN_ADAPTER,
+                genresAdapter = jsonAdapter(),
+                lastUpdateAdapter = InstantColumnAdapter,
+            ),
         )
     }
 }

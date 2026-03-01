@@ -9,72 +9,83 @@ import java.io.File
 /** Which caches to create */
 private val CACHES = listOf(
     // Movie
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "MovieDetailsCache",
         key = TmdbModelKey.MOVIE_ID,
-        languageKey = LANGUAGE_COLUMN,
+        languageKey = LanguageKey.LANGUAGE,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbMovieDetail"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forTmdbItem(
         name = "MovieReleaseDatesCache",
         key = TmdbModelKey.MOVIE_ID,
         value = SqlColumn.text("releaseDates", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbReleaseDates>"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "MovieCreditsCache",
         key = TmdbModelKey.MOVIE_ID,
-        languageKey = LANGUAGE_COLUMN,
+        languageKey = LanguageKey.LANGUAGE,
         value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbCredits"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "MovieImagesCache",
         key = TmdbModelKey.MOVIE_ID,
-        languageKey = LANGUAGES_FILTER_COLUMN,
+        languageKey = LanguageKey.LANGUAGES_FILTER,
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forTmdbItem(
         name = "MovieVideosCache",
         key = TmdbModelKey.MOVIE_ID,
         value = SqlColumn.text("videos", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbVideo>"),
     ),
     // Show
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "ShowDetailsCache",
         key = TmdbModelKey.SHOW_ID,
-        languageKey = LANGUAGE_COLUMN,
+        languageKey = LanguageKey.LANGUAGE,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbShowDetail"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "ShowImagesCache",
         key = TmdbModelKey.SHOW_ID,
-        languageKey = LANGUAGES_FILTER_COLUMN,
+        languageKey = LanguageKey.LANGUAGES_FILTER,
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "ShowAggregateCreditsCache",
         key = TmdbModelKey.SHOW_ID,
-        languageKey = LANGUAGE_COLUMN, //TODO?
+        languageKey = LanguageKey.LANGUAGE,
         value = SqlColumn.text("credits", "app.moviebase.tmdb.model.TmdbAggregateCredits"),
     ),
     // Season
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "SeasonDetailsCache",
         key = TmdbModelKey.SEASON_ID,
-        languageKey = LANGUAGE_COLUMN,
+        languageKey = LanguageKey.LANGUAGE,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbSeasonDetail"),
     ),
     // Episode
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "EpisodeDetailsCache",
         key = TmdbModelKey.EPISODE_ID,
-        languageKey = LANGUAGE_COLUMN,
+        languageKey = LanguageKey.LANGUAGE,
         value = SqlColumn.text("details", "app.moviebase.tmdb.model.TmdbEpisodeDetail"),
     ),
-    SqlTmdbModelCache(
+    SqlCache.forLocalizedTmdbItem(
         name = "EpisodeImagesCache",
         key = TmdbModelKey.EPISODE_ID,
-        languageKey = LANGUAGES_FILTER_COLUMN,
+        languageKey = LanguageKey.LANGUAGES_FILTER,
         value = SqlColumn.text("images", "app.moviebase.tmdb.model.TmdbImages"),
+    ),
+    // Genres
+    SqlCache.forLocalizedInformation(
+        name = "MovieGenresCache",
+        languageKey = LanguageKey.LANGUAGE,
+        value = SqlColumn.text("genres", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbGenre>"),
+    ),
+    SqlCache.forLocalizedInformation(
+        name = "TvGenresCache",
+        languageKey = LanguageKey.LANGUAGE,
+        value = SqlColumn.text("genres", "kotlin.collections.List<app.moviebase.tmdb.model.TmdbGenre>"),
     ),
 ).also { cachesDefinitions ->
     check(cachesDefinitions.distinctBy { it.name }.size == cachesDefinitions.size) {
