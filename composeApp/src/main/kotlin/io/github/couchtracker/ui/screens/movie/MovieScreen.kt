@@ -97,11 +97,10 @@ private fun Content(viewModel: MovieScreenViewModel) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         ResultScreen(
             error = viewModel.baseDetails.resultErrorOrNull(),
-            onError = { exception ->
+            onError = { apiError ->
                 Surface {
                     DefaultErrorScreen(
-                        errorMessage = exception.title.string(),
-                        errorDetails = exception.details?.string(),
+                        apiError = apiError,
                         retry = { viewModel.retryAll() },
                     )
                 }

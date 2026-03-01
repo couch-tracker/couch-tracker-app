@@ -102,11 +102,10 @@ private fun Content(viewModel: ShowScreenViewModel) {
     ) {
         ResultScreen(
             error = viewModel.baseDetails.resultErrorOrNull(),
-            onError = { exception ->
+            onError = { apiError ->
                 Surface {
                     DefaultErrorScreen(
-                        errorMessage = exception.title.string(),
-                        errorDetails = exception.details?.string(),
+                        apiError = apiError,
                         retry = { viewModel.retryAll() },
                     )
                 }
@@ -245,10 +244,9 @@ private fun OverviewScreenComponents.SeasonsContent(
     val navController = LocalNavController.current
     LoadableScreen(
         seasons,
-        onError = { exception ->
+        onError = { apiError ->
             DefaultErrorScreen(
-                errorMessage = exception.title.string(),
-                errorDetails = exception.details?.string(),
+                apiError = apiError,
                 retry = { viewModel.retryAll() },
             )
         },

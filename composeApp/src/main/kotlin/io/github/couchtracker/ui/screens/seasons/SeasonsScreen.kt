@@ -78,11 +78,10 @@ fun NavController.navigateToSeason(id: ExternalSeasonId) {
 private fun Content(viewModel: SeasonsScreenViewModel, initialSeason: ExternalSeasonId) {
     LoadableScreen(
         data = viewModel.showDetails,
-        onError = { exception ->
+        onError = { apiError ->
             Surface {
                 DefaultErrorScreen(
-                    errorMessage = exception.title.string(),
-                    errorDetails = exception.details?.string(),
+                    apiError = apiError,
                     retry = { viewModel.retryAll() },
                 )
             }
@@ -184,10 +183,9 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
     val episodes = seasonModel.details.mapResult { it.episodes }
     LoadableScreen(
         episodes,
-        onError = { exception ->
+        onError = { apiError ->
             DefaultErrorScreen(
-                errorMessage = exception.title.string(),
-                errorDetails = exception.details?.string(),
+                apiError = apiError,
                 retry = { viewModel.retryAll() },
             )
         },

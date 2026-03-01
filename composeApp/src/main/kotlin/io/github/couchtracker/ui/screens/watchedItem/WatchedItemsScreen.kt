@@ -89,11 +89,10 @@ private fun Content(
 ) {
     LoadableScreen(
         data = viewModel.details,
-        onError = { exception ->
+        onError = { apiError ->
             Surface {
                 DefaultErrorScreen(
-                    errorMessage = exception.title.string(),
-                    errorDetails = exception.details?.string(),
+                    apiError = apiError,
                     retry = { viewModel.retryAll() },
                 )
             }
