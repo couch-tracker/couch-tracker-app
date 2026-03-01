@@ -385,7 +385,7 @@ object OverviewScreenComponents {
         textBlock(
             key = "overview",
             text = overview,
-            placeholderLines = 4,
+            placeholderLines = 10,
             style = { MaterialTheme.typography.bodyMedium },
         )
     }

@@ -82,7 +82,7 @@ fun ProfileSwitcherDialog(
                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = if (profilesInfo.current.profile == profileInfo.profile) {
-                                    MaterialTheme.colorScheme.primaryContainer
+                                    MaterialTheme.colorScheme.secondaryContainer
                                 } else {
                                     Color.Transparent
                                 },
