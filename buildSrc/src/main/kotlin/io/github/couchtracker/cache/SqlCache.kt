@@ -5,25 +5,21 @@ import io.github.couchtracker.SqlFunction
 import io.github.couchtracker.SqlItem
 import io.github.couchtracker.SqlTable
 
-internal val LANGUAGE_COLUMN = SqlColumn.text("language", "io.github.couchtracker.tmdb.TmdbLanguage")
-internal val LANGUAGES_FILTER_COLUMN = SqlColumn.text("languages", "io.github.couchtracker.tmdb.TmdbLanguagesFilter")
 private val LAST_UPDATE_COLUMN = SqlColumn.text("lastUpdate", "kotlin.time.Instant")
 
-internal data class SqlTmdbModelCache(
+internal data class SqlCache(
     val name: String,
-    val key: TmdbModelKey,
+    val keys: List<CacheKey>,
     val value: SqlColumn,
-    val languageKey: SqlColumn? = null,
 ) : SqlItem {
+
+    init {
+        require(keys.isNotEmpty())
+    }
 
     private val table = SqlTable(
         name = name,
-        keys = buildList {
-            add(key.column)
-            if (languageKey != null) {
-                add(languageKey)
-            }
-        },
+        keys = keys.map { it.column },
         columns = listOf(value, LAST_UPDATE_COLUMN),
     )
 
@@ -48,5 +44,19 @@ internal data class SqlTmdbModelCache(
         appendLine()
         appendLine(getFunction().toSql())
         appendLine(putFunction().toSql())
+    }
+
+    companion object {
+        fun forTmdbItem(name: String, key: TmdbModelKey, value: SqlColumn): SqlCache {
+            return SqlCache(name, listOf(key), value)
+        }
+
+        fun forLocalizedTmdbItem(name: String, key: TmdbModelKey, languageKey: LanguageKey, value: SqlColumn): SqlCache {
+            return SqlCache(name, listOf(key, languageKey), value)
+        }
+
+        fun forLocalizedInformation(name: String, languageKey: LanguageKey, value: SqlColumn): SqlCache {
+            return SqlCache(name, listOf(languageKey), value)
+        }
     }
 }

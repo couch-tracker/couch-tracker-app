@@ -44,8 +44,9 @@ val TMDB_CACHE_EXPIRATION_FAST = 30.minutes
 val TMDB_CACHE_EXPIRATION_DEFAULT = 12.hours
 
 typealias TmdbApiContext = ApiContext<TmdbLanguages>
-typealias LocalizedQueryBuilder<ID, L, T> = (ID, L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
-typealias QueryBuilder<ID, T> = (ID, (details: T, lastUpdate: Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
+typealias LocalizedItemQueryBuilder<ID, L, T> = (ID, L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
+typealias ItemQueryBuilder<ID, T> = (ID, (details: T, lastUpdate: Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
+typealias LocalizedInfoQueryBuilder<L, T> = (L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
 
 fun tmdbApiContext(
     retryToken: FlowRetryToken = FlowRetryToken(),
@@ -57,7 +58,7 @@ fun tmdbApiContext(
 fun <ID, T : Any> tmdbCachedDownload(
     id: ID,
     logTag: String,
-    loadFromCacheFn: TmdbCache.() -> QueryBuilder<ID, T>,
+    loadFromCacheFn: TmdbCache.() -> ItemQueryBuilder<ID, T>,
     putInCacheFn: TmdbCache.() -> (ID, T, Instant) -> QueryResult<Long>,
     download: suspend (Tmdb3) -> T,
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
@@ -78,7 +79,7 @@ fun <ID, L, T : Any> tmdbLocalizedCachedDownload(
     id: ID,
     logTag: String,
     language: L,
-    loadFromCacheFn: TmdbCache.() -> LocalizedQueryBuilder<ID, L, T>,
+    loadFromCacheFn: TmdbCache.() -> LocalizedItemQueryBuilder<ID, L, T>,
     putInCacheFn: TmdbCache.() -> (ID, L, T, Instant) -> QueryResult<Long>,
     download: suspend (Tmdb3) -> T,
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
@@ -89,6 +90,25 @@ fun <ID, L, T : Any> tmdbLocalizedCachedDownload(
         entryTag = logTag,
         loadFromCache = { loadFromCacheFn(cache)(id, language, ::TmdbTimestampedEntry) },
         putInCache = { data -> putInCacheFn(cache)(id, language, data.value, data.lastUpdate) },
+        downloader = { tmdbDownloadResult(logTag = logTag, download = { download(it) }) },
+        expiration = expiration,
+    )
+}
+
+fun <L, T : Any> tmdbLocalizedCachedDownload(
+    logTag: String,
+    language: L,
+    loadFromCacheFn: TmdbCache.() -> LocalizedInfoQueryBuilder<L, T>,
+    putInCacheFn: TmdbCache.() -> (L, T, Instant) -> QueryResult<Long>,
+    download: suspend (Tmdb3) -> T,
+    expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
+    cache: TmdbCache = KoinPlatform.getKoin().get(),
+): Flow<ApiResult<T>> {
+    val logTag = "$language-$logTag"
+    return tmdbGetOrDownload(
+        entryTag = logTag,
+        loadFromCache = { loadFromCacheFn(cache)(language, ::TmdbTimestampedEntry) },
+        putInCache = { data -> putInCacheFn(cache)(language, data.value, data.lastUpdate) },
         downloader = { tmdbDownloadResult(logTag = logTag, download = { download(it) }) },
         expiration = expiration,
     )
