@@ -7,11 +7,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -23,7 +25,6 @@ import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.composable
 import io.github.couchtracker.ui.screens.episodes.EpisodeScreen
 import io.github.couchtracker.ui.screens.main.MainScreen
-import io.github.couchtracker.ui.screens.main.SearchScreen
 import io.github.couchtracker.ui.screens.movie.MovieScreen
 import io.github.couchtracker.ui.screens.seasons.SeasonsScreen
 import io.github.couchtracker.ui.screens.settings.settings
@@ -46,7 +47,7 @@ fun App() {
     val animationSpec = AnimationDefaults.NAV_HOST_FADE_ANIMATION_SPEC
     MaterialTheme(colorScheme = ColorSchemes.Base) {
         CompositionLocalProvider(LocalNavController provides navController) {
-            Surface(color = MaterialTheme.colorScheme.background) {
+            Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
                 LoadableScreen(koinLoadState) {
                     AppSettingsContext {
                         ProfilesContext {
@@ -73,7 +74,6 @@ fun App() {
                                 },
                             ) {
                                 composable<MainScreen>()
-                                composable<SearchScreen>()
                                 composable<MovieScreen>()
                                 composable<ShowScreen>()
                                 composable<SeasonsScreen>()

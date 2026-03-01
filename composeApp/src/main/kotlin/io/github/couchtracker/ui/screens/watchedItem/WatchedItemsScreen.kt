@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -146,6 +147,7 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
             OverviewScreenComponents.ContentList(
                 innerPadding = contentPadding + PaddingValues(horizontal = 8.dp),
                 modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 itemsWithPosition(watchedItems) { position, watchedItem ->
                     WatchedItemListItem(
