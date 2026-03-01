@@ -125,6 +125,8 @@
     <string name="search_filter_shows">Shows</string>
     <string name="search_filter_people">People</string>
     <string name="search_no_results">No results</string>
+    <string name="search_page_explore_shows">Explore shows</string>
+    <string name="search_page_explore_movies">Explore movies</string>
 
     <string name="item_type_movie">Movie</string>
     <string name="item_type_show">Show</string>

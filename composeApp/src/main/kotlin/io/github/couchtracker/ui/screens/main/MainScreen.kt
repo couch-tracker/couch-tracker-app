@@ -32,8 +32,10 @@ import io.github.couchtracker.R
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.generateColorScheme
+import io.github.couchtracker.ui.screens.main.search.SEARCH_SCREEN_EVENT_BUS
+import io.github.couchtracker.ui.screens.main.search.SearchScreenEvent
+import io.github.couchtracker.ui.screens.main.search.SearchSection
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 
@@ -50,8 +52,9 @@ private val DEFAULT_SECTION = Section.SHOWS
 private fun Content() {
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)
     val navController = rememberNavController()
-    val currentSection =
-        navController.currentBackStackEntryAsState().value?.destination?.route?.let { Section.fromId(it) } ?: DEFAULT_SECTION
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val currentSection = currentRoute?.let { Section.fromId(it) } ?: DEFAULT_SECTION
     val animationSpec = AnimationDefaults.NAV_HOST_FADE_ANIMATION_SPEC
 
     val color by animateColorAsState(
@@ -74,6 +77,10 @@ private fun Content() {
                                     }
                                     launchSingleTop = true
                                     restoreState = true
+                                    if (section == Section.SEARCH && currentRoute == section.id) {
+                                        // SearchSection is already open, sending an event to it
+                                        SEARCH_SCREEN_EVENT_BUS.tryEmit(SearchScreenEvent.FocusSearch)
+                                    }
                                 }
                             },
                         )
@@ -104,9 +111,7 @@ private fun Content() {
                     }
                     composable(Section.SEARCH.id) {
                         MaterialTheme(colorScheme = Section.SEARCH.colorScheme) {
-                            WipMessageComposable(
-                                gitHubIssueId = 181,
-                            )
+                            SearchSection(innerPadding)
                         }
                     }
                 }
