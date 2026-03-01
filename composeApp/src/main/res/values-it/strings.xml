@@ -92,7 +92,6 @@
     <string name="watched_item_no_information_available">Nessuna informazione disponibile</string>
     <string name="too_many_choices_selected">Troppe scelte selezionate, il massmo è %d</string>
     <string name="viewing_history">Cronologia visioni</string>
-    <string name="viewing_history_for_x">Cronologia visioni di %1$s</string>
     <string name="viewing_of_x">Visione di %1$s</string>
     <string name="delete_viewing_title">Eliminare visione?</string>
     <string name="delete_viewing_description">La visione verrà eliminata permanentemente dal profilo</string>
