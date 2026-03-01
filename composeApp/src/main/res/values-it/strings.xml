@@ -11,6 +11,8 @@
     <string name="delete_action">Elimina</string>
     <string name="edit_action">Modifica</string>
 
+    <string name="optional_field">%1$s (opzionale)</string>
+
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
     <string name="error_loading_items_x">Errore nel caricare gli elementi: %1$s</string>
@@ -72,6 +74,7 @@
     <string name="date_and_time_precision_year">Anno</string>
     <string name="date_and_time_precision_month">Mese</string>
     <string name="date_and_time_precision_date">Giorno</string>
+    <string name="date_and_time_range_format">%1$s - %2$s</string>
 
     <string name="select_time_zone">Seleziona fuso orario</string>
     <string name="timezone_category_other">Altro</string>
@@ -159,4 +162,33 @@
 
     <string name="bookmark_add">Aggiungi agli elementi salvati</string>
     <string name="bookmark_remove">Rimuovi dagli elementi salvati</string>
+
+    <string name="watch_sessions">Sessioni di visioni</string>
+    <string name="watch_session_info">Ogni episodio che guardi appartiene a una sessione di visioni, che ti permette di raggruppare le visioni in modo logico. Se ricominci una serie dall’inizio, puoi creare una nuova sessione di visione. I tuoi progressi, il prossimo episodio da guardare e le informazioni correlate sono tutti collegati alle sessioni di visione attive.</string>
+    <string name="add_watch_session">Aggiungi sessione di visioni</string>
+    <string name="edit_watch_session">Modifica sessione di visioni</string>
+    <string name="active_watch_sessions">Sessioni di visioni attive</string>
+    <string name="inactive_watch_sessions">Sessioni di visioni inattive</string>
+    <string name="watch_session_dialog_info">Il preset visioni verrà applicato automaticamente a ogni nuova visione in questa sessione. Le singole visioni possono modificarlo. Le modifiche al preset non influenzeranno le visioni esistenti.</string>
+    <string name="watch_session_name">Nome</string>
+    <string name="watch_session_description">Descrizione</string>
+    <string name="watch_session_preset">Preset visioni</string>
+    <string name="watch_session_active">Attive</string>
+    <string name="watch_session_empty_preset">Nessun preset selezionato</string>
+    <string name="unnamed_watch_session">Sessione di visioni senza nome</string>
+    <string name="no_watch_sessions">Nessuna sessione di visioni</string>
+    <string name="no_active_watch_sessions">Nessuna sessione di visioni attiva</string>
+    <string name="no_watched_episodes_in_this_session">Nessun episodio visto in questa sessione</string>
+    <plurals name="x_watched_episodes_in_this_session">
+        <item quantity="one">%1$d episodio visto in questa sessione</item>
+        <item quantity="other">%1$d episodi visti in questa sessione</item>
+    </plurals>
+    <string name="delete_watch_session_dialog_title">Eliminare sessione di visioni?</string>
+    <string name="delete_watch_session_dialog_description">Questa sessione di visioni verrà eliminata permanentemente assieme a tutti gli episodi visti ad essa associati</string>
+    <plurals name="delete_watch_session_dialog_viewings_detail_count">
+        <item quantity="one">%1$d episodio visto verrà permanentemente eliminato</item>
+        <item quantity="other">%1$d episodi visti verranno permanentemente eliminati</item>
+    </plurals>
+    <string name="delete_watch_session_dialog_viewings_detail_first_viewing">Prima visione</string>
+    <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Ultima visione</string>
 </resources>

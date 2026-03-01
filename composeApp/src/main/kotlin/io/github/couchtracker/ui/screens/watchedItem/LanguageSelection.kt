@@ -37,7 +37,7 @@ private const val SUGGESTED_LANGAUGES_TOP_USED_LIMIT = 3
 private const val SUGGESTED_LANGAUGES_CHIPS_LIMT = 3
 
 @Composable
-fun WatchedItemSheetScope.LanguageSection(
+fun WatchedItemSelectionsScope.LanguageSection(
     enabled: Boolean,
     mediaLanguages: List<Bcp47Language>,
     selection: WatchedItemDimensionSelection.Language,
