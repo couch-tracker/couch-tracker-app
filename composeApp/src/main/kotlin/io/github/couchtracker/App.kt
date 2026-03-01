@@ -37,13 +37,13 @@ import kotlin.math.roundToInt
 val LocalNavController = staticCompositionLocalOf<NavController> { error("no default nav controller") }
 
 private const val ANIMATION_SLIDE = 0.25f
-private val FADE_ANIMATION_SPEC = tween<Float>(AnimationDefaults.ANIMATION_DURATION_MS)
 
 @Composable
 fun App() {
     val navController = rememberNavController()
     val koin = getKoin()
     val koinLoadState = rememberComputationResult { koin.loadAll() }
+    val animationSpec = AnimationDefaults.NAV_HOST_FADE_ANIMATION_SPEC
     MaterialTheme(colorScheme = ColorSchemes.Base) {
         CompositionLocalProvider(LocalNavController provides navController) {
             Surface(color = MaterialTheme.colorScheme.background) {
@@ -59,17 +59,17 @@ fun App() {
                                         easing = LinearOutSlowInEasing,
                                     )
                                     slideInVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                        fadeIn(FADE_ANIMATION_SPEC)
+                                        fadeIn(animationSpec)
                                 },
-                                exitTransition = { fadeOut(FADE_ANIMATION_SPEC) },
-                                popEnterTransition = { fadeIn(FADE_ANIMATION_SPEC) },
+                                exitTransition = { fadeOut(animationSpec) },
+                                popEnterTransition = { fadeIn(animationSpec) },
                                 popExitTransition = {
                                     val slideSpec = tween<IntOffset>(
                                         durationMillis = AnimationDefaults.ANIMATION_DURATION_MS,
                                         easing = FastOutLinearInEasing,
                                     )
                                     slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                        fadeOut(FADE_ANIMATION_SPEC)
+                                        fadeOut(animationSpec)
                                 },
                             ) {
                                 composable<MainScreen>()

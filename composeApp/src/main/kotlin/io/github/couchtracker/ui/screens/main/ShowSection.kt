@@ -57,6 +57,7 @@ fun ShowSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
         imageModel = R.drawable.sunset,
+        title = R.string.main_section_shows.str(),
         actions = {
             MainSectionDefaults.SearchButton(
                 onOpenSearch = {

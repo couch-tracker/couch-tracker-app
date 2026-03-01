@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package io.github.couchtracker.ui
 
 import androidx.compose.material3.ColorScheme
@@ -5,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
+import kotlin.math.pow
 import android.graphics.Color as AndroidColor
 
 private const val MAIN_COLOR_SATURATION = 0.1f
@@ -14,10 +17,11 @@ private const val OUTLINE_VARIANT_MULTIPLIER = 0.8f
 private const val OUTLINE_VARIANT_MAX = 0.8f
 private const val CONTAINER_VALUE = 0.4f
 private const val SURFACE_VALUE = 0.30f
+private const val SURFACE_CONTAINER_VALUE_INCREMENT = 1.40f
 private const val BACKGROUND_VALUE = 0.22f
 private const val MAX_FOREGROUND_ELEMENT_SATURATION = 0.1f
 private const val HUE_RANGE = 360f
-private const val HUE_COMPLEMENTARY_DISTANCE = 30f
+private const val HUE_COMPLEMENTARY_DISTANCE = 20f
 
 val DEFAULT_COLOR_SCHEME = darkColorScheme()
 private const val DARK_VALUE_THRESHOLD = 0.5f
@@ -40,12 +44,21 @@ fun Color.generateColorScheme(): ColorScheme {
     AndroidColor.colorToHSV(argb, hsv)
 
     val primaryHue = hsv[0]
+    val primarySaturation = hsv[1]
     val secondaryHue = (primaryHue - HUE_COMPLEMENTARY_DISTANCE).mod(HUE_RANGE)
     val tertiaryHue = (primaryHue + HUE_COMPLEMENTARY_DISTANCE).mod(HUE_RANGE)
 
     val primaryBase = this
-    val secondaryBase = this.withHue(secondaryHue)
-    val tertiaryBase = this.withHue(tertiaryHue)
+    val secondaryBase = Color.hsv(
+        hue = secondaryHue,
+        saturation = primarySaturation * 0.5f,
+        value = 0.8f,
+    )
+    val tertiaryBase = Color.hsv(
+        hue = tertiaryHue,
+        saturation = primarySaturation * 0.5f,
+        value = 0.8f,
+    )
 
     val primary = mainColor(primaryHue)
     val secondary = mainColor(secondaryHue)
@@ -77,6 +90,11 @@ fun Color.generateColorScheme(): ColorScheme {
         onBackground = background.toForeground(),
         surface = surface,
         onSurface = surface.toForeground(),
+        surfaceContainer = primaryBase.surfaceColor(1),
+        surfaceContainerHigh = primaryBase.surfaceColor(2),
+        surfaceContainerHighest = primaryBase.surfaceColor(3),
+        surfaceContainerLow = primaryBase.surfaceColor(-1),
+        surfaceContainerLowest = primaryBase.surfaceColor(-2),
         surfaceVariant = surfaceVariant,
         onSurfaceVariant = surfaceVariant.toForeground(),
         outline = primaryBase.changeValue(OUTLINE_VALUE, OUTLINE_VALUE),
@@ -100,8 +118,9 @@ private fun Color.backgroundColor(): Color {
     return changeValue(BACKGROUND_VALUE, minValue = BACKGROUND_VALUE / 2)
 }
 
-private fun Color.surfaceColor(): Color {
-    return changeValue(SURFACE_VALUE, minValue = SURFACE_VALUE / 2)
+private fun Color.surfaceColor(valueIncrement: Int = 0): Color {
+    val value = (SURFACE_VALUE * SURFACE_CONTAINER_VALUE_INCREMENT.pow(valueIncrement)).coerceIn(0f, 1f)
+    return changeValue(value, minValue = value / 2)
 }
 
 private fun Color.toForeground(): Color {

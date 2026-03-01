@@ -55,6 +55,7 @@ fun MoviesSection(
         innerPadding = innerPadding,
         pagerState = pagerState,
         imageModel = R.drawable.aurora_borealis,
+        title = R.string.main_section_movies.str(),
         actions = {
             MainSectionDefaults.SearchButton(
                 onOpenSearch = {

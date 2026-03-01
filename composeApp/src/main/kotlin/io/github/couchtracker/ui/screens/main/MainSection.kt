@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,14 +26,17 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
@@ -44,13 +48,14 @@ fun MainSection(
     innerPadding: PaddingValues,
     pagerState: PagerState,
     imageModel: Any?,
+    title: String,
     actions: @Composable RowScope.() -> Unit = {},
     tabText: @Composable (page: Int) -> Unit,
     page: @Composable (page: Int) -> Unit,
 ) {
     val cs = rememberCoroutineScope()
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollState = rememberScrollState()
     val bgColor = MaterialTheme.colorScheme.background
 
@@ -72,10 +77,15 @@ fun MainSection(
                 backgroundColor = { bgColor },
                 appBar = { colors ->
                     Column {
+                        // Matches size & style of LargeFlexibleAppBar
                         TopAppBar(
                             colors = colors,
                             scrollBehavior = scrollBehavior,
-                            title = {},
+                            title = {
+                                Box(Modifier.height(120.dp), contentAlignment = Alignment.BottomStart) {
+                                    Text(title, style = MaterialTheme.typography.displaySmall)
+                                }
+                            },
                             actions = actions,
                         )
                         PrimaryScrollableTabRow(
