@@ -81,6 +81,7 @@ import io.github.couchtracker.tmdb.toBaseMovie
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ImageModel
+import io.github.couchtracker.ui.ListItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.Screen
@@ -326,9 +327,8 @@ private fun SearchResults(results: Flow<PagingData<SearchResultItem>>, lazyGridS
         verticalArrangement = Arrangement.spacedBy(2.dp),
         itemComposable = { item, index ->
             SearchResult(
-                item,
-                isFirstInList = index == 0,
-                isLastInList = index == paginatedItems.itemSnapshotList.size - 1,
+                item = item,
+                position = ListItemPosition(index, paginatedItems.itemSnapshotList.size),
             )
         },
         emptyComposable = {
@@ -347,8 +347,7 @@ private fun SearchResults(results: Flow<PagingData<SearchResultItem>>, lazyGridS
 @Composable
 private fun SearchResult(
     item: SearchResultItem?,
-    isFirstInList: Boolean,
-    isLastInList: Boolean,
+    position: ListItemPosition,
 ) {
     val navController = LocalNavController.current
 
@@ -401,7 +400,7 @@ private fun SearchResult(
             }
         },
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-        shapes = ListItemShapes(isFirstInList = isFirstInList, isLastInList = isLastInList),
+        shapes = ListItemShapes(position),
     )
 }
 

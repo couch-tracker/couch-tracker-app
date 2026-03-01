@@ -37,6 +37,7 @@ import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.EpisodeListItem
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
+import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
@@ -195,13 +196,11 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
             innerPadding.plus(PaddingValues(vertical = 16.dp, horizontal = 8.dp)),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            items(episodes.size) { index ->
-                val (episodeId, episode) = episodes[index]
+            itemsWithPosition(episodes) { position, (episodeId, episode) ->
                 EpisodeListItem(
-                    episode,
+                    episode = episode,
                     onClick = { navController.navigateToEpisode(episodeId) },
-                    isFirstInList = index == 0,
-                    isLastInList = index == episodes.size - 1,
+                    position = position,
                 )
             }
         }
