@@ -102,11 +102,10 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
     ) {
         LoadableScreen(
             data = viewModel.seasonDetails,
-            onError = { exception ->
+            onError = { apiError ->
                 Surface {
                     DefaultErrorScreen(
-                        errorMessage = exception.title.string(),
-                        errorDetails = exception.details?.string(),
+                        apiError = apiError,
                         retry = { viewModel.retryAll() },
                     )
                 }

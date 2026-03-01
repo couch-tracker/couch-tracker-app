@@ -99,10 +99,9 @@ private fun Content() {
 
     LoadableScreen(
         data = allTmdbLanguages,
-        onError = {
+        onError = { apiError ->
             DefaultErrorScreen(
-                errorMessage = it.title.string(),
-                errorDetails = it.details?.string(),
+                apiError = apiError,
                 retry = { coroutineScope.launch { downloadTmdbLanguages() } },
             )
         },

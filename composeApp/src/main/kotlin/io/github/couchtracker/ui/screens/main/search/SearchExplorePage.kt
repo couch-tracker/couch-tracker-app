@@ -35,11 +35,10 @@ import io.github.couchtracker.utils.str
 fun SearchExplorePage(padding: PaddingValues, viewModel: SearchViewModel) {
     LoadableScreen(
         data = viewModel.explorePageModel,
-        onError = { exception ->
+        onError = { apiError ->
             Box(Modifier.padding(padding)) {
                 DefaultErrorScreen(
-                    errorMessage = exception.title.string(),
-                    errorDetails = exception.details?.string(),
+                    apiError = apiError,
                     retry = { viewModel.retryMainPage() },
                 )
             }

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.api.ApiException
 
 private const val ANIMATION_DURATION_MS = AnimationDefaults.ANIMATION_DURATION_MS
 private val DEFAULT_INDICATOR_SIZE = 64.dp
@@ -158,6 +159,19 @@ fun DefaultErrorScreen(
         modifier = Modifier.fillMaxSize(),
         errorMessage = errorMessage,
         errorDetails = errorDetails,
+        retry = retry,
+    )
+}
+
+@Composable
+fun DefaultErrorScreen(
+    apiError: ApiException,
+    retry: (() -> Unit)? = null,
+) {
+    ErrorMessageComposable(
+        modifier = Modifier.fillMaxSize(),
+        errorMessage = apiError.title.string(),
+        errorDetails = apiError.details?.string(),
         retry = retry,
     )
 }
