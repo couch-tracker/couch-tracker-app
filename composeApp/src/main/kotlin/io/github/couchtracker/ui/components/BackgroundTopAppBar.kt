@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
@@ -38,15 +39,16 @@ private val BRUSH = createGradientBrush(Color.Black)
 
 @Composable
 fun BackgroundTopAppBar(
-    scrollBehavior: TopAppBarScrollBehavior,
     image: @Composable (Modifier, Constraints) -> Unit,
     appBar: @Composable (TopAppBarColors) -> Unit,
+    contentOffset: Density.() -> Float,
+    collapsedFraction: () -> Float,
     backgroundColor: () -> Color,
 ) {
     BoxWithConstraints(
         Modifier
             .graphicsLayer {
-                val scrollAmount = -scrollBehavior.state.contentOffset
+                val scrollAmount = -contentOffset()
                 shadowElevation = scrollAmount.coerceAtMost(APP_BAR_MAX_ELEVATION.toPx())
                 ambientShadowColor = backgroundColor()
             },
@@ -57,7 +59,7 @@ fun BackgroundTopAppBar(
                 // Avoids artifacts where the brush doesn't completely cover the image
                 .padding(bottom = LocalDensity.current.run { 1.toDp() })
                 .graphicsLayer {
-                    val radius = scrollBehavior.state.collapsedFraction * BACKGROUND_MAX_BLUR.toPx()
+                    val radius = collapsedFraction() * BACKGROUND_MAX_BLUR.toPx()
                     if (radius > 0) {
                         this.renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
                     }
@@ -78,6 +80,22 @@ fun BackgroundTopAppBar(
             )
         }
     }
+}
+
+@Composable
+fun BackgroundTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    image: @Composable (Modifier, Constraints) -> Unit,
+    appBar: @Composable (TopAppBarColors) -> Unit,
+    backgroundColor: () -> Color,
+) {
+    BackgroundTopAppBar(
+        contentOffset = { scrollBehavior.state.contentOffset },
+        collapsedFraction = { scrollBehavior.state.collapsedFraction },
+        image = image,
+        appBar = appBar,
+        backgroundColor = backgroundColor,
+    )
 }
 
 @Composable

@@ -48,7 +48,6 @@ fun MoviesSection(
     innerPadding: PaddingValues,
     viewModel: MovieSectionViewModel = viewModel(),
 ) {
-    val navController = LocalNavController.current
     val pagerState = rememberPagerState(initialPage = MovieTab.EXPLORE.ordinal) { MovieTab.entries.size }
 
     MainSection(
@@ -56,13 +55,6 @@ fun MoviesSection(
         pagerState = pagerState,
         imageModel = R.drawable.aurora_borealis,
         title = R.string.main_section_movies.str(),
-        actions = {
-            MainSectionDefaults.SearchButton(
-                onOpenSearch = {
-                    navController.navigate(SearchScreen(filter = SearchableMediaType.MOVIE))
-                },
-            )
-        },
         tabText = { page -> Text(text = MovieTab.entries[page].displayName.str()) },
         page = { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
