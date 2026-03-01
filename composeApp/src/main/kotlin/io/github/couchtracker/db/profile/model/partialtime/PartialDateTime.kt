@@ -260,7 +260,7 @@ sealed interface PartialDateTime {
          */
         fun atZone(timeZone: TimeZone) = Zoned(local = this, zone = timeZone)
 
-        override fun compareTo(other: Local) = LOCAL_COMPARATOR.compare(this, other)
+        override fun compareTo(other: Local) = LOCAL_LOW_PRECISION_FIRST_COMPARATOR.compare(this, other)
 
         companion object : ICompanionWithParsers<Local>() {
             override val parsers: List<(String) -> Local> by lazy { listOf(Year::parse, YearMonth::parse, Date::parse, DateTime::parse) }
@@ -367,47 +367,34 @@ sealed interface PartialDateTime {
 
         override val parsers: List<(String) -> PartialDateTime> by lazy { Local.parsers + listOf(Zoned::parse) }
 
-        /**
-         * Sorts [PartialDateTime] only by their local year and month.
-         */
-        private val LOCAL_YEAR_MONTH_COMPARATOR: Comparator<PartialDateTime> = compareBy<PartialDateTime> {
+        private val LOCAL_YEAR_COMPARATOR = compareBy<PartialDateTime> {
             when (val local = it.local) {
                 is Year -> local.year
                 is YearMonth -> local.year
                 is Date -> local.date.year
                 is DateTime -> local.dateTime.year
             }
-        }.thenBy {
-            when (val local = it.local) {
-                is Year -> 0
-                is YearMonth -> local.month.number
-                is Date -> local.date.month.number
-                is DateTime -> local.dateTime.month.number
-            }
         }
 
         /**
          * Sorts [PartialDateTime] only by their local part. At parity of local part, [Zoned] values are put last.
          */
-        private val LOCAL_COMPARATOR: Comparator<PartialDateTime> = LOCAL_YEAR_MONTH_COMPARATOR.thenBy {
-            when (val local = it.local) {
-                is Year, is YearMonth -> Long.MIN_VALUE
-                is Date -> local.date.toEpochDays()
-                is DateTime -> local.dateTime.date.toEpochDays()
-            }
-        }.thenBy {
-            when (val local = it.local) {
-                is Year, is YearMonth, is Date -> Instant.DISTANT_PAST
-                is DateTime -> local.dateTime.toInstant(UtcOffset.ZERO)
-            }
-        }.thenBy {
-            when (it) {
-                is Local -> 0
-                is Zoned -> 1
-            }
-        }
+        val LOCAL_LOW_PRECISION_FIRST_COMPARATOR = localComparator(
+            monthFallback = 0,
+            epochDaysFallback = Long.MIN_VALUE,
+            instantFallback = Instant.DISTANT_PAST,
+        )
 
-        private val ZONED_COMPARATOR: Comparator<Zoned> = compareBy<Zoned, Local>(LOCAL_YEAR_MONTH_COMPARATOR) { it.local }
+        /**
+         * Sorts [PartialDateTime] only by their local part. At parity of local part, [Zoned] values are put last.
+         */
+        val LOCAL_HIGH_PRECISION_FIRST_COMPARATOR = localComparator(
+            monthFallback = Int.MAX_VALUE,
+            epochDaysFallback = Long.MAX_VALUE,
+            instantFallback = Instant.DISTANT_FUTURE,
+        )
+
+        private val ZONED_COMPARATOR: Comparator<Zoned> = compareBy<Zoned, Local>(localYearMonthComparator(monthFallback = 0)) { it.local }
             .thenBy {
                 when (it.local) {
                     is Year, is YearMonth -> 0
@@ -423,6 +410,37 @@ sealed interface PartialDateTime {
                     is DateTime -> 3
                 }
             }
+
+        private fun localYearMonthComparator(monthFallback: Int) = LOCAL_YEAR_COMPARATOR.thenBy {
+            when (val local = it.local) {
+                is Year -> monthFallback
+                is YearMonth -> local.month.number
+                is Date -> local.date.month.number
+                is DateTime -> local.dateTime.month.number
+            }
+        }
+
+        private fun localComparator(
+            monthFallback: Int,
+            epochDaysFallback: Long,
+            instantFallback: Instant,
+        ) = localYearMonthComparator(monthFallback = monthFallback).thenBy {
+            when (val local = it.local) {
+                is Year, is YearMonth -> epochDaysFallback
+                is Date -> local.date.toEpochDays()
+                is DateTime -> local.dateTime.date.toEpochDays()
+            }
+        }.thenBy {
+            when (val local = it.local) {
+                is Year, is YearMonth, is Date -> instantFallback
+                is DateTime -> local.dateTime.toInstant(UtcOffset.ZERO)
+            }
+        }.thenBy {
+            when (it) {
+                is Local -> 0
+                is Zoned -> 1
+            }
+        }
 
         /**
          * Sorts the given [items] based on their [PartialDateTime], retrieved with the [getPartialDateTime] lambda.
@@ -449,7 +467,10 @@ sealed interface PartialDateTime {
             val (locals, zoned) = itemsWithDates.filter { it.date != null }.partition { it.date is Local }
 
             val sortedLocals = locals
-                .sortedWith(compareBy<ItemWithDate, Local>(LOCAL_COMPARATOR) { it.date as Local }.thenBy(additionalComparator) { it.item })
+                .sortedWith(
+                    compareBy<ItemWithDate, Local>(LOCAL_LOW_PRECISION_FIRST_COMPARATOR) { it.date as Local }
+                        .thenBy(additionalComparator) { it.item },
+                )
                 .toCollection(ArrayDeque(locals.size))
 
             val sortedZoned = zoned
@@ -464,7 +485,7 @@ sealed interface PartialDateTime {
 
                 while (sortedLocals.isNotEmpty() || sortedZoned.isNotEmpty()) {
                     if (sortedLocals.isNotEmpty() && sortedZoned.isNotEmpty()) {
-                        if (LOCAL_COMPARATOR.compare(sortedLocals.first().date, sortedZoned.first().date) < 0) {
+                        if (LOCAL_LOW_PRECISION_FIRST_COMPARATOR.compare(sortedLocals.first().date, sortedZoned.first().date) < 0) {
                             pushLocal()
                         } else {
                             pushZoned()

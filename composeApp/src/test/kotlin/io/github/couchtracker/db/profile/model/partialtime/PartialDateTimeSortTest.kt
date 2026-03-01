@@ -1,6 +1,8 @@
 package io.github.couchtracker.db.profile.model.partialtime
 
 import io.github.couchtracker.testComparables
+import io.github.couchtracker.testComparator
+import io.github.couchtracker.testComparators
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -9,126 +11,156 @@ import kotlinx.datetime.YearMonth
 
 class PartialDateTimeSortTest : FunSpec(
     {
-        context("compareBy()") {
+        context("comparators") {
             context("Local") {
-                testComparables(
-                    name = "Local years are sorted by year",
-                    PartialDateTime.Local.parse("2024"),
-                    PartialDateTime.Local.parse("2025"),
-                    PartialDateTime.Local.parse("2026"),
-                )
-                testComparables(
-                    name = "Local year months are sorted by year and month",
-                    PartialDateTime.Local.parse("2024-01"),
-                    PartialDateTime.Local.parse("2024-02"),
-                    PartialDateTime.Local.parse("2025"),
-                )
-                testComparables(
-                    name = "Local dates are sorted by date",
-                    PartialDateTime.Local.parse("2024-01-01"),
-                    PartialDateTime.Local.parse("2024-01-02"),
-                    PartialDateTime.Local.parse("2024-02-01"),
-                    PartialDateTime.Local.parse("2025-01-01"),
-                )
-                testComparables(
-                    name = "Local times are sorted by date and time",
-                    PartialDateTime.Local.parse("2024-01-01T00:00:00"),
-                    PartialDateTime.Local.parse("2024-01-01T00:00:01"),
-                    PartialDateTime.Local.parse("2024-01-01T00:01:00"),
-                    PartialDateTime.Local.parse("2024-01-01T01:00:00"),
-                    PartialDateTime.Local.parse("2024-01-02T00:00:00"),
-                    PartialDateTime.Local.parse("2024-02-02T00:00:00"),
-                    PartialDateTime.Local.parse("2025-02-02T00:00:00"),
-                )
-                testComparables(
-                    name = "Local values for the same instant are sorted according to precision",
-                    PartialDateTime.Local.parse("2024"),
-                    PartialDateTime.Local.parse("2024-01"),
-                    PartialDateTime.Local.parse("2024-01-01"),
-                    PartialDateTime.Local.parse("2024-01-01T00:00:00"),
-                )
+                context("common behaviors") {
+                    testComparators(
+                        // compareBy and LOCAL_LOW_PRECISION_FIRST_COMPARATOR behaviors should match
+                        comparators = mapOf(
+                            "compareBy()" to Comparator.comparing { it },
+                            "LOCAL_LOW_PRECISION_FIRST_COMPARATOR" to PartialDateTime.LOCAL_LOW_PRECISION_FIRST_COMPARATOR,
+                            "LOCAL_HIGH_PRECISION_FIRST_COMPARATOR" to PartialDateTime.LOCAL_HIGH_PRECISION_FIRST_COMPARATOR,
+                        ),
+                        testCases = mapOf(
+                            "Local years are sorted by year" to listOf(
+                                PartialDateTime.Local.parse("2024"),
+                                PartialDateTime.Local.parse("2025"),
+                                PartialDateTime.Local.parse("2026"),
+                            ),
+                            "Local year months are sorted by year and month" to listOf(
+                                PartialDateTime.Local.parse("2024-01"),
+                                PartialDateTime.Local.parse("2024-02"),
+                                PartialDateTime.Local.parse("2025"),
+                            ),
+                            "Local dates are sorted by date" to listOf(
+                                PartialDateTime.Local.parse("2024-01-01"),
+                                PartialDateTime.Local.parse("2024-01-02"),
+                                PartialDateTime.Local.parse("2024-02-01"),
+                                PartialDateTime.Local.parse("2025-01-01"),
+                            ),
+                            "Local times are sorted by date and time" to listOf(
+                                PartialDateTime.Local.parse("2024-01-01T00:00:00"),
+                                PartialDateTime.Local.parse("2024-01-01T00:00:01"),
+                                PartialDateTime.Local.parse("2024-01-01T00:01:00"),
+                                PartialDateTime.Local.parse("2024-01-01T01:00:00"),
+                                PartialDateTime.Local.parse("2024-01-02T00:00:00"),
+                                PartialDateTime.Local.parse("2024-02-02T00:00:00"),
+                                PartialDateTime.Local.parse("2025-02-02T00:00:00"),
+                            ),
+                        ),
+                    )
+                }
+
+                context("specific behaviors") {
+                    testComparators(
+                        comparators = mapOf(
+                            "compareBy()" to Comparator.comparing { it },
+                            "LOCAL_LOW_PRECISION_FIRST_COMPARATOR" to PartialDateTime.LOCAL_LOW_PRECISION_FIRST_COMPARATOR,
+                        ),
+                        testCases = mapOf(
+                            "Local values for the same instant are sorted according to precision (low first)" to listOf(
+                                PartialDateTime.Local.parse("2024"),
+                                PartialDateTime.Local.parse("2024-01"),
+                                PartialDateTime.Local.parse("2024-01-01"),
+                                PartialDateTime.Local.parse("2024-01-01T00:00:00"),
+                            ),
+                        ),
+                    )
+                    context("LOCAL_HIGH_PRECISION_FIRST_COMPARATOR") {
+                        testComparator(
+                            name = "Local values for the same instant are sorted according to precision (high first)",
+                            comparator = PartialDateTime.LOCAL_HIGH_PRECISION_FIRST_COMPARATOR,
+                            PartialDateTime.Local.parse("2024-01-01T00:00:00"),
+                            PartialDateTime.Local.parse("2024-01-01"),
+                            PartialDateTime.Local.parse("2024-01"),
+                            PartialDateTime.Local.parse("2024"),
+                        )
+                    }
+                }
             }
 
             context("Zoned") {
-                testComparables(
-                    name = "Zoned years are sorted according to year and timezone",
-                    PartialDateTime.Zoned.parse("2024+10:00"),
-                    PartialDateTime.Zoned.parse("2024+00:00"),
-                    PartialDateTime.Zoned.parse("2024-10:00"),
-                    PartialDateTime.Zoned.parse("2025+18:00"),
-                )
+                context("comparedBy()") {
+                    testComparables(
+                        name = "Zoned years are sorted according to year and timezone",
+                        PartialDateTime.Zoned.parse("2024+10:00"),
+                        PartialDateTime.Zoned.parse("2024+00:00"),
+                        PartialDateTime.Zoned.parse("2024-10:00"),
+                        PartialDateTime.Zoned.parse("2025+18:00"),
+                    )
 
-                testComparables(
-                    name = "Zoned year months are sorted according to year, month and timezone",
-                    PartialDateTime.Zoned.parse("2024-01+10:00"),
-                    PartialDateTime.Zoned.parse("2024-01+00:00"),
-                    PartialDateTime.Zoned.parse("2024-01-10:00"),
-                    PartialDateTime.Zoned.parse("2024-02+18:00"),
-                    PartialDateTime.Zoned.parse("2025-02+18:00"),
-                )
+                    testComparables(
+                        name = "Zoned year months are sorted according to year, month and timezone",
+                        PartialDateTime.Zoned.parse("2024-01+10:00"),
+                        PartialDateTime.Zoned.parse("2024-01+00:00"),
+                        PartialDateTime.Zoned.parse("2024-01-10:00"),
+                        PartialDateTime.Zoned.parse("2024-02+18:00"),
+                        PartialDateTime.Zoned.parse("2025-02+18:00"),
+                    )
 
-                testComparables(
-                    name = "Zoned dates are sorted sorted based on their instants, even if their local parts would be swapped",
-                    PartialDateTime.Zoned.parse("2024-01-01+10:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01+00:00"),
-                    PartialDateTime.Zoned.parse("2024-01-02+18:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01-10:00"),
-                    PartialDateTime.Zoned.parse("2024-02-01+18:00"),
-                    PartialDateTime.Zoned.parse("2025-01-01+18:00"),
-                )
+                    testComparables(
+                        name = "Zoned dates are sorted sorted based on their instants, even if their local parts would be swapped",
+                        PartialDateTime.Zoned.parse("2024-01-01+10:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01+00:00"),
+                        PartialDateTime.Zoned.parse("2024-01-02+18:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01-10:00"),
+                        PartialDateTime.Zoned.parse("2024-02-01+18:00"),
+                        PartialDateTime.Zoned.parse("2025-01-01+18:00"),
+                    )
 
-                testComparables(
-                    name = "Zoned values are sorted based on their instants, even if their local part would be swapped",
-                    PartialDateTime.Zoned.parse("2024-01-01T12:00:00+05:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01T10:00:00+00:00"),
+                    testComparables(
+                        name = "Zoned values are sorted based on their instants, even if their local part would be swapped",
+                        PartialDateTime.Zoned.parse("2024-01-01T12:00:00+05:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01T10:00:00+00:00"),
 
-                    PartialDateTime.Zoned.parse("2024-02-02T12:00:00[Europe/Dublin]"), // +00:00
-                    PartialDateTime.Zoned.parse("2024-02-02T10:00:00[Pacific/Honolulu]"), // -10:00
-                )
+                        PartialDateTime.Zoned.parse("2024-02-02T12:00:00[Europe/Dublin]"), // +00:00
+                        PartialDateTime.Zoned.parse("2024-02-02T10:00:00[Pacific/Honolulu]"), // -10:00
+                    )
 
-                testComparables(
-                    name = "Zoned values for same instant and same timezone are sorted according to precision",
-                    PartialDateTime.Zoned.parse("2024+05:00"),
-                    PartialDateTime.Zoned.parse("2024-01+05:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01+05:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01T00:00:00+05:00"),
-                )
+                    testComparables(
+                        name = "Zoned values for same instant and same timezone are sorted according to precision",
+                        PartialDateTime.Zoned.parse("2024+05:00"),
+                        PartialDateTime.Zoned.parse("2024-01+05:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01+05:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01T00:00:00+05:00"),
+                    )
 
-                // This test is interesting: the toInstant() of these values would sort them in a different order, but since they have
-                // low precision, we choose to sort them based on their local part and precision
-                testComparables(
-                    name = "Zoned values up to YearMonth are sorted according to precision, even if their instants would be swapped",
-                    PartialDateTime.Zoned.parse("2024-18:00"),
-                    PartialDateTime.Zoned.parse("2024-01-10:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01+00:00"),
+                    // This test is interesting: the toInstant() of these values would sort them in a different order, but since they have
+                    // low precision, we choose to sort them based on their local part and precision
+                    testComparables(
+                        name = "Zoned values up to YearMonth are sorted according to precision, even if their instants would be swapped",
+                        PartialDateTime.Zoned.parse("2024-18:00"),
+                        PartialDateTime.Zoned.parse("2024-01-10:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01+00:00"),
 
-                    PartialDateTime.Zoned.parse("2025-18:00"),
-                    PartialDateTime.Zoned.parse("2025-01-10:00"),
-                    PartialDateTime.Zoned.parse("2025-01-01+00:00"),
-                )
+                        PartialDateTime.Zoned.parse("2025-18:00"),
+                        PartialDateTime.Zoned.parse("2025-01-10:00"),
+                        PartialDateTime.Zoned.parse("2025-01-01+00:00"),
+                    )
 
-                testComparables(
-                    name = "Zone dates and date times are sorted according to instant, not according to precisions",
-                    PartialDateTime.Zoned.parse("2024-01-01T00:00:00+05:00"),
-                    PartialDateTime.Zoned.parse("2024-01-01+00:00"),
-                )
+                    testComparables(
+                        name = "Zone dates and date times are sorted according to instant, not according to precisions",
+                        PartialDateTime.Zoned.parse("2024-01-01T00:00:00+05:00"),
+                        PartialDateTime.Zoned.parse("2024-01-01+00:00"),
+                    )
 
-                // DST changes should make differences in how values are sorted, making the two timezones possibly "flip" at different dates
-                testComparables(
-                    name = "Zoned values are sorted also based on DST observance",
-                    // America/Phoenix DOESN'T observe DST, and is always at -07:00
-                    // America/Boise DOES: SDT −07:00, DST −06:00
+                    // DST changes should make differences in how values are sorted, making the two timezones possibly "flip" at different dates
+                    testComparables(
+                        name = "Zoned values are sorted also based on DST observance",
+                        // America/Phoenix DOESN'T observe DST, and is always at -07:00
+                        // America/Boise DOES: SDT −07:00, DST −06:00
 
-                    // when out of DST, they are at the same offset (-07:00)
-                    PartialDateTime.Zoned.parse("2024-03-09T10:00:00[America/Phoenix]"),
-                    PartialDateTime.Zoned.parse("2024-03-09T10:30:00[America/Boise]"),
+                        // when out of DST, they are at the same offset (-07:00)
+                        PartialDateTime.Zoned.parse("2024-03-09T10:00:00[America/Phoenix]"),
+                        PartialDateTime.Zoned.parse("2024-03-09T10:30:00[America/Boise]"),
 
-                    // DST change for 2024 in US is Match 10th
+                        // DST change for 2024 in US is Match 10th
 
-                    // when in DST, America/Boise goes to -06:00
-                    PartialDateTime.Zoned.parse("2024-03-10T10:30:00[America/Boise]"),
-                    PartialDateTime.Zoned.parse("2024-03-10T10:00:00[America/Phoenix]"),
-                )
+                        // when in DST, America/Boise goes to -06:00
+                        PartialDateTime.Zoned.parse("2024-03-10T10:30:00[America/Boise]"),
+                        PartialDateTime.Zoned.parse("2024-03-10T10:00:00[America/Phoenix]"),
+                    )
+                }
             }
         }
 
@@ -178,7 +210,6 @@ class PartialDateTimeSortTest : FunSpec(
                         PartialDateTime.parse("2024-02-01T00:00[Europe/Rome]"),
                         PartialDateTime.parse("2024-02-01[America/New_York]"),
                         PartialDateTime.parse("2024-02-01T00:00[Pacific/Honolulu]"),
-
                     ),
                 ),
             ) { items ->
