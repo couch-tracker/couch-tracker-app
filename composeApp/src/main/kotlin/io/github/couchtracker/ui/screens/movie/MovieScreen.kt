@@ -29,7 +29,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.R
@@ -55,6 +54,7 @@ import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.serialization.Serializable
 import org.koin.mp.KoinPlatform
 
@@ -75,7 +75,7 @@ data class MovieScreen(val movieId: String) : Screen() {
         Content(
             viewModel {
                 MovieScreenViewModel(
-                    application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                    application = viewModelApplication(),
                     externalMovieId = externalMovieId,
                     movieId = movieId,
                 )

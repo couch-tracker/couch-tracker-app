@@ -26,7 +26,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalNavController
@@ -53,6 +52,7 @@ import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.mp.KoinPlatform
@@ -61,19 +61,18 @@ private const val LOG_TAG = "ShowScreen"
 
 @Serializable
 data class ShowScreen(val showId: String) : Screen() {
+
     @Composable
     override fun content() {
-        val showId = when (val externalShowId = ExternalShowId.parse(this@ShowScreen.showId)) {
-            is TmdbExternalShowId -> {
-                externalShowId.id
-            }
+        val showId = when (val externalShowId = ExternalShowId.parse(showId)) {
+            is TmdbExternalShowId -> externalShowId.id
             is UnknownExternalShowId -> TODO()
         }
 
         Content(
             viewModel {
                 ShowScreenViewModel(
-                    application = checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]),
+                    application = viewModelApplication(),
                     showId = showId,
                 )
             },
