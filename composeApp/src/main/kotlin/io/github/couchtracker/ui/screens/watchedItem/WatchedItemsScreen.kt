@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.plus
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inbox
@@ -47,6 +46,7 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
+import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.viewModelApplication
@@ -147,12 +147,12 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
                 innerPadding = contentPadding + PaddingValues(horizontal = 8.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
-                itemsIndexed(watchedItems) { idx, watchedItem ->
+                itemsWithPosition(watchedItems) { position, watchedItem ->
                     WatchedItemListItem(
                         watchedItem = watchedItem,
                         mediaRuntime = details.runtime,
                         onClick = { watchedItemForInfoDialog = watchedItem },
-                        shapes = ListItemShapes(isFirstInList = idx == 0, isLastInList = idx == watchedItems.size - 1),
+                        shapes = ListItemShapes(position),
                     )
                 }
             }

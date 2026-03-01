@@ -46,6 +46,7 @@ import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
+import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.ui.screens.seasons.navigateToSeason
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
@@ -253,13 +254,11 @@ private fun OverviewScreenComponents.SeasonsContent(
             modifier,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            items(seasons.size) { index ->
-                val (id, season) = seasons[index]
+            itemsWithPosition(seasons) { position, (id, season) ->
                 SeasonListItem(
-                    season,
+                    season = season,
                     onClick = { navController.navigateToSeason(id) },
-                    isFirstInList = index == 0,
-                    isLastInList = index == seasons.size - 1,
+                    position = position,
                 )
             }
         }

@@ -29,6 +29,7 @@ import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
+import io.github.couchtracker.ui.ListItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.format
@@ -42,8 +43,7 @@ private val STILL_HEIGHT = 64.dp
 fun EpisodeListItem(
     episode: EpisodeListItemModel,
     onClick: () -> Unit = {},
-    isFirstInList: Boolean = true,
-    isLastInList: Boolean = true,
+    position: ListItemPosition,
 ) {
     ListItem(
         onClick = onClick,
@@ -87,7 +87,7 @@ fun EpisodeListItem(
             Icon(Icons.Default.RadioButtonUnchecked, contentDescription = null)
         },
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-        shapes = ListItemShapes(isFirstInList = isFirstInList, isLastInList = isLastInList),
+        shapes = ListItemShapes(position),
     )
 }
 

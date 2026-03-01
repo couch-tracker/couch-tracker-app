@@ -24,6 +24,7 @@ import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
+import io.github.couchtracker.ui.ListItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.SeasonNames
@@ -39,8 +40,7 @@ private val POSTER_HEIGHT = 96.dp
 fun SeasonListItem(
     season: SeasonListItemModel,
     onClick: () -> Unit = {},
-    isFirstInList: Boolean = true,
-    isLastInList: Boolean = true,
+    position: ListItemPosition,
 ) {
     ListItem(
         onClick = onClick,
@@ -81,7 +81,7 @@ fun SeasonListItem(
             }
         },
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-        shapes = ListItemShapes(isFirstInList = isFirstInList, isLastInList = isLastInList),
+        shapes = ListItemShapes(position),
     )
 }
 

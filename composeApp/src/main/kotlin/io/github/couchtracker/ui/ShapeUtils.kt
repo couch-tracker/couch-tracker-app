@@ -9,31 +9,28 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun ListItemShape(
-    isFirstInList: Boolean,
-    isLastInList: Boolean,
+    position: ListItemPosition,
     smallShape: CornerBasedShape = MaterialTheme.shapes.extraSmall,
     largeShape: CornerBasedShape = MaterialTheme.shapes.large,
 ): CornerBasedShape {
     return smallShape.copy(
-        topStart = if (isFirstInList) largeShape.topStart else smallShape.topStart,
-        topEnd = if (isFirstInList) largeShape.topEnd else smallShape.topEnd,
-        bottomStart = if (isLastInList) largeShape.bottomStart else smallShape.bottomStart,
-        bottomEnd = if (isLastInList) largeShape.bottomEnd else smallShape.bottomEnd,
+        topStart = if (position.first) largeShape.topStart else smallShape.topStart,
+        topEnd = if (position.first) largeShape.topEnd else smallShape.topEnd,
+        bottomStart = if (position.last) largeShape.bottomStart else smallShape.bottomStart,
+        bottomEnd = if (position.last) largeShape.bottomEnd else smallShape.bottomEnd,
     )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ListItemShapes(
-    isFirstInList: Boolean,
-    isLastInList: Boolean,
+    position: ListItemPosition,
     smallShape: CornerBasedShape = MaterialTheme.shapes.extraSmall,
     largeShape: CornerBasedShape = MaterialTheme.shapes.large,
 ): ListItemShapes {
     return ListItemDefaults.shapes(
         shape = ListItemShape(
-            isFirstInList = isFirstInList,
-            isLastInList = isLastInList,
+            position = position,
             smallShape = smallShape,
             largeShape = largeShape,
         ),
