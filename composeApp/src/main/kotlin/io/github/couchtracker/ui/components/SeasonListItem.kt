@@ -24,7 +24,7 @@ import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
-import io.github.couchtracker.ui.ListItemPosition
+import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.SeasonNames
@@ -40,7 +40,7 @@ private val POSTER_HEIGHT = 96.dp
 fun SeasonListItem(
     season: SeasonListItemModel,
     onClick: () -> Unit = {},
-    position: ListItemPosition,
+    position: ItemPosition,
 ) {
     ListItem(
         onClick = onClick,

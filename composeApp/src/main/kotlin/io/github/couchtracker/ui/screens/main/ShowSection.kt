@@ -49,7 +49,6 @@ fun ShowSection(
     innerPadding: PaddingValues,
     viewModel: ShowSectionViewModel = viewModel(),
 ) {
-    val navController = LocalNavController.current
     // TODO: open up next as a first tab
     val pagerState = rememberPagerState(initialPage = ShowTab.EXPLORE.ordinal) { ShowTab.entries.size }
 
@@ -58,13 +57,6 @@ fun ShowSection(
         pagerState = pagerState,
         imageModel = R.drawable.sunset,
         title = R.string.main_section_shows.str(),
-        actions = {
-            MainSectionDefaults.SearchButton(
-                onOpenSearch = {
-                    navController.navigate(SearchScreen(filter = SearchableMediaType.SHOW))
-                },
-            )
-        },
         tabText = { page -> Text(text = ShowTab.entries[page].displayName.str()) },
         page = { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

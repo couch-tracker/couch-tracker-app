@@ -39,7 +39,7 @@ import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
 import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.ui.ColorSchemes
-import io.github.couchtracker.ui.ListItemPosition
+import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.DefaultErrorScreen
@@ -206,7 +206,7 @@ private fun WatchedEpisodeSessionList(
 private fun WatchedEpisodeSessionListItem(
     watchedEpisodeSessionInfo: WatchedEpisodeSessionInfo,
     onClick: () -> Unit = {},
-    position: ListItemPosition,
+    position: ItemPosition,
     modifier: Modifier = Modifier,
 ) {
     val watchedEpisodeSession = watchedEpisodeSessionInfo.watchedEpisodeSession

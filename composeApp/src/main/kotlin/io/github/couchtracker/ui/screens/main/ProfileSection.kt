@@ -30,7 +30,6 @@ import io.github.couchtracker.utils.str
 
 @Composable
 fun ProfileSection(innerPadding: PaddingValues) {
-    val navController = LocalNavController.current
     val pagerState = rememberPagerState(initialPage = ProfileTab.LISTS.ordinal) { ProfileTab.entries.size }
 
     MainSection(
@@ -39,11 +38,6 @@ fun ProfileSection(innerPadding: PaddingValues) {
         imageModel = R.drawable.sunset,
         title = R.string.main_section_profile.str(),
         actions = {
-            MainSectionDefaults.SearchButton(
-                onOpenSearch = {
-                    navController.navigate(SearchScreen(filter = null))
-                },
-            )
             AppbarMoreMenu()
         },
         tabText = { page -> Text(text = ProfileTab.entries[page].displayName.str()) },
