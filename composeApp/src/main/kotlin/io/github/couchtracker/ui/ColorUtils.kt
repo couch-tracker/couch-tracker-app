@@ -17,8 +17,8 @@ private const val OUTLINE_VARIANT_MULTIPLIER = 0.8f
 private const val OUTLINE_VARIANT_MAX = 0.8f
 private const val CONTAINER_VALUE = 0.4f
 private const val SURFACE_VALUE = 0.30f
-private const val SURFACE_CONTAINER_VALUE_INCREMENT = 1.40f
-private const val BACKGROUND_VALUE = 0.22f
+private const val SURFACE_CONTAINER_VALUE_INCREMENT = 1.2f
+private const val BACKGROUND_VALUE = 0.20f
 private const val MAX_FOREGROUND_ELEMENT_SATURATION = 0.1f
 private const val HUE_RANGE = 360f
 private const val HUE_COMPLEMENTARY_DISTANCE = 20f
@@ -44,21 +44,12 @@ fun Color.generateColorScheme(): ColorScheme {
     AndroidColor.colorToHSV(argb, hsv)
 
     val primaryHue = hsv[0]
-    val primarySaturation = hsv[1]
     val secondaryHue = (primaryHue - HUE_COMPLEMENTARY_DISTANCE).mod(HUE_RANGE)
     val tertiaryHue = (primaryHue + HUE_COMPLEMENTARY_DISTANCE).mod(HUE_RANGE)
 
     val primaryBase = this
-    val secondaryBase = Color.hsv(
-        hue = secondaryHue,
-        saturation = primarySaturation * 0.5f,
-        value = 0.8f,
-    )
-    val tertiaryBase = Color.hsv(
-        hue = tertiaryHue,
-        saturation = primarySaturation * 0.5f,
-        value = 0.8f,
-    )
+    val secondaryBase = this.pastel(secondaryHue)
+    val tertiaryBase = this.pastel(tertiaryHue)
 
     val primary = mainColor(primaryHue)
     val secondary = mainColor(secondaryHue)
@@ -80,6 +71,7 @@ fun Color.generateColorScheme(): ColorScheme {
         inversePrimary = DEFAULT_COLOR_SCHEME.inversePrimary.withHue(primaryHue),
         secondary = secondary,
         onSecondary = secondary.toForeground(),
+        // E.g. Chips, navigation bar item,
         secondaryContainer = secondaryContainer,
         onSecondaryContainer = secondaryContainer.toForeground(),
         tertiary = tertiary,
@@ -91,6 +83,7 @@ fun Color.generateColorScheme(): ColorScheme {
         surface = surface,
         onSurface = surface.toForeground(),
         surfaceContainer = primaryBase.surfaceColor(1),
+        // E.g. Dialogs, search bar
         surfaceContainerHigh = primaryBase.surfaceColor(2),
         surfaceContainerHighest = primaryBase.surfaceColor(3),
         surfaceContainerLow = primaryBase.surfaceColor(-1),
@@ -121,6 +114,16 @@ private fun Color.backgroundColor(): Color {
 private fun Color.surfaceColor(valueIncrement: Int = 0): Color {
     val value = (SURFACE_VALUE * SURFACE_CONTAINER_VALUE_INCREMENT.pow(valueIncrement)).coerceIn(0f, 1f)
     return changeValue(value, minValue = value / 2)
+}
+
+private fun Color.pastel(hue: Float): Color {
+    return edit { _, s, _ ->
+        Color.hsv(
+            hue = hue,
+            saturation = s * 0.6f,
+            value = 0.8f,
+        )
+    }
 }
 
 private fun Color.toForeground(): Color {
