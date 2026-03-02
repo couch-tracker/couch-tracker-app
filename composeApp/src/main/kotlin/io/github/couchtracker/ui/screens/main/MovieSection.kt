@@ -55,6 +55,9 @@ fun MoviesSection(
         pagerState = pagerState,
         imageModel = R.drawable.aurora_borealis,
         title = R.string.main_section_movies.str(),
+        actions = {
+            MainSectionDefaults.DefaultAppBarActions()
+        },
         tabText = { page -> Text(text = MovieTab.entries[page].displayName.str()) },
         page = { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
