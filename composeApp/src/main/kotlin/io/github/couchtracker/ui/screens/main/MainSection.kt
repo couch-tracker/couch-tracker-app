@@ -16,7 +16,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
@@ -26,7 +34,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +46,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import io.github.couchtracker.LocalNavController
+import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
+import io.github.couchtracker.ui.components.ProfileSwitcherDialog
+import io.github.couchtracker.ui.screens.settings.MainSettingsScreen
+import io.github.couchtracker.utils.str
 import kotlinx.coroutines.launch
 
 @Composable
@@ -114,4 +131,43 @@ fun MainSection(
             }
         },
     )
+}
+
+
+object MainSectionDefaults {
+
+    @Composable
+    fun DefaultAppBarActions() {
+        val navController = LocalNavController.current
+        var expanded by remember { mutableStateOf(false) }
+        var switchProfileDialogOpen by remember { mutableStateOf(false) }
+
+        IconButton(onClick = { expanded = !expanded }) {
+            Icon(Icons.Default.MoreVert, contentDescription = R.string.more_options.str())
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                leadingIcon = { Icon(Icons.Default.Group, contentDescription = null) },
+                text = { Text(R.string.switch_profile.str()) },
+                onClick = {
+                    expanded = false
+                    switchProfileDialogOpen = true
+                },
+            )
+            DropdownMenuItem(
+                leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                text = { Text(R.string.settings.str()) },
+                onClick = {
+                    expanded = false
+                    navController.navigate(MainSettingsScreen)
+                },
+            )
+        }
+        if (switchProfileDialogOpen) {
+            ProfileSwitcherDialog(close = { switchProfileDialogOpen = false })
+        }
+    }
 }
