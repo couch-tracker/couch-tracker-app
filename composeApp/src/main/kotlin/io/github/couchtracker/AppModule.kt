@@ -36,4 +36,8 @@ val AppModule = lazyModule {
     single {
         LoadedSettingsFlow(scope = GlobalScope, settingsFlow = AppSettings.loaded())
     }
+
+    single {
+        AppCoroutineScope()
+    }
 }

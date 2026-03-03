@@ -54,4 +54,3 @@ private enum class ProfileTab(@StringRes val displayName: Int) {
     LISTS(R.string.tab_profile_lists),
     STATS(R.string.tab_profile_stats),
 }
-

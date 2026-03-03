@@ -11,11 +11,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,7 +28,7 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
 import io.github.couchtracker.utils.str
 
-val LocalFullProfileDataContext = staticCompositionLocalOf<FullProfileData> { error("no default profile context") }
+val LocalFullProfileDataContext = compositionLocalOf<FullProfileData> { error("no default profile context") }
 
 @Composable
 fun ProfileDataContext(content: @Composable () -> Unit) {

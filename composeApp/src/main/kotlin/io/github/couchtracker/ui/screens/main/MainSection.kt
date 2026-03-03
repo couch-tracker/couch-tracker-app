@@ -133,7 +133,6 @@ fun MainSection(
     )
 }
 
-
 object MainSectionDefaults {
 
     @Composable
