@@ -167,8 +167,10 @@ fun WatchedItemSheetScaffold(
             }
         },
         sheetContent = {
-            scaffoldState.mode?.let { mode ->
-                key(scaffoldState.openCounter) {
+            when (val mode = scaffoldState.mode) {
+                // Having an empty sheet content makes it buggy and doesn't respect sheetPeekHeight when opening it in peek mode
+                null -> Spacer(Modifier.height(10_000.dp))
+                else -> key(scaffoldState.openCounter) {
                     WatchedItemSheetContent(
                         selections = rememberWatchedItemSelectionsState(watchedItemType, mode = mode),
                         bottomSheetState = bottomSheetState,
