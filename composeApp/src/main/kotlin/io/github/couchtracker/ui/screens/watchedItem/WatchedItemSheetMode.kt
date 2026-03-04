@@ -1,11 +1,10 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
-import io.github.couchtracker.db.profile.ProfileData
-import io.github.couchtracker.db.profile.WatchedEpisodeSession
-import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 
 /**
@@ -20,19 +19,15 @@ sealed interface WatchedItemSheetMode {
      */
     sealed interface New : WatchedItemSheetMode {
 
-        fun save(db: ProfileData, watchedItem: WatchedItem)
+        data class Movie(override val itemId: ExternalMovieId) : New
 
-        data class Movie(override val itemId: ExternalMovieId) : New {
-
-            override fun save(db: ProfileData, watchedItem: WatchedItem) {
-                db.watchedMovieQueries.insert(id = watchedItem.id, movieId = itemId)
-            }
-        }
-
-        data class Episode(override val itemId: ExternalEpisodeId, val session: WatchedEpisodeSession) : New {
-
-            override fun save(db: ProfileData, watchedItem: WatchedItem) {
-                db.watchedEpisodeQueries.insert(id = watchedItem.id, episodeId = itemId, session = session.id)
+        data class Episode(
+            override val itemId: ExternalEpisodeId,
+            val showId: ExternalShowId,
+            val sessions: List<WatchedEpisodeSessionWrapper>,
+        ) : New {
+            init {
+                require(sessions.all { it.showId == showId })
             }
         }
     }

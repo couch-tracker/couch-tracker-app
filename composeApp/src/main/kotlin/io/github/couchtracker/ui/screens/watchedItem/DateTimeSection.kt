@@ -146,7 +146,13 @@ sealed interface DateAndTimeSectionChoices {
                     Custom,
                 )
 
-                WatchedItemType.EPISODE -> TODO()
+                WatchedItemType.EPISODE -> listOf(
+                    // TODO
+                    Preset.JustStarted(Text.Resource(R.string.watched_movie_time_just_started)),
+                    Preset.JustFinished(Text.Resource(R.string.watched_movie_time_just_finished)),
+                    Preset.Today(Text.Resource(R.string.watched_item_time_today)),
+                    Custom,
+                )
             }
         }
     }

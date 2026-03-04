@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -37,7 +38,9 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetState
@@ -72,9 +75,11 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionS
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelectionsState
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelectionsState
+import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.components.BoxWithScrim
 import io.github.couchtracker.ui.components.DelayedActionLoadingIndicator
 import io.github.couchtracker.ui.components.ProfileDbErrorDialog
+import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.utils.ProfileDbActionState
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.rememberProfileDbActionState
@@ -152,11 +157,18 @@ fun WatchedItemSheetScaffold(
         scaffoldState.close()
     }
 
+    val selections = scaffoldState.mode?.let {
+        rememberWatchedItemSelectionsState(watchedItemType, mode = it)
+    }
+
+    val showEpisodeWatchSessionSelection =
+        selections == null || selections is WatchedItemSelectionsState.New.Episode && !selections.isSessionValid()
+
     BottomSheetScaffold(
         containerColor = containerColor(),
         scaffoldState = scaffoldState.scaffoldState,
         modifier = Modifier.fillMaxSize(),
-        sheetPeekHeight = sheetPeekHeight,
+        sheetPeekHeight =200.dp, //if (showEpisodeWatchSessionSelection) 0.dp else 250.dp,
         sheetDragHandle = {
             Box(
                 Modifier.onPlaced { coordinates ->
@@ -167,22 +179,26 @@ fun WatchedItemSheetScaffold(
             }
         },
         sheetContent = {
-            when (val mode = scaffoldState.mode) {
+            when (selections) {
                 // Having an empty sheet content makes it buggy and doesn't respect sheetPeekHeight when opening it in peek mode
                 null -> Spacer(Modifier.height(10_000.dp))
                 else -> key(scaffoldState.openCounter) {
-                    WatchedItemSheetContent(
-                        selections = rememberWatchedItemSelectionsState(watchedItemType, mode = mode),
-                        bottomSheetState = bottomSheetState,
-                        watchedItemType = watchedItemType,
-                        mediaRuntime = mediaRuntime,
-                        mediaLanguages = mediaLanguages,
-                        onDismissRequest = { scaffoldState.close() },
-                        onHeaderHeightChange = { headerHeight = it },
-                        onScrollLabelHeightChange = { scrollLabelHeight = it },
-                        onFooterHeightChange = { footerHeight = it },
-                        innerBottomPadding = innerBottomPadding,
-                    )
+                    if (showEpisodeWatchSessionSelection) {
+                        WatchedItemSheetSessionSelection(selections = selections, innerBottomPadding = innerBottomPadding)
+                    } else {
+                        WatchedItemSheetSelections(
+                            selections = selections,
+                            bottomSheetState = bottomSheetState,
+                            watchedItemType = watchedItemType,
+                            mediaRuntime = mediaRuntime,
+                            mediaLanguages = mediaLanguages,
+                            onDismissRequest = { scaffoldState.close() },
+                            onHeaderHeightChange = { headerHeight = it },
+                            onScrollLabelHeightChange = { scrollLabelHeight = it },
+                            onFooterHeightChange = { footerHeight = it },
+                            innerBottomPadding = innerBottomPadding,
+                        )
+                    }
                 }
             }
         },
@@ -198,10 +214,43 @@ fun WatchedItemSheetScaffold(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun WatchedItemSheetSessionSelection(
+    selections: WatchedItemSelectionsState.New.Episode,
+    innerBottomPadding: Dp,
+) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = PaddingValues(bottom = innerBottomPadding, start = 8.dp, top = 0.dp, end = 8.dp),
+    ) {
+        item {
+            Text(
+                text = "Scegli una watch session", // TODO
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
+        item {
+            Spacer(Modifier.height(16.dp))
+        }
+        itemsWithPosition(selections.sheetMode.sessions) { position, session ->
+            ListItem(
+                onClick = { selections.session = session },
+                content = { Text(session.name ?: "Boh") },
+                shapes = ListItemShapes(position),
+            )
+        }
+        item {
+            Spacer(Modifier.height(100.dp))
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("LongMethod")
-private fun WatchedItemSheetContent(
+private fun WatchedItemSheetSelections(
     selections: WatchedItemSelectionsState,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
@@ -233,7 +282,7 @@ private fun WatchedItemSheetContent(
 
     BoxWithConstraints {
         ProfileDbErrorDialog(saveAction)
-        if (selections.sheetMode is WatchedItemSheetMode.Edit) {
+        if (selections is WatchedItemSelectionsState.Edit) {
             DeleteWatchedItemConfirmDialog(
                 watchedItem = if (showDeleteDialog) selections.sheetMode.watchedItem else null,
                 onDismissRequest = { showDeleteDialog = false },
