@@ -16,18 +16,17 @@ import kotlinx.serialization.Serializable
 data class SearchParameters(
     val query: String,
     val filters: SearchMediaFilters,
-    val incomplete: Boolean,
+    val searchRequestId: Int,
 ) {
 
     init {
         require(filters.isNotEmpty()) { "Media filters must have at least one element" }
     }
-
-    fun isEmpty() = query.isBlank()
 }
 
 data class SearchInstance(
-    val searchParameters: SearchParameters,
+    val query: String,
+    val filters: SearchMediaFilters,
     val tmdbLanguage: TmdbLanguage,
     val lazyGridState: LazyGridState,
 )

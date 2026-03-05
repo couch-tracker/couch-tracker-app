@@ -1,6 +1,8 @@
 package io.github.couchtracker.ui.screens.main.search
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -35,6 +37,7 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.api.ApiResult
 import io.github.couchtracker.utils.collectFlow
+import io.github.couchtracker.utils.collectWithPrevious
 import io.github.couchtracker.utils.emptyPager
 import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.map
@@ -42,10 +45,13 @@ import io.github.couchtracker.utils.settings.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -57,33 +63,40 @@ class SearchViewModel(
 
     var lazyGridState by mutableStateOf(LazyGridState(0, 0))
         private set
-    var searchParameters by mutableStateOf(
-        SearchParameters(
-            query = "",
-            filters = initialMediaFilters,
-            incomplete = true,
-        ),
-    )
-        private set
+    var searchFieldState by mutableStateOf(TextFieldState())
+    var mediaFilters by mutableStateOf(initialMediaFilters)
+    private var searchRequestId by mutableStateOf(0)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val currentSearchInstance = snapshotFlow { searchParameters }
-        .debounce { if (it.incomplete) 300.milliseconds else 0.milliseconds }
-        .distinctUntilChangedBy { it.query to it.filters }
+    val currentSearchInstance = snapshotFlow {
+        SearchParameters(
+            query = searchFieldState.text.toString(),
+            filters = mediaFilters,
+            searchRequestId = 0,
+        )
+    }
+        // The current SearchParameters, combined with the previous request id
+        .collectWithPrevious { previous: Pair<Int, SearchParameters>?, value ->
+            (previous?.second?.searchRequestId ?: 0) to value
+        }
+        // Debounce if search id did not change
+        .debounce { (prevId, params) -> if (prevId == params.searchRequestId) 300.milliseconds else 0.milliseconds }
+        .map { (_, params) -> params.query to params.filters }
+        .distinctUntilChanged()
         .combine(AppSettings.get { Tmdb.Languages }) { searchParameters, tmdbLanguages ->
             SearchInstance(
-                searchParameters = searchParameters,
+                query = searchParameters.first,
+                filters = searchParameters.second,
                 tmdbLanguage = tmdbLanguages.current.apiLanguage,
                 lazyGridState = LazyGridState(0, 0),
             )
         }
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val searchResults: Flow<PagingData<SearchResultItem>> = currentSearchInstance
-        .flatMapLatest { (searchParameters, tmdbLanguage) ->
-            val (query, filters) = searchParameters
-
-            val pager = if (searchParameters.isEmpty()) {
+        .flatMapLatest { (query, filters, tmdbLanguage) ->
+            val pager = if (query.isBlank()) {
                 emptyPager()
             } else {
                 tmdbPager(
@@ -136,8 +149,8 @@ class SearchViewModel(
                 m.flatMap { movieGenres ->
                     t.map { tvGenres ->
                         ExplorePageModel(
-                            movieGenres = movieGenres,
-                            tvGenres = tvGenres,
+                            movieGenres = movieGenres.sortedBy { it.name },
+                            tvGenres = tvGenres.sortedBy { it.name },
                         )
                     }
                 }
@@ -145,21 +158,14 @@ class SearchViewModel(
         },
     )
 
-    fun search(
-        incomplete: Boolean,
-        query: String = searchParameters.query,
-        filters: SearchMediaFilters = searchParameters.filters,
-    ) {
-        searchParameters = SearchParameters(
-            query = query,
-            filters = filters,
-            incomplete = incomplete,
-        )
+    fun search() {
+        searchRequestId++
         lazyGridState = LazyGridState(0, 0)
     }
 
     fun clearResults() {
-        search(incomplete = false, query = "")
+        searchFieldState.setTextAndPlaceCursorAtEnd("")
+        search()
     }
 
     fun retryMainPage() {

@@ -152,15 +152,11 @@ private fun SearchInputField(
     searchBarState: SearchBarState,
     coroutineScope: CoroutineScope,
 ) {
-    val searchParameters = viewModel.searchParameters
     SearchBarDefaults.InputField(
         modifier = modifier,
-        query = searchParameters.query,
-        onQueryChange = {
-            viewModel.search(incomplete = true, query = it)
-        },
+        state = viewModel.searchFieldState,
         onSearch = {
-            viewModel.search(incomplete = false, query = it)
+            viewModel.search()
         },
         expanded = searchBarState.currentValue == SearchBarValue.Expanded,
         onExpandedChange = { expand ->
@@ -184,14 +180,15 @@ private fun SearchInputField(
             Icon(Icons.Filled.Search, contentDescription = null)
         },
         trailingIcon = {
-            IconButton(
-                modifier = Modifier.scale(searchBarState.progress),
-                onClick = {
-                    viewModel.clearResults()
-                    coroutineScope.launch { searchBarState.animateToCollapsed() }
-                },
-                content = { Icon(Icons.Default.Close, contentDescription = null) },
-            )
+            if (viewModel.searchFieldState.text.isNotBlank()) {
+                IconButton(
+                    modifier = Modifier.scale(searchBarState.progress),
+                    onClick = {
+                        viewModel.clearResults()
+                    },
+                    content = { Icon(Icons.Default.Close, contentDescription = null) },
+                )
+            }
         },
     )
 }
