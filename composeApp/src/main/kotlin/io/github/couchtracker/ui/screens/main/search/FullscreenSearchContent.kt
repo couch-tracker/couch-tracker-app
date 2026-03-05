@@ -48,7 +48,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun FullscreenSearchContent(viewModel: SearchViewModel) {
-    val searchParameters = viewModel.searchParameters
+    val searchFilters = viewModel.mediaFilters
     LazyRow(
         modifier = Modifier
             .padding(horizontal = 12.dp, vertical = 4.dp)
@@ -56,7 +56,7 @@ fun FullscreenSearchContent(viewModel: SearchViewModel) {
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.Companion.CenterHorizontally),
     ) {
         items(SearchableMediaType.entries) { type ->
-            val selected = type in searchParameters.filters
+            val selected = type in searchFilters
             MaterialTheme(colorScheme = type.colorScheme) {
                 FilterChip(
                     selected = selected,
@@ -70,15 +70,16 @@ fun FullscreenSearchContent(viewModel: SearchViewModel) {
                     label = { Text(type.title.str()) },
                     onClick = {
                         val newFilters = if (selected) {
-                            if (searchParameters.filters.size > 1) {
-                                searchParameters.filters - type
+                            if (searchFilters.size > 1) {
+                                searchFilters - type
                             } else {
                                 SearchableMediaType.entries.toSet()
                             }
                         } else {
-                            searchParameters.filters + type
+                            searchFilters + type
                         }
-                        viewModel.search(incomplete = false, filters = newFilters)
+                        viewModel.mediaFilters = newFilters
+                        viewModel.search()
                     },
                 )
             }
@@ -86,7 +87,7 @@ fun FullscreenSearchContent(viewModel: SearchViewModel) {
     }
 
     val currentSearchInstance by viewModel.currentSearchInstance.collectAsStateWithLifecycle(null)
-    if (currentSearchInstance?.searchParameters?.isEmpty() == false) {
+    if (currentSearchInstance?.query?.isBlank() == false) {
         SearchResults(results = viewModel.searchResults, lazyGridState = viewModel.lazyGridState)
     }
 }
