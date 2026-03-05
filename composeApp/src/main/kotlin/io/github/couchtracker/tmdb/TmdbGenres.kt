@@ -46,7 +46,7 @@ fun TmdbGenre.getIcon(): String? {
         TmdbGenreId.Movie.CRIME, TmdbGenreId.Show.CRIME -> "\uD83D\uDD75\uFE0F"
         TmdbGenreId.Movie.DOCUMENTARY, TmdbGenreId.Show.DOCUMENTARY -> "\uD83C\uDFA5"
         TmdbGenreId.Movie.DRAMA, TmdbGenreId.Show.DRAMA -> "\uD83C\uDFAD"
-        TmdbGenreId.Movie.FAMILY, TmdbGenreId.Show.FAMILY -> "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66"
+        TmdbGenreId.Movie.FAMILY, TmdbGenreId.Show.FAMILY -> "\uD83E\uDDD1\u200D\uD83E\uDDD1\u200D\uD83E\uDDD2\u200D\uD83E\uDDD2"
         TmdbGenreId.Movie.MYSTERY, TmdbGenreId.Show.MYSTERY -> "\uD83D\uDD0D"
         TmdbGenreId.Movie.WESTERN, TmdbGenreId.Show.WESTERN -> "\uD83E\uDD20"
         // Movie only
