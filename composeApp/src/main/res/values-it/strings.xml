@@ -193,4 +193,5 @@
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">Prima visione</string>
     <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Ultima visione</string>
+    <string name="last_episode_watched_on_x">Ultimo episodio visto il %1$s</string>
 </resources>

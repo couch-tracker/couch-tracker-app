@@ -26,5 +26,5 @@ fun List<WatchedEpisodeSessionInfo>.sorted(): List<WatchedEpisodeSessionInfo> {
         getPartialDateTime = { lastWatchedEpisodeAt },
         additionalComparator = compareBy<WatchedEpisodeSessionInfo> { info -> info.watchedEpisodes.maxOfOrNull { it.addedAt } }
             .thenBy { it.watchedEpisodeSession.id },
-    )
+    ).reversed()
 }

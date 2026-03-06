@@ -188,4 +188,5 @@
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">First viewing</string>
     <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Last viewing</string>
+    <string name="last_episode_watched_on_x">Last episode watched on %1$s</string>
 </resources>
