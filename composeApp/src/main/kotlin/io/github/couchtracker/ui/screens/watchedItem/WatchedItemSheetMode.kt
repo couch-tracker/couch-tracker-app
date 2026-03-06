@@ -6,6 +6,7 @@ import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 
 /**
@@ -29,9 +30,13 @@ sealed interface WatchedItemSheetMode {
             }
         }
 
-        data class Episode(override val itemId: ExternalEpisodeId, val session: WatchedEpisodeSession) : New {
+        data class Episode(
+            override val itemId: ExternalEpisodeId,
+            val sessionProvider: (ProfileData) -> WatchedEpisodeSession,
+        ) : New {
 
             override fun save(db: ProfileData, watchedItem: WatchedItem) {
+                val session = sessionProvider(db)
                 db.watchedEpisodeQueries.insert(id = watchedItem.id, episodeId = itemId, session = session.id)
             }
         }

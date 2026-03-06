@@ -4,7 +4,7 @@ import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisodeSession
 
 data class WatchedEpisodeSessionWrapper(
-    private val watchedEpisodeSession: WatchedEpisodeSession,
+    val watchedEpisodeSession: WatchedEpisodeSession,
     val defaultDimensionSelections: WatchedItemDimensionSelectionsWrapper,
 ) {
 
