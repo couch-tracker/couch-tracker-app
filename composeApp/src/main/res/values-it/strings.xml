@@ -162,8 +162,10 @@
     <string name="remove_language">Rimuovi lingua</string>
     <string name="drag_handle">Maniglia</string>
 
-    <string name="bookmark_add">Aggiungi agli elementi salvati</string>
-    <string name="bookmark_remove">Rimuovi dagli elementi salvati</string>
+    <string name="action_lists">Liste</string>
+    <string name="action_watch_sessions">Sessioni di visioni</string>
+    <string name="action_bookmark_add">Aggiungi agli elementi salvati</string>
+    <string name="action_bookmark_remove">Rimuovi dagli elementi salvati</string>
 
     <string name="watch_sessions">Sessioni di visioni</string>
     <string name="watch_session_info">Ogni episodio che guardi appartiene a una sessione di visioni, che ti permette di raggruppare le visioni in modo logico. Se ricominci una serie dall’inizio, puoi creare una nuova sessione di visione. I tuoi progressi, il prossimo episodio da guardare e le informazioni correlate sono tutti collegati alle sessioni di visione attive.</string>
@@ -193,4 +195,8 @@
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">Prima visione</string>
     <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Ultima visione</string>
+
+    <string name="unsupported_item_id">Id non supportato</string>
+    <string name="unsupported_item_id_description">"L'elemento con id '%1$s' non è supportato da quest'app"</string>
+    <string name="manage_item">Gestisci elemento</string>
 </resources>

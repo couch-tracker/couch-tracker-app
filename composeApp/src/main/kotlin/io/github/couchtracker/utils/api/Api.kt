@@ -6,7 +6,6 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.Text
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
@@ -22,12 +21,18 @@ sealed class ApiException(message: String?, cause: Throwable?) : Exception(messa
 
     abstract val title: Text
     open val details: Text? = message?.let { Text.Literal(it) }
+    open val isRetriable = true
 
     class ClientError(message: String, override val cause: ClientRequestException) : ApiException(message, cause) {
         override val title = Text.Resource(R.string.api_exception_client_error)
     }
 
-    class ServerError(message: String?, override val cause: ResponseException) : ApiException(message, cause) {
+    class ItemNotFound(message: String, override val cause: Exception) : ApiException(message, cause) {
+        override val title = Text.Resource(R.string.api_exception_item_not_found)
+        override val isRetriable = false
+    }
+
+    class ServerError(message: String?, override val cause: Exception) : ApiException(message, cause) {
         override val title = Text.Resource(R.string.api_exception_server_error)
     }
 

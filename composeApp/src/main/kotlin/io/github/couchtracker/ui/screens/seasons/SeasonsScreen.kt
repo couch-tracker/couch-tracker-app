@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -79,12 +78,11 @@ private fun Content(viewModel: SeasonsScreenViewModel, initialSeason: ExternalSe
     LoadableScreen(
         data = viewModel.showDetails,
         onError = { apiError ->
-            Surface {
-                DefaultErrorScreen(
-                    apiError = apiError,
-                    retry = { viewModel.retryAll() },
-                )
-            }
+            DefaultErrorScreen(
+                apiError = apiError,
+                retry = { viewModel.retryAll() },
+                backgroundColor = MaterialTheme.colorScheme.background,
+            )
         },
     ) { showDetails ->
         SeasonsScreenContent(

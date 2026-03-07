@@ -14,18 +14,28 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.ui.AnimationDefaults
+import io.github.couchtracker.ui.actions.Action
+import io.github.couchtracker.ui.actions.ActionsVerticalMenu
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.utils.str
 
 private const val ANIMATION_DURATION_MS = AnimationDefaults.ANIMATION_DURATION_MS
 private val DEFAULT_INDICATOR_SIZE = 64.dp
@@ -154,24 +164,54 @@ fun DefaultErrorScreen(
     errorMessage: String,
     errorDetails: String?,
     retry: (() -> Unit)? = null,
+    backgroundColor: Color = Color.Transparent,
+    manageItemActions: List<Action> = emptyList(),
 ) {
-    ErrorMessageComposable(
-        modifier = Modifier.fillMaxSize(),
-        errorMessage = errorMessage,
-        errorDetails = errorDetails,
-        retry = retry,
-    )
+    Surface(color = backgroundColor) {
+        ErrorMessageComposable(
+            modifier = Modifier.fillMaxSize(),
+            errorMessage = errorMessage,
+            errorDetails = errorDetails,
+            retry = retry,
+            extraContent = {
+                if (manageItemActions.isNotEmpty()) {
+                    Text(R.string.manage_item.str(), style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(8.dp))
+                    ActionsVerticalMenu(manageItemActions)
+                }
+            },
+        )
+    }
+}
+
+@Composable
+fun DefaultErrorScreen(
+    unsupportedItem: ExternalId,
+    backgroundColor: Color = Color.Transparent,
+    manageItemActions: List<Action> = emptyList(),
+) {
+    Surface(color = backgroundColor) {
+        DefaultErrorScreen(
+            errorMessage = R.string.unsupported_item_id.str(),
+            errorDetails = R.string.unsupported_item_id_description.str(unsupportedItem.serialize()),
+            backgroundColor = backgroundColor,
+            manageItemActions = manageItemActions,
+        )
+    }
 }
 
 @Composable
 fun DefaultErrorScreen(
     apiError: ApiException,
     retry: (() -> Unit)? = null,
+    backgroundColor: Color = Color.Transparent,
+    manageItemActions: List<Action> = emptyList(),
 ) {
-    ErrorMessageComposable(
-        modifier = Modifier.fillMaxSize(),
+    DefaultErrorScreen(
         errorMessage = apiError.title.string(),
         errorDetails = apiError.details?.string(),
-        retry = retry,
+        retry = if (apiError.isRetriable) retry else null,
+        backgroundColor = backgroundColor,
+        manageItemActions = manageItemActions,
     )
 }

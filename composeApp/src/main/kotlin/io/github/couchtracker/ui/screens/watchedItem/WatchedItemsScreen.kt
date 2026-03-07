@@ -16,7 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -90,12 +90,11 @@ private fun Content(
     LoadableScreen(
         data = viewModel.details,
         onError = { apiError ->
-            Surface {
-                DefaultErrorScreen(
-                    apiError = apiError,
-                    retry = { viewModel.retryAll() },
-                )
-            }
+            DefaultErrorScreen(
+                apiError = apiError,
+                retry = { viewModel.retryAll() },
+                backgroundColor = MaterialTheme.colorScheme.background,
+            )
         },
     ) { details ->
         WatchedItemList(viewModel = viewModel, details = details)

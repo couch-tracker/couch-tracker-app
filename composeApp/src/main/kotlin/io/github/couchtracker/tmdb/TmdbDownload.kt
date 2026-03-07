@@ -5,6 +5,7 @@ import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.db.QueryResult
 import app.moviebase.tmdb.Tmdb3
+import app.moviebase.tmdb.core.TmdbException
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.settings.AppSettings
@@ -20,6 +21,7 @@ import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.settings.get
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +44,8 @@ private const val LOG_TAG = "TmdbDownload"
 
 val TMDB_CACHE_EXPIRATION_FAST = 30.minutes
 val TMDB_CACHE_EXPIRATION_DEFAULT = 12.hours
+
+private const val TMDB_STATUS_CODE_RESOURCE_NOT_FOUND = 34
 
 typealias TmdbApiContext = ApiContext<TmdbLanguages>
 typealias LocalizedItemQueryBuilder<ID, L, T> = (ID, L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
@@ -130,6 +134,7 @@ fun <T : Any> tmdbGetOrDownload(
 ): Flow<ApiResult<T>> {
     return loadFromCache()
         .asFlow()
+        .distinctUntilChanged()
         .transformLatest {
             val cachedValue = it.executeAsOneOrNull().injectCacheMiss()
             val currentTime = Clock.System.now()
@@ -187,7 +192,17 @@ suspend fun <T> tmdbDownloadResult(
                 }
             }
         } catch (e: ClientRequestException) {
-            throw ApiException.ClientError(e.message, e)
+            if (e.response.status == HttpStatusCode.NotFound) {
+                throw ApiException.ItemNotFound(e.message, e)
+            } else {
+                throw ApiException.ClientError(e.message, e)
+            }
+        } catch (e: TmdbException) {
+            if (e.tmdbResponse.statusCode == TMDB_STATUS_CODE_RESOURCE_NOT_FOUND) {
+                throw ApiException.ItemNotFound(e.message ?: "TmdbException", e)
+            } else {
+                throw ApiException.ServerError(e.message, e)
+            }
         } catch (e: ResponseException) {
             throw ApiException.ServerError(e.message, e)
         } catch (e: IOException) {

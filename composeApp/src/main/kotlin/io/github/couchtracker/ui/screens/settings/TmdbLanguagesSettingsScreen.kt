@@ -103,6 +103,7 @@ private fun Content() {
             DefaultErrorScreen(
                 apiError = apiError,
                 retry = { coroutineScope.launch { downloadTmdbLanguages() } },
+                backgroundColor = MaterialTheme.colorScheme.background,
             )
         },
     ) { allTmdbLanguages ->
