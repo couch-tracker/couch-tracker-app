@@ -10,16 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalFloatingToolbar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,7 +33,9 @@ import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.BookmarkIconButton
+import io.github.couchtracker.ui.actions.Action
+import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
+import io.github.couchtracker.ui.actions.ShowActions
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
@@ -66,18 +62,9 @@ data class ShowScreen(val showId: String) : Screen() {
 
     @Composable
     override fun content() {
-        val showId = when (val externalShowId = ExternalShowId.parse(showId)) {
-            is TmdbExternalShowId -> externalShowId.id
-            is UnknownExternalShowId -> TODO()
+        MaterialTheme(colorScheme = ColorSchemes.Show) {
+            Content(ExternalShowId.parse(showId))
         }
-        Content(
-            viewModel {
-                ShowScreenViewModel(
-                    application = viewModelApplication(),
-                    showId = showId,
-                )
-            },
-        )
     }
 }
 
@@ -95,7 +82,33 @@ private enum class ShowScreenTab {
 }
 
 @Composable
-private fun Content(viewModel: ShowScreenViewModel) {
+private fun Content(showId: ExternalShowId) {
+    val actions = ShowActions(showId)
+    when (showId) {
+        is TmdbExternalShowId -> {
+            val showId = showId.id
+            TmdbShowContent(
+                viewModel {
+                    ShowScreenViewModel(
+                        application = viewModelApplication(),
+                        showId = showId,
+                    )
+                },
+                actions,
+            )
+        }
+        is UnknownExternalShowId -> {
+            DefaultErrorScreen(
+                unsupportedItem = showId,
+                backgroundColor = MaterialTheme.colorScheme.background,
+                manageItemActions = actions,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: List<Action>) {
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
@@ -103,18 +116,19 @@ private fun Content(viewModel: ShowScreenViewModel) {
         ResultScreen(
             error = viewModel.baseDetails.resultErrorOrNull(),
             onError = { apiError ->
-                Surface {
-                    DefaultErrorScreen(
-                        apiError = apiError,
-                        retry = { viewModel.retryAll() },
-                    )
-                }
+                DefaultErrorScreen(
+                    apiError = apiError,
+                    retry = { viewModel.retryAll() },
+                    backgroundColor = MaterialTheme.colorScheme.background,
+                    manageItemActions = actions,
+                )
             },
         ) {
             ShowScreenContent(
                 viewModel = viewModel,
                 totalHeight = constraints.maxHeight,
                 reloadShow = { viewModel.retryAll() },
+                actions = actions,
             )
         }
     }
@@ -126,6 +140,7 @@ private fun ShowScreenContent(
     viewModel: ShowScreenViewModel,
     totalHeight: Int,
     reloadShow: () -> Unit,
+    actions: List<Action>,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(
@@ -147,7 +162,7 @@ private fun ShowScreenContent(
         title = viewModel.baseDetails.resultValueOrNull()?.name.orEmpty(),
         backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
         floatingActionButton = {
-            ShowToolbar(externalShowId = viewModel.showId.toExternalId())
+            ActionsHorizontalFloatingToolbar(actions)
         },
         snackbarHostState = snackbarHostState,
         belowAppBar = {
@@ -180,24 +195,6 @@ private fun ShowScreenContent(
                     ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
                 }
             }
-        },
-    )
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ShowToolbar(externalShowId: ExternalShowId) {
-    val navController = LocalNavController.current
-    HorizontalFloatingToolbar(
-        expanded = false,
-        content = {
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
-            }
-            IconButton(onClick = { navController.navigateToEpisodeWatchSessions(externalShowId) }) {
-                Icon(Icons.Outlined.Layers, contentDescription = R.string.watch_sessions.str())
-            }
-            BookmarkIconButton(externalShowId)
         },
     )
 }

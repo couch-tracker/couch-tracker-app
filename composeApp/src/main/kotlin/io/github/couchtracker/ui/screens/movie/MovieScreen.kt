@@ -19,8 +19,8 @@ import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVertica
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,12 +98,11 @@ private fun Content(viewModel: MovieScreenViewModel) {
         ResultScreen(
             error = viewModel.baseDetails.resultErrorOrNull(),
             onError = { apiError ->
-                Surface {
-                    DefaultErrorScreen(
-                        apiError = apiError,
-                        retry = { viewModel.retryAll() },
-                    )
-                }
+                DefaultErrorScreen(
+                    apiError = apiError,
+                    retry = { viewModel.retryAll() },
+                    backgroundColor = MaterialTheme.colorScheme.background,
+                )
             },
         ) {
             MovieScreenContent(
