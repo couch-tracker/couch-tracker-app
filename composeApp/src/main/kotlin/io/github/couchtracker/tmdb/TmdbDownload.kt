@@ -5,6 +5,7 @@ import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.db.QueryResult
 import app.moviebase.tmdb.Tmdb3
+import app.moviebase.tmdb.core.TmdbException
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.settings.AppSettings
@@ -20,6 +21,7 @@ import io.github.couchtracker.utils.logExecutionTime
 import io.github.couchtracker.utils.settings.get
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +45,8 @@ private const val LOG_TAG = "TmdbDownload"
 val TMDB_CACHE_EXPIRATION_FAST = 30.minutes
 val TMDB_CACHE_EXPIRATION_DEFAULT = 12.hours
 
+private const val TMDB_STATUS_CODE_RESOURCE_NOT_FOUND = 34
+
 typealias TmdbApiContext = ApiContext<TmdbLanguages>
 typealias LocalizedItemQueryBuilder<ID, L, T> = (ID, L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
 typealias ItemQueryBuilder<ID, T> = (ID, (details: T, lastUpdate: Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
@@ -55,7 +59,7 @@ fun tmdbApiContext(
     return ApiContext(retryToken, languages)
 }
 
-fun <ID, T : Any> tmdbCachedDownload(
+fun <ID : TmdbId, T : Any> tmdbCachedDownload(
     id: ID,
     logTag: String,
     loadFromCacheFn: TmdbCache.() -> ItemQueryBuilder<ID, T>,
@@ -64,18 +68,23 @@ fun <ID, T : Any> tmdbCachedDownload(
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     cache: TmdbCache = KoinPlatform.getKoin().get(),
 ): Flow<ApiResult<T>> {
-    val logTag = "$id-$logTag"
     return tmdbGetOrDownload(
         entryTag = logTag,
         loadFromCache = { loadFromCacheFn(cache)(id, ::TmdbTimestampedEntry) },
         putInCache = { data -> putInCacheFn(cache)(id, data.value, data.lastUpdate) },
-        downloader = { tmdbDownloadResult(logTag = logTag, download = download) },
+        downloader = {
+            tmdbDownloadResult(
+                apiSubjectIdentifier = id.toExternalId().serialize(),
+                logTag = logTag,
+                download = download,
+            )
+        },
         expiration = expiration,
     )
 }
 
 @Suppress("LongParameterList")
-fun <ID, L, T : Any> tmdbLocalizedCachedDownload(
+fun <ID : TmdbId, L, T : Any> tmdbLocalizedCachedDownload(
     id: ID,
     logTag: String,
     language: L,
@@ -85,12 +94,18 @@ fun <ID, L, T : Any> tmdbLocalizedCachedDownload(
     expiration: Duration = TMDB_CACHE_EXPIRATION_DEFAULT,
     cache: TmdbCache = KoinPlatform.getKoin().get(),
 ): Flow<ApiResult<T>> {
-    val logTag = "$id-$language-$logTag"
+    val logTag = "$language-$logTag"
     return tmdbGetOrDownload(
         entryTag = logTag,
         loadFromCache = { loadFromCacheFn(cache)(id, language, ::TmdbTimestampedEntry) },
         putInCache = { data -> putInCacheFn(cache)(id, language, data.value, data.lastUpdate) },
-        downloader = { tmdbDownloadResult(logTag = logTag, download = { download(it) }) },
+        downloader = {
+            tmdbDownloadResult(
+                apiSubjectIdentifier = id.toExternalId().serialize(),
+                logTag = logTag,
+                download = { download(it) },
+            )
+        },
         expiration = expiration,
     )
 }
@@ -109,7 +124,7 @@ fun <L, T : Any> tmdbLocalizedCachedDownload(
         entryTag = logTag,
         loadFromCache = { loadFromCacheFn(cache)(language, ::TmdbTimestampedEntry) },
         putInCache = { data -> putInCacheFn(cache)(language, data.value, data.lastUpdate) },
-        downloader = { tmdbDownloadResult(logTag = logTag, download = { download(it) }) },
+        downloader = { tmdbDownloadResult(apiSubjectIdentifier = null, logTag = logTag, download = { download(it) }) },
         expiration = expiration,
     )
 }
@@ -130,6 +145,7 @@ fun <T : Any> tmdbGetOrDownload(
 ): Flow<ApiResult<T>> {
     return loadFromCache()
         .asFlow()
+        .distinctUntilChanged()
         .transformLatest {
             val cachedValue = it.executeAsOneOrNull().injectCacheMiss()
             val currentTime = Clock.System.now()
@@ -171,23 +187,44 @@ private suspend fun <T : Any> downloadAndSave(
     return element
 }
 
+/**
+ * @param logTag the log tag (optional). [apiSubjectIdentifier] is appended automatically if provided
+ * @param apiSubjectIdentifier the id of the main subject of the API call. If provided, it will be used in logs and error messages
+ * @param download the lambda that does the download via [Tmdb3]
+ */
 @Suppress("ThrowsCount")
 suspend fun <T> tmdbDownloadResult(
     logTag: String?,
+    apiSubjectIdentifier: String? = null,
     download: suspend (Tmdb3) -> T,
 ): ApiResult<T> {
+    val logTag = if (logTag != null && apiSubjectIdentifier != null) {
+        "$apiSubjectIdentifier-$logTag"
+    } else {
+        logTag ?: apiSubjectIdentifier ?: LOG_TAG
+    }
     return runApiCatching(logTag) {
         try {
             injectApiError()
             val client = KoinPlatform.getKoin().get<Tmdb3>()
             // preparing the API call is often CPU intensive
             withContext(Dispatchers.Default) {
-                logExecutionTime(logTag ?: LOG_TAG, "Tmdb download") {
+                logExecutionTime(logTag, "Tmdb download") {
                     download(client)
                 }
             }
         } catch (e: ClientRequestException) {
-            throw ApiException.ClientError(e.message, e)
+            if (e.response.status == HttpStatusCode.NotFound) {
+                throw ApiException.ItemNotFound(e.message, e, itemIdentifier = apiSubjectIdentifier)
+            } else {
+                throw ApiException.ClientError(e.message, e)
+            }
+        } catch (e: TmdbException) {
+            if (e.tmdbResponse.statusCode == TMDB_STATUS_CODE_RESOURCE_NOT_FOUND) {
+                throw ApiException.ItemNotFound(e.message ?: "TmdbException", cause = e, itemIdentifier = apiSubjectIdentifier)
+            } else {
+                throw ApiException.ServerError(e.message, e)
+            }
         } catch (e: ResponseException) {
             throw ApiException.ServerError(e.message, e)
         } catch (e: IOException) {

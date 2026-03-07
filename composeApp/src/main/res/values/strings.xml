@@ -157,8 +157,10 @@
     <string name="remove_language">Remove language</string>
     <string name="drag_handle">Drag handle</string>
 
-    <string name="bookmark_add">Add to bookmarks</string>
-    <string name="bookmark_remove">Remove form bookmarks</string>
+    <string name="action_lists">Lists</string>
+    <string name="action_watch_sessions">Watch sessions</string>
+    <string name="action_bookmark_add">Add to bookmarks</string>
+    <string name="action_bookmark_remove">Remove form bookmarks</string>
 
     <string name="watch_sessions">Watch sessions</string>
     <string name="watch_session_info">Each episode you watch belongs to a watch session, which lets you group your viewings together logically. If you rewatch a show from the beginning, you can create a new watch session. Your progress, next episode to watch, and related information are all tied to active watch sessions.</string>
@@ -188,4 +190,8 @@
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">First viewing</string>
     <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Last viewing</string>
+
+    <string name="unsupported_item_id">Unsupported item id</string>
+    <string name="unsupported_item_id_description">"The item with id '%1$s' is not supported by this app"</string>
+    <string name="manage_item">Manage item</string>
 </resources>

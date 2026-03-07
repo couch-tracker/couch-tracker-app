@@ -26,7 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -49,7 +48,7 @@ import io.github.couchtracker.db.profile.externalids.UnknownExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WatchedItemsIconButton
@@ -103,12 +102,11 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
         LoadableScreen(
             data = viewModel.seasonDetails,
             onError = { apiError ->
-                Surface {
-                    DefaultErrorScreen(
-                        apiError = apiError,
-                        retry = { viewModel.retryAll() },
-                    )
-                }
+                ApiExceptionErrorScreen(
+                    apiError = apiError,
+                    retry = { viewModel.retryAll() },
+                    backgroundColor = MaterialTheme.colorScheme.background,
+                )
             },
         ) { seasonDetails ->
             EpisodeScreenContent(

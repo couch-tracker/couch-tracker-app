@@ -16,7 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +42,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
@@ -90,12 +90,11 @@ private fun Content(
     LoadableScreen(
         data = viewModel.details,
         onError = { apiError ->
-            Surface {
-                DefaultErrorScreen(
-                    apiError = apiError,
-                    retry = { viewModel.retryAll() },
-                )
-            }
+            ApiExceptionErrorScreen(
+                apiError = apiError,
+                retry = { viewModel.retryAll() },
+                backgroundColor = MaterialTheme.colorScheme.background,
+            )
         },
     ) { details ->
         WatchedItemList(viewModel = viewModel, details = details)
