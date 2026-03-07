@@ -39,7 +39,7 @@ import io.github.couchtracker.tmdb.languageTree
 import io.github.couchtracker.tmdb.tmdbDownloadResult
 import io.github.couchtracker.tmdb.toTmdbLanguage
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.SuggestedOptions
 import io.github.couchtracker.ui.components.TreePickerDialog
@@ -100,9 +100,10 @@ private fun Content() {
     LoadableScreen(
         data = allTmdbLanguages,
         onError = { apiError ->
-            DefaultErrorScreen(
+            ApiExceptionErrorScreen(
                 apiError = apiError,
                 retry = { coroutineScope.launch { downloadTmdbLanguages() } },
+                backgroundColor = MaterialTheme.colorScheme.background,
             )
         },
     ) { allTmdbLanguages ->

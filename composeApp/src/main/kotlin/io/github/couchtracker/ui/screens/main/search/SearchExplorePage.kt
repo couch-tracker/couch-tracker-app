@@ -25,7 +25,7 @@ import app.moviebase.tmdb.model.TmdbGenre
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.getIcon
 import io.github.couchtracker.ui.ListItemShapes
-import io.github.couchtracker.ui.components.DefaultErrorScreen
+import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.utils.str
@@ -37,7 +37,7 @@ fun SearchExplorePage(padding: PaddingValues, viewModel: SearchViewModel) {
         data = viewModel.explorePageModel,
         onError = { apiError ->
             Box(Modifier.padding(padding)) {
-                DefaultErrorScreen(
+                ApiExceptionErrorScreen(
                     apiError = apiError,
                     retry = { viewModel.retryMainPage() },
                 )

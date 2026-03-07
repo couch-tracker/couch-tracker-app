@@ -17,7 +17,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -88,13 +87,12 @@ private fun Content(viewModel: WatchedEpisodeSessionsScreenViewModel) {
     LoadableScreen(
         data = viewModel.fullDetails,
         onError = { exception ->
-            Surface {
-                DefaultErrorScreen(
-                    errorMessage = exception.title.string(),
-                    errorDetails = exception.details?.string(),
-                    retry = { viewModel.retryAll() },
-                )
-            }
+            DefaultErrorScreen(
+                errorMessage = exception.title.string(),
+                errorDetails = exception.details?.string(),
+                retry = { viewModel.retryAll() },
+                backgroundColor = MaterialTheme.colorScheme.background,
+            )
         },
     ) { details ->
         WatchedEpisodeSessionList(viewModel = viewModel, details = details)

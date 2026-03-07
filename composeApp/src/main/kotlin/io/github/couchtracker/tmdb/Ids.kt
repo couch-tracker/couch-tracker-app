@@ -4,6 +4,7 @@ import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import io.github.couchtracker.db.common.adapters.map
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
@@ -11,7 +12,9 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 
-sealed interface TmdbId
+sealed interface TmdbId {
+    fun toExternalId(): ExternalId
+}
 
 sealed interface TmdbIntId : TmdbId {
     val value: Int
@@ -23,7 +26,7 @@ value class TmdbMovieId(override val value: Int) : TmdbIntId {
         requireTmdbId(value)
     }
 
-    fun toExternalId(): ExternalMovieId = TmdbExternalMovieId(this)
+    override fun toExternalId(): ExternalMovieId = TmdbExternalMovieId(this)
 
     companion object {
         val COLUMN_ADAPTER: ColumnAdapter<TmdbMovieId, Long> = IntColumnAdapter.map(
@@ -39,7 +42,7 @@ value class TmdbShowId(override val value: Int) : TmdbIntId {
         requireTmdbId(value)
     }
 
-    fun toExternalId() = TmdbExternalShowId(this)
+    override fun toExternalId() = TmdbExternalShowId(this)
 
     fun season(number: Int) = TmdbSeasonId(showId = this, number = number)
 
@@ -61,7 +64,7 @@ data class TmdbSeasonId(val showId: TmdbShowId, val number: Int) : TmdbId {
 
     fun episode(number: Int) = TmdbEpisodeId(seasonId = this, number = number)
 
-    fun toExternalId(): ExternalSeasonId = TmdbExternalSeasonId(this)
+    override fun toExternalId(): ExternalSeasonId = TmdbExternalSeasonId(this)
 
     companion object {
         val COLUMN_ADAPTER: ColumnAdapter<TmdbSeasonId, String> = object : ColumnAdapter<TmdbSeasonId, String> {
@@ -103,7 +106,7 @@ data class TmdbEpisodeId(val seasonId: TmdbSeasonId, val number: Int) : TmdbId {
 
     override fun toString() = "${showId.value}-s${seasonId.number}e$number"
 
-    fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
+    override fun toExternalId(): ExternalEpisodeId = TmdbExternalEpisodeId(this)
 
     companion object {
         val COLUMN_ADAPTER: ColumnAdapter<TmdbEpisodeId, String> = object : ColumnAdapter<TmdbEpisodeId, String> {
@@ -142,6 +145,8 @@ value class TmdbPersonId(override val value: Int) : TmdbIntId {
     init {
         requireTmdbId(value)
     }
+
+    override fun toExternalId() = throw NotImplementedError()
 
     companion object {
         val COLUMN_ADAPTER: ColumnAdapter<TmdbPersonId, Long> = IntColumnAdapter.map(

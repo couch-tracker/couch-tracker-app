@@ -54,6 +54,7 @@ fun ErrorMessageComposable(
     errorDetails: String?,
     modifier: Modifier = Modifier,
     retry: (() -> Unit)? = null,
+    extraContent: @Composable (ColumnScope.() -> Unit)? = null,
 ) {
     MessageComposable(
         modifier = modifier,
@@ -66,6 +67,10 @@ fun ErrorMessageComposable(
             OutlinedButton(retry) {
                 Text(R.string.retry_action.str())
             }
+        }
+        if (extraContent != null) {
+            Spacer(Modifier.height(48.dp))
+            extraContent()
         }
     }
 }
