@@ -13,6 +13,7 @@ import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
+import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.tmdb.TmdbApiContext
 import io.github.couchtracker.tmdb.TmdbEpisodeId
@@ -27,7 +28,6 @@ import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
-import io.github.couchtracker.ui.format
 import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.ui.toImageModel

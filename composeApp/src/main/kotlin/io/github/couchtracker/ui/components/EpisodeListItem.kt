@@ -24,6 +24,7 @@ import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
+import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.runtime
@@ -32,7 +33,6 @@ import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
-import io.github.couchtracker.ui.format
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 
 private val STILL_WIDTH = 112.dp

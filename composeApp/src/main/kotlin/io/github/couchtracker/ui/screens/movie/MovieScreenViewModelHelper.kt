@@ -7,6 +7,7 @@ import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
+import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbApiContext
@@ -28,7 +29,6 @@ import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
 import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
-import io.github.couchtracker.ui.format
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
