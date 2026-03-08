@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.ui.rememberRelativeDurationText
+import io.github.couchtracker.intl.datetime.rememberRelativeDurationText
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.map

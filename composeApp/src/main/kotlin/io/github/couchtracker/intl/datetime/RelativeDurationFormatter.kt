@@ -1,10 +1,9 @@
-package io.github.couchtracker.ui
+package io.github.couchtracker.intl.datetime
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import com.ibm.icu.text.MeasureFormat
-import com.ibm.icu.util.Measure
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.TickingValue
@@ -12,39 +11,30 @@ import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.remainderUntilNextUnitBoundary
 import io.github.couchtracker.utils.rememberTickingValue
-import io.github.couchtracker.utils.toIbmIcuTimeUnit
 import io.github.couchtracker.utils.toULocale
-import io.github.couchtracker.utils.unitPart
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 
-data class RelativeDurationFormatter(
-    private val omitZeros: Boolean,
-    private val minUnit: DurationUnit,
+class RelativeDurationFormatter(
+    private val omitZeros: Boolean = true,
+    private val minUnit: DurationUnit = DurationUnit.MINUTES,
     private val maxUnits: Int = 2,
     private val measureFormat: MeasureFormat,
 ) {
 
+    private val durationFormatter = DurationFormatter(
+        omitZeros = omitZeros,
+        minUnit = minUnit,
+        maxUnits = maxUnits,
+        measureFormat = measureFormat,
+    )
+
     fun format(duration: Duration): TickingValue<String> {
-        val units = DurationUnit.entries
-            .reversed()
-            .filter { it >= minUnit }
-            .dropWhile { duration.unitPart(it) == 0L }
-            .take(maxUnits)
-            .ifEmpty { listOf(minUnit) }
-
-        val abs = duration.absoluteValue
-        val measures = units.map { Measure(abs.unitPart(it), it.toIbmIcuTimeUnit()) }
-        val filteredMeasures = measures
-            .filter { !omitZeros || it.number != 0L }
-            .takeIf { it.isNotEmpty() }
-            ?: listOf(measures.last())
-
         return TickingValue(
-            value = measureFormat.format(filteredMeasures),
-            nextTick = units.minOf { duration.remainderUntilNextUnitBoundary(it) },
+            value = durationFormatter.format(duration),
+            nextTick = durationFormatter.units(duration).minOf { duration.remainderUntilNextUnitBoundary(it) },
         )
     }
 }
