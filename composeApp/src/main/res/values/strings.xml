@@ -12,6 +12,7 @@
     <string name="edit_action">Edit</string>
 
     <string name="optional_field">%1$s (optional)</string>
+    <string name="parenthesize">%1$s (%2$s)</string>
 
     <string name="more_options">More options</string>
     <string name="error_loading_items">Error loading items</string>
@@ -67,6 +68,8 @@
     <string name="section_crew">Crew</string>
     <string name="section_guest_stars">Guest stars</string>
 
+    <string name="duration_in_x">in $1%s</string>
+    <string name="duration_x_ago">$1%s ago</string>
     <string name="date_and_time">Date and time</string>
     <string name="date_and_time_dialog_precision">Precision:</string>
     <string name="date_and_time_precision_year">Year</string>
