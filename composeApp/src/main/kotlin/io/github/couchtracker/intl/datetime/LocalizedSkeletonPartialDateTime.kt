@@ -1,6 +1,6 @@
 package io.github.couchtracker.intl.datetime
 
-import androidx.compose.ui.text.intl.Locale
+import com.ibm.icu.util.ULocale
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Local
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime.Zoned
@@ -20,7 +20,7 @@ private class LocalizedSkeletonPartialDateTimeImpl<out PDT : PartialDateTime>(
     override val skeleton: Skeleton,
 ) : LocalizedSkeletonPartialDateTime<PDT>(item) {
 
-    override fun localize(locale: Locale): String {
+    override fun localize(locale: ULocale): String {
         val (instant, timeZone) = when (val pdt = item as PartialDateTime) {
             is Local -> {
                 val defaultTimeZone = TimeZone.currentSystemDefault()
