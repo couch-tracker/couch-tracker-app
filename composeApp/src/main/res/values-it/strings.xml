@@ -12,6 +12,7 @@
     <string name="edit_action">Modifica</string>
 
     <string name="optional_field">%1$s (opzionale)</string>
+    <string name="parenthesize">%1$s (%2$s)</string>
 
     <string name="more_options">Più opzioni</string>
     <string name="error_loading_items">Errore nel caricare gli elementi</string>
@@ -69,6 +70,8 @@
     <string name="section_crew">Troupe</string>
     <string name="section_guest_stars">Ospiti speciali</string>
 
+    <string name="duration_in_x">tra $1%s</string>
+    <string name="duration_x_ago">$1%s fa</string>
     <string name="date_and_time">Data e ora</string>
     <string name="date_and_time_dialog_precision">Precisione:</string>
     <string name="date_and_time_precision_year">Anno</string>
