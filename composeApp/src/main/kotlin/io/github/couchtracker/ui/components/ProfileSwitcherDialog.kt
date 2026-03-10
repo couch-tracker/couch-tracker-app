@@ -37,6 +37,7 @@ import io.github.couchtracker.intl.formatDateTimeSkeleton
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.toULocale
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
@@ -122,7 +123,7 @@ fun ProfileInfo.formattedLastModified(): String {
             instant = lastModified,
             timeZone = TimeZone.currentSystemDefault(),
             skeleton = (Skeletons.MEDIUM_DATE + TimeSkeleton.SECONDS).sum(),
-            locale = Locale.current,
+            locale = Locale.current.platformLocale.toULocale(),
         )
     }
 }
