@@ -24,7 +24,7 @@ import kotlin.time.Instant
 class RelativeDateAbsoluteTimeFormatter(
     private val locale: ULocale,
     private val timeSkeleton: TimeSkeleton = TimeSkeleton.MINUTES,
-    relativeStyle: RelativeDateTimeFormatter.Style = RelativeDateTimeFormatter.Style.LONG,
+    relativeDateStyle: RelativeDateTimeFormatter.Style = RelativeDateTimeFormatter.Style.LONG,
     private val dateFormatStyle: Int = DateFormat.FULL,
 ) {
 
@@ -32,7 +32,7 @@ class RelativeDateAbsoluteTimeFormatter(
         require(dateFormatStyle in DateFormat.FULL..DateFormat.SHORT) { "Invalid date format style: $dateFormatStyle" }
     }
 
-    private val relativeLocalDateFormatter = RelativeLocalDateFormatter(locale, style = relativeStyle)
+    private val relativeLocalDateFormatter = RelativeLocalDateFormatter(locale, style = relativeDateStyle)
 
     fun format(dateTime: LocalDateTime, now: Instant, tz: TimeZone): TickingValue<String> {
         val dateFormat = relativeLocalDateFormatter.format(dateTime.date, now, tz)

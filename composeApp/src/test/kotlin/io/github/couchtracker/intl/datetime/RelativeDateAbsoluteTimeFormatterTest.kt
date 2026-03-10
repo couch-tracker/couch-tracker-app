@@ -68,7 +68,7 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                             "next Sunday at 4:00 AM",
                         ),
                         tuple(
-                            RelativeDateAbsoluteTimeFormatter(ULocale.ENGLISH, relativeStyle = RelativeDateTimeFormatter.Style.SHORT),
+                            RelativeDateAbsoluteTimeFormatter(ULocale.ENGLISH, relativeDateStyle = RelativeDateTimeFormatter.Style.SHORT),
                             3.days + 4.hours,
                             "next Sun. at 4:00 AM",
                         ),
@@ -107,7 +107,7 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                     ) { locale, dateTime, now, tz, relativeStyle ->
                         val dateString = RelativeLocalDateFormatter(locale, style = relativeStyle).format(dateTime.date, now, tz).value
                         val formatted =
-                            RelativeDateAbsoluteTimeFormatter(locale, relativeStyle = relativeStyle).format(dateTime, now, tz).value
+                            RelativeDateAbsoluteTimeFormatter(locale, relativeDateStyle = relativeStyle).format(dateTime, now, tz).value
                         formatted shouldContain dateString
                     }
                 }

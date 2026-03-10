@@ -17,7 +17,7 @@ import kotlin.time.Duration
 data class TickingValue<out T>(val value: T, val nextTick: Duration?) {
     init {
         if (nextTick != null) {
-            require(!nextTick.isNegative()) { "next tick cannot be negative ($nextTick)" }
+            require(nextTick.isPositive()) { "next tick must be positive ($nextTick)" }
             require(nextTick.isFinite()) { "next tick must be finite ($nextTick)" }
         }
     }
@@ -30,7 +30,7 @@ data class TickingValue<out T>(val value: T, val nextTick: Duration?) {
  * Note: it will be called twice immediately the first time.
  *
  * @param keys forces re-trigger of computation when any of the keys change
- * @param maxWaitTime if not `null`, [compute] will be called at most after [maxWaitTime]
+ * @param maxWaitTime if [TickingValue.nextTick] is not `null`, [compute] will be called at most after [maxWaitTime]
  * @param compute runs the computation
  * @return the latest computed value of [T]
  */
@@ -75,3 +75,18 @@ fun <T> rememberTickingValue(
 fun <T, R> TickingValue<T>.map(transform: (T) -> R): TickingValue<R> {
     return TickingValue(value = transform(value), nextTick = nextTick)
 }
+
+fun <T1, T2, R> TickingValue<T1>.combine(
+    other: TickingValue<T2>,
+    transform: (T1, T2) -> R,
+): TickingValue<R> {
+    return TickingValue(
+        value = transform(this.value, other.value),
+        nextTick = listOfNotNull(this.nextTick, other.nextTick).minOrNull(),
+    )
+}
+
+fun <T> TickingValue<T>.withNextTickAtMost(nextTick: Duration?) = TickingValue(
+    value = value,
+    nextTick = listOfNotNull(this.nextTick, nextTick).minOrNull(),
+)

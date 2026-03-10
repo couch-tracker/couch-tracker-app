@@ -155,7 +155,7 @@ private class PlusSkeleton(skeletons: Collection<Skeleton>) : Skeleton {
  */
 fun Collection<Skeleton>.sum(): Skeleton = PlusSkeleton(this)
 
-private typealias DateSkeleton = LocalSkeleton<PartialDateTime.Local.WithDate>
+typealias DateSkeleton = LocalSkeleton<PartialDateTime.Local.WithDate>
 
 object Skeletons {
     val NUMERIC_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.NUMERIC, DayOfMonthSkeleton.NUMERIC)
