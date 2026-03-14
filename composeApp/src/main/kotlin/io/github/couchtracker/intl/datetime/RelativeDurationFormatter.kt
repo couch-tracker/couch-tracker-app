@@ -4,7 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import com.ibm.icu.text.MeasureFormat
+import com.ibm.icu.text.MeasureFormat.FormatWidth
 import com.ibm.icu.util.ULocale
+import io.github.couchtracker.intl.datetime.DurationFormatter.Companion.DEFAULT_FORMAT_WIDTH
+import io.github.couchtracker.intl.datetime.DurationFormatter.Companion.DEFAULT_MAX_UNITS
+import io.github.couchtracker.intl.datetime.DurationFormatter.Companion.DEFAULT_MIN_UNIT
+import io.github.couchtracker.intl.datetime.DurationFormatter.Companion.DEFAULT_OMIT_ZEROS
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.currentFirstLocale
@@ -18,23 +23,26 @@ import kotlin.time.DurationUnit
 import kotlin.time.Instant
 
 class RelativeDurationFormatter(
-    private val omitZeros: Boolean = true,
-    private val minUnit: DurationUnit = DurationUnit.MINUTES,
-    private val maxUnits: Int = 2,
-    private val measureFormat: MeasureFormat,
+    locale: ULocale,
+    formatWidth: FormatWidth = DEFAULT_FORMAT_WIDTH,
+    private val omitZeros: Boolean = DEFAULT_OMIT_ZEROS,
+    private val minUnit: DurationUnit = DEFAULT_MIN_UNIT,
+    private val maxUnits: Int = DEFAULT_MAX_UNITS,
 ) {
 
     private val durationFormatter = DurationFormatter(
+        locale = locale,
+        formatWidth = formatWidth,
         omitZeros = omitZeros,
         minUnit = minUnit,
         maxUnits = maxUnits,
-        measureFormat = measureFormat,
     )
 
     fun format(duration: Duration): TickingValue<String> {
+        val absDuration = duration.absoluteValue
         return TickingValue(
-            value = durationFormatter.format(duration),
-            nextTick = durationFormatter.units(duration).minOf { duration.remainderUntilNextUnitBoundary(it) },
+            value = durationFormatter.format(absDuration),
+            nextTick = durationFormatter.units(absDuration).minOf { duration.remainderUntilNextUnitBoundary(it) },
         )
     }
 }
@@ -48,21 +56,21 @@ class RelativeDurationFormatter(
  */
 @Composable
 fun rememberRelativeDurationFormatter(
-    omitZeros: Boolean = true,
-    minUnit: DurationUnit = DurationUnit.MINUTES,
-    maxUnits: Int = 2,
-    formatWidth: MeasureFormat.FormatWidth = MeasureFormat.FormatWidth.SHORT,
     locale: ULocale? = null,
+    formatWidth: FormatWidth = DEFAULT_FORMAT_WIDTH,
+    omitZeros: Boolean = DEFAULT_OMIT_ZEROS,
+    minUnit: DurationUnit = DEFAULT_MIN_UNIT,
+    maxUnits: Int = DEFAULT_MAX_UNITS,
 ): RelativeDurationFormatter {
     val locale = locale ?: LocalConfiguration.currentFirstLocale.toULocale()
-    val measureFormat = remember(locale, formatWidth) { MeasureFormat.getInstance(locale, formatWidth) }
 
-    return remember(omitZeros, minUnit, maxUnits, measureFormat) {
+    return remember(locale, formatWidth, omitZeros, minUnit, maxUnits) {
         RelativeDurationFormatter(
+            locale = locale,
+            formatWidth = formatWidth,
             omitZeros = omitZeros,
             minUnit = minUnit,
             maxUnits = maxUnits,
-            measureFormat = measureFormat,
         )
     }
 }
