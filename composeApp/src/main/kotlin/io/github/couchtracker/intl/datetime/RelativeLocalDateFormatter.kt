@@ -26,6 +26,22 @@ private const val TODAY = 0
 private const val IN_ONE_DAY = 1
 private const val IN_TWO_DAYS = 2
 
+/**
+ * This class formats a [LocalDate] relative to the given [Instant] in a given [TimeZone].
+ *
+ * Depending on the days difference, it can use three formats:
+ * - specific words to like today, tomorrow and yesterday
+ * - this/next day-of-week, limited to 7 days in the future
+ * - x days ago/in x days
+ *
+ * Examples:
+ * - `today`
+ * - `yesterday`
+ * - `6 days ago`
+ * - `this Tuesday`
+ * - `next Saturday`
+ * - `in 10 days`
+ */
 data class RelativeLocalDateFormatter(
     private val locale: ULocale,
     private val numberFormat: NumberFormat? = null,
