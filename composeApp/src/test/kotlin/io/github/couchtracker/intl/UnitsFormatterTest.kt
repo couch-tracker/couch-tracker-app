@@ -1,9 +1,10 @@
 package io.github.couchtracker.intl
 
 import com.ibm.icu.text.MeasureFormat
+import com.ibm.icu.text.MeasureFormat.FormatWidth
+import com.ibm.icu.util.MeasureUnit
+import com.ibm.icu.util.TimeUnit
 import com.ibm.icu.util.ULocale
-import io.github.couchtracker.utils.DateTimePeriodUnit
-import io.github.couchtracker.utils.unitPart
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContainerScope
@@ -213,7 +214,31 @@ private fun testFormatter(
     omitZeros = omitZeros,
     minUnit = minUnit,
     maxUnits = maxUnits,
-    measureFormat = MeasureFormat.getInstance(ULocale.US, MeasureFormat.FormatWidth.WIDE),
+    measureFormat = MeasureFormat.getInstance(ULocale.US, FormatWidth.WIDE),
     unitPart = { unitPart(it) },
     imbIcuUnit = { imbIcuUnit },
 )
+
+private enum class DateTimePeriodUnit(val imbIcuUnit: MeasureUnit) {
+    NANOSECONDS(TimeUnit.NANOSECOND),
+    MICROSECONDS(TimeUnit.MICROSECOND),
+    MILLISECONDS(TimeUnit.MILLISECOND),
+    SECONDS(TimeUnit.SECOND),
+    MINUTES(TimeUnit.MINUTE),
+    HOURS(TimeUnit.HOUR),
+    DAYS(TimeUnit.DAY),
+    MONTHS(TimeUnit.MONTH),
+    YEARS(TimeUnit.YEAR),
+}
+
+private fun DateTimePeriod.unitPart(unit: DateTimePeriodUnit) = when (unit) {
+    DateTimePeriodUnit.NANOSECONDS -> (nanoseconds % 1_000).toLong()
+    DateTimePeriodUnit.MICROSECONDS -> ((nanoseconds / 1000) % 1000).toLong()
+    DateTimePeriodUnit.MILLISECONDS -> nanoseconds / 1_000_000L
+    DateTimePeriodUnit.SECONDS -> seconds.toLong()
+    DateTimePeriodUnit.MINUTES -> minutes.toLong()
+    DateTimePeriodUnit.HOURS -> hours.toLong()
+    DateTimePeriodUnit.DAYS -> days.toLong()
+    DateTimePeriodUnit.MONTHS -> months.toLong()
+    DateTimePeriodUnit.YEARS -> years.toLong()
+}
