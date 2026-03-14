@@ -1,6 +1,5 @@
 package io.github.couchtracker.intl
 
-import com.ibm.icu.text.MeasureFormat
 import com.ibm.icu.text.MeasureFormat.FormatWidth
 import com.ibm.icu.util.MeasureUnit
 import com.ibm.icu.util.TimeUnit
@@ -14,7 +13,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
 import kotlinx.datetime.DateTimePeriod
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
+/**
+ * This test is ONLY testing the behaviors of the various configuration options, namely: locale, formatWidth, omitZeros, minUnit, maxUnits.
+ *
+ * The fact that we are testing a DateTimePeriod is not relevant, it's just used as a vehicle to test the above.
+ */
 class UnitsFormatterTest : FunSpec(
     {
         context("constructor") {
@@ -151,6 +158,39 @@ class UnitsFormatterTest : FunSpec(
                         expected = "0 hours",
                     )
                 }
+
+                context("format width is applied") {
+                    withTests(
+                        FormatWidth.NARROW to "1h 5m",
+                        FormatWidth.SHORT to "1 hr, 5 min",
+                        FormatWidth.WIDE to "1 hour, 5 minutes",
+                    ) { (formatWidth, expected) ->
+                        val formatter = testFormatter(
+                            formatWidth = formatWidth,
+                            omitZeros = true,
+                            minUnit = DateTimePeriodUnit.SECONDS,
+                            maxUnits = 2,
+                        )
+                        formatter.format(DateTimePeriod(hours = 1, minutes = 5)) shouldBe expected
+                    }
+                }
+
+                context("locale is applied") {
+                    withTests(
+                        nameFn = { it.toString() },
+                        ULocale.ENGLISH to "1 hour, 5 minutes",
+                        ULocale.ITALIAN to "1 ora e 5 minuti",
+                        ULocale("ga") to "1 u agus 5 nóim",
+                    ) { (locale, expected) ->
+                        val formatter = testFormatter(
+                            omitZeros = true,
+                            minUnit = DateTimePeriodUnit.SECONDS,
+                            maxUnits = 2,
+                            locale = locale,
+                        )
+                        formatter.format(DateTimePeriod(hours = 1, minutes = 5)) shouldBe expected
+                    }
+                }
             }
         }
 
@@ -210,16 +250,19 @@ private fun testFormatter(
     omitZeros: Boolean,
     minUnit: DateTimePeriodUnit,
     maxUnits: Int,
+    locale: ULocale = ULocale.US,
+    formatWidth: FormatWidth = FormatWidth.WIDE,
 ) = UnitsFormatter<DateTimePeriod, DateTimePeriodUnit>(
+    locale = locale,
+    formatWidth = formatWidth,
     omitZeros = omitZeros,
     minUnit = minUnit,
     maxUnits = maxUnits,
-    measureFormat = MeasureFormat.getInstance(ULocale.US, FormatWidth.WIDE),
     unitPart = { unitPart(it) },
-    imbIcuUnit = { imbIcuUnit },
+    ibmIcuUnit = { ibmIcuUnit },
 )
 
-private enum class DateTimePeriodUnit(val imbIcuUnit: MeasureUnit) {
+private enum class DateTimePeriodUnit(val ibmIcuUnit: MeasureUnit) {
     NANOSECONDS(TimeUnit.NANOSECOND),
     MICROSECONDS(TimeUnit.MICROSECOND),
     MILLISECONDS(TimeUnit.MILLISECOND),
