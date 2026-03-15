@@ -28,6 +28,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
+import io.github.couchtracker.error.CouchTrackerError.UnsupportedItem
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -36,13 +37,12 @@ import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.actions.Action
 import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
 import io.github.couchtracker.ui.actions.ShowActions
-import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
-import io.github.couchtracker.ui.components.UnsupportedItemErrorScreen
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.ui.screens.seasons.navigateToSeason
@@ -99,8 +99,8 @@ private fun Content(showId: ExternalShowId) {
             )
         }
         is UnknownExternalShowId -> {
-            UnsupportedItemErrorScreen(
-                unsupportedItem = showId,
+            DefaultErrorScreen(
+                error = UnsupportedItem(showId),
                 backgroundColor = MaterialTheme.colorScheme.background,
                 manageItemActions = actions,
             )
@@ -117,8 +117,8 @@ private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: List<Action
         ResultScreen(
             error = viewModel.baseDetails.resultErrorOrNull(),
             onError = { apiError ->
-                ApiExceptionErrorScreen(
-                    apiError = apiError,
+                DefaultErrorScreen(
+                    error = apiError,
                     retry = { viewModel.retryAll() },
                     backgroundColor = MaterialTheme.colorScheme.background,
                     manageItemActions = actions,
@@ -243,8 +243,8 @@ private fun OverviewScreenComponents.SeasonsContent(
     LoadableScreen(
         seasons,
         onError = { apiError ->
-            ApiExceptionErrorScreen(
-                apiError = apiError,
+            DefaultErrorScreen(
+                error = apiError,
                 retry = { viewModel.retryAll() },
             )
         },

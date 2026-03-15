@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.TmdbPageResult
+import io.github.couchtracker.error.CouchTrackerException
 import io.github.couchtracker.utils.ifError
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -20,7 +21,7 @@ class TmdbPagingSource<T : Any, O : Any>(
         val nextPageNumber = params.key ?: 1
         val response = tmdbDownloadResult(LOG_TAG) { tmdb3 ->
             tmdb3.downloader(nextPageNumber)
-        }.ifError { return LoadResult.Error(it) }
+        }.ifError { return LoadResult.Error(CouchTrackerException(it)) }
         val mapped = coroutineScope {
             response.results.map {
                 async { mapper(it) }

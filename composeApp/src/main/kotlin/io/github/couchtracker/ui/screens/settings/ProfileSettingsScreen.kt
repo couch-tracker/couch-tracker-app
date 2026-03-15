@@ -42,10 +42,9 @@ import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.app.ProfileInfo
 import io.github.couchtracker.db.profile.ExternalProfileDb
 import io.github.couchtracker.db.profile.ManagedProfileDb
-import io.github.couchtracker.db.profile.ProfileDbError
-import io.github.couchtracker.db.profile.ProfileDbResult
 import io.github.couchtracker.db.profile.ProfileDbUtils
-import io.github.couchtracker.intl.errorMessage
+import io.github.couchtracker.error.ProfileDbError
+import io.github.couchtracker.error.ProfileDbResult
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.formattedLastModified
 import io.github.couchtracker.utils.Result
@@ -214,7 +213,7 @@ private fun ProfileLocationPreference(profileInfo: ProfileInfo) {
                     }
 
                     is LocationChangeDialogState.Complete.Error -> {
-                        Text(R.string.move_profile_location_error_message.str(state.moveStatus.errorMessage()))
+                        Text(R.string.move_profile_location_error_message.str(state.moveStatus.title.string()))
                     }
                 }
             },

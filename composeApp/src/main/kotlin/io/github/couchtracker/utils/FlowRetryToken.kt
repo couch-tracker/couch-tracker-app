@@ -1,4 +1,4 @@
-package io.github.couchtracker.utils.api
+package io.github.couchtracker.utils
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

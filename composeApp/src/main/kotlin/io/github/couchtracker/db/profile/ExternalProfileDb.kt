@@ -7,6 +7,8 @@ import androidx.documentfile.provider.DocumentFile
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.lastModifiedInstant
 import io.github.couchtracker.db.toDocumentFile
+import io.github.couchtracker.error.ProfileDbError
+import io.github.couchtracker.error.ProfileDbResult
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.onError

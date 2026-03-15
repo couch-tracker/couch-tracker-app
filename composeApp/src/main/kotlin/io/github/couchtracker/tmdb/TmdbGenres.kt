@@ -2,7 +2,7 @@ package io.github.couchtracker.tmdb
 
 import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbGenreId
-import io.github.couchtracker.utils.api.ApiResult
+import io.github.couchtracker.error.ApiResult
 import kotlinx.coroutines.flow.Flow
 
 fun movieGenres(language: TmdbLanguage): Flow<ApiResult<List<TmdbGenre>>> {

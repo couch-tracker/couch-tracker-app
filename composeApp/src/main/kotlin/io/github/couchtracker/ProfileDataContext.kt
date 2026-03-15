@@ -20,8 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.db.profile.FullProfileData
-import io.github.couchtracker.db.profile.ProfileDbError
-import io.github.couchtracker.intl.errorMessage
+import io.github.couchtracker.error.ProfileDbError
 import io.github.couchtracker.ui.components.ExceptionStackTrace
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
@@ -53,16 +52,15 @@ private fun ProfileError(error: ProfileDbError) {
         icon = Icons.Filled.Error,
         message = R.string.error_opening_profile.str(),
     ) {
-        Text(error.errorMessage(), textAlign = TextAlign.Center)
+        Text(error.title.string(), textAlign = TextAlign.Center)
 
         Spacer(Modifier.height(24.dp))
         Button(onClick = { showProfileDialog = true }) {
             Text(R.string.switch_profile.str())
         }
-        val exception = if (error is ProfileDbError.WithException) error.exception else null
-        if (exception != null) {
+        error.cause?.let { cause ->
             Spacer(Modifier.size(8.dp))
-            ExceptionStackTrace(exception, Modifier.heightIn(max = 200.dp))
+            ExceptionStackTrace(cause, Modifier.heightIn(max = 200.dp))
         }
     }
 

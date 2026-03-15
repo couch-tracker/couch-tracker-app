@@ -3,7 +3,7 @@ package io.github.couchtracker.tmdb
 import app.moviebase.tmdb.model.TmdbAggregateCredits
 import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbShowDetail
-import io.github.couchtracker.utils.api.ApiResult
+import io.github.couchtracker.error.ApiResult
 import kotlinx.coroutines.flow.Flow
 import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
 

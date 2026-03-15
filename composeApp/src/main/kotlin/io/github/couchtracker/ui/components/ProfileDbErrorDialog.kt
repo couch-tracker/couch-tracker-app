@@ -13,8 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.ProfileDbError
-import io.github.couchtracker.intl.errorMessage
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.ProfileDbActionState
 import io.github.couchtracker.utils.resultErrorOrNull
@@ -26,18 +24,16 @@ fun ProfileDbErrorDialog(actionState: ProfileDbActionState<*>) {
     val error = state.resultErrorOrNull()
 
     if (error != null) {
-        val detailedMessage = error.errorMessage()
-        val exception = if (error is ProfileDbError.WithException) error.exception else null
+        val detailedMessage = error.title.string()
         AlertDialog(
             icon = { Icon(Icons.Default.Error, contentDescription = null) },
             title = { Text(R.string.save_failed.str()) },
             text = {
                 Column {
                     Text(R.string.save_failed_message.str(detailedMessage))
-
-                    if (exception != null) {
+                    error.cause?.let { cause ->
                         Spacer(Modifier.size(8.dp))
-                        ExceptionStackTrace(exception, Modifier.weight(1f))
+                        ExceptionStackTrace(cause, Modifier.weight(1f))
                     }
                 }
             },

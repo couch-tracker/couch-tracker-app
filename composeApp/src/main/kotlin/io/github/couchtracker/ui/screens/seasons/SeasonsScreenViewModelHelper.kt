@@ -9,22 +9,19 @@ import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
-import io.github.couchtracker.tmdb.TmdbApiContext
+import io.github.couchtracker.error.ApiLoadable
 import io.github.couchtracker.tmdb.TmdbEpisodeId
+import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.extractColorScheme
-import io.github.couchtracker.tmdb.tmdbApiContext
+import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.EpisodeListItemModel
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.utils.FlowToStateCollector
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiException
-import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
@@ -46,7 +43,7 @@ class SeasonsScreenViewModelHelper(
     val application: Application,
     val scope: CoroutineScope,
     val showId: TmdbShowId,
-    val apiContext: TmdbApiContext = tmdbApiContext(),
+    val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
     class ShowDetails(
@@ -69,7 +66,7 @@ class SeasonsScreenViewModelHelper(
         val episodes: List<Pair<ExternalEpisodeId, EpisodeListItemModel>>,
     )
 
-    val showDetailsFlow = apiContext { languages ->
+    val showDetailsFlow = retryContext { languages ->
         showId.details(languages.apiLanguage).map { result ->
             result.map { details ->
                 ShowDetails(
@@ -99,7 +96,7 @@ class SeasonsScreenViewModelHelper(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun colorScheme(): State<Loadable<Result<ColorScheme?, ApiException>>> {
+    fun colorScheme(): State<ApiLoadable<ColorScheme?>> {
         return flowCollector.collectFlow(
             flow = showDetailsFlow
                 .map { result -> result.mapResult { details -> details.backdrop } }
@@ -116,13 +113,13 @@ class SeasonsScreenViewModelHelper(
         val application: Application,
         val scope: CoroutineScope,
         val seasonId: TmdbSeasonId,
-        val apiContext: TmdbApiContext = tmdbApiContext(),
+        val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
         val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
     ) {
 
         fun details(): State<ApiLoadable<SeasonFullDetails>> {
             return flowCollector.collectFlow(
-                flow = apiContext { languages ->
+                flow = retryContext { languages ->
                     seasonId.details(languages.apiLanguage).map { result ->
                         result.map { tmdbSeasonDetails ->
                             SeasonFullDetails(
@@ -146,12 +143,12 @@ class SeasonsScreenViewModelHelper(
             application = application,
             scope = scope,
             seasonId = season,
-            apiContext = apiContext,
+            retryContext = this@SeasonsScreenViewModelHelper.retryContext,
             flowCollector = flowCollector,
         )
     }
 
     fun retryAll() {
-        scope.launch { apiContext.retryAll() }
+        scope.launch { this@SeasonsScreenViewModelHelper.retryContext.retryAll() }
     }
 }

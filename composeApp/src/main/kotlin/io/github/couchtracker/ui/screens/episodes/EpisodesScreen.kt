@@ -48,7 +48,7 @@ import io.github.couchtracker.db.profile.externalids.UnknownExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WatchedItemsIconButton
@@ -102,8 +102,8 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
         LoadableScreen(
             data = viewModel.seasonDetails,
             onError = { apiError ->
-                ApiExceptionErrorScreen(
-                    apiError = apiError,
+                DefaultErrorScreen(
+                    error = apiError,
                     retry = { viewModel.retryAll() },
                     backgroundColor = MaterialTheme.colorScheme.background,
                 )

@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.db.profile.ProfileData
-import io.github.couchtracker.db.profile.ProfileDbError
+import io.github.couchtracker.error.ProfileDbError
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.rememberProfileDbActionState
 import io.github.couchtracker.utils.str

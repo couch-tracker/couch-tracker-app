@@ -5,10 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.couchtracker.error.ApiLoadable
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.ui.screens.episodes.EpisodesScreenViewModelHelper.EpisodeViewModelHelper
-import io.github.couchtracker.utils.api.ApiLoadable
 
 class EpisodesScreenViewModel(
     application: Application,
