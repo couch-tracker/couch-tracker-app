@@ -27,6 +27,7 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinTimeZone
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.nanoseconds
@@ -159,6 +160,12 @@ class RelativeLocalDateFormatterTest : FunSpec(
                             TimeZone.of("Europe/Berlin"),
                             24.minutes + 19.seconds,
                         ),
+                        // This format returns "this Thursday", which is valid for multiple days until "tomorrow" triggers
+                        tuple(
+                            Instant.parse("2025-12-28T06:00:00Z"),
+                            TimeZone.UTC,
+                            2.days + 18.hours,
+                        ),
                     ) { (now, tz, expected) ->
                         formatter.format(date, now, tz).nextTick shouldBe expected
                     }
@@ -177,7 +184,7 @@ class RelativeLocalDateFormatterTest : FunSpec(
                 }
                 test("correctly predicts date change") {
                     checkAll(
-                        iterations = 1000,
+                        iterations = 1_000_000,
                         Arb.localDate().map { it.toKotlinLocalDate() },
                         Arb.kotlinInstant(),
                         Arb.zoneId().map { it.toKotlinTimeZone() },
