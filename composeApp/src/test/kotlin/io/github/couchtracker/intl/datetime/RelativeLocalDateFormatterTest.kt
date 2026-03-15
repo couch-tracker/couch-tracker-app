@@ -4,32 +4,25 @@ import com.ibm.icu.text.DisplayContext
 import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.TickingValue
-import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withContexts
 import io.kotest.datatest.withTests
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.property.Arb
-import io.kotest.property.arbitrary.kotlinInstant
 import io.kotest.property.arbitrary.localDate
 import io.kotest.property.arbitrary.map
-import io.kotest.property.arbitrary.zoneId
-import io.kotest.property.checkAll
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
-import kotlinx.datetime.toKotlinTimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -159,6 +152,12 @@ class RelativeLocalDateFormatterTest : FunSpec(
                             TimeZone.of("Europe/Berlin"),
                             24.minutes + 19.seconds,
                         ),
+                        // This format returns "this Thursday", which is valid for multiple days until "tomorrow" triggers
+                        tuple(
+                            Instant.parse("2025-12-28T06:00:00Z"),
+                            TimeZone.UTC,
+                            2.days + 18.hours,
+                        ),
                     ) { (now, tz, expected) ->
                         formatter.format(date, now, tz).nextTick shouldBe expected
                     }
@@ -175,33 +174,11 @@ class RelativeLocalDateFormatterTest : FunSpec(
                         formatter.format(date = date, now = date.atStartOfDayIn(tz), tz = tz).nextTick shouldBe 25.hours
                     }
                 }
-                test("correctly predicts date change") {
-                    checkAll(
-                        iterations = 1000,
-                        Arb.localDate().map { it.toKotlinLocalDate() },
-                        Arb.kotlinInstant(),
-                        Arb.zoneId().map { it.toKotlinTimeZone() },
-                    ) { date, now, tz ->
-                        val formatted = formatter.format(date, now, tz)
-
-                        val nextTick = withClue("next tick should never be null") {
-                            formatted.nextTick.shouldNotBeNull()
-                        }
-
-                        withClue("format at 1 nanosecond before nextTick should yield same relative value") {
-                            formatter.format(date, now + nextTick - 1.nanoseconds, tz) should {
-                                it.value shouldBe formatted.value
-                                it.nextTick shouldBe 1.nanoseconds
-                            }
-                        }
-
-                        withClue("format at nextTick should yield different relative value") {
-                            formatter.format(date, now + nextTick, tz) should {
-                                it.value shouldNotBe formatted.value
-                            }
-                        }
-                    }
-                }
+                nextTickPredictsChangeTest(
+                    arb = Arb.localDate().map { it.toKotlinLocalDate() },
+                    valueFromInstant = { instant, tz -> instant.toLocalDateTime(tz).date },
+                    format = { date, now, tz -> formatter.format(date, now, tz) },
+                )
             }
         }
     },
