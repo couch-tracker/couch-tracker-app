@@ -113,20 +113,28 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                 }
             }
 
-            test("nextTick is always identical to RelativeLocalDateFormatter (as time is always absolute)") {
+            context("nextTick") {
                 val formatter = RelativeDateAbsoluteTimeFormatter(ULocale.ENGLISH)
-                val dateFormatter = RelativeLocalDateFormatter(ULocale.ENGLISH)
-                checkAll(
-                    Arb.localDateTime().map { it.toKotlinLocalDateTime() },
-                    Arb.kotlinInstant(),
-                    Arb.zoneId().map { it.toKotlinTimeZone() },
-                ) { localDateTime, now, zoneId ->
-                    formatter.format(localDateTime, now, zoneId).nextTick shouldBe dateFormatter.format(
-                        localDateTime.date,
-                        now,
-                        zoneId,
-                    ).nextTick
+                test("is always identical to RelativeLocalDateFormatter (as time is always absolute)") {
+                    val dateFormatter = RelativeLocalDateFormatter(ULocale.ENGLISH)
+                    checkAll(
+                        Arb.localDateTime().map { it.toKotlinLocalDateTime() },
+                        Arb.kotlinInstant(),
+                        Arb.zoneId().map { it.toKotlinTimeZone() },
+                    ) { localDateTime, now, zoneId ->
+                        formatter.format(localDateTime, now, zoneId).nextTick shouldBe dateFormatter.format(
+                            localDateTime.date,
+                            now,
+                            zoneId,
+                        ).nextTick
+                    }
                 }
+
+                nextTickPredictsChangeTest(
+                    arb = Arb.localDateTime().map { it.toKotlinLocalDateTime() },
+                    valueFromInstant = { instant, tz -> instant.toLocalDateTime(tz) },
+                    format = { dateTime, now, tz -> formatter.format(dateTime, now, tz) },
+                )
             }
         }
     },

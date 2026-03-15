@@ -18,6 +18,7 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.absoluteValue
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 private const val TWO_DAYS_AGO = -2
@@ -54,6 +55,7 @@ data class RelativeLocalDateFormatter(
     fun format(date: LocalDate, now: Instant, tz: TimeZone): TickingValue<String> {
         val nowInDate = now.toLocalDateTime(tz).date
         val days = nowInDate.daysUntil(date)
+        val nextDayTick = (nowInDate + DatePeriod(days = 1)).atStartOfDayIn(tz) - now
 
         val absoluteFormattedDay = when (days) {
             in TWO_DAYS_AGO..IN_TWO_DAYS -> {
@@ -66,7 +68,9 @@ data class RelativeLocalDateFormatter(
                     else -> error("invalid days amount $days")
                 }
                 // This returns null if the locale doesn't have a way to say this
-                relativeDateTimeFormatter.format(direction, AbsoluteUnit.DAY)
+                relativeDateTimeFormatter.format(direction, AbsoluteUnit.DAY)?.let {
+                    TickingValue(it, nextTick = nextDayTick)
+                }
             }
             else -> null
         }
@@ -82,18 +86,29 @@ data class RelativeLocalDateFormatter(
                 date < nextFirstDoW -> Direction.THIS
                 else -> Direction.NEXT
             }
-            relativeDateTimeFormatter.format(direction, date.dayOfWeek.toIcuAbsoluteUnit())
+            relativeDateTimeFormatter.format(direction, date.dayOfWeek.toIcuAbsoluteUnit())?.let {
+                // Calculating a nextTick here is tricky because "this/next <day-of-week>" can be valid for multiple days, until either the
+                // direction changes (this becomes next) or a specific word is used (e.g. tomorrow), whose existence depends on the locale.
+                // Hence, we take a cheap shortcut here by checking the next day format to see if it would change
+                val nextDayFormat = format(date, now + nextDayTick, tz)
+                val nextTick = if (nextDayFormat.value != it) {
+                    nextDayTick
+                } else {
+                    nextDayTick + (nextDayFormat.nextTick ?: Duration.ZERO)
+                }
+                TickingValue(it, nextTick = nextTick)
+            }
         } else {
             null
         }
 
-        return TickingValue(
-            value = absoluteFormattedDay ?: thisNextDow ?: relativeDateTimeFormatter.format(
+        return absoluteFormattedDay ?: thisNextDow ?: TickingValue(
+            value = relativeDateTimeFormatter.format(
                 days.absoluteValue.toDouble(),
                 if (days < 0) Direction.LAST else Direction.NEXT,
                 RelativeUnit.DAYS,
             ),
-            nextTick = (nowInDate + DatePeriod(days = 1)).atStartOfDayIn(tz) - now,
+            nextTick = nextDayTick,
         )
     }
 }
