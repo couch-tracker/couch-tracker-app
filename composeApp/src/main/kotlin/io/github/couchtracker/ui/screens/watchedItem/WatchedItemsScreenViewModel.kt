@@ -13,7 +13,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.screens.movie.MovieScreenViewModelHelper
-import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.mapResult
 import kotlin.time.Duration
 

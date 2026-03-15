@@ -1,7 +1,7 @@
 package io.github.couchtracker.tmdb
 
 import app.moviebase.tmdb.model.TmdbSeasonDetail
-import io.github.couchtracker.utils.api.ApiResult
+import io.github.couchtracker.utils.error.ApiResult
 import kotlinx.coroutines.flow.Flow
 
 fun TmdbSeasonId.details(language: TmdbLanguage): Flow<ApiResult<TmdbSeasonDetail>> {

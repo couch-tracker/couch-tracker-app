@@ -5,7 +5,7 @@ import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import app.moviebase.tmdb.model.TmdbReleaseDates
 import app.moviebase.tmdb.model.TmdbVideo
-import io.github.couchtracker.utils.api.ApiResult
+import io.github.couchtracker.utils.error.ApiResult
 import kotlinx.coroutines.flow.Flow
 import app.moviebase.tmdb.model.TmdbMovie as ApiTmdbMovie
 

@@ -41,8 +41,8 @@ import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
 import io.github.couchtracker.ui.components.BookmarkIconButton
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
@@ -98,8 +98,8 @@ private fun Content(viewModel: MovieScreenViewModel) {
         ResultScreen(
             error = viewModel.baseDetails.resultErrorOrNull(),
             onError = { apiError ->
-                ApiExceptionErrorScreen(
-                    apiError = apiError,
+                DefaultErrorScreen(
+                    error = apiError,
                     retry = { viewModel.retryAll() },
                     backgroundColor = MaterialTheme.colorScheme.background,
                 )

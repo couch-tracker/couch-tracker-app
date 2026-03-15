@@ -28,13 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.actions.Action
 import io.github.couchtracker.ui.actions.ActionsVerticalMenu
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.utils.error.CouchTrackerError
 import io.github.couchtracker.utils.str
 
 private const val ANIMATION_DURATION_MS = AnimationDefaults.ANIMATION_DURATION_MS
@@ -185,30 +184,16 @@ fun DefaultErrorScreen(
 }
 
 @Composable
-fun UnsupportedItemErrorScreen(
-    unsupportedItem: ExternalId,
-    backgroundColor: Color = Color.Transparent,
-    manageItemActions: List<Action> = emptyList(),
-) {
-    DefaultErrorScreen(
-        errorMessage = R.string.unsupported_item_id.str(),
-        errorDetails = R.string.unsupported_item_id_description.str(unsupportedItem.serialize()),
-        backgroundColor = backgroundColor,
-        manageItemActions = manageItemActions,
-    )
-}
-
-@Composable
-fun ApiExceptionErrorScreen(
-    apiError: ApiException,
+fun DefaultErrorScreen(
+    error: CouchTrackerError,
     retry: (() -> Unit)? = null,
     backgroundColor: Color = Color.Transparent,
     manageItemActions: List<Action> = emptyList(),
 ) {
     DefaultErrorScreen(
-        errorMessage = apiError.title.string(),
-        errorDetails = apiError.details?.string(),
-        retry = if (apiError.isRetriable) retry else null,
+        errorMessage = error.title.string(),
+        errorDetails = error.details?.string(),
+        retry = if (error.isRetriable) retry else null,
         backgroundColor = backgroundColor,
         manageItemActions = manageItemActions,
     )

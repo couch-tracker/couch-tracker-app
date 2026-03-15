@@ -9,12 +9,12 @@ import app.moviebase.tmdb.core.TmdbException
 import io.github.couchtracker.db.tmdbCache.TmdbCache
 import io.github.couchtracker.db.tmdbCache.TmdbTimestampedEntry
 import io.github.couchtracker.settings.AppSettings
+import io.github.couchtracker.utils.FlowRetryContext
+import io.github.couchtracker.utils.FlowRetryToken
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiContext
-import io.github.couchtracker.utils.api.ApiException
-import io.github.couchtracker.utils.api.ApiResult
-import io.github.couchtracker.utils.api.FlowRetryToken
-import io.github.couchtracker.utils.api.runApiCatching
+import io.github.couchtracker.utils.error.ApiError
+import io.github.couchtracker.utils.error.ApiResult
+import io.github.couchtracker.utils.error.SimulatedException
 import io.github.couchtracker.utils.injectApiError
 import io.github.couchtracker.utils.injectCacheMiss
 import io.github.couchtracker.utils.logExecutionTime
@@ -47,16 +47,16 @@ val TMDB_CACHE_EXPIRATION_DEFAULT = 12.hours
 
 private const val TMDB_STATUS_CODE_RESOURCE_NOT_FOUND = 34
 
-typealias TmdbApiContext = ApiContext<TmdbLanguages>
+typealias TmdbFlowRetryContext = FlowRetryContext<TmdbLanguages>
 typealias LocalizedItemQueryBuilder<ID, L, T> = (ID, L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
 typealias ItemQueryBuilder<ID, T> = (ID, (details: T, lastUpdate: Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
 typealias LocalizedInfoQueryBuilder<L, T> = (L, (T, Instant) -> TmdbTimestampedEntry<T>) -> Query<TmdbTimestampedEntry<T>>
 
-fun tmdbApiContext(
+fun tmdbFlowRetryContext(
     retryToken: FlowRetryToken = FlowRetryToken(),
     languages: Flow<TmdbLanguages> = AppSettings.get { Tmdb.Languages }.map { it.current },
-): TmdbApiContext {
-    return ApiContext(retryToken, languages)
+): TmdbFlowRetryContext {
+    return FlowRetryContext(retryToken, languages)
 }
 
 fun <ID : TmdbId, T : Any> tmdbCachedDownload(
@@ -156,7 +156,11 @@ fun <T : Any> tmdbGetOrDownload(
                     Log.d(LOG_TAG, "$entryTag: Entry is old (age=$age), starting download")
                     when (val downloaded = downloadAndSave(downloader, putInCache, coroutineContext)) {
                         is Result.Error -> {
-                            Log.w(LOG_TAG, "$entryTag: Download failed, using a stale entry", downloaded.error)
+                            Log.w(
+                                LOG_TAG,
+                                "$entryTag: Download failed, using a stale entry (${downloaded.error.debugMessage})",
+                                downloaded.error.cause,
+                            )
                         }
                         is Result.Value -> {
                             emit(downloaded)
@@ -203,34 +207,34 @@ suspend fun <T> tmdbDownloadResult(
     } else {
         logTag ?: apiSubjectIdentifier ?: LOG_TAG
     }
-    return runApiCatching(logTag) {
-        try {
-            injectApiError()
-            val client = KoinPlatform.getKoin().get<Tmdb3>()
-            // preparing the API call is often CPU intensive
-            withContext(Dispatchers.Default) {
-                logExecutionTime(logTag, "Tmdb download") {
-                    download(client)
-                }
+    @Suppress("TooGenericExceptionCaught")
+    return try {
+        injectApiError()
+        val client = KoinPlatform.getKoin().get<Tmdb3>()
+        // preparing the API call is often CPU intensive
+        withContext(Dispatchers.Default) {
+            logExecutionTime(logTag, "Tmdb download") {
+                Result.Value(download(client))
             }
-        } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.NotFound) {
-                throw ApiException.ItemNotFound(e.message, e, itemIdentifier = apiSubjectIdentifier)
-            } else {
-                throw ApiException.ClientError(e.message, e)
-            }
-        } catch (e: TmdbException) {
-            if (e.tmdbResponse.statusCode == TMDB_STATUS_CODE_RESOURCE_NOT_FOUND) {
-                throw ApiException.ItemNotFound(e.message ?: "TmdbException", cause = e, itemIdentifier = apiSubjectIdentifier)
-            } else {
-                throw ApiException.ServerError(e.message, e)
-            }
-        } catch (e: ResponseException) {
-            throw ApiException.ServerError(e.message, e)
-        } catch (e: IOException) {
-            throw ApiException.IOError(e.message, e)
-        } catch (e: SerializationException) {
-            throw ApiException.DeserializationError(e.message, e)
         }
+    } catch (e: Exception) {
+        val error = when (e) {
+            is ClientRequestException -> if (e.response.status == HttpStatusCode.NotFound) {
+                ApiError.ItemNotFound(e, itemIdentifier = apiSubjectIdentifier)
+            } else {
+                ApiError.ClientError(e)
+            }
+            is TmdbException -> if (e.tmdbResponse.statusCode == TMDB_STATUS_CODE_RESOURCE_NOT_FOUND) {
+                ApiError.ItemNotFound(cause = e, itemIdentifier = apiSubjectIdentifier)
+            } else {
+                ApiError.ServerError(e)
+            }
+            is ResponseException -> ApiError.ServerError(e)
+            is IOException -> ApiError.IOError(e)
+            is SerializationException -> ApiError.DeserializationError(e)
+            is SimulatedException -> ApiError.Simulated(e)
+            else -> throw e
+        }
+        Result.Error(error)
     }
 }

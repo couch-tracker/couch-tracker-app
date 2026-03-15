@@ -18,11 +18,11 @@ import app.moviebase.tmdb.model.TmdbPerson
 import app.moviebase.tmdb.model.TmdbSearchableListItem
 import app.moviebase.tmdb.model.TmdbShow
 import io.github.couchtracker.settings.AppSettings
-import io.github.couchtracker.tmdb.TmdbApiContext
+import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.movieGenres
 import io.github.couchtracker.tmdb.rating
-import io.github.couchtracker.tmdb.tmdbApiContext
+import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.tmdb.tmdbShowId
@@ -34,11 +34,11 @@ import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.api.ApiLoadable
-import io.github.couchtracker.utils.api.ApiResult
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.collectWithPrevious
 import io.github.couchtracker.utils.emptyPager
+import io.github.couchtracker.utils.error.ApiLoadable
+import io.github.couchtracker.utils.error.ApiResult
 import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.settings.get
@@ -58,7 +58,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class SearchViewModel(
     initialMediaFilters: SearchMediaFilters,
 ) : ViewModel() {
-    val apiContext: TmdbApiContext = tmdbApiContext()
+    val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext()
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(viewModelScope)
 
     var lazyGridState by mutableStateOf(LazyGridState(0, 0))
@@ -142,7 +142,7 @@ class SearchViewModel(
     )
 
     val explorePageModel: Loadable<ApiResult<ExplorePageModel>> by flowCollector.collectFlow(
-        flow = apiContext { languages ->
+        flow = retryContext { languages ->
             val movie = movieGenres(languages.apiLanguage)
             val tv = tvGenres(languages.apiLanguage)
             movie.combine(tv) { m, t ->
@@ -169,7 +169,7 @@ class SearchViewModel(
     }
 
     fun retryMainPage() {
-        viewModelScope.launch { apiContext.retryAll() }
+        viewModelScope.launch { retryContext.retryAll() }
     }
 }
 

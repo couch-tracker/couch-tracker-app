@@ -42,7 +42,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
@@ -90,8 +90,8 @@ private fun Content(
     LoadableScreen(
         data = viewModel.details,
         onError = { apiError ->
-            ApiExceptionErrorScreen(
-                apiError = apiError,
+            DefaultErrorScreen(
+                error = apiError,
                 retry = { viewModel.retryAll() },
                 backgroundColor = MaterialTheme.colorScheme.background,
             )
