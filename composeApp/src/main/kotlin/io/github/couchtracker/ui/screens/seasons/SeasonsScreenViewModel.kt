@@ -7,7 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
-import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.error.ApiLoadable
 
 class SeasonsScreenViewModel(
     application: Application,

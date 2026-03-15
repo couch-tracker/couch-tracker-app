@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
-import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.error.ApiLoadable
 
 class MovieScreenViewModel(
     application: Application,

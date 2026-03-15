@@ -16,7 +16,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import io.github.couchtracker.R
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.utils.error.CouchTrackerException
 import io.github.couchtracker.utils.isLoaded
 import io.github.couchtracker.utils.str
 import kotlin.contracts.ExperimentalContracts
@@ -134,8 +134,8 @@ private fun <T : Any> isErrorView(item: T?, bottomState: LoadState): Boolean {
 
 @Composable
 private fun Throwable.wrap(): ErrorWithDetails {
-    return if (this is ApiException) {
-        R.string.error_loading_items_x.str(title.string()) to details?.string()
+    return if (this is CouchTrackerException) {
+        R.string.error_loading_items_x.str(error.title.string()) to error.details?.string()
     } else {
         R.string.error_loading_items.str() to null
     }

@@ -86,10 +86,10 @@ fun NavController.navigateToEpisodeWatchSessions(id: ExternalShowId) {
 private fun Content(viewModel: WatchedEpisodeSessionsScreenViewModel) {
     LoadableScreen(
         data = viewModel.fullDetails,
-        onError = { exception ->
+        onError = { error ->
             DefaultErrorScreen(
-                errorMessage = exception.title.string(),
-                errorDetails = exception.details?.string(),
+                errorMessage = error.title.string(),
+                errorDetails = error.details?.string(),
                 retry = { viewModel.retryAll() },
                 backgroundColor = MaterialTheme.colorScheme.background,
             )

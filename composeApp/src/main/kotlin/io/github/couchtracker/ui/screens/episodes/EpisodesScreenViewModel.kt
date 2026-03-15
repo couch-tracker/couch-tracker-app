@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.ui.screens.episodes.EpisodesScreenViewModelHelper.EpisodeViewModelHelper
-import io.github.couchtracker.utils.api.ApiLoadable
+import io.github.couchtracker.utils.error.ApiLoadable
 
 class EpisodesScreenViewModel(
     application: Application,

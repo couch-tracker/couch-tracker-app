@@ -39,17 +39,17 @@ import io.github.couchtracker.tmdb.languageTree
 import io.github.couchtracker.tmdb.tmdbDownloadResult
 import io.github.couchtracker.tmdb.toTmdbLanguage
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.SuggestedOptions
 import io.github.couchtracker.ui.components.TreePickerDialog
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.MixedValueTree
 import io.github.couchtracker.utils.allLeafs
-import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.countLeafs
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.currentLocales
+import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.settings.LoadedSettingWithDefault
 import io.github.couchtracker.utils.settings.rememberWriteThroughAsyncSetting
@@ -100,8 +100,8 @@ private fun Content() {
     LoadableScreen(
         data = allTmdbLanguages,
         onError = { apiError ->
-            ApiExceptionErrorScreen(
-                apiError = apiError,
+            DefaultErrorScreen(
+                error = apiError,
                 retry = { coroutineScope.launch { downloadTmdbLanguages() } },
                 backgroundColor = MaterialTheme.colorScheme.background,
             )

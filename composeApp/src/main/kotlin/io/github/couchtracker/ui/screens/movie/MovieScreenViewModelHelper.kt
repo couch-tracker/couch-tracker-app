@@ -10,8 +10,8 @@ import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.BaseTmdbMovie
-import io.github.couchtracker.tmdb.TmdbApiContext
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
+import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.credits
@@ -22,7 +22,7 @@ import io.github.couchtracker.tmdb.images
 import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.runtime
-import io.github.couchtracker.tmdb.tmdbApiContext
+import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
@@ -31,11 +31,8 @@ import io.github.couchtracker.ui.components.toCastPortraitModel
 import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
-import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiException
-import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.collectFlow
+import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +54,7 @@ class MovieScreenViewModelHelper(
     val application: Application,
     val scope: CoroutineScope,
     val movieId: TmdbMovieId,
-    val apiContext: TmdbApiContext = tmdbApiContext(),
+    val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
 
@@ -85,7 +82,7 @@ class MovieScreenViewModelHelper(
     )
 
     private val baseAndFullDetails: SharedFlow<Pair<ApiLoadable<BaseDetails>, ApiLoadable<FullDetails>>> =
-        apiContext.withCache(
+        retryContext.withCache(
             cacheFn = { KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().getMovie(movieId, it.apiLanguage)?.toBaseDetails() },
         ) { languages ->
             movieId.details(languages.apiLanguage).map { result ->
@@ -104,7 +101,7 @@ class MovieScreenViewModelHelper(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun colorScheme(): State<Loadable<Result<ColorScheme?, ApiException>>> {
+    fun colorScheme(): State<ApiLoadable<ColorScheme?>> {
         return flowCollector.collectFlow(
             flow = baseAndFullDetails
                 .map { (base, _) -> base.mapResult { it.backdrop } }
@@ -119,7 +116,7 @@ class MovieScreenViewModelHelper(
 
     fun images(): State<ApiLoadable<List<ImageModel>>> {
         return flowCollector.collectFlow(
-            flow = apiContext { languages ->
+            flow = retryContext { languages ->
                 movieId.images(languages.toTmdbLanguagesFilter()).map { result ->
                     result.map { images ->
                         images.toImageModel(includeLogos = false)
@@ -131,7 +128,7 @@ class MovieScreenViewModelHelper(
 
     fun credits(): State<ApiLoadable<Credits>> {
         return flowCollector.collectFlow(
-            flow = apiContext { languages ->
+            flow = retryContext { languages ->
                 movieId.credits(languages.apiLanguage).map { result ->
                     result.map { credits ->
                         val directors = credits.crew.directors()
@@ -141,7 +138,10 @@ class MovieScreenViewModelHelper(
                             directorsString = if (directors.isEmpty()) {
                                 null
                             } else {
-                                application.getString(R.string.movie_by_director, formatAndList(directors.mapNotNull { it.name }))
+                                application.getString(
+                                    R.string.movie_by_director,
+                                    formatAndList(directors.mapNotNull { it.name }),
+                                )
                             },
                         )
                     }
@@ -178,6 +178,6 @@ class MovieScreenViewModelHelper(
     )
 
     fun retryAll() {
-        scope.launch { apiContext.retryAll() }
+        scope.launch { retryContext.retryAll() }
     }
 }
