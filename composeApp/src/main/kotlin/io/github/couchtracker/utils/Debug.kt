@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.remember
 import io.github.couchtracker.BuildConfig
-import io.github.couchtracker.utils.api.ApiException
+import io.github.couchtracker.error.SimulatedException
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
@@ -18,13 +18,13 @@ private const val ERROR_PROBABILITY = 0.25f
 private const val CACHE_MISS_CHANCE = 0.25f
 
 /**
- * @throws ApiException
+ * @throws SimulatedException
  */
 suspend fun injectApiError() {
     if (INJECT_ERRORS) {
         delay(Random.nextInt(MAX_DELAY_MS).milliseconds)
         if (Random.nextFloat() <= ERROR_PROBABILITY) {
-            throw ApiException.SimulatedError()
+            throw SimulatedException()
         }
     }
 }

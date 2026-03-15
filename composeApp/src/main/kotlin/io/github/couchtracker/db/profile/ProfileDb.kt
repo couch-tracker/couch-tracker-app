@@ -7,7 +7,9 @@ import io.github.couchtracker.db.app.AppData
 import io.github.couchtracker.db.common.DBCorruptedException
 import io.github.couchtracker.db.common.DbPath
 import io.github.couchtracker.db.common.SqliteDriverFactory
-import io.github.couchtracker.db.profile.ProfileDbError.FileError.AttemptedOperation
+import io.github.couchtracker.error.ProfileDbError
+import io.github.couchtracker.error.ProfileDbError.FileError.AttemptedOperation
+import io.github.couchtracker.error.ProfileDbResult
 import io.github.couchtracker.utils.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -118,9 +120,9 @@ sealed class ProfileDb : KoinComponent {
     /**
      * Opens the local profile database given by [dbPath] and executes the transaction [block].
      *
-     * If [block] fails, it returns a [ProfileDbError.TransactionError].
+     * If [block] fails, it returns a [io.github.couchtracker.error.ProfileDbError.TransactionError].
      *
-     * If the database file is invalid (e.g. corrupted, file is not a database), [ProfileDbError.FileError.InvalidDatabase] is returned.
+     * If the database file is invalid (e.g. corrupted, file is not a database), [io.github.couchtracker.error.ProfileDbError.FileError.InvalidDatabase] is returned.
      */
     protected suspend fun <T> openAndUseDatabase(
         dbPath: DbPath,
@@ -137,7 +139,7 @@ sealed class ProfileDb : KoinComponent {
                 Result.Error(ProfileDbError.FileError.InvalidDatabase)
             } catch (expected: Exception) {
                 Log.e(LOG_TAG, "Error in profile database transaction", expected)
-                Result.Error(ProfileDbError.TransactionError(exception = expected))
+                Result.Error(ProfileDbError.TransactionError(cause = expected))
             }
         }
     }

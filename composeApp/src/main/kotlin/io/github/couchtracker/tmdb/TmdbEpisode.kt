@@ -3,9 +3,9 @@ package io.github.couchtracker.tmdb
 import app.moviebase.tmdb.model.AppendResponse
 import app.moviebase.tmdb.model.TmdbEpisodeDetail
 import app.moviebase.tmdb.model.TmdbImages
-import io.github.couchtracker.utils.api.ApiException
-import io.github.couchtracker.utils.api.ApiResult
+import io.github.couchtracker.error.ApiResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.SerializationException
 
 fun TmdbEpisodeId.details(language: TmdbLanguage): Flow<ApiResult<TmdbEpisodeDetail>> {
     return tmdbLocalizedCachedDownload(
@@ -40,7 +40,7 @@ fun TmdbEpisodeId.images(languages: TmdbLanguagesFilter): Flow<ApiResult<TmdbIma
                 episodeNumber = number,
                 includeImageLanguages = languages.apiParameter(),
                 appendResponses = listOf(AppendResponse.IMAGES),
-            ).images ?: throw ApiException.DeserializationError("Unexpected null field images", cause = null)
+            ).images ?: throw SerializationException("Unexpected null field 'images'")
         },
     )
 }

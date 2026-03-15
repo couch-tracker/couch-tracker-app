@@ -32,7 +32,7 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalSeasonId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.ApiExceptionErrorScreen
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.EpisodeListItem
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
@@ -78,8 +78,8 @@ private fun Content(viewModel: SeasonsScreenViewModel, initialSeason: ExternalSe
     LoadableScreen(
         data = viewModel.showDetails,
         onError = { apiError ->
-            ApiExceptionErrorScreen(
-                apiError = apiError,
+            DefaultErrorScreen(
+                error = apiError,
                 retry = { viewModel.retryAll() },
                 backgroundColor = MaterialTheme.colorScheme.background,
             )
@@ -182,8 +182,8 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
     LoadableScreen(
         episodes,
         onError = { apiError ->
-            ApiExceptionErrorScreen(
-                apiError = apiError,
+            DefaultErrorScreen(
+                error = apiError,
                 retry = { viewModel.retryAll() },
             )
         },

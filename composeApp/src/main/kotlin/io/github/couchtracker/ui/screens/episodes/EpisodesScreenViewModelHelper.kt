@@ -9,20 +9,21 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.error.ApiLoadable
 import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
 import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.datetime.localized
-import io.github.couchtracker.tmdb.TmdbApiContext
 import io.github.couchtracker.tmdb.TmdbEpisodeId
+import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.images
 import io.github.couchtracker.tmdb.runtime
-import io.github.couchtracker.tmdb.tmdbApiContext
+import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
@@ -32,7 +33,6 @@ import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
 import io.github.couchtracker.ui.seasonNumberToString
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.FlowToStateCollector
-import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
@@ -49,14 +49,14 @@ class EpisodesScreenViewModelHelper(
     val application: Application,
     val scope: CoroutineScope,
     val seasonId: TmdbSeasonId,
-    val apiContext: TmdbApiContext = tmdbApiContext(),
+    val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
     val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
 ) {
     val showViewModel = ShowScreenViewModelHelper(
         application = application,
         scope = scope,
         showId = seasonId.showId,
-        apiContext = apiContext,
+        retryContext = this@EpisodesScreenViewModelHelper.retryContext,
         flowCollector = flowCollector,
     )
 
@@ -94,7 +94,7 @@ class EpisodesScreenViewModelHelper(
 
     fun seasonDetails(): State<ApiLoadable<SeasonDetails>> {
         return flowCollector.collectFlow(
-            flow = apiContext { languages ->
+            flow = retryContext { languages ->
                 seasonId.details(languages.apiLanguage).map { result ->
                     result.map { tmdbSeasonDetails ->
                         SeasonDetails(
@@ -145,12 +145,12 @@ class EpisodesScreenViewModelHelper(
         val application: Application,
         val scope: CoroutineScope,
         val episodeId: TmdbEpisodeId,
-        val apiContext: TmdbApiContext = tmdbApiContext(),
+        val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
         val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
     ) {
         fun details(): State<ApiLoadable<EpisodeFullDetails>> {
             return flowCollector.collectFlow(
-                flow = apiContext { languages ->
+                flow = retryContext { languages ->
                     episodeId.details(languages.apiLanguage).map { result ->
                         result.map { tmdbEpisodeDetails ->
                             EpisodeFullDetails(
@@ -166,7 +166,7 @@ class EpisodesScreenViewModelHelper(
 
         fun images(): State<ApiLoadable<List<ImageModel>>> {
             return flowCollector.collectFlow(
-                apiContext { languages ->
+                retryContext { languages ->
                     episodeId.images(languages.toTmdbLanguagesFilter()).map { result ->
                         result.map { images ->
                             images.toImageModel(includeLogos = false)
@@ -185,12 +185,12 @@ class EpisodesScreenViewModelHelper(
             application = application,
             scope = scope,
             episodeId = episode,
-            apiContext = apiContext,
+            retryContext = this@EpisodesScreenViewModelHelper.retryContext,
             flowCollector = flowCollector,
         )
     }
 
     fun retryAll() {
-        scope.launch { apiContext.retryAll() }
+        scope.launch { this@EpisodesScreenViewModelHelper.retryContext.retryAll() }
     }
 }

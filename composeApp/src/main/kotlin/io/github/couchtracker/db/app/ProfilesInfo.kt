@@ -5,8 +5,8 @@ import io.github.couchtracker.db.profile.ExternalProfileDb
 import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.ManagedProfileDb
 import io.github.couchtracker.db.profile.ProfileDb
-import io.github.couchtracker.db.profile.ProfileDbLoadable
-import io.github.couchtracker.db.profile.ProfileDbResult
+import io.github.couchtracker.error.ProfileDbLoadable
+import io.github.couchtracker.error.ProfileDbResult
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.biFork

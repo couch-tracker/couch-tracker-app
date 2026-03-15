@@ -56,12 +56,12 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.error.CouchTrackerLoadable
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.SizeAwareLazyListScope
 import io.github.couchtracker.ui.countingElements
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.api.ApiLoadable
 import io.github.couchtracker.utils.ifNullOrBlank
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapError
@@ -216,7 +216,7 @@ object OverviewScreenComponents {
     @Composable
     fun ShowSnackbarOnErrorEffect(
         snackbarHostState: SnackbarHostState,
-        loadable: () -> Collection<ApiLoadable<*>>,
+        loadable: () -> Collection<CouchTrackerLoadable<*>>,
         onRetry: () -> Unit,
         retryMessage: String = R.string.error_loading_data.str(),
         retryAction: String = R.string.retry_action.str(),
@@ -323,7 +323,7 @@ object OverviewScreenComponents {
 
     fun LazyListScope.textBlock(
         key: String,
-        text: ApiLoadable<String?>,
+        text: CouchTrackerLoadable<String?>,
         modifier: Modifier = Modifier,
         placeholderLines: Int = 1,
         maxLines: Int = Int.MAX_VALUE,
@@ -347,7 +347,7 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.tags(
-        tags: ApiLoadable<List<String>>,
+        tags: CouchTrackerLoadable<List<String>>,
         key: String = "tags",
         placeholderLines: Int = 2,
     ) {
@@ -365,7 +365,7 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.title(title: ApiLoadable<String?>) {
+    fun LazyListScope.title(title: CouchTrackerLoadable<String?>) {
         textBlock(
             key = "title",
             text = title,
@@ -373,7 +373,7 @@ object OverviewScreenComponents {
         )
     }
 
-    fun LazyListScope.tagline(tagline: ApiLoadable<String?>) {
+    fun LazyListScope.tagline(tagline: CouchTrackerLoadable<String?>) {
         textBlock(
             key = "tagline",
             text = tagline,
@@ -381,7 +381,7 @@ object OverviewScreenComponents {
         )
     }
 
-    fun LazyListScope.overview(overview: ApiLoadable<String?>) {
+    fun LazyListScope.overview(overview: CouchTrackerLoadable<String?>) {
         textBlock(
             key = "overview",
             text = overview,
@@ -446,7 +446,7 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.imagesSection(
-        images: ApiLoadable<List<ImageModel>>,
+        images: CouchTrackerLoadable<List<ImageModel>>,
         totalHeight: Int,
         // To align with other sections, using the default aspect ratio of PortraitComposable
         defaultAspectRatio: Float = PortraitComposableDefaults.POSTER_ASPECT_RATIO,
@@ -486,7 +486,7 @@ object OverviewScreenComponents {
     }
 
     fun LazyListScope.castSection(
-        people: ApiLoadable<List<CastPortraitModel>>,
+        people: CouchTrackerLoadable<List<CastPortraitModel>>,
         totalHeight: Int,
         title: SizeAwareLazyListScope.() -> Unit = { textBlock("cast-title", R.string.section_cast) },
     ) {
@@ -511,7 +511,7 @@ object OverviewScreenComponents {
         }
     }
 
-    fun LazyListScope.crewSection(people: ApiLoadable<List<CrewCompactListItemModel>>, totalHeight: Int) {
+    fun LazyListScope.crewSection(people: CouchTrackerLoadable<List<CrewCompactListItemModel>>, totalHeight: Int) {
         sectionWithPlaceholder(
             title = { textBlock("crew-title", R.string.section_crew) },
             contentKey = "crew-content",

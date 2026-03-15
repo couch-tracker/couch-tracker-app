@@ -3,7 +3,7 @@ package io.github.couchtracker.utils
 import androidx.compose.runtime.Composable
 import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.db.profile.ProfileData
-import io.github.couchtracker.db.profile.ProfileDbError
+import io.github.couchtracker.error.ProfileDbError
 
 typealias ProfileDbActionState<T> = ActionState<T, ProfileDbError, ProfileData, T>
 
