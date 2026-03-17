@@ -117,3 +117,4 @@ fun <T> Arb.Companion.maybeZoned(value: Arb<T>) = arbitrary {
         ).bind(),
     )
 }
+fun <T> Arb.Companion.maybeZoned(value: T) = maybeZoned(listOf(value).exhaustive().toArb())

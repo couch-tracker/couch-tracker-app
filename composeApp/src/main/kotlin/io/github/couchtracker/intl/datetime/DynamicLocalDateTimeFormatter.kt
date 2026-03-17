@@ -7,6 +7,7 @@ import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.R
 import io.github.couchtracker.intl.formatDateTimeSkeleton
+import io.github.couchtracker.utils.MaybeZoned
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.combine
@@ -93,7 +94,7 @@ class DynamicLocalDateTimeFormatter(
         }
 
         fun formatRelative(): TickingValue<String> {
-            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(dateTime, now)
+            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(MaybeZoned(dateTime, timeZone = null), now)
             return chooseThreshold(
                 threshold = DURATION_THRESHOLD,
                 withinThreshold = {
