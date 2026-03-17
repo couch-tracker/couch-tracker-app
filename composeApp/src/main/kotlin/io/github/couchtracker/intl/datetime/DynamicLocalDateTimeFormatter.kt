@@ -51,6 +51,7 @@ class DynamicLocalDateTimeFormatter(
     private val context: Context,
     private val locale: ULocale,
     private val timeSkeleton: TimeSkeleton = TimeSkeleton.MINUTES,
+    private val timeZoneSkeleton: TimezoneSkeleton = TimezoneSkeleton.TIMEZONE_ID,
     relativeDateStyle: RelativeDateTimeFormatter.Style = RelativeDateTimeFormatter.Style.LONG,
     private val absoluteDateSkeletons: List<DateSkeleton> = Skeletons.MEDIUM_DATE,
     relativeDurationFormatWidth: FormatWidth = FormatWidth.NARROW,
@@ -61,6 +62,7 @@ class DynamicLocalDateTimeFormatter(
     private val relativeDateAbsoluteTimeFormatter = RelativeDateAbsoluteTimeFormatter(
         locale = locale,
         timeSkeleton = timeSkeleton,
+        timeZoneSkeleton = timeZoneSkeleton,
         relativeDateStyle = relativeDateStyle,
         dateFormatStyle = DateFormat.MEDIUM,
     )
@@ -75,8 +77,9 @@ class DynamicLocalDateTimeFormatter(
         maxUnits = relativeDurationMaxUnits,
     )
 
-    fun format(dateTime: LocalDateTime, now: Zoned<Instant>): TickingValue<String> {
-        val instant = dateTime.toInstant(now.timeZone)
+    fun format(dateTime: MaybeZoned<LocalDateTime>, now: Zoned<Instant>): TickingValue<String> {
+        val tz = dateTime.timeZone ?: now.timeZone
+        val instant = dateTime.value.toInstant(tz)
         val diff = instant - now.value
 
         fun chooseThreshold(
@@ -94,7 +97,7 @@ class DynamicLocalDateTimeFormatter(
         }
 
         fun formatRelative(): TickingValue<String> {
-            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(MaybeZoned(dateTime, timeZone = null), now)
+            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(dateTime, now)
             return chooseThreshold(
                 threshold = DURATION_THRESHOLD,
                 withinThreshold = {
@@ -113,11 +116,15 @@ class DynamicLocalDateTimeFormatter(
             threshold = RELATIVE_DATE_THRESHOLD,
             withinThreshold = ::formatRelative,
             outsideThreshold = {
+                val skeletons = listOfNotNull(
+                    timeSkeleton,
+                    timeZoneSkeleton.takeIf { dateTime.timeZone != null && dateTime.timeZone != now.timeZone },
+                )
                 TickingValue(
                     value = formatDateTimeSkeleton(
                         instant = instant,
-                        timeZone = now.timeZone,
-                        skeleton = (absoluteDateSkeletons + timeSkeleton).sum(),
+                        timeZone = tz,
+                        skeleton = (absoluteDateSkeletons + skeletons).sum(),
                         locale = locale,
                     ),
                     nextTick = null,
