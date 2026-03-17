@@ -47,7 +47,11 @@
 
     <string name="tab_shows_history">History</string>
     <string name="tab_shows_watchlist">Watchlist</string>
+    <string name="tab_shows_watchlist_empty">Empty watchlist</string>
+    <string name="tab_shows_watchlist_empty_description">"This section contains bookmarked shows without watch sessions"</string>
     <string name="tab_shows_following">Following</string>
+    <string name="tab_shows_following_empty">Empty following</string>
+    <string name="tab_shows_following_empty_description">"This section contains bookmarked shows with active watch sessions"</string>
     <string name="tab_shows_up_next">Up next</string>
     <string name="tab_shows_calendar">Calendar</string>
     <string name="tab_shows_explore">Explore</string>

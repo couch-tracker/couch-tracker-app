@@ -117,3 +117,18 @@ inline fun <T : R, E, R> Result<T, E>.ifError(block: (E) -> R): R {
 fun <E> List<Result<*, E>>.allErrors(): List<E> {
     return filterIsInstance<Result.Error<E>>().map { it.error }
 }
+
+/**
+ * Returns the list of all values, or the first error
+ */
+fun <T, E> List<Result<T, E>>.combineResults(): Result<List<T>, E> {
+    val values = buildList {
+        for (result in this@combineResults) {
+            when (result) {
+                is Result.Value -> add(result.value)
+                is Result.Error -> return Result.Error(result.error)
+            }
+        }
+    }
+    return Result.Value(values)
+}

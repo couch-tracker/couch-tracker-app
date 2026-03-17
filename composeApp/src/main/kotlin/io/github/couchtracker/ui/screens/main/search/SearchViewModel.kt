@@ -206,7 +206,7 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
             type = SearchableMediaType.SHOW,
             tags = emptyList(),
             trailingInfo = firstAirDate?.year?.toString(),
-            navigate = { it.navigateToShow(tmdbShowId, toBaseShow(language)) },
+            navigate = { it.navigateToShow(tmdbShowId.toExternalId(), toBaseShow(language)) },
         )
     }
 }

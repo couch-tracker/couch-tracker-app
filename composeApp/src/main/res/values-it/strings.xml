@@ -49,7 +49,11 @@
 
     <string name="tab_shows_history">Cronologia</string>
     <string name="tab_shows_watchlist">Watchlist</string>
+    <string name="tab_shows_watchlist_empty">Watchlist vuota</string>
+    <string name="tab_shows_watchlist_empty_description">Questa sezione contiene serie TV salvate senza sessioni di visioni</string>
     <string name="tab_shows_following">Seguite</string>
+    <string name="tab_shows_following_empty">Nessuna serie seguita</string>
+    <string name="tab_shows_following_empty_description">"Questa sezione contiene serie TV salvate con sessioni di visioni attive"</string>
     <string name="tab_shows_up_next">Prossimi</string>
     <string name="tab_shows_calendar">Calendario</string>
     <string name="tab_shows_explore">Esplora</string>

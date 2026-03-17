@@ -5,6 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.remember
 import io.github.couchtracker.BuildConfig
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
+import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.utils.error.SimulatedException
 import kotlinx.coroutines.delay
 import kotlin.random.Random
@@ -12,6 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTimedValue
 
 private const val INJECT_ERRORS = false
+private const val INJECT_BROKEN_ITEMS = false
 
 private const val MAX_DELAY_MS = 3_000
 private const val ERROR_PROBABILITY = 0.25f
@@ -44,6 +49,18 @@ inline fun <T> logExecutionTime(logTag: String, message: String, f: () -> T): T 
     }
     Log.d(logTag, "$message took $took")
     return value
+}
+
+@Suppress("MagicNumber")
+fun Collection<ExternalShowId>.injectBrokenItems(): Collection<ExternalShowId> {
+    return if (INJECT_BROKEN_ITEMS) {
+        this + listOf(
+            TmdbExternalShowId(TmdbShowId(546_544)),
+            UnknownExternalShowId("xyz", "123456"),
+        )
+    } else {
+        this
+    }
 }
 
 @PublishedApi

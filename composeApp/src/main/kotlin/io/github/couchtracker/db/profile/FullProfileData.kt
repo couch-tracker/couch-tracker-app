@@ -2,11 +2,13 @@ package io.github.couchtracker.db.profile
 
 import android.util.Log
 import io.github.couchtracker.db.profile.externalids.BookmarkableExternalId
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionsWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
+import io.github.couchtracker.utils.filterKeysOfInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -24,6 +26,9 @@ data class FullProfileData(
     val watchedEpisodesBySession: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>> = watchedItems
         .filterIsInstance<WatchedItemWrapper.Episode>()
         .groupBy { it.session }
+
+    val bookmarkedShows: Map<ExternalShowId, BookmarkedItem> = bookmarkedItems.filterKeysOfInstance()
+    val bookmarkedMovies: Map<ExternalMovieId, BookmarkedItem> = bookmarkedItems.filterKeysOfInstance()
 
     companion object {
 

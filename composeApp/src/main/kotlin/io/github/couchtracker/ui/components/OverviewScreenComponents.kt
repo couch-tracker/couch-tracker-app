@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -80,6 +81,7 @@ object OverviewScreenComponents {
     private const val PLACEHOLDER_IMAGES_COUNT = 3
     private const val PLACEHOLDER_CAST_COUNT = 3
     private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 1
+    val LIST_BOTTOM_SPACE = 96.dp
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @Composable
@@ -248,12 +250,11 @@ object OverviewScreenComponents {
         content: LazyListScope.() -> Unit,
     ) {
         LazyColumn(
-            contentPadding = innerPadding,
+            contentPadding = innerPadding + PaddingValues(bottom = LIST_BOTTOM_SPACE),
             modifier = modifier.fillMaxSize(),
             verticalArrangement = verticalArrangement,
         ) {
             content()
-            bottomSpace()
         }
     }
 
@@ -265,11 +266,6 @@ object OverviewScreenComponents {
     fun LazyListScope.topSpace() = item(key = "top-spacer", contentType = "spacer") {
         // Plus the spacing is 28.dp. Same as AppBar.LargeTitleBottomPadding
         Spacer(Modifier.height(24.dp))
-    }
-
-    fun LazyListScope.bottomSpace() = item(key = "bottom-spacer", contentType = "spacer") {
-        // Plus the lazy list spacing is 96
-        Spacer(Modifier.height(92.dp))
     }
 
     fun LazyListScope.section(
