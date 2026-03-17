@@ -2,9 +2,6 @@ package io.github.couchtracker.ui.screens.seasons
 
 import android.app.Application
 import androidx.compose.material3.ColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.rememberCoroutineScope
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
@@ -15,36 +12,31 @@ import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.extractColorScheme
-import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.EpisodeListItemModel
 import io.github.couchtracker.ui.seasonNumberToString
-import io.github.couchtracker.utils.FlowToStateCollector
-import io.github.couchtracker.utils.collectFlow
 import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
-import kotlin.collections.map
 
 /**
  * A utility class to create your own model for a season screen.
  */
 class SeasonsScreenViewModelHelper(
     val application: Application,
-    val scope: CoroutineScope,
+    scope: CoroutineScope,
     val showId: TmdbShowId,
-    val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
-    val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
+    val retryContext: TmdbFlowRetryContext,
 ) {
     class ShowDetails(
         val name: String?,
@@ -66,7 +58,7 @@ class SeasonsScreenViewModelHelper(
         val episodes: List<Pair<ExternalEpisodeId, EpisodeListItemModel>>,
     )
 
-    val showDetailsFlow = retryContext { languages ->
+    val showDetails = retryContext { languages ->
         showId.details(languages.apiLanguage).map { result ->
             result.map { details ->
                 ShowDetails(
@@ -89,66 +81,33 @@ class SeasonsScreenViewModelHelper(
         }
     }.shareIn(scope, SharingStarted.Lazily, 1)
 
-    fun showDetails(): State<ApiLoadable<ShowDetails>> {
-        return flowCollector.collectFlow(
-            flow = showDetailsFlow,
-        )
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun colorScheme(): State<ApiLoadable<ColorScheme?>> {
-        return flowCollector.collectFlow(
-            flow = showDetailsFlow
-                .map { result -> result.mapResult { details -> details.backdrop } }
-                .distinctUntilChanged()
-                .mapLatest { backdrop ->
-                    backdrop.mapResult { backdrop ->
-                        backdrop?.extractColorScheme(application)
-                    }
-                },
-        )
-    }
+    val colorScheme: Flow<ApiLoadable<ColorScheme?>> = showDetails
+        .map { result -> result.mapResult { details -> details.backdrop } }
+        .distinctUntilChanged()
+        .mapLatest { backdrop ->
+            backdrop.mapResult { backdrop ->
+                backdrop?.extractColorScheme(application)
+            }
+        }
 
     class SeasonViewModelHelper(
         val application: Application,
-        val scope: CoroutineScope,
         val seasonId: TmdbSeasonId,
-        val retryContext: TmdbFlowRetryContext = tmdbFlowRetryContext(),
-        val flowCollector: FlowToStateCollector<ApiLoadable<*>> = FlowToStateCollector(scope),
+        val retryContext: TmdbFlowRetryContext,
     ) {
 
-        fun details(): State<ApiLoadable<SeasonFullDetails>> {
-            return flowCollector.collectFlow(
-                flow = retryContext { languages ->
-                    seasonId.details(languages.apiLanguage).map { result ->
-                        result.map { tmdbSeasonDetails ->
-                            SeasonFullDetails(
-                                episodes = tmdbSeasonDetails.episodes.orEmpty().map { tmdbEpisode ->
-                                    val id = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, tmdbEpisode.episodeNumber))
-                                    id to EpisodeListItemModel.fromTmdbEpisode(application, tmdbEpisode)
-                                },
-                            )
-                        }
-                    }
-                },
-            )
+        val details: Flow<ApiLoadable<SeasonFullDetails>> = retryContext { languages ->
+            seasonId.details(languages.apiLanguage).map { result ->
+                result.map { tmdbSeasonDetails ->
+                    SeasonFullDetails(
+                        episodes = tmdbSeasonDetails.episodes.orEmpty().map { tmdbEpisode ->
+                            val id = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, tmdbEpisode.episodeNumber))
+                            id to EpisodeListItemModel.fromTmdbEpisode(application, tmdbEpisode)
+                        },
+                    )
+                }
+            }
         }
-    }
-
-    @Composable
-    fun viewModelForSeason(season: TmdbSeasonId): SeasonViewModelHelper {
-        val scope = rememberCoroutineScope()
-        val flowCollector = flowCollector.childCollector()
-        return SeasonViewModelHelper(
-            application = application,
-            scope = scope,
-            seasonId = season,
-            retryContext = this@SeasonsScreenViewModelHelper.retryContext,
-            flowCollector = flowCollector,
-        )
-    }
-
-    fun retryAll() {
-        scope.launch { this@SeasonsScreenViewModelHelper.retryContext.retryAll() }
     }
 }

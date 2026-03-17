@@ -151,7 +151,7 @@ private fun ShowScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        loadable = { viewModel.allLoadables },
+        errors = { viewModel.allErrors },
         onRetry = reloadShow,
     )
     val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show

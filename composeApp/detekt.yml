@@ -9,6 +9,7 @@ complexity:
     ignoreDefaultParameters: true
   TooManyFunctions:
     allowedFunctionsPerClass: 15
+    allowedFunctionsPerFile: 15
     ignorePrivate: true
   CyclomaticComplexMethod:
     ignoreSimpleWhenEntries: true

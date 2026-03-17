@@ -33,6 +33,7 @@ kotlin {
         freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
         freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+        freeCompilerArgs.add("-XXLanguage:+ContextParameters")
     }
 
     dependencies {
