@@ -8,13 +8,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Extension of [Result] that allows the value to be [Loading].
@@ -74,13 +81,35 @@ inline fun <T> Loadable<T>.onValue(f: (T) -> Unit): Loadable<T> {
     return this
 }
 
-@Composable
-fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
-    return remember { map { Loadable.Loaded(it) } }.collectAsStateWithLifecycle(Loadable.Loading)
+fun <T> List<Loadable<T>>.allLoaded(): List<T> {
+    return filterIsInstance<Loadable.Loaded<T>>().map { it.value }
 }
 
-fun <T> Flow<Loadable<T>>.filterLoaded(): Flow<T> {
-    return filterIsInstance<Loadable.Loaded<T>>().map { it.value }
+fun <E> List<Loadable<Result<*, E>>>.allErrors(): List<E> {
+    return allLoaded().allErrors()
+}
+
+@Composable
+fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
+    return remember(this) { map { Loadable.Loaded(it) } }.collectAsStateWithLifecycle(Loadable.Loading)
+}
+
+fun <T> Flow<Loadable<T>>.collectAsLoadableInScope(
+    scope: CoroutineScope,
+    context: CoroutineContext = Dispatchers.Default,
+): State<Loadable<T>> {
+    val state = mutableStateOf<Loadable<T>>(Loadable.Loading)
+    scope.launch(Dispatchers.Main) {
+        flowOn(context).collectLatest { item -> state.value = item }
+    }
+    return state
+}
+
+context(model: ViewModel)
+fun <T> Flow<Loadable<T>>.collectAsLoadable(
+    context: CoroutineContext = Dispatchers.Default,
+): State<Loadable<T>> {
+    return collectAsLoadableInScope(model.viewModelScope, context)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -6,6 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.tmdb.tmdbFlowRetryContext
+import io.github.couchtracker.utils.collectAsLoadable
+import kotlinx.coroutines.launch
 
 class WatchedEpisodeSessionsScreenViewModel(
     application: Application,
@@ -13,16 +16,18 @@ class WatchedEpisodeSessionsScreenViewModel(
     val externalShowId: ExternalShowId,
 ) : AndroidViewModel(application) {
 
+    private val retryContext = tmdbFlowRetryContext()
     private val baseViewModel = ShowScreenViewModelHelper(
         application = application,
         scope = viewModelScope,
         showId = showId,
+        retryContext = retryContext,
     )
 
-    val fullDetails by baseViewModel.fullDetails()
-    val colorScheme by baseViewModel.colorScheme()
+    val fullDetails by baseViewModel.fullDetails.collectAsLoadable()
+    val colorScheme by baseViewModel.colorScheme.collectAsLoadable()
 
     fun retryAll() {
-        baseViewModel.retryAll()
+        viewModelScope.launch { retryContext.retryAll() }
     }
 }

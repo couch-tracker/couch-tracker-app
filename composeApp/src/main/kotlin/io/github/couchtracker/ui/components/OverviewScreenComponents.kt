@@ -60,7 +60,7 @@ import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.SizeAwareLazyListScope
 import io.github.couchtracker.ui.countingElements
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.Result
+import io.github.couchtracker.utils.error.CouchTrackerError
 import io.github.couchtracker.utils.error.CouchTrackerLoadable
 import io.github.couchtracker.utils.ifNullOrBlank
 import io.github.couchtracker.utils.map
@@ -216,12 +216,12 @@ object OverviewScreenComponents {
     @Composable
     fun ShowSnackbarOnErrorEffect(
         snackbarHostState: SnackbarHostState,
-        loadable: () -> Collection<CouchTrackerLoadable<*>>,
+        errors: () -> List<CouchTrackerError>,
         onRetry: () -> Unit,
         retryMessage: String = R.string.error_loading_data.str(),
         retryAction: String = R.string.retry_action.str(),
     ) {
-        val inError = loadable().any { it is Loadable.Loaded && it.value is Result.Error }
+        val inError = errors().isNotEmpty()
         LaunchedEffect(snackbarHostState, inError, onRetry, retryMessage, retryAction) {
             if (inError) {
                 val result = snackbarHostState.showSnackbar(

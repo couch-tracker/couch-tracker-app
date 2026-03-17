@@ -11,10 +11,13 @@ import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.tmdb.TmdbMovieId
+import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.screens.movie.MovieScreenViewModelHelper
+import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.mapResult
+import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 sealed interface WatchedItemsScreenViewModel {
@@ -40,12 +43,14 @@ sealed interface WatchedItemsScreenViewModel {
 
         override val externalId = TmdbExternalMovieId(movieId)
 
+        private val retryContext = tmdbFlowRetryContext()
         private val baseViewModel = MovieScreenViewModelHelper(
             application = application,
             scope = viewModelScope,
             movieId = movieId,
+            retryContext = retryContext,
         )
-        private val movieDetails by baseViewModel.fullDetails()
+        private val movieDetails by baseViewModel.fullDetails.collectAsLoadable()
         override val details by derivedStateOf {
             movieDetails.mapResult { details ->
                 Details(
@@ -57,10 +62,10 @@ sealed interface WatchedItemsScreenViewModel {
             }
         }
         override val watchedItemType get() = WatchedItemType.MOVIE
-        override val colorScheme by baseViewModel.colorScheme()
+        override val colorScheme by baseViewModel.colorScheme.collectAsLoadable()
 
         override fun retryAll() {
-            baseViewModel.retryAll()
+            viewModelScope.launch { retryContext.retryAll() }
         }
     }
 }

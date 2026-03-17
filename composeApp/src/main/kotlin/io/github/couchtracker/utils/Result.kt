@@ -113,3 +113,7 @@ inline fun <T : R, E, R> Result<T, E>.ifError(block: (E) -> R): R {
         is Result.Error -> block(this.error)
     }
 }
+
+fun <E> List<Result<*, E>>.allErrors(): List<E> {
+    return filterIsInstance<Result.Error<E>>().map { it.error }
+}

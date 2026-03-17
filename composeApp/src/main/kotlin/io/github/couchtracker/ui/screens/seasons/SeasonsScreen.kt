@@ -107,7 +107,7 @@ private fun SeasonsScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        loadable = { viewModel.allLoadables },
+        errors = { viewModel.allErrors },
         onRetry = reloadSeason,
     )
     val pagerState = rememberPagerState(

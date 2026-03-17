@@ -129,7 +129,7 @@ private fun MovieScreenContent(
 
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        loadable = { viewModel.allLoadables },
+        errors = { viewModel.allErrors },
         onRetry = reloadMovie,
     )
     val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie

@@ -134,7 +134,7 @@ private fun EpisodeScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        loadable = { viewModel.allLoadables },
+        errors = { viewModel.allErrors },
         onRetry = onRetry,
     )
     val pagerState = rememberPagerState(
