@@ -4,6 +4,8 @@ import com.ibm.icu.text.DisplayContext
 import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
+import io.github.couchtracker.utils.toLocalDateTime
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withContexts
@@ -19,7 +21,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -138,28 +139,24 @@ class RelativeLocalDateFormatterTest : FunSpec(
                     withTests(
                         nameFn = { "${it.a} ${it.b}" },
                         tuple(
-                            Instant.parse("2026-01-01T21:00:00Z"),
-                            TimeZone.UTC,
+                            Zoned(Instant.parse("2026-01-01T21:00:00Z"), TimeZone.UTC),
                             3.hours,
                         ),
                         tuple(
-                            Instant.parse("2026-01-01T23:59:59Z"),
-                            TimeZone.UTC,
+                            Zoned(Instant.parse("2026-01-01T23:59:59Z"), TimeZone.UTC),
                             1.seconds,
                         ),
                         tuple(
-                            Instant.parse("2026-01-01T22:35:41Z"),
-                            TimeZone.of("Europe/Berlin"),
+                            Zoned(Instant.parse("2026-01-01T22:35:41Z"), TimeZone.of("Europe/Berlin")),
                             24.minutes + 19.seconds,
                         ),
                         // This format returns "this Thursday", which is valid for multiple days until "tomorrow" triggers
                         tuple(
-                            Instant.parse("2025-12-28T06:00:00Z"),
-                            TimeZone.UTC,
+                            Zoned(Instant.parse("2025-12-28T06:00:00Z"), TimeZone.UTC),
                             2.days + 18.hours,
                         ),
-                    ) { (now, tz, expected) ->
-                        formatter.format(date, now, tz).nextTick shouldBe expected
+                    ) { (now, expected) ->
+                        formatter.format(date, now).nextTick shouldBe expected
                     }
                 }
 
@@ -167,17 +164,17 @@ class RelativeLocalDateFormatterTest : FunSpec(
                     val tz = TimeZone.of("Europe/Rome")
                     test("jump forward") {
                         val date = LocalDate.parse("2025-03-30")
-                        formatter.format(date = date, now = date.atStartOfDayIn(tz), tz = tz).nextTick shouldBe 23.hours
+                        formatter.format(localDate = date, now = Zoned(date.atStartOfDayIn(tz), tz)).nextTick shouldBe 23.hours
                     }
                     test("just backward") {
                         val date = LocalDate.parse("2025-10-26")
-                        formatter.format(date = date, now = date.atStartOfDayIn(tz), tz = tz).nextTick shouldBe 25.hours
+                        formatter.format(localDate = date, now = Zoned(date.atStartOfDayIn(tz), tz)).nextTick shouldBe 25.hours
                     }
                 }
                 nextTickPredictsChangeTest(
                     arb = Arb.localDate().map { it.toKotlinLocalDate() },
-                    valueFromInstant = { instant, tz -> instant.toLocalDateTime(tz).date },
-                    format = { date, now, tz -> formatter.format(date, now, tz) },
+                    valueFromInstant = { it.toLocalDateTime().date },
+                    format = { date, now -> formatter.format(date, now) },
                 )
             }
         }
@@ -186,6 +183,6 @@ class RelativeLocalDateFormatterTest : FunSpec(
 
 private fun RelativeLocalDateFormatter.format(days: Int): TickingValue<String> {
     val tz = TimeZone.UTC
-    val now = CURRENT_DATE.atStartOfDayIn(tz)
-    return format(CURRENT_DATE.plus(days, DateTimeUnit.DAY), now, tz)
+    val now = Zoned(CURRENT_DATE.atStartOfDayIn(tz), tz)
+    return format(CURRENT_DATE.plus(days, DateTimeUnit.DAY), now)
 }

@@ -6,6 +6,9 @@ import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.R
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
+import io.github.couchtracker.utils.plus
+import io.github.couchtracker.utils.toLocalDateTime
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withTests
@@ -20,7 +23,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toKotlinLocalDateTime
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -32,8 +34,7 @@ import kotlin.time.Instant
 /**
  * Current date used in tests. This is a Thursday
  */
-private val NOW = Instant.parse("2026-01-01T00:00:00Z")
-private val TZ = TimeZone.UTC
+private val NOW = Zoned(Instant.parse("2026-01-01T00:00:00Z"), TimeZone.UTC)
 
 class DynamicLocalDateTimeFormatterTest : FunSpec(
     {
@@ -65,7 +66,7 @@ class DynamicLocalDateTimeFormatterTest : FunSpec(
                         TickingValue("31 gen 2020, 15:16:17", nextTick = null),
                     ),
                 ) { (formatter, dateTime, expected) ->
-                    formatter.format(dateTime, NOW, TZ) shouldBe expected
+                    formatter.format(dateTime, NOW) shouldBe expected
                 }
             }
             context("dates within relative threshold") {
@@ -151,8 +152,8 @@ class DynamicLocalDateTimeFormatterTest : FunSpec(
                 val formatter = DynamicLocalDateTimeFormatter(mockContext(ULocale.ENGLISH), ULocale.ENGLISH)
                 nextTickPredictsChangeTest(
                     arb = Arb.localDateTime().map { it.toKotlinLocalDateTime() }.filter { it in dateRange },
-                    valueFromInstant = { instant, tz -> instant.toLocalDateTime(tz) },
-                    format = { dateTime, now, tz -> formatter.format(dateTime, now, tz) },
+                    valueFromInstant = { it.toLocalDateTime() },
+                    format = { dateTime, now -> formatter.format(dateTime, now) },
                     nowRange = dateRange.start.toInstant(TimeZone.UTC)..dateRange.endInclusive.toInstant(TimeZone.UTC),
                 )
             }
@@ -184,5 +185,5 @@ private fun mockContext(locale: ULocale) = mockk<Context> {
 }
 
 private fun DynamicLocalDateTimeFormatter.format(diff: Duration): TickingValue<String> {
-    return format((NOW + diff).toLocalDateTime(TZ), NOW, TZ)
+    return format((NOW + diff).toLocalDateTime(), NOW)
 }

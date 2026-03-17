@@ -9,6 +9,8 @@ import com.ibm.icu.text.RelativeDateTimeFormatter.RelativeUnit
 import com.ibm.icu.util.Calendar
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
+import io.github.couchtracker.utils.toLocalDateTime
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -16,7 +18,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
 import kotlin.math.absoluteValue
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -52,10 +53,10 @@ data class RelativeLocalDateFormatter(
 
     private val relativeDateTimeFormatter = RelativeDateTimeFormatter.getInstance(locale, numberFormat, style, capitalizationContext)
 
-    fun format(date: LocalDate, now: Instant, tz: TimeZone): TickingValue<String> {
-        val nowInDate = now.toLocalDateTime(tz).date
-        val days = nowInDate.daysUntil(date)
-        val nextDayTick = (nowInDate + DatePeriod(days = 1)).atStartOfDayIn(tz) - now
+    fun format(localDate: LocalDate, now: Zoned<Instant>): TickingValue<String> {
+        val nowInDate = now.toLocalDateTime().date
+        val days = nowInDate.daysUntil(localDate)
+        val nextDayTick = (nowInDate + DatePeriod(days = 1)).atStartOfDayIn(now.timeZone) - now.value
 
         val absoluteFormattedDay = when (days) {
             in TWO_DAYS_AGO..IN_TWO_DAYS -> {
@@ -83,14 +84,14 @@ data class RelativeLocalDateFormatter(
             val nextFirstDoW = List(DayOfWeek.entries.size) { nowInDate.plus(DatePeriod(days = it + 1)) }.first { it.dayOfWeek == firstDoW }
 
             val direction = when {
-                date < nextFirstDoW -> Direction.THIS
+                localDate < nextFirstDoW -> Direction.THIS
                 else -> Direction.NEXT
             }
-            relativeDateTimeFormatter.format(direction, date.dayOfWeek.toIcuAbsoluteUnit())?.let {
+            relativeDateTimeFormatter.format(direction, localDate.dayOfWeek.toIcuAbsoluteUnit())?.let {
                 // Calculating a nextTick here is tricky because "this/next <day-of-week>" can be valid for multiple days, until either the
                 // direction changes (this becomes next) or a specific word is used (e.g. tomorrow), whose existence depends on the locale.
                 // Hence, we take a cheap shortcut here by checking the next day format to see if it would change
-                val nextDayFormat = format(date, now + nextDayTick, tz)
+                val nextDayFormat = format(localDate, Zoned(now.value + nextDayTick, now.timeZone))
                 val nextTick = if (nextDayFormat.value != it) {
                     nextDayTick
                 } else {

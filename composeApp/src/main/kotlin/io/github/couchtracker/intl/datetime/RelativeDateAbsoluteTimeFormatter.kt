@@ -7,8 +7,8 @@ import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.text.SimpleDateFormat
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toJavaZoneId
 import kotlin.time.Instant
@@ -34,8 +34,8 @@ class RelativeDateAbsoluteTimeFormatter(
 
     private val relativeLocalDateFormatter = RelativeLocalDateFormatter(locale, style = relativeDateStyle)
 
-    fun format(dateTime: LocalDateTime, now: Instant, tz: TimeZone): TickingValue<String> {
-        val dateFormat = relativeLocalDateFormatter.format(dateTime.date, now, tz)
+    fun format(dateTime: LocalDateTime, now: Zoned<Instant>): TickingValue<String> {
+        val dateFormat = relativeLocalDateFormatter.format(dateTime.date, now)
 
         val generator = DateTimePatternGenerator.getInstance(locale)
         val dateTimePattern = generator.getDateTimeFormat(dateFormatStyle)
@@ -48,7 +48,7 @@ class RelativeDateAbsoluteTimeFormatter(
         )
 
         return TickingValue(
-            value = SimpleDateFormat(pattern, locale).format(dateTime.toJavaLocalDateTime().atZone(tz.toJavaZoneId())),
+            value = SimpleDateFormat(pattern, locale).format(dateTime.toJavaLocalDateTime().atZone(now.timeZone.toJavaZoneId())),
             nextTick = dateFormat.nextTick,
         )
     }
