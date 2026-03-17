@@ -17,6 +17,7 @@ import io.kotest.property.arbitrary.duration
 import io.kotest.property.arbitrary.kotlinInstant
 import io.kotest.property.arbitrary.localDateTime
 import io.kotest.property.arbitrary.map
+import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.zoneId
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
@@ -69,6 +70,24 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
     }
 }
 
+suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTestMaybeZoned(
+    arb: Arb<MaybeZoned<T>>,
+    valueFromInstant: (Zoned<Instant>) -> T,
+    format: (MaybeZoned<T>, now: Zoned<Instant>) -> TickingValue<String>,
+    nowRange: KotlinInstantRange = Instant.DISTANT_PAST..Instant.DISTANT_FUTURE,
+) {
+    nextTickPredictsChangeTest(
+        arb = arb,
+        valueFromInstant = { zonedInstant ->
+            Arb.maybeZoned(zonedInstant.value)
+                .map { (instant, tz) -> MaybeZoned(valueFromInstant(Zoned(instant, tz ?: zonedInstant.timeZone)), tz) }
+                .next()
+        },
+        format = format,
+        nowRange = nowRange,
+    )
+}
+
 private fun <T> runNextTickPredictsChangeTest(
     value: T,
     now: Zoned<Instant>,
@@ -117,4 +136,5 @@ fun <T> Arb.Companion.maybeZoned(value: Arb<T>) = arbitrary {
         ).bind(),
     )
 }
+
 fun <T> Arb.Companion.maybeZoned(value: T) = maybeZoned(listOf(value).exhaustive().toArb())

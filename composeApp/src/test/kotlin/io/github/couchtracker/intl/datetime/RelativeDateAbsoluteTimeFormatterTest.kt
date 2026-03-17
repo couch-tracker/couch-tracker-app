@@ -14,8 +14,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.enum
-import io.kotest.property.arbitrary.map
-import io.kotest.property.arbitrary.next
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
 import kotlinx.datetime.LocalDateTime
@@ -163,13 +161,9 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                     }
                 }
 
-                nextTickPredictsChangeTest(
+                nextTickPredictsChangeTestMaybeZoned(
                     arb = Arb.maybeZoned(Arb.kotlinLocalDateTime()),
-                    valueFromInstant = { zonedInstant ->
-                        Arb.maybeZoned(zonedInstant.value)
-                            .map { MaybeZoned(it.value.toLocalDateTime(it.timeZone ?: zonedInstant.timeZone), it.timeZone) }
-                            .next()
-                    },
+                    valueFromInstant = { it.value.toLocalDateTime(it.timeZone) },
                     format = { dateTime, now -> formatter.format(dateTime, now) },
                 )
             }
