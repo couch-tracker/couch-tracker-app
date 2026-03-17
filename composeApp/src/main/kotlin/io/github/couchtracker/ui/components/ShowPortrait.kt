@@ -1,19 +1,12 @@
 package io.github.couchtracker.ui.components
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
-import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.tmdbShowId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.PlaceholdersDefaults
-import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.str
 import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
@@ -27,33 +20,22 @@ fun ShowPortrait(
 ) {
     PortraitComposable(
         modifier,
-        image = { w, h ->
-            if (show != null) {
-                AsyncImage(
-                    model = show.posterModel?.getCoilModel(w, h),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            onClick(show)
-                        },
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    fallback = rememberPlaceholderPainter(PlaceholdersDefaults.SHOW.icon, isError = false),
-                    error = rememberPlaceholderPainter(PlaceholdersDefaults.SHOW.icon, isError = true),
-                )
+        imageModel = show?.let {
+            { w, h ->
+                show.posterModel?.getCoilModel(w, h)
             }
         },
-        label = {
-            val label = when {
-                show?.name == null -> ""
-                show.year != null -> R.string.item_tile_with_year.str(show.name, show.year)
-                else -> show.name
+        elementTypeIcon = PlaceholdersDefaults.SHOW.icon,
+        label = when {
+            show?.name == null -> ""
+            show.year != null -> R.string.item_tile_with_year.str(show.name, show.year)
+            else -> show.name
+        },
+        labelMinLines = if (show == null) 2 else 1,
+        onClick = show?.let {
+            {
+                onClick(show)
             }
-            Text(
-                label,
-                textAlign = TextAlign.Center,
-                minLines = if (show == null) 2 else 1,
-            )
         },
     )
 }
