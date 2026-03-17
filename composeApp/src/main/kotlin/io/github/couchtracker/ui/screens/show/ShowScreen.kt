@@ -30,7 +30,6 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
-import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.actions.Action
@@ -69,11 +68,11 @@ data class ShowScreen(val showId: String) : Screen() {
     }
 }
 
-fun NavController.navigateToShow(id: TmdbShowId, preloadData: BaseTmdbShow?) {
+fun NavController.navigateToShow(id: ExternalShowId, preloadData: BaseTmdbShow?) {
     if (preloadData != null) {
         KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().registerItem(preloadData)
     }
-    navigate(ShowScreen(ExternalShowId.serialize(id.toExternalId())))
+    navigate(ShowScreen(ExternalShowId.serialize(id)))
 }
 
 private enum class ShowScreenTab {

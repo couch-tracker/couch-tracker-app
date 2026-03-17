@@ -37,6 +37,7 @@ fun BasePortraitComposable(
     modifier: Modifier,
     image: @Composable (w: Int, h: Int) -> Unit,
     label: @Composable () -> Unit,
+    onClick: (() -> Unit)? = null,
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
@@ -47,7 +48,16 @@ fun BasePortraitComposable(
                 .fillMaxWidth()
                 .aspectRatio(PortraitComposableDefaults.POSTER_ASPECT_RATIO),
         ) {
-            BoxWithConstraints(Modifier.fillMaxSize()) {
+            BoxWithConstraints(
+                Modifier.fillMaxSize().let {
+                    if (onClick != null) {
+                        it.clickable(onClick = onClick)
+                    } else {
+                        it
+                    }
+                },
+                contentAlignment = Alignment.Center,
+            ) {
                 image(this.constraints.maxWidth, this.constraints.minHeight)
             }
         }

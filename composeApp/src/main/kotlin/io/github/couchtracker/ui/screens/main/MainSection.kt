@@ -29,6 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -61,6 +63,7 @@ fun MainSection(
     imageModel: Any?,
     title: String,
     actions: @Composable RowScope.() -> Unit = {},
+    snackbarHostState: SnackbarHostState? = null,
     tabText: @Composable (page: Int) -> Unit,
     page: @Composable (page: Int) -> Unit,
 ) {
@@ -119,6 +122,7 @@ fun MainSection(
             )
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top),
+        snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } },
         content = { scaffoldInnerPadding ->
             HorizontalPager(
                 modifier = Modifier.fillMaxWidth(),
