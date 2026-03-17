@@ -5,6 +5,9 @@ import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.utils.LocaleData
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
+import io.github.couchtracker.utils.plus
+import io.github.couchtracker.utils.toLocalDateTime
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withTests
@@ -12,16 +15,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.enum
-import io.kotest.property.arbitrary.kotlinInstant
 import io.kotest.property.arbitrary.localDateTime
 import io.kotest.property.arbitrary.map
-import io.kotest.property.arbitrary.zoneId
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toKotlinLocalDateTime
-import kotlinx.datetime.toKotlinTimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -32,8 +31,7 @@ import kotlin.time.Instant
 /**
  * Current date used in most tests. This is a Thursday
  */
-private val NOW = Instant.parse("2026-01-01T00:00:00Z")
-private val TZ = TimeZone.UTC
+private val NOW = Zoned(Instant.parse("2026-01-01T00:00:00Z"), TimeZone.UTC)
 
 class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
     {
@@ -101,13 +99,12 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                     checkAll(
                         LocaleData().allLocales.exhaustive(),
                         Arb.localDateTime().map { it.toKotlinLocalDateTime() },
-                        Arb.kotlinInstant(),
-                        Arb.zoneId().map { it.toKotlinTimeZone() },
+                        Arb.zonedInstant(),
                         Arb.enum<RelativeDateTimeFormatter.Style>(),
-                    ) { locale, dateTime, now, tz, relativeStyle ->
-                        val dateString = RelativeLocalDateFormatter(locale, style = relativeStyle).format(dateTime.date, now, tz).value
+                    ) { locale, dateTime, now, relativeStyle ->
+                        val dateString = RelativeLocalDateFormatter(locale, style = relativeStyle).format(dateTime.date, now).value
                         val formatted =
-                            RelativeDateAbsoluteTimeFormatter(locale, relativeDateStyle = relativeStyle).format(dateTime, now, tz).value
+                            RelativeDateAbsoluteTimeFormatter(locale, relativeDateStyle = relativeStyle).format(dateTime, now).value
                         formatted shouldContain dateString
                     }
                 }
@@ -119,21 +116,16 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                     val dateFormatter = RelativeLocalDateFormatter(ULocale.ENGLISH)
                     checkAll(
                         Arb.localDateTime().map { it.toKotlinLocalDateTime() },
-                        Arb.kotlinInstant(),
-                        Arb.zoneId().map { it.toKotlinTimeZone() },
-                    ) { localDateTime, now, zoneId ->
-                        formatter.format(localDateTime, now, zoneId).nextTick shouldBe dateFormatter.format(
-                            localDateTime.date,
-                            now,
-                            zoneId,
-                        ).nextTick
+                        Arb.zonedInstant(),
+                    ) { localDateTime, now ->
+                        formatter.format(localDateTime, now).nextTick shouldBe dateFormatter.format(localDateTime.date, now).nextTick
                     }
                 }
 
                 nextTickPredictsChangeTest(
                     arb = Arb.localDateTime().map { it.toKotlinLocalDateTime() },
-                    valueFromInstant = { instant, tz -> instant.toLocalDateTime(tz) },
-                    format = { dateTime, now, tz -> formatter.format(dateTime, now, tz) },
+                    valueFromInstant = { it.toLocalDateTime() },
+                    format = { dateTime, now -> formatter.format(dateTime, now) },
                 )
             }
         }
@@ -141,5 +133,5 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
 )
 
 private fun RelativeDateAbsoluteTimeFormatter.format(diff: Duration): TickingValue<String> {
-    return format((NOW + diff).toLocalDateTime(TZ), NOW, TZ)
+    return format((NOW + diff).toLocalDateTime(), NOW)
 }

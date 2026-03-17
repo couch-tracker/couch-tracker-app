@@ -1,6 +1,9 @@
 package io.github.couchtracker.intl.datetime
 
+import io.github.couchtracker.utils.MaybeZoned
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
+import io.github.couchtracker.utils.plus
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.matchers.should
@@ -8,12 +11,16 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.KotlinInstantRange
+import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.choose
 import io.kotest.property.arbitrary.duration
 import io.kotest.property.arbitrary.kotlinInstant
+import io.kotest.property.arbitrary.localDateTime
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.zoneId
 import io.kotest.property.checkAll
-import kotlinx.datetime.TimeZone
+import io.kotest.property.exhaustive.exhaustive
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.datetime.toKotlinTimeZone
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.nanoseconds
@@ -33,8 +40,8 @@ import kotlin.time.Instant
  */
 suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
     arb: Arb<T>,
-    valueFromInstant: (Instant, TimeZone) -> T,
-    format: (T, now: Instant, tz: TimeZone) -> TickingValue<String>,
+    valueFromInstant: (Zoned<Instant>) -> T,
+    format: (T, now: Zoned<Instant>) -> TickingValue<String>,
     nowRange: KotlinInstantRange = Instant.DISTANT_PAST..Instant.DISTANT_FUTURE,
 ) {
     context("correctly predicts date change") {
@@ -43,10 +50,9 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
         test("arbitrary values") {
             checkAll(
                 arb,
-                Arb.kotlinInstant(nowRange),
-                Arb.zoneId().map { it.toKotlinTimeZone() },
-            ) { value, now, tz ->
-                runNextTickPredictsChangeTest(value, now, tz, format)
+                Arb.zonedInstant(nowRange),
+            ) { value, now ->
+                runNextTickPredictsChangeTest(value, now, format)
             }
         }
 
@@ -54,11 +60,10 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
         test("values close to now") {
             checkAll(
                 Arb.duration(-100.days..100.days),
-                Arb.kotlinInstant(nowRange),
-                Arb.zoneId().map { it.toKotlinTimeZone() },
-            ) { nowDiff, now, tz ->
-                val value = valueFromInstant(now + nowDiff, tz)
-                runNextTickPredictsChangeTest(value, now, tz, format)
+                Arb.zonedInstant(nowRange),
+            ) { nowDiff, now ->
+                val value = valueFromInstant(now + nowDiff)
+                runNextTickPredictsChangeTest(value, now, format)
             }
         }
     }
@@ -66,30 +71,49 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
 
 private fun <T> runNextTickPredictsChangeTest(
     value: T,
-    now: Instant,
-    tz: TimeZone,
-    format: (T, now: Instant, tz: TimeZone) -> TickingValue<String>,
+    now: Zoned<Instant>,
+    format: (T, now: Zoned<Instant>) -> TickingValue<String>,
 ) {
-    val formatted = format(value, now, tz)
+    val formatted = format(value, now)
 
     if (formatted.nextTick == null) {
         withClue("nextTick is null, so format in the very far future (100 years) should yield same value") {
-            format(value, now + (365 * 100).days, tz) shouldBe formatted
+            format(value, now + (365 * 100).days) shouldBe formatted
         }
     } else {
-        withClue("nextTick (${formatted.nextTick}) would be @ ${now.plus(formatted.nextTick)}") {
+        withClue("nextTick (${formatted.nextTick}) would be @ ${now.value.plus(formatted.nextTick)}") {
             withClue("format at 1 nanosecond before nextTick should yield same relative value") {
-                format(value, now + formatted.nextTick - 1.nanoseconds, tz) should {
+                format(value, now + (formatted.nextTick - 1.nanoseconds)) should {
                     it.value shouldBe formatted.value
                     it.nextTick shouldBe 1.nanoseconds
                 }
             }
 
             withClue("format at nextTick should yield different relative value") {
-                format(value, now + formatted.nextTick, tz) should {
+                format(value, now + formatted.nextTick) should {
                     it.value shouldNotBe formatted.value
                 }
             }
         }
     }
+}
+
+fun Arb.Companion.kotlinTimeZone() = Arb.zoneId().map { it.toKotlinTimeZone() }
+fun Arb.Companion.kotlinLocalDateTime() = Arb.localDateTime().map { it.toKotlinLocalDateTime() }
+
+fun Arb.Companion.zonedInstant(instantRange: KotlinInstantRange = Instant.DISTANT_PAST..Instant.DISTANT_FUTURE) = arbitrary {
+    Zoned(
+        value = Arb.kotlinInstant(instantRange).bind(),
+        timeZone = Arb.kotlinTimeZone().bind(),
+    )
+}
+
+fun <T> Arb.Companion.maybeZoned(value: Arb<T>) = arbitrary {
+    MaybeZoned(
+        value = value.bind(),
+        timeZone = Arb.choose(
+            10 to Arb.kotlinTimeZone(),
+            1 to listOf(null).exhaustive().toArb(),
+        ).bind(),
+    )
 }

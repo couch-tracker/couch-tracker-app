@@ -8,11 +8,11 @@ import com.ibm.icu.util.ULocale
 import io.github.couchtracker.R
 import io.github.couchtracker.intl.formatDateTimeSkeleton
 import io.github.couchtracker.utils.TickingValue
+import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.combine
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.withNextTickAtMost
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -74,9 +74,9 @@ class DynamicLocalDateTimeFormatter(
         maxUnits = relativeDurationMaxUnits,
     )
 
-    fun format(dateTime: LocalDateTime, now: Instant, tz: TimeZone): TickingValue<String> {
-        val instant = dateTime.toInstant(tz)
-        val diff = instant - now
+    fun format(dateTime: LocalDateTime, now: Zoned<Instant>): TickingValue<String> {
+        val instant = dateTime.toInstant(now.timeZone)
+        val diff = instant - now.value
 
         fun chooseThreshold(
             threshold: Duration,
@@ -93,7 +93,7 @@ class DynamicLocalDateTimeFormatter(
         }
 
         fun formatRelative(): TickingValue<String> {
-            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(dateTime, now, tz)
+            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(dateTime, now)
             return chooseThreshold(
                 threshold = DURATION_THRESHOLD,
                 withinThreshold = {
@@ -115,7 +115,7 @@ class DynamicLocalDateTimeFormatter(
                 TickingValue(
                     value = formatDateTimeSkeleton(
                         instant = instant,
-                        timeZone = tz,
+                        timeZone = now.timeZone,
                         skeleton = (absoluteDateSkeletons + timeSkeleton).sum(),
                         locale = locale,
                     ),
