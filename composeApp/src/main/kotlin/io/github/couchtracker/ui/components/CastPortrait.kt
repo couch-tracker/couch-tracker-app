@@ -1,24 +1,19 @@
 package io.github.couchtracker.ui.components
 
 import android.content.Context
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.model.TmdbAggregateCast
 import app.moviebase.tmdb.model.TmdbCast
-import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbPersonId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.PlaceholdersDefaults
-import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -34,26 +29,15 @@ fun CastPortrait(
 ) {
     PortraitComposable(
         modifier,
-        image = { w, h ->
-            if (person != null) {
-                AsyncImage(
-                    model = person.posterModel?.getCoilModel(w, h),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(onClick != null) { onClick?.invoke() },
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    fallback = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = false),
-                    error = rememberPlaceholderPainter(PlaceholdersDefaults.PERSON.icon, isError = true),
-                )
+        imageModel = person?.let {
+            { w, h ->
+                person.posterModel?.getCoilModel(w, h)
             }
         },
-        label = {
-            Text(
-                text = person?.name.orEmpty(),
-                textAlign = TextAlign.Center,
-                minLines = 1,
-            )
+        elementTypeIcon = PlaceholdersDefaults.PERSON.icon,
+        label = person?.name.orEmpty(),
+        labelMinLines = 1,
+        extraContent = {
             val subtitleItems = buildList {
                 if (person == null) {
                     add(null)
@@ -73,6 +57,7 @@ fun CastPortrait(
                 )
             }
         },
+        onClick = onClick,
     )
 }
 

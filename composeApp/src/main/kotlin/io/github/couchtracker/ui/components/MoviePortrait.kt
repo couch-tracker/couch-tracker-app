@@ -1,20 +1,13 @@
 package io.github.couchtracker.ui.components
 
 import android.content.Context
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
-import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.PlaceholdersDefaults
-import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.toImageModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,28 +22,18 @@ fun MoviePortrait(
 ) {
     PortraitComposable(
         modifier,
-        image = { w, h ->
-            if (movie != null) {
-                AsyncImage(
-                    model = movie.posterModel?.getCoilModel(w, h),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            onClick(movie)
-                        },
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    fallback = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = false),
-                    error = rememberPlaceholderPainter(PlaceholdersDefaults.MOVIE.icon, isError = true),
-                )
+        imageModel = movie?.let {
+            { w, h ->
+                movie.posterModel?.getCoilModel(w, h)
             }
         },
-        label = {
-            Text(
-                movie?.titleWithYear.orEmpty(),
-                textAlign = TextAlign.Center,
-                minLines = if (movie == null) 2 else 1,
-            )
+        elementTypeIcon = PlaceholdersDefaults.MOVIE.icon,
+        label = movie?.titleWithYear.orEmpty(),
+        labelMinLines = if (movie == null) 2 else 1,
+        onClick = movie?.let {
+            {
+                onClick(movie)
+            }
         },
     )
 }
