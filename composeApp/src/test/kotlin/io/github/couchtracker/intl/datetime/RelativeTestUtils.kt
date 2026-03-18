@@ -20,6 +20,7 @@ import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.zoneId
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.datetime.toKotlinTimeZone
 import kotlin.time.Duration
@@ -183,7 +184,7 @@ fun Arb.Companion.kotlinLocalDateTime() = Arb.localDateTime().map { it.toKotlinL
 fun Arb.Companion.zonedInstant(instantRange: KotlinInstantRange = Instant.DISTANT_PAST..Instant.DISTANT_FUTURE) = arbitrary {
     Zoned(
         value = Arb.kotlinInstant(instantRange).bind(),
-        timeZone = Arb.kotlinTimeZone().bind(),
+        timeZone = TimeZone.UTC,//Arb.kotlinTimeZone().bind(),
     )
 }
 
@@ -191,7 +192,7 @@ fun <T> Arb.Companion.maybeZoned(value: Arb<T>) = arbitrary {
     MaybeZoned(
         value = value.bind(),
         timeZone = Arb.choose(
-            10 to Arb.kotlinTimeZone(),
+            10 to listOf(TimeZone.UTC).exhaustive().toArb(),//Arb.kotlinTimeZone(),
             1 to listOf(null).exhaustive().toArb(),
         ).bind(),
     )

@@ -30,11 +30,11 @@ abstract class AbstractRelativeLocalFormatter<T>(
         val nextUnitTick: Duration,
     )
 
-    abstract val absoluteUnit: AbsoluteUnit
-    abstract val relativeUnit: RelativeUnit
-    abstract fun Zoned<Instant>.toLocalPart(): T
-    abstract fun T.unitsUntil(other: T): Int
-    abstract fun startOfNextUnit(value: T, timeZone: TimeZone): Instant
+    protected abstract val absoluteUnit: AbsoluteUnit
+    protected abstract val relativeUnit: RelativeUnit
+    protected abstract fun Zoned<Instant>.toLocalPart(): T
+    protected abstract fun T.unitsUntil(other: T): Int
+    protected abstract fun startOfNextUnit(value: T, timeZone: TimeZone): Instant
 
     protected open fun FormatContext<T>.formats(): Sequence<TickingValue<String>> = sequence {
         formatDirection()?.let { yield(it) }

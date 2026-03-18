@@ -12,8 +12,8 @@ import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.combine
 import io.github.couchtracker.utils.flatMap
-import io.github.couchtracker.utils.withNextTickAtMost
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -49,7 +49,7 @@ private val DURATION_THRESHOLD = 1.days
  */
 class DynamicLocalDateTimeFormatter(
     private val context: Context,
-    private val locale: ULocale,
+    locale: ULocale,
     private val timeSkeleton: TimeSkeleton = TimeSkeleton.MINUTES,
     private val timeZoneSkeleton: TimezoneSkeleton = TimezoneSkeleton.TIMEZONE_ID,
     relativeDateStyle: RelativeDateTimeFormatter.Style = RelativeDateTimeFormatter.Style.LONG,
@@ -57,6 +57,9 @@ class DynamicLocalDateTimeFormatter(
     relativeDurationFormatWidth: FormatWidth = FormatWidth.NARROW,
     relativeDurationOmitZeros: Boolean = true,
     relativeDurationMaxUnits: Int = 2,
+) : AbstractDynamicLocalDurationFormatter<LocalDateTime>(
+    locale = locale,
+    timeZoneSkeleton = timeZoneSkeleton,
 ) {
 
     private val relativeDateAbsoluteTimeFormatter = RelativeDateAbsoluteTimeFormatter(
@@ -77,69 +80,36 @@ class DynamicLocalDateTimeFormatter(
         maxUnits = relativeDurationMaxUnits,
     )
 
-    fun format(dateTime: MaybeZoned<LocalDateTime>, now: Zoned<Instant>): TickingValue<String> {
-        val tz = dateTime.timeZone ?: now.timeZone
-        val instant = dateTime.value.toInstant(tz)
-        val diff = instant - now.value
+    override val relativeThreshold get() = RELATIVE_DATE_THRESHOLD
+    override val absoluteSkeleton get() = (absoluteDateSkeletons + timeSkeleton).sum()
+    override fun LocalDateTime.localToInstant(timeZone: TimeZone) = toInstant(timeZone)
+    override fun calculateDiff(valueInstant: Instant, now: Zoned<Instant>, timeZone: TimeZone) = valueInstant - now.value
 
-        fun chooseThreshold(
-            threshold: Duration,
-            withinThreshold: () -> TickingValue<String>,
-            outsideThreshold: () -> TickingValue<String>,
-        ): TickingValue<String> {
-            return if (diff.absoluteValue < threshold) {
-                val willGoOutsideThresholdOrSwitchSignIn = (if (diff.isNegative()) threshold + diff else diff + 1.nanoseconds)
-                withinThreshold().withNextTickAtMost(willGoOutsideThresholdOrSwitchSignIn)
-            } else {
-                val willGoWithinThresholdIn = if (diff.isNegative()) null else diff - threshold + 1.nanoseconds
-                outsideThreshold().withNextTickAtMost(willGoWithinThresholdIn)
-            }
-        }
-
-        fun formatRelative(): TickingValue<String> {
-            val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(dateTime, now)
-            return chooseThreshold(
-                threshold = DURATION_THRESHOLD,
-                withinThreshold = {
-                    val relDurationFormat = relativeDurationFormatter.format(diff).flatMap {
-                        if (diff.isNegative()) {
-                            TickingValue(
-                                value = context.getString(R.string.duration_x_ago, it),
-                                nextTick = null,
-                            )
-                        } else {
-                            TickingValue(
-                                value = context.getString(R.string.duration_in_x, it),
-                                nextTick = diff + 1.nanoseconds,
-                            )
-                        }
-                    }
-                    relAbsFormat.combine(relDurationFormat) { relAbsFormat, relDurationFormat ->
-                        context.getString(R.string.parenthesize, relAbsFormat, relDurationFormat)
-                    }
-                },
-                outsideThreshold = { relAbsFormat },
-            )
-        }
-
+    override fun FormatContext<LocalDateTime, Duration>.formatRelative(): TickingValue<String> {
+        val relAbsFormat = relativeDateAbsoluteTimeFormatter.format(localValue, now)
         return chooseThreshold(
-            threshold = RELATIVE_DATE_THRESHOLD,
-            withinThreshold = ::formatRelative,
-            outsideThreshold = {
-                val skeletons = listOfNotNull(
-                    timeSkeleton,
-                    timeZoneSkeleton.takeIf { dateTime.timeZone != null && dateTime.timeZone != now.timeZone },
-                )
-                TickingValue(
-                    value = formatDateTimeSkeleton(
-                        instant = instant,
-                        timeZone = tz,
-                        skeleton = (absoluteDateSkeletons + skeletons).sum(),
-                        locale = locale,
-                    ),
-                    nextTick = null,
-                )
+            threshold = DURATION_THRESHOLD,
+            withinThreshold = {
+                val relDurationFormat = relativeDurationFormatter.format(diff).flatMap {
+                    if (diff.isNegative()) {
+                        TickingValue(
+                            value = context.getString(R.string.duration_x_ago, it),
+                            nextTick = null,
+                        )
+                    } else {
+                        TickingValue(
+                            value = context.getString(R.string.duration_in_x, it),
+                            nextTick = diff + 1.nanoseconds,
+                        )
+                    }
+                }
+                relAbsFormat.combine(relDurationFormat) { relAbsFormat, relDurationFormat ->
+                    context.getString(R.string.parenthesize, relAbsFormat, relDurationFormat)
+                }
             },
+            outsideThreshold = { relAbsFormat },
         )
     }
+
+    fun format(dateTime: MaybeZoned<LocalDateTime>, now: Zoned<Instant>) = formatLocalValue(dateTime, now)
 }
