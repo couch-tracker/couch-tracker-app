@@ -55,11 +55,17 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         val following: Set<ExternalShowId>,
     )
 
+    @Suppress("EqualsOrHashCode")
     data class BookmarkedShowData(
         val showId: ExternalShowId,
         val portraitModel: ShowPortraitModel,
         val seasons: ApiLoadable<List<TmdbSeasonDetail>>,
-    )
+    ) {
+        // Computing the hascode of this class is expensive.
+        // Caching it, so it's computed on creation on a background thread
+        private val cachedHashCode = super.hashCode()
+        override fun hashCode() = cachedHashCode
+    }
 
     private val bookmarks: Flow<PartitionedBookmarkedShows> = KoinPlatform.getKoin().get<Flow<ProfilesInfo>>()
         .mapNotNull { profilesInfo ->
