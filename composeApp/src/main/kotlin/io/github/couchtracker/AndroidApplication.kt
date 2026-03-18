@@ -26,7 +26,7 @@ class AndroidApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
 
         startKoin {
-            logger(AndroidLogger(Level.DEBUG))
+            logger(AndroidLogger(Level.INFO))
 
             androidContext(this@AndroidApplication)
 
