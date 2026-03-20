@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.tmdbMovieId
 import io.github.couchtracker.ui.ImageModel
@@ -39,7 +40,7 @@ fun MoviePortrait(
 }
 
 data class MoviePortraitModel(
-    val id: TmdbMovieId,
+    val id: ExternalMovieId,
     val title: String?,
     val year: Int?,
     val titleWithYear: String?,
@@ -49,7 +50,7 @@ data class MoviePortraitModel(
 
         suspend fun fromApiTmdbMovie(
             context: Context,
-            id: TmdbMovieId,
+            id: ExternalMovieId,
             details: TmdbApiTmdbMovie,
         ): MoviePortraitModel {
             val year = details.releaseDate?.year
@@ -73,7 +74,7 @@ data class MoviePortraitModel(
 suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(context: Context): MoviePortraitModel {
     return MoviePortraitModel.fromApiTmdbMovie(
         context = context,
-        id = tmdbMovieId,
+        id = tmdbMovieId.toExternalId(),
         details = this,
     )
 }

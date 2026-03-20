@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTimedValue
 
 private const val INJECT_ERRORS = false
-private const val INJECT_BROKEN_ITEMS = false
+private const val INJECT_BROKEN_ITEMS = true
 
 private const val MAX_DELAY_MS = 3_000
 private const val ERROR_PROBABILITY = 0.25f

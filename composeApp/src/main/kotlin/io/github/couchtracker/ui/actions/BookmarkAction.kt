@@ -41,3 +41,4 @@ fun BookmarkAction(id: BookmarkableExternalId): Action {
         },
     )
 }
+

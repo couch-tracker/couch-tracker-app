@@ -5,7 +5,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.utils.allErrors
@@ -15,7 +14,6 @@ import kotlinx.coroutines.launch
 
 class MovieScreenViewModel(
     application: Application,
-    val externalMovieId: ExternalMovieId,
     val movieId: TmdbMovieId,
 ) : AndroidViewModel(
     application = application,

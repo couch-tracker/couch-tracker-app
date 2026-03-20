@@ -8,6 +8,7 @@ data class Action(
     val name: String,
     val icon: ImageVector,
     val state: ActionState<*, *, *, *>? = null,
+    val badgeLabel: String? = null,
     val companionComposable: @Composable () -> Unit = {},
     val onClick: () -> Unit,
 )

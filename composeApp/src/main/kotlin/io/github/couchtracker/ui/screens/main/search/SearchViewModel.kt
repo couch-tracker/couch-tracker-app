@@ -188,7 +188,7 @@ private suspend fun TmdbSearchableListItem.toModel(language: TmdbLanguage): Sear
                 rating()?.formatted,
             ),
             trailingInfo = releaseDate?.year?.toString(),
-            navigate = { it.navigateToMovie(tmdbMovieId, toBaseMovie(language)) },
+            navigate = { it.navigateToMovie(tmdbMovieId.toExternalId(), toBaseMovie(language)) },
         )
 
         is TmdbPerson -> SearchResultItem(
