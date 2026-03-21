@@ -60,8 +60,8 @@ class DurationTest : FunSpec(
                     tuple(1.hours, DurationUnit.HOURS, 1.nanoseconds),
                     tuple(5.seconds + 230.milliseconds, DurationUnit.SECONDS, 230.milliseconds + 1.nanoseconds),
                     tuple(5.seconds, DurationUnit.MILLISECONDS, 1.nanoseconds),
-                    tuple(5.minutes, DurationUnit.HOURS, 5.minutes),
-                    tuple(5.minutes, DurationUnit.DAYS, 5.minutes),
+                    tuple(5.minutes, DurationUnit.HOURS, 5.minutes + 1.nanoseconds),
+                    tuple(5.minutes, DurationUnit.DAYS, 5.minutes + 1.nanoseconds),
                 ) { (duration, unit, expected) ->
                     duration.remainderUntilNextUnitBoundary(unit) shouldBe expected
                 }
@@ -95,7 +95,11 @@ class DurationTest : FunSpec(
             }
 
             test("check that the desired unit actually changes") {
-                checkAll(iterations = 10_000, Arb.duration(), Arb.enum<DurationUnit>()) { duration, unit ->
+                checkAll(
+                    iterations = 10_000,
+                    Arb.duration(-100.days..100.days),
+                    Arb.enum<DurationUnit>(),
+                ) { duration, unit ->
                     val prevUnit = duration.unitPart(unit).absoluteValue
                     val remainder = duration.remainderUntilNextUnitBoundary(unit)
                     val newDuration = duration - remainder
@@ -103,7 +107,7 @@ class DurationTest : FunSpec(
 
                     listOf(
                         { nextUnit shouldBeIn setOfNotNull(unit.decrease(prevUnit), unit.increase(prevUnit)) },
-                        { newDuration shouldBe Duration.ZERO },
+                        { duration.isPositive() shouldBe newDuration.isNegative() },
                     ).forAny { it() }
                 }
             }

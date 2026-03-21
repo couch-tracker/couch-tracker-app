@@ -53,7 +53,7 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
                 arb,
                 Arb.zonedInstant(nowRange),
             ) { value, now ->
-                runNextTickPredictsChangeTest(value, now, format)
+                formatAndTestNextTick(value, now, format)
             }
         }
 
@@ -64,7 +64,9 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTest(
                 Arb.zonedInstant(nowRange),
             ) { nowDiff, now ->
                 val value = valueFromInstant(now + nowDiff)
-                runNextTickPredictsChangeTest(value, now, format)
+                withClue("value = $value") {
+                    formatAndTestNextTick(value, now, format)
+                }
             }
         }
     }
@@ -88,13 +90,12 @@ suspend fun <T> FunSpecContainerScope.nextTickPredictsChangeTestMaybeZoned(
     )
 }
 
-private fun <T> runNextTickPredictsChangeTest(
+private fun <T> testNextTickPredictsChange(
     value: T,
+    formatted: TickingValue<String>,
     now: Zoned<Instant>,
     format: (T, now: Zoned<Instant>) -> TickingValue<String>,
 ) {
-    val formatted = format(value, now)
-
     if (formatted.nextTick == null) {
         withClue("nextTick is null, so format in the very far future (100 years) should yield same value") {
             format(value, now + (365 * 100).days) shouldBe formatted
@@ -114,6 +115,16 @@ private fun <T> runNextTickPredictsChangeTest(
                 }
             }
         }
+    }
+}
+
+fun <T> formatAndTestNextTick(
+    value: T,
+    now: Zoned<Instant>,
+    format: (T, now: Zoned<Instant>) -> TickingValue<String>,
+): TickingValue<String> {
+    return format(value, now).also { formatted ->
+        testNextTickPredictsChange(value, formatted, now, format)
     }
 }
 

@@ -52,6 +52,11 @@ class RelativeDurationFormatterTest : FunSpec(
                         -(4.minutes + 22.seconds + 440.milliseconds + 141.microseconds),
                         TickingValue("4m 22s", nextTick = 559.milliseconds + 859.microseconds),
                     ),
+                    tuple(
+                        RelativeDurationFormatter(ULocale.ENGLISH, FormatWidth.NARROW, minUnit = DurationUnit.MINUTES),
+                        10.seconds,
+                        TickingValue("0m", nextTick = 10.seconds + 1.nanoseconds),
+                    ),
                 ) { (formatter, duration, expected) ->
                     formatter.format(duration) shouldBe expected
                 }

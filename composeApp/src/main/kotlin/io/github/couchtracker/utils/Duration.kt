@@ -35,20 +35,21 @@ fun Duration.unitPart(unit: DurationUnit): Long {
  * positive duration means something that will happen in the future, and a negative duration something that has happened in the past.
  *
  * If the duration would change sign before the unit, that is returned instead (see last example).
+ * Sign is considered only negative or positive, with 0 being considered as being positive.
  *
  * For example:
  * - `-1h20m`, `HOURS` -> `40m`
  * - `-1h20m`, `MINUTES` -> `1m`
  * - `1h20m`, `HOURS` -> `20m1ns`
  * - `1h20m`, `MINUTES` -> `1ns`
- * - `20m`, `HOURS` -> `20m`
+ * - `20m`, `HOURS` -> `20m1ns`
  */
 fun Duration.remainderUntilNextUnitBoundary(unit: DurationUnit): Duration {
     val durationNanos = this.absoluteValue.inWholeNanoseconds
     val unitNanos = 1.toDuration(unit).inWholeNanoseconds
     val remainderNs = durationNanos % unitNanos
     return if (isPositive()) {
-        minOf(this, (remainderNs + 1).nanoseconds)
+        minOf(this, remainderNs.nanoseconds) + 1.nanoseconds
     } else {
         (unitNanos - remainderNs).nanoseconds
     }

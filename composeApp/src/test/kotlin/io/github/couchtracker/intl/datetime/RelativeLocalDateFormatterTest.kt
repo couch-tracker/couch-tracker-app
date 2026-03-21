@@ -156,7 +156,7 @@ class RelativeLocalDateFormatterTest : FunSpec(
                             2.days + 18.hours,
                         ),
                     ) { (now, expected) ->
-                        formatter.format(date, now).nextTick shouldBe expected
+                        formatter.formatAndTestNextTick(date, now).nextTick shouldBe expected
                     }
                 }
 
@@ -164,17 +164,23 @@ class RelativeLocalDateFormatterTest : FunSpec(
                     val tz = TimeZone.of("Europe/Rome")
                     test("jump forward") {
                         val date = LocalDate.parse("2025-03-30")
-                        formatter.format(localDate = date, now = Zoned(date.atStartOfDayIn(tz), tz)).nextTick shouldBe 23.hours
+                        formatter.formatAndTestNextTick(
+                            localDate = date,
+                            now = Zoned(date.atStartOfDayIn(tz), tz),
+                        ).nextTick shouldBe 23.hours
                     }
                     test("just backward") {
                         val date = LocalDate.parse("2025-10-26")
-                        formatter.format(localDate = date, now = Zoned(date.atStartOfDayIn(tz), tz)).nextTick shouldBe 25.hours
+                        formatter.formatAndTestNextTick(
+                            localDate = date,
+                            now = Zoned(date.atStartOfDayIn(tz), tz),
+                        ).nextTick shouldBe 25.hours
                     }
                 }
                 nextTickPredictsChangeTest(
                     arb = Arb.localDate().map { it.toKotlinLocalDate() },
                     valueFromInstant = { it.toLocalDateTime().date },
-                    format = { date, now -> formatter.format(date, now) },
+                    format = formatter::format,
                 )
             }
         }
@@ -184,5 +190,8 @@ class RelativeLocalDateFormatterTest : FunSpec(
 private fun RelativeLocalDateFormatter.format(days: Int): TickingValue<String> {
     val tz = TimeZone.UTC
     val now = Zoned(CURRENT_DATE.atStartOfDayIn(tz), tz)
-    return format(CURRENT_DATE.plus(days, DateTimeUnit.DAY), now)
+    return formatAndTestNextTick(CURRENT_DATE.plus(days, DateTimeUnit.DAY), now)
 }
+
+private fun RelativeLocalDateFormatter.formatAndTestNextTick(localDate: LocalDate, now: Zoned<Instant>) =
+    formatAndTestNextTick(localDate, now, ::format)
