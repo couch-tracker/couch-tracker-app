@@ -2,7 +2,6 @@
 
 package io.github.couchtracker.ui.screens.episodes
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -21,13 +20,8 @@ import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVertica
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,23 +31,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalEpisodeId
-import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.BaseCouchTrackerScreenScaffold
+import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WatchedItemsIconButton
-import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
-import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
@@ -67,8 +58,9 @@ private const val LOG_TAG = "EpisodeScreen"
 
 @Serializable
 data class EpisodeScreen(val episodeId: String) : Screen() {
+
     @Composable
-    override fun content() {
+    override fun Content() {
         val externalEpisodeId = ExternalEpisodeId.parse(this@EpisodeScreen.episodeId)
         val seasonId = when (externalEpisodeId) {
             is TmdbExternalEpisodeId -> {
@@ -77,15 +69,19 @@ data class EpisodeScreen(val episodeId: String) : Screen() {
             is UnknownExternalEpisodeId -> TODO()
         }
 
-        Content(
-            externalEpisodeId,
-            viewModel {
-                EpisodesScreenViewModel(
-                    application = viewModelApplication(),
-                    seasonId = seasonId,
-                )
-            },
-        )
+        val viewModel = viewModel {
+            EpisodesScreenViewModel(
+                application = viewModelApplication(),
+                seasonId = seasonId,
+            )
+        }
+        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
+        ScreenContainer(colorScheme) {
+            Content(
+                externalEpisodeId,
+                viewModel,
+            )
+        }
     }
 }
 
@@ -105,7 +101,6 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
                 DefaultErrorScreen(
                     error = apiError,
                     retry = { viewModel.retryAll() },
-                    backgroundColor = MaterialTheme.colorScheme.background,
                 )
             },
         ) { seasonDetails ->
@@ -130,7 +125,6 @@ private fun EpisodeScreenContent(
     onRetry: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
@@ -142,47 +136,35 @@ private fun EpisodeScreenContent(
         pageCount = { seasonDetails.episodes.size },
     )
     val selectedEpisode = seasonDetails.episodes[pagerState.currentPage]
-    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
-    val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing EpisodeScreenContent")
-    MaterialTheme(colorScheme = colorScheme) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = backgroundColor,
-            topBar = {
-                OverviewScreenComponents.Header(
-                    title = selectedEpisode.name ?: selectedEpisode.number,
-                    subtitle = viewModel.seasonSubtitle.resultValueOrNull(),
-                    backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
-                    scrollBehavior = scrollBehavior,
-                    backgroundColor = { backgroundColor },
-                    belowAppBar = {
-                        OverviewScreenComponents.HeaderScrollableTabRow(
-                            pagerState = pagerState,
-                            tabText = { page ->
-                                seasonDetails.episodes[page].number
-                            },
-                            onPageClick = { page ->
-                                coroutineScope.launch { pagerState.animateScrollToPage(page) }
-                            },
-                        )
-                    },
+    CouchTrackerScreenScaffold(
+        title = selectedEpisode.name ?: selectedEpisode.number,
+        subtitle = viewModel.seasonSubtitle.resultValueOrNull(),
+        backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
+        belowAppBar = {
+            OverviewScreenComponents.HeaderScrollableTabRow(
+                pagerState = pagerState,
+                tabText = { page ->
+                    seasonDetails.episodes[page].number
+                },
+                onPageClick = { page ->
+                    coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                },
+            )
+        },
+        snackbarHostState = snackbarHostState,
+        content = { innerPadding ->
+            HorizontalPager(pagerState, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = 1) { page ->
+                val episodeDetails = seasonDetails.episodes[page]
+                OverviewScreenComponents.EpisodePage(
+                    innerPadding = innerPadding,
+                    viewModel = viewModel,
+                    episodeDetails = episodeDetails,
+                    totalHeight = totalHeight,
                 )
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            content = { innerPadding ->
-                HorizontalPager(pagerState, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = 1) { page ->
-                    val episodeDetails = seasonDetails.episodes[page]
-                    OverviewScreenComponents.EpisodePage(
-                        innerPadding = innerPadding,
-                        viewModel = viewModel,
-                        episodeDetails = episodeDetails,
-                        totalHeight = totalHeight,
-                    )
-                }
-            },
-        )
-    }
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -194,39 +176,30 @@ private fun OverviewScreenComponents.EpisodePage(
     totalHeight: Int,
 ) {
     val episodeModel = viewModel.viewModelForEpisode(episodeDetails.tmdbEpisodeId)
-    val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
-    WatchedItemSheetScaffold(
-        scaffoldState = scaffoldState,
-        watchedItemType = WatchedItemType.EPISODE,
-        mediaRuntime = { episodeDetails.runtime },
-        mediaLanguages = { emptyList() },
-        containerColor = { Color.Transparent },
-    ) {
-        Scaffold(
-            floatingActionButton = {
-                EpisodeToolbar(
-                    externalEpisodeId = episodeDetails.externalId,
-                    expanded = toolbarExpanded,
-                    onMarkAsWatched = {
-                        // TODO: open watched scaffold
-                    },
-                )
-            },
-            contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Bottom),
-        ) { padding ->
-            EpisodeDetailsContent(
-                innerPadding = innerPadding + padding,
-                episodeModel = episodeModel,
-                episodeDetails = episodeDetails,
-                totalHeight = totalHeight,
-                modifier = Modifier.floatingToolbarVerticalNestedScroll(
-                    expanded = toolbarExpanded,
-                    onExpand = { toolbarExpanded = true },
-                    onCollapse = { toolbarExpanded = false },
-                ),
+    BaseCouchTrackerScreenScaffold(
+        floatingActionButton = {
+            EpisodeToolbar(
+                externalEpisodeId = episodeDetails.externalId,
+                expanded = toolbarExpanded,
+                onMarkAsWatched = {
+                    // TODO: open watched scaffold
+                },
             )
-        }
+        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Bottom),
+    ) { padding ->
+        EpisodeDetailsContent(
+            innerPadding = innerPadding + padding,
+            episodeModel = episodeModel,
+            episodeDetails = episodeDetails,
+            totalHeight = totalHeight,
+            modifier = Modifier.floatingToolbarVerticalNestedScroll(
+                expanded = toolbarExpanded,
+                onExpand = { toolbarExpanded = true },
+                onCollapse = { toolbarExpanded = false },
+            ),
+        )
     }
 }
 

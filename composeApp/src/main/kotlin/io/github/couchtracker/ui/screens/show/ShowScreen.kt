@@ -2,7 +2,6 @@
 
 package io.github.couchtracker.ui.screens.show
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,10 +11,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -35,9 +32,9 @@ import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.actions.Action
 import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
 import io.github.couchtracker.ui.actions.ShowActions
+import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
-import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
@@ -61,9 +58,30 @@ private const val LOG_TAG = "ShowScreen"
 data class ShowScreen(val showId: String) : Screen() {
 
     @Composable
-    override fun content() {
-        MaterialTheme(colorScheme = ColorSchemes.Show) {
-            Content(ExternalShowId.parse(showId))
+    override fun Content() {
+        val externalShowId = ExternalShowId.parse(showId)
+        val actions = ShowActions(externalShowId)
+        when (externalShowId) {
+            is TmdbExternalShowId -> {
+                val viewModel = viewModel {
+                    ShowScreenViewModel(
+                        application = viewModelApplication(),
+                        showId = externalShowId.id,
+                    )
+                }
+                val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
+                ScreenContainer(colorScheme) {
+                    TmdbShowContent(viewModel, actions)
+                }
+            }
+            is UnknownExternalShowId -> {
+                ScreenContainer(ColorSchemes.Show) {
+                    DefaultErrorScreen(
+                        error = UnsupportedItemError(externalShowId),
+                        manageItemActions = actions,
+                    )
+                }
+            }
         }
     }
 }
@@ -82,32 +100,6 @@ private enum class ShowScreenTab {
 }
 
 @Composable
-private fun Content(showId: ExternalShowId) {
-    val actions = ShowActions(showId)
-    when (showId) {
-        is TmdbExternalShowId -> {
-            val showId = showId.id
-            TmdbShowContent(
-                viewModel {
-                    ShowScreenViewModel(
-                        application = viewModelApplication(),
-                        showId = showId,
-                    )
-                },
-                actions,
-            )
-        }
-        is UnknownExternalShowId -> {
-            DefaultErrorScreen(
-                error = UnsupportedItemError(showId),
-                backgroundColor = MaterialTheme.colorScheme.background,
-                manageItemActions = actions,
-            )
-        }
-    }
-}
-
-@Composable
 private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: List<Action>) {
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -119,7 +111,6 @@ private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: List<Action
                 DefaultErrorScreen(
                     error = apiError,
                     retry = { viewModel.retryAll() },
-                    backgroundColor = MaterialTheme.colorScheme.background,
                     manageItemActions = actions,
                 )
             },
@@ -153,12 +144,8 @@ private fun ShowScreenContent(
         errors = { viewModel.allErrors },
         onRetry = reloadShow,
     )
-    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
-    val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing ShowScreenContent")
-    MediaScreenScaffold(
-        colorScheme = colorScheme,
-        backgroundColor = { backgroundColor },
+    CouchTrackerScreenScaffold(
         title = viewModel.baseDetails.resultValueOrNull()?.name.orEmpty(),
         backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
         floatingActionButton = {

@@ -28,7 +28,7 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
 import io.github.couchtracker.utils.str
 
-val LocalFullProfileDataContext = compositionLocalOf<FullProfileData> { error("no default profile context") }
+val LocalFullProfileDataContext = compositionLocalOf<FullProfileData> { error("no full profile data context") }
 
 @Composable
 fun ProfileDataContext(content: @Composable () -> Unit) {

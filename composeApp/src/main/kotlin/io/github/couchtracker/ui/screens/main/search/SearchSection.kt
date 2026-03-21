@@ -64,7 +64,6 @@ fun SearchSection(innerPadding: PaddingValues) {
     val cs = rememberCoroutineScope()
     val searchBarState = rememberSearchBarState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(canScroll = { false })
-    val bgColor = MaterialTheme.colorScheme.background
 
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -104,7 +103,6 @@ fun SearchSection(innerPadding: PaddingValues) {
                         contentScale = ContentScale.Crop,
                     )
                 },
-                backgroundColor = { bgColor },
                 appBar = {
                     val color = lerp(
                         MaterialTheme.colorScheme.surfaceContainerHigh,

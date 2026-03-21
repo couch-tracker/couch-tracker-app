@@ -8,7 +8,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionS
 fun WatchedItemSelectionsScope.DimensionSection(
     enabled: Boolean,
     selection: WatchedItemDimensionSelection<*>,
-    mediaLanguages: () -> List<Bcp47Language>,
+    mediaLanguages: List<Bcp47Language>,
     onSelectionChange: (WatchedItemDimensionSelection<*>) -> Unit,
 ) {
     when (selection) {
@@ -20,7 +20,7 @@ fun WatchedItemSelectionsScope.DimensionSection(
 
         is WatchedItemDimensionSelection.Language -> LanguageSection(
             enabled = enabled,
-            mediaLanguages = mediaLanguages(),
+            mediaLanguages = mediaLanguages,
             selection = selection,
             onSelectionChange = onSelectionChange,
         )

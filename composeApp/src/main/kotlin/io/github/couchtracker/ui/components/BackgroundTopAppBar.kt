@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
 import io.github.couchtracker.ui.ImageModel
+import io.github.couchtracker.ui.LocalBackgroundColor
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -43,14 +44,14 @@ fun BackgroundTopAppBar(
     appBar: @Composable (TopAppBarColors) -> Unit,
     contentOffset: Density.() -> Float,
     collapsedFraction: () -> Float,
-    backgroundColor: () -> Color,
 ) {
+    val bgColor = LocalBackgroundColor.current
     BoxWithConstraints(
         Modifier
             .graphicsLayer {
                 val scrollAmount = -contentOffset()
                 shadowElevation = scrollAmount.coerceAtMost(APP_BAR_MAX_ELEVATION.toPx())
-                ambientShadowColor = backgroundColor()
+                ambientShadowColor = bgColor
             },
     ) {
         image(
@@ -69,7 +70,7 @@ fun BackgroundTopAppBar(
         )
         Box(
             Modifier.drawBehind {
-                drawRect(BRUSH, colorFilter = ColorFilter.tint(backgroundColor()))
+                drawRect(BRUSH, colorFilter = ColorFilter.tint(bgColor))
             },
         ) {
             appBar(
@@ -87,14 +88,12 @@ fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     image: @Composable (Modifier, Constraints) -> Unit,
     appBar: @Composable (TopAppBarColors) -> Unit,
-    backgroundColor: () -> Color,
 ) {
     BackgroundTopAppBar(
         contentOffset = { scrollBehavior.state.contentOffset },
         collapsedFraction = { scrollBehavior.state.collapsedFraction },
         image = image,
         appBar = appBar,
-        backgroundColor = backgroundColor,
     )
 }
 
@@ -103,7 +102,6 @@ fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     backdrop: ImageModel?,
     appBar: @Composable (TopAppBarColors) -> Unit,
-    backgroundColor: () -> Color,
 ) {
     BackgroundTopAppBar(
         scrollBehavior = scrollBehavior,
@@ -132,7 +130,6 @@ fun BackgroundTopAppBar(
             )
         },
         appBar = appBar,
-        backgroundColor = backgroundColor,
     )
 }
 

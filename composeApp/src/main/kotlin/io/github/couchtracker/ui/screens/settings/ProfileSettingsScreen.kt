@@ -63,16 +63,18 @@ data class ProfileSettingsScreen(val id: Long) : Screen() {
     override fun profileDataContext() = false
 
     @Composable
-    override fun content() {
-        val navController = LocalNavController.current
-        val profilesInfo = LocalProfilesContext.current
-        val profileInfo = profilesInfo.profiles[id]
+    override fun Content() {
+        ScreenContainer {
+            val navController = LocalNavController.current
+            val profilesInfo = LocalProfilesContext.current
+            val profileInfo = profilesInfo.profiles[id]
 
-        if (profileInfo != null) {
-            Content(profileInfo)
-        } else {
-            LaunchedEffect(Unit) {
-                navController.navigateUp()
+            if (profileInfo != null) {
+                Content(profileInfo)
+            } else {
+                LaunchedEffect(Unit) {
+                    navController.navigateUp()
+                }
             }
         }
     }

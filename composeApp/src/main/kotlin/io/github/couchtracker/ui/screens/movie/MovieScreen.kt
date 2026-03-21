@@ -2,7 +2,6 @@
 
 package io.github.couchtracker.ui.screens.movie
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,7 +18,6 @@ import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVertica
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,20 +33,19 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalMovieId
-import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.BookmarkIconButton
+import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
-import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
 import io.github.couchtracker.ui.components.WatchedItemsIconButton
+import io.github.couchtracker.ui.screens.watchedItem.LocalWatchedItemSheetScaffoldState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
-import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
@@ -62,8 +59,9 @@ private const val LOG_TAG = "MovieScreen"
 
 @Serializable
 data class MovieScreen(val movieId: String) : Screen() {
+
     @Composable
-    override fun content() {
+    override fun Content() {
         val externalMovieId: ExternalMovieId = ExternalMovieId.parse(movieId)
         val movieId = when (externalMovieId) {
             is TmdbExternalMovieId -> {
@@ -71,16 +69,17 @@ data class MovieScreen(val movieId: String) : Screen() {
             }
             is UnknownExternalMovieId -> TODO()
         }
-
-        Content(
-            viewModel {
-                MovieScreenViewModel(
-                    application = viewModelApplication(),
-                    externalMovieId = externalMovieId,
-                    movieId = movieId,
-                )
-            },
-        )
+        val viewModel = viewModel {
+            MovieScreenViewModel(
+                application = viewModelApplication(),
+                externalMovieId = externalMovieId,
+                movieId = movieId,
+            )
+        }
+        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
+        ScreenContainer(colorScheme) {
+            Content(viewModel)
+        }
     }
 }
 
@@ -101,7 +100,6 @@ private fun Content(viewModel: MovieScreenViewModel) {
                 DefaultErrorScreen(
                     error = apiError,
                     retry = { viewModel.retryAll() },
-                    backgroundColor = MaterialTheme.colorScheme.background,
                 )
             },
         ) {
@@ -123,7 +121,6 @@ private fun MovieScreenContent(
     totalHeight: Int,
     reloadMovie: () -> Unit,
 ) {
-    val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -132,24 +129,23 @@ private fun MovieScreenContent(
         errors = { viewModel.allErrors },
         onRetry = reloadMovie,
     )
-    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
-    val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing MovieScreenContent")
-    WatchableMediaScreenScaffold(
-        watchedItemSheetScaffoldState = scaffoldState,
-        colorScheme = colorScheme,
-        watchedItemType = WatchedItemType.MOVIE,
-        mediaRuntime = { viewModel.fullDetails.resultValueOrNull()?.runtime },
-        mediaLanguages = { listOfNotNull(viewModel.fullDetails.resultValueOrNull()?.originalLanguage) },
-        backgroundColor = { backgroundColor },
+    CouchTrackerScreenScaffold(
         title = viewModel.baseDetails.resultValueOrNull()?.title.orEmpty(),
         backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
         floatingActionButton = {
+            val state = LocalWatchedItemSheetScaffoldState.current
             MovieToolbar(
                 externalMovieId = externalMovieId,
                 expanded = toolbarExpanded,
                 onMarkAsWatched = {
-                    scaffoldState.open(WatchedItemSheetMode.New.Movie(externalMovieId))
+                    state.open(
+                        WatchedItemSheetMode.New.Movie(
+                            externalMovieId,
+                            mediaRuntime = viewModel.fullDetails.resultValueOrNull()?.runtime,
+                            mediaLanguages = listOfNotNull(viewModel.fullDetails.resultValueOrNull()?.originalLanguage),
+                        ),
+                    )
                 },
             )
         },
