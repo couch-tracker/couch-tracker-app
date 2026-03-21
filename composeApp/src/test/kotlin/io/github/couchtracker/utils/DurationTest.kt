@@ -4,7 +4,6 @@ import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withData
-import io.kotest.inspectors.forAny
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -60,10 +59,10 @@ class DurationTest : FunSpec(
                     tuple(1.hours, DurationUnit.HOURS, 1.nanoseconds),
                     tuple(5.seconds + 230.milliseconds, DurationUnit.SECONDS, 230.milliseconds + 1.nanoseconds),
                     tuple(5.seconds, DurationUnit.MILLISECONDS, 1.nanoseconds),
-                    tuple(5.minutes, DurationUnit.HOURS, 5.minutes),
-                    tuple(5.minutes, DurationUnit.DAYS, 5.minutes),
+                    tuple(5.minutes, DurationUnit.HOURS, 1.hours + 5.minutes),
+                    tuple(5.minutes, DurationUnit.DAYS, 1.days + 5.minutes),
                 ) { (duration, unit, expected) ->
-                    duration.remainderUntilNextUnitBoundary(unit) shouldBe expected
+                    duration.getAndTestRemainderUntilNextUnitBoundary(unit) shouldBe expected
                 }
             }
             context("zero duration") {
@@ -76,7 +75,7 @@ class DurationTest : FunSpec(
                     DurationUnit.HOURS to 1.hours,
                     DurationUnit.DAYS to 1.days,
                 ) { (unit, expected) ->
-                    Duration.ZERO.remainderUntilNextUnitBoundary(unit) shouldBe expected
+                    Duration.ZERO.getAndTestRemainderUntilNextUnitBoundary(unit) shouldBe expected
                 }
             }
             context("negative values") {
@@ -90,21 +89,17 @@ class DurationTest : FunSpec(
                     tuple(5.minutes, DurationUnit.HOURS, 55.minutes),
                     tuple(5.minutes, DurationUnit.DAYS, 23.hours + 55.minutes),
                 ) { (duration, unit, expected) ->
-                    (-duration).remainderUntilNextUnitBoundary(unit) shouldBe expected
+                    (-duration).getAndTestRemainderUntilNextUnitBoundary(unit) shouldBe expected
                 }
             }
 
             test("check that the desired unit actually changes") {
-                checkAll(iterations = 10_000, Arb.duration(), Arb.enum<DurationUnit>()) { duration, unit ->
-                    val prevUnit = duration.unitPart(unit).absoluteValue
-                    val remainder = duration.remainderUntilNextUnitBoundary(unit)
-                    val newDuration = duration - remainder
-                    val nextUnit = newDuration.unitPart(unit).absoluteValue
-
-                    listOf(
-                        { nextUnit shouldBeIn setOfNotNull(unit.decrease(prevUnit), unit.increase(prevUnit)) },
-                        { newDuration shouldBe Duration.ZERO },
-                    ).forAny { it() }
+                checkAll(
+                    iterations = 10_000,
+                    Arb.duration(-100.days..100.days),
+                    Arb.enum<DurationUnit>(),
+                ) { duration, unit ->
+                    duration.getAndTestRemainderUntilNextUnitBoundary(unit)
                 }
             }
         }
@@ -134,4 +129,15 @@ private fun DurationUnit.decrease(value: Long): Long? {
     } else {
         prev
     }
+}
+
+private fun Duration.getAndTestRemainderUntilNextUnitBoundary(unit: DurationUnit): Duration {
+    val prevUnit = this.unitPart(unit).absoluteValue
+    val remainder = this.remainderUntilNextUnitBoundary(unit)
+    val newDuration = this - remainder
+    val nextUnit = newDuration.unitPart(unit).absoluteValue
+
+    nextUnit shouldBeIn setOfNotNull(unit.decrease(prevUnit), unit.increase(prevUnit))
+
+    return remainder
 }

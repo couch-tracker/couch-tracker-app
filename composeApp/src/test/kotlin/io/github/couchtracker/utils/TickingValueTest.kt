@@ -79,5 +79,33 @@ class TickingValueTest : FunSpec(
                 tickingValue.withNextTickAtMost(nextTick = nextTick) shouldBe expected
             }
         }
+
+        context("flatMap") {
+            withTests(
+                nameFn = { "${it.a}.flatMap { ${it.b} } == ${it.c}" },
+                tuple(
+                    TickingValue("ciao", 1.days),
+                    TickingValue("mondo", 50.minutes),
+                    TickingValue("mondo", 50.minutes),
+                ),
+                tuple(
+                    TickingValue("hello", null),
+                    TickingValue("world", 3.seconds),
+                    TickingValue("world", 3.seconds),
+                ),
+                tuple(
+                    TickingValue("hola", 1.seconds),
+                    TickingValue("mundo", null),
+                    TickingValue("mundo", 1.seconds),
+                ),
+                tuple(
+                    TickingValue("hallo", null),
+                    TickingValue("welt", null),
+                    TickingValue("welt", null),
+                ),
+            ) { (t1, t2, expected) ->
+                t1.flatMap { t2 } shouldBe expected
+            }
+        }
     },
 )

@@ -8,13 +8,12 @@ import io.github.couchtracker.utils.TickingValue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.tuple
 import io.kotest.datatest.withTests
-import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.duration
 import io.kotest.property.checkAll
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.microseconds
@@ -52,8 +51,13 @@ class RelativeDurationFormatterTest : FunSpec(
                         -(4.minutes + 22.seconds + 440.milliseconds + 141.microseconds),
                         TickingValue("4m 22s", nextTick = 559.milliseconds + 859.microseconds),
                     ),
+                    tuple(
+                        RelativeDurationFormatter(ULocale.ENGLISH, FormatWidth.NARROW, minUnit = DurationUnit.MINUTES),
+                        10.seconds,
+                        TickingValue("0m", nextTick = 1.minutes + 10.seconds),
+                    ),
                 ) { (formatter, duration, expected) ->
-                    formatter.format(duration) shouldBe expected
+                    formatter.formatAndTestNextTick(duration) shouldBe expected
                 }
             }
 
@@ -61,22 +65,34 @@ class RelativeDurationFormatterTest : FunSpec(
                 test("negative duration yields same format as positive") {
                     val formatter = RelativeDurationFormatter(ULocale.ENGLISH)
                     checkAll(Arb.duration()) { duration ->
-                        formatter.format(duration).value shouldBe formatter.format(-duration).value
+                        formatter.formatAndTestNextTick(duration).value shouldBe formatter.formatAndTestNextTick(-duration).value
                     }
                 }
             }
 
             context("nextTick") {
-                test("should never be null and always non-finite positive") {
-                    val formatter = RelativeDurationFormatter(ULocale.ENGLISH)
+                val formatter = RelativeDurationFormatter(ULocale.ENGLISH)
+                test("should never be null") {
                     checkAll(Arb.duration()) { duration ->
-                        formatter.format(duration).nextTick.shouldNotBeNull() should {
-                            it.isPositive().shouldBeTrue()
-                            it.isFinite().shouldBeTrue()
-                        }
+                        formatter.format(duration).nextTick.shouldNotBeNull()
                     }
                 }
+
+                nextTickPredictsChangeTest(
+                    arbitraryArb = Arb.duration(),
+                    smallArb = { it },
+                    advanceBy = Duration::minus,
+                    format = formatter::format,
+                )
             }
         }
     },
 )
+
+private fun RelativeDurationFormatter.formatAndTestNextTick(duration: Duration): TickingValue<String> {
+    return formatAndTestNextTick(
+        params = duration,
+        advanceBy = Duration::minus, // As time advances, the duration will go backwards
+        format = ::format,
+    )
+}

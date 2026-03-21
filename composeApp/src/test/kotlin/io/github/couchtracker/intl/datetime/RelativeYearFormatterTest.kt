@@ -11,11 +11,13 @@ import io.kotest.datatest.withContexts
 import io.kotest.datatest.withTests
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.element
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.year
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlin.time.Instant
 
 private val NOW_DATE = LocalDate.parse("2026-04-01")
 private val NOW = Zoned(NOW_DATE.atStartOfDayIn(TimeZone.UTC), TimeZone.UTC)
@@ -96,14 +98,15 @@ class RelativeYearFormatterTest : FunSpec(
             context("next tick") {
                 val formatter = RelativeYearFormatter(ULocale.ENGLISH)
 
-                nextTickPredictsChangeTest(
-                    arb = Arb.year().map { it.value },
-                    valueFromInstant = { it.toLocalDateTime().year },
-                    format = { year, now -> formatter.format(year, now) },
+                nextTickPredictsChangeTestWithNow(
+                    arbitraryArb = Arb.year().map { it.value },
+                    smallArb = { Arb.element(it.toLocalDateTime().year) },
+                    format = formatter::format,
                 )
             }
         }
     },
 )
 
-fun RelativeYearFormatter.format(diff: Int) = format(NOW_DATE.year + diff, NOW)
+private fun RelativeYearFormatter.format(diff: Int) = formatAndTestNextTick(NOW_DATE.year + diff, NOW)
+private fun RelativeYearFormatter.formatAndTestNextTick(year: Int, now: Zoned<Instant>) = formatAndTestNextTick(year, now, ::format)
