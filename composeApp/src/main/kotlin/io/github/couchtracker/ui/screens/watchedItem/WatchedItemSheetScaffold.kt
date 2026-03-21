@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -55,6 +56,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -82,6 +84,10 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+
+val LocalWatchedItemSheetScaffoldState = staticCompositionLocalOf<WatchedItemSheetScaffoldState> {
+    throw IllegalStateException("LocalWatchedItemSheetScaffoldState not provided")
+}
 
 @Stable
 class WatchedItemSheetScaffoldState(
@@ -130,11 +136,8 @@ fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
 
 @Composable
 fun WatchedItemSheetScaffold(
-    scaffoldState: WatchedItemSheetScaffoldState,
-    watchedItemType: WatchedItemType,
-    mediaRuntime: () -> Duration?,
-    mediaLanguages: () -> List<Bcp47Language>,
     containerColor: () -> Color,
+    scaffoldState: WatchedItemSheetScaffoldState = rememberWatchedItemSheetScaffoldState(),
     content: @Composable () -> Unit,
 ) {
     val bottomSheetState = scaffoldState.scaffoldState.bottomSheetState
@@ -172,11 +175,11 @@ fun WatchedItemSheetScaffold(
                 null -> Spacer(Modifier.height(10_000.dp))
                 else -> key(scaffoldState.openCounter) {
                     WatchedItemSheetContent(
-                        selections = rememberWatchedItemSelectionsState(watchedItemType, mode = mode),
+                        selections = rememberWatchedItemSelectionsState(mode = mode),
                         bottomSheetState = bottomSheetState,
-                        watchedItemType = watchedItemType,
-                        mediaRuntime = mediaRuntime,
-                        mediaLanguages = mediaLanguages,
+                        watchedItemType = mode.watchedItemType,
+                        mediaRuntime = mode.mediaRuntime,
+                        mediaLanguages = mode.mediaLanguages,
                         onDismissRequest = { scaffoldState.close() },
                         onHeaderHeightChange = { headerHeight = it },
                         onScrollLabelHeightChange = { scrollLabelHeight = it },
@@ -192,7 +195,10 @@ fun WatchedItemSheetScaffold(
                 color = BottomSheetDefaults.ScrimColor,
                 onDismissRequest = { scaffoldState.close() },
             ) {
-                content()
+                CompositionLocalProvider(
+                    value = LocalWatchedItemSheetScaffoldState provides scaffoldState,
+                    content = content,
+                )
             }
         },
     )
@@ -205,8 +211,8 @@ private fun WatchedItemSheetContent(
     selections: WatchedItemSelectionsState,
     bottomSheetState: SheetState,
     watchedItemType: WatchedItemType,
-    mediaRuntime: () -> Duration?,
-    mediaLanguages: () -> List<Bcp47Language>,
+    mediaRuntime: Duration?,
+    mediaLanguages: List<Bcp47Language>,
     onDismissRequest: () -> Unit,
     onHeaderHeightChange: (Int) -> Unit,
     onScrollLabelHeightChange: (Int) -> Unit,

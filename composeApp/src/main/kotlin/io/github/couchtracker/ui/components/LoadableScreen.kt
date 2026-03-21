@@ -19,13 +19,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.AnimationDefaults
@@ -135,7 +133,7 @@ fun <T : Any, E> ResultScreen(
 }
 
 @Composable
-fun <E : Any?> ResultScreen(
+fun <E> ResultScreen(
     error: E?,
     onError: @Composable (error: E) -> Unit,
     content: @Composable () -> Unit,
@@ -163,38 +161,33 @@ fun DefaultErrorScreen(
     errorMessage: String,
     errorDetails: String?,
     retry: (() -> Unit)? = null,
-    backgroundColor: Color = Color.Transparent,
     manageItemActions: List<Action> = emptyList(),
 ) {
-    Surface(color = backgroundColor) {
-        ErrorMessageComposable(
-            modifier = Modifier.fillMaxSize(),
-            errorMessage = errorMessage,
-            errorDetails = errorDetails,
-            retry = retry,
-            extraContent = {
-                if (manageItemActions.isNotEmpty()) {
-                    Text(R.string.manage_item.str(), style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.height(8.dp))
-                    ActionsVerticalMenu(manageItemActions)
-                }
-            },
-        )
-    }
+    ErrorMessageComposable(
+        modifier = Modifier.fillMaxSize(),
+        errorMessage = errorMessage,
+        errorDetails = errorDetails,
+        retry = retry,
+        extraContent = {
+            if (manageItemActions.isNotEmpty()) {
+                Text(R.string.manage_item.str(), style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(8.dp))
+                ActionsVerticalMenu(manageItemActions)
+            }
+        },
+    )
 }
 
 @Composable
 fun DefaultErrorScreen(
     error: CouchTrackerError,
     retry: (() -> Unit)? = null,
-    backgroundColor: Color = Color.Transparent,
     manageItemActions: List<Action> = emptyList(),
 ) {
     DefaultErrorScreen(
         errorMessage = error.title.string(),
         errorDetails = error.details?.string(),
         retry = if (error.isRetriable) retry else null,
-        backgroundColor = backgroundColor,
         manageItemActions = manageItemActions,
     )
 }

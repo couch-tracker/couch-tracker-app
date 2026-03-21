@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.screens.show
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,10 +40,10 @@ import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.InfoFooter
 import io.github.couchtracker.ui.components.LoadableScreen
-import io.github.couchtracker.ui.components.MediaScreenScaffold
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.OverviewScreenComponents.section
@@ -60,21 +59,23 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WatchedEpisodeSessionsScreen(val showId: String) : Screen() {
     @Composable
-    override fun content() {
+    override fun Content() {
         val externalShowId = ExternalShowId.parse(this.showId)
         val showId = when (externalShowId) {
             is TmdbExternalShowId -> externalShowId.id
             is UnknownExternalShowId -> TODO()
         }
-        Content(
-            viewModel {
-                WatchedEpisodeSessionsScreenViewModel(
-                    application = viewModelApplication(),
-                    showId = showId,
-                    externalShowId = externalShowId,
-                )
-            },
-        )
+        val viewModel = viewModel {
+            WatchedEpisodeSessionsScreenViewModel(
+                application = viewModelApplication(),
+                showId = showId,
+                externalShowId = externalShowId,
+            )
+        }
+        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
+        ScreenContainer(colorScheme) {
+            Content(viewModel)
+        }
     }
 }
 
@@ -91,7 +92,6 @@ private fun Content(viewModel: WatchedEpisodeSessionsScreenViewModel) {
                 errorMessage = error.title.string(),
                 errorDetails = error.details?.string(),
                 retry = { viewModel.retryAll() },
-                backgroundColor = MaterialTheme.colorScheme.background,
             )
         },
     ) { details ->
@@ -104,14 +104,10 @@ private fun WatchedEpisodeSessionList(
     viewModel: WatchedEpisodeSessionsScreenViewModel,
     details: ShowScreenViewModelHelper.FullDetails,
 ) {
-    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
-    val backgroundColor by animateColorAsState(colorScheme.background)
     val fullProfileData = LocalFullProfileDataContext.current
     var dialogMode by remember { mutableStateOf<WatchedEpisodeSessionDialogMode?>(null) }
 
-    MediaScreenScaffold(
-        colorScheme = colorScheme,
-        backgroundColor = { backgroundColor },
+    CouchTrackerScreenScaffold(
         title = R.string.watch_sessions.str(),
         subtitle = details.baseDetails.name.orEmpty(),
         backdrop = details.baseDetails.backdrop,

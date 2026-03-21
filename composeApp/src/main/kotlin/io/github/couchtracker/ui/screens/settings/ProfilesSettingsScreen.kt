@@ -36,11 +36,13 @@ data object ProfilesSettingsScreen : Screen() {
     override fun profileDataContext() = false
 
     @Composable
-    override fun content() = Content()
+    override fun Content() {
+        ScreenContainer { ProfilesSettingsScreenContent() }
+    }
 }
 
 @Composable
-private fun Content() {
+private fun ProfilesSettingsScreenContent() {
     val appDb = koinInject<AppData>()
     val navController = LocalNavController.current
     val profilesInfo = LocalProfilesContext.current

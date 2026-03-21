@@ -27,9 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -51,6 +49,7 @@ import coil3.compose.AsyncImage
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
+import io.github.couchtracker.ui.components.BaseCouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.ProfileSwitcherDialog
 import io.github.couchtracker.ui.screens.settings.MainSettingsScreen
 import io.github.couchtracker.utils.str
@@ -63,7 +62,7 @@ fun MainSection(
     imageModel: Any?,
     title: String,
     actions: @Composable RowScope.() -> Unit = {},
-    snackbarHostState: SnackbarHostState? = null,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     tabText: @Composable (page: Int) -> Unit,
     page: @Composable (page: Int) -> Unit,
 ) {
@@ -71,9 +70,8 @@ fun MainSection(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollState = rememberScrollState()
-    val bgColor = MaterialTheme.colorScheme.background
 
-    Scaffold(
+    BaseCouchTrackerScreenScaffold(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
@@ -88,7 +86,6 @@ fun MainSection(
                         contentScale = ContentScale.Crop,
                     )
                 },
-                backgroundColor = { bgColor },
                 appBar = { colors ->
                     Column {
                         // Matches size & style of LargeFlexibleAppBar
@@ -122,7 +119,7 @@ fun MainSection(
             )
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top),
-        snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } },
+        snackbarHostState = snackbarHostState,
         content = { scaffoldInnerPadding ->
             HorizontalPager(
                 modifier = Modifier.fillMaxWidth(),
