@@ -11,15 +11,18 @@ import io.kotest.datatest.withContexts
 import io.kotest.datatest.withTests
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.element
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.yearMonth
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.YearMonth
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinYearMonth
 import kotlinx.datetime.yearMonth
+import kotlin.time.Instant
 
 private val NOW_DATE = LocalDate.parse("2026-04-01")
 private val NOW = Zoned(NOW_DATE.atStartOfDayIn(TimeZone.UTC), TimeZone.UTC)
@@ -100,14 +103,16 @@ class RelativeYearMonthFormatterTest : FunSpec(
             context("next tick") {
                 val formatter = RelativeYearMonthFormatter(ULocale.ENGLISH)
 
-                nextTickPredictsChangeTest(
-                    arb = Arb.yearMonth().map { it.toKotlinYearMonth() },
-                    valueFromInstant = { it.toLocalDateTime().date.yearMonth },
-                    format = { yearMonth, now -> formatter.format(yearMonth, now) },
+                nextTickPredictsChangeTestWithNow(
+                    arbitraryArb = Arb.yearMonth().map { it.toKotlinYearMonth() },
+                    smallArb = { Arb.element(it.toLocalDateTime().date.yearMonth) },
+                    format = formatter::format,
                 )
             }
         }
     },
 )
 
-fun RelativeYearMonthFormatter.format(diff: Int) = format(NOW_DATE.yearMonth.plus(diff, DateTimeUnit.MONTH), NOW)
+private fun RelativeYearMonthFormatter.format(diff: Int) = formatAndTestNextTick(NOW_DATE.yearMonth.plus(diff, DateTimeUnit.MONTH), NOW)
+private fun RelativeYearMonthFormatter.formatAndTestNextTick(yearMonth: YearMonth, now: Zoned<Instant>) =
+    formatAndTestNextTick(yearMonth, now, ::format)

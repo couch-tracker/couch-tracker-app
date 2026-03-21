@@ -13,6 +13,7 @@ import io.kotest.datatest.withTests
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.element
 import io.kotest.property.arbitrary.enum
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
@@ -20,6 +21,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 /**
  * Current date used in most tests. This is a Thursday
@@ -48,6 +50,11 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                             RelativeDateAbsoluteTimeFormatter(ULocale.ENGLISH),
                             LocalDateTime.parse("2025-12-11T19:00:00"),
                             "21 days ago at 7:00 PM",
+                        ),
+                        tuple(
+                            RelativeDateAbsoluteTimeFormatter(ULocale.ENGLISH),
+                            NOW_DATE,
+                            "today at 12:00 AM",
                         ),
                         tuple(
                             RelativeDateAbsoluteTimeFormatter(ULocale.ENGLISH, timeSkeleton = TimeSkeleton.SECONDS),
@@ -86,10 +93,10 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                         ),
                     ) { (formatter, localDateTime, expected) ->
                         withClue("null timezone") {
-                            formatter.format(MaybeZoned(localDateTime, timeZone = null), NOW).value shouldBe expected
+                            formatter.formatAndTestNextTick(MaybeZoned(localDateTime, timeZone = null), NOW).value shouldBe expected
                         }
                         withClue("with same timezone as now") {
-                            formatter.format(MaybeZoned(localDateTime, timeZone = NOW.timeZone), NOW).value shouldBe expected
+                            formatter.formatAndTestNextTick(MaybeZoned(localDateTime, timeZone = NOW.timeZone), NOW).value shouldBe expected
                         }
                     }
                 }
@@ -130,7 +137,7 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                             "in 19 days at 7:00 PM -05:00",
                         ),
                     ) { (formatter, localDateTime, expected) ->
-                        formatter.format(localDateTime, NOW).value shouldBe expected
+                        formatter.formatAndTestNextTick(localDateTime, NOW).value shouldBe expected
                     }
                 }
 
@@ -162,11 +169,14 @@ class RelativeDateAbsoluteTimeFormatterTest : FunSpec(
                 }
 
                 nextTickPredictsChangeTestMaybeZoned(
-                    arb = Arb.maybeZoned(Arb.kotlinLocalDateTime()),
-                    valueFromInstant = { it.value.toLocalDateTime(it.timeZone) },
-                    format = { dateTime, now -> formatter.format(dateTime, now) },
+                    arbitraryArb = Arb.maybeZoned(Arb.kotlinLocalDateTime()),
+                    smallArb = { Arb.element(it.value.toLocalDateTime(it.timeZone)) },
+                    format = formatter::format,
                 )
             }
         }
     },
 )
+
+private fun RelativeDateAbsoluteTimeFormatter.formatAndTestNextTick(dateTime: MaybeZoned<LocalDateTime>, now: Zoned<Instant>) =
+    formatAndTestNextTick(dateTime, now, ::format)

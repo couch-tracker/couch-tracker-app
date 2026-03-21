@@ -11,7 +11,7 @@ import io.github.couchtracker.utils.MaybeZoned
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.combine
-import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.withNextTickAtMost
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
@@ -101,8 +101,18 @@ class DynamicLocalDateTimeFormatter(
             return chooseThreshold(
                 threshold = DURATION_THRESHOLD,
                 withinThreshold = {
-                    val relDurationFormat = relativeDurationFormatter.format(diff).map {
-                        context.getString(if (diff.isNegative()) R.string.duration_x_ago else R.string.duration_in_x, it)
+                    val relDurationFormat = relativeDurationFormatter.format(diff).flatMap {
+                        if (diff.isNegative()) {
+                            TickingValue(
+                                value = context.getString(R.string.duration_x_ago, it),
+                                nextTick = null,
+                            )
+                        } else {
+                            TickingValue(
+                                value = context.getString(R.string.duration_in_x, it),
+                                nextTick = diff + 1.nanoseconds,
+                            )
+                        }
                     }
                     relAbsFormat.combine(relDurationFormat) { relAbsFormat, relDurationFormat ->
                         context.getString(R.string.parenthesize, relAbsFormat, relDurationFormat)

@@ -76,6 +76,10 @@ fun <T, R> TickingValue<T>.map(transform: (T) -> R): TickingValue<R> {
     return TickingValue(value = transform(value), nextTick = nextTick)
 }
 
+fun <T, R> TickingValue<T>.flatMap(transform: (T) -> TickingValue<R>): TickingValue<R> {
+    return transform(value).withNextTickAtMost(nextTick)
+}
+
 fun <T1, T2, R> TickingValue<T1>.combine(
     other: TickingValue<T2>,
     transform: (T1, T2) -> R,
