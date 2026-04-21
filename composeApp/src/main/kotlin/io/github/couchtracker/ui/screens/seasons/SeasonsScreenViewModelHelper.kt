@@ -20,6 +20,7 @@ import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.plus
 import kotlinx.datetime.LocalDate
 
 /**
@@ -79,7 +81,7 @@ class SeasonsScreenViewModelHelper(
                 )
             }
         }
-    }.shareIn(scope, SharingStarted.Lazily, 1)
+    }.shareIn(scope + Dispatchers.Default, SharingStarted.Lazily, 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val colorScheme: Flow<ApiLoadable<ColorScheme?>> = showDetails

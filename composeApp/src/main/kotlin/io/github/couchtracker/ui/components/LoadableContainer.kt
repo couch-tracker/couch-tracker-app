@@ -110,6 +110,7 @@ fun LoadableText(
         content = { text ->
             Text(
                 text.orEmpty(),
+                modifier = Modifier.fillMaxWidth(),
                 minLines = if (text == null) placeholderLines else 1,
                 maxLines = maxLines,
                 style = style,

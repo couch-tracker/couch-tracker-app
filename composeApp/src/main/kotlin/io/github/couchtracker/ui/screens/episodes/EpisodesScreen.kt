@@ -138,9 +138,9 @@ private fun EpisodeScreenContent(
     val selectedEpisode = seasonDetails.episodes[pagerState.currentPage]
     logCompositions(LOG_TAG, "Recomposing EpisodeScreenContent")
     CouchTrackerScreenScaffold(
-        title = selectedEpisode.name ?: selectedEpisode.number,
-        subtitle = viewModel.seasonSubtitle.resultValueOrNull(),
-        backdrop = viewModel.showBaseDetails.resultValueOrNull()?.backdrop,
+        title = { selectedEpisode.name ?: selectedEpisode.number },
+        subtitle = { viewModel.seasonSubtitle.resultValueOrNull() },
+        backdrop = { viewModel.showBaseDetails.resultValueOrNull()?.backdrop },
         belowAppBar = {
             OverviewScreenComponents.HeaderScrollableTabRow(
                 pagerState = pagerState,

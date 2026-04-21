@@ -34,14 +34,17 @@ import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.plus
 import org.koin.mp.KoinPlatform
 
 /**
@@ -85,7 +88,7 @@ class ShowScreenViewModelHelper(
                 it.map { details ->
                     details.toDetails()
                 }
-            }
+            }.flowOn(Dispatchers.Default)
         }.shareIn(scope, SharingStarted.Lazily, 1)
 
     val baseDetails: Flow<ApiLoadable<BaseDetails>> = baseAndFullDetails.map { it.first }
