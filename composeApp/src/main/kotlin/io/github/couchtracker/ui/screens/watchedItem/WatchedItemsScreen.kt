@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,11 +41,11 @@ import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
-import io.github.couchtracker.ui.components.WatchableMediaScreenScaffold
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.utils.resultValueOrNull
@@ -58,7 +57,7 @@ import kotlin.time.Duration
 @Serializable
 data class WatchedItemsScreen(val itemId: String) : Screen() {
     @Composable
-    override fun content() {
+    override fun Content() {
         val viewModel = when (val externalItemId = ExternalId.parse<WatchableExternalId>(itemId)) {
             is ExternalMovieId -> {
                 val movieId = when (externalItemId) {
@@ -75,7 +74,10 @@ data class WatchedItemsScreen(val itemId: String) : Screen() {
 
             is ExternalEpisodeId -> TODO()
         }
-        Content(viewModel)
+        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Base
+        ScreenContainer(colorScheme) {
+            Content(viewModel)
+        }
     }
 }
 
@@ -93,7 +95,6 @@ private fun Content(
             DefaultErrorScreen(
                 error = apiError,
                 retry = { viewModel.retryAll() },
-                backgroundColor = MaterialTheme.colorScheme.background,
             )
         },
     ) { details ->
@@ -108,28 +109,24 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
     val watchedItems = remember(fullProfileData, viewModel.externalId) {
         fullProfileData.watchedItems.filter { it.itemId == viewModel.externalId }.sortDescending()
     }
-    val scaffoldState = rememberWatchedItemSheetScaffoldState()
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
-    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
-    val backgroundColor by animateColorAsState(colorScheme.background)
-    WatchableMediaScreenScaffold(
-        watchedItemSheetScaffoldState = scaffoldState,
-        colorScheme = colorScheme,
-        backgroundColor = { backgroundColor },
-        watchedItemType = viewModel.watchedItemType,
-        mediaRuntime = { details.runtime },
-        mediaLanguages = { listOfNotNull(details.originalLanguage) },
+    CouchTrackerScreenScaffold(
         title = R.string.viewing_history.str(),
         subtitle = details.title,
         backdrop = details.backdrop,
         floatingActionButton = {
+            val state = LocalWatchedItemSheetScaffoldState.current
             FloatingActionButton(
                 onClick = {
                     val sheetMode = when (viewModel) {
-                        is WatchedItemsScreenViewModel.Movie -> WatchedItemSheetMode.New.Movie(viewModel.externalId)
+                        is WatchedItemsScreenViewModel.Movie -> WatchedItemSheetMode.New.Movie(
+                            itemId = viewModel.externalId,
+                            mediaRuntime = details.runtime,
+                            mediaLanguages = listOfNotNull(details.originalLanguage),
+                        )
                     }
-                    scaffoldState.open(sheetMode)
+                    state.open(sheetMode)
                 },
             ) {
                 Icon(Icons.Default.Add, contentDescription = R.string.add_viewing.str())
@@ -159,11 +156,21 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
             }
         }
         watchedItemForInfoDialog?.let { watchedItem ->
+            val state = LocalWatchedItemSheetScaffoldState.current
             WatchedItemInfoDialog(
                 itemTitle = details.title,
                 watchedItem = watchedItem,
                 onDismissRequest = { watchedItemForInfoDialog = null },
-                onEditRequest = { scaffoldState.open(WatchedItemSheetMode.Edit(watchedItem)) },
+                onEditRequest = {
+                    state.open(
+                        WatchedItemSheetMode.Edit(
+                            watchedItem = watchedItem,
+                            watchedItemType = viewModel.watchedItemType,
+                            mediaRuntime = details.runtime,
+                            mediaLanguages = listOfNotNull(details.originalLanguage),
+                        ),
+                    )
+                },
                 onDeleteRequest = { watchedItemForDeleteDialog = watchedItem },
             )
         }
@@ -181,7 +188,7 @@ private fun WatchedItemListItem(
     watchedItem: WatchedItemWrapper,
     mediaRuntime: Duration?,
     onClick: () -> Unit,
-    shapes: androidx.compose.material3.ListItemShapes,
+    shapes: ListItemShapes,
 ) {
     val progressState = rememberWatchedItemProgressState(watchedItem, mediaRuntime)
     ListItem(

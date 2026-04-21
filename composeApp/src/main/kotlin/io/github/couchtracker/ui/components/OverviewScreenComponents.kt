@@ -89,7 +89,6 @@ object OverviewScreenComponents {
         title: String,
         backdrop: ImageModel?,
         scrollBehavior: TopAppBarScrollBehavior,
-        backgroundColor: () -> Color,
         subtitle: String? = null,
         belowAppBar: @Composable ColumnScope.() -> Unit = {},
     ) {
@@ -97,7 +96,6 @@ object OverviewScreenComponents {
         BackgroundTopAppBar(
             scrollBehavior = scrollBehavior,
             backdrop = backdrop,
-            backgroundColor = backgroundColor,
             appBar = { colors ->
                 Column {
                     LargeFlexibleTopAppBar(

@@ -2,7 +2,6 @@ package io.github.couchtracker.db.profile.model.watchedItem
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.ui.screens.watchedItem.DateTimeSectionState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
@@ -46,10 +45,9 @@ class WatchedItemSelectionsState(
 }
 
 @Composable
-fun rememberWatchedItemSelectionsState(watchedItemType: WatchedItemType, mode: WatchedItemSheetMode): WatchedItemSelectionsState {
-    val profileData = LocalFullProfileDataContext.current
+fun rememberWatchedItemSelectionsState(mode: WatchedItemSheetMode): WatchedItemSelectionsState {
     val dimensionSelectionsState = rememberWatchedItemDimensionSelectionsState(
-        watchedItemType = watchedItemType,
+        watchedItemType = mode.watchedItemType,
         mode = when (mode) {
             is WatchedItemSheetMode.New -> WatchedItemDimensionSelectionsMode.New
             is WatchedItemSheetMode.Edit -> WatchedItemDimensionSelectionsMode.Edit(mode.watchedItem.selections)
@@ -57,7 +55,7 @@ fun rememberWatchedItemSelectionsState(watchedItemType: WatchedItemType, mode: W
     )
 
     // TODO make this savable
-    return remember(profileData, watchedItemType, mode, dimensionSelectionsState) {
+    return remember(mode.watchedItemType, mode, dimensionSelectionsState) {
         when (mode) {
             is WatchedItemSheetMode.New -> WatchedItemSelectionsState(
                 sheetMode = mode,

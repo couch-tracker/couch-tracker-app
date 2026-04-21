@@ -261,7 +261,7 @@ private fun DimensionSelectionsDialog(
                                 WatchedItemSelectionsScope.DimensionSection(
                                     enabled = true,
                                     selection = selection,
-                                    mediaLanguages = { mediaLanguages },
+                                    mediaLanguages = mediaLanguages,
                                     onSelectionChange = selectionsState::update,
                                 )
                             }

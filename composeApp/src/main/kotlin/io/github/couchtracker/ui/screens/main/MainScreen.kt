@@ -13,17 +13,18 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -32,6 +33,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.BaseCouchTrackerScreenScaffold
 import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.ui.screens.main.search.SEARCH_SCREEN_EVENT_BUS
 import io.github.couchtracker.ui.screens.main.search.SearchScreenEvent
@@ -41,84 +43,91 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object MainScreen : Screen() {
-
     @Composable
-    override fun content() = Content()
+    override fun Content() {
+        val navController = rememberNavController()
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+        val currentSection = currentRoute?.let { Section.fromId(it) }
+        val colorScheme = if (currentSection != null) {
+            val color by animateColorAsState(
+                targetValue = currentSection.color,
+                animationSpec = tween(AnimationDefaults.ANIMATION_DURATION_MS),
+            )
+            color.generateColorScheme()
+        } else {
+            ColorSchemes.Base
+        }
+        ScreenContainer(colorScheme, animateBgChange = false) {
+            Content(navController, currentSection ?: DEFAULT_SECTION)
+        }
+    }
 }
 
 private val DEFAULT_SECTION = Section.SHOWS
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Content() {
+private fun Content(navController: NavHostController, currentSection: Section) {
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val currentSection = currentRoute?.let { Section.fromId(it) } ?: DEFAULT_SECTION
     val animationSpec = AnimationDefaults.NAV_HOST_FADE_ANIMATION_SPEC
 
-    val color by animateColorAsState(
-        targetValue = currentSection.color,
-        animationSpec = tween(AnimationDefaults.ANIMATION_DURATION_MS),
-    )
-    MaterialTheme(colorScheme = color.generateColorScheme()) {
-        Scaffold(
-            bottomBar = {
-                NavigationBar {
-                    for (section in Section.entries) {
-                        NavigationBarItem(
-                            icon = { Icon(section.icon, contentDescription = section.displayName.str()) },
-                            label = { Text(section.displayName.str()) },
-                            selected = currentSection == section,
-                            onClick = {
-                                navController.navigate(section.id) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                    if (section == Section.SEARCH && currentRoute == section.id) {
-                                        // SearchSection is already open, sending an event to it
-                                        SEARCH_SCREEN_EVENT_BUS.tryEmit(SearchScreenEvent.FocusSearch)
-                                    }
+    BaseCouchTrackerScreenScaffold(
+        bottomBar = {
+            NavigationBar {
+                for (section in Section.entries) {
+                    NavigationBarItem(
+                        icon = { Icon(section.icon, contentDescription = section.displayName.str()) },
+                        label = { Text(section.displayName.str()) },
+                        selected = currentSection == section,
+                        onClick = {
+                            navController.navigate(section.id) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
                                 }
-                            },
-                        )
+                                launchSingleTop = true
+                                restoreState = true
+                                if (section == Section.SEARCH && currentSection == section) {
+                                    // SearchSection is already open, sending an event to it
+                                    SEARCH_SCREEN_EVENT_BUS.tryEmit(SearchScreenEvent.FocusSearch)
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+        },
+        content = { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = DEFAULT_SECTION.id,
+                enterTransition = { fadeIn(animationSpec) },
+                exitTransition = { fadeOut(animationSpec) },
+            ) {
+                composable(Section.SHOWS.id) {
+                    MaterialTheme(colorScheme = Section.SHOWS.colorScheme) {
+                        ShowSection(innerPadding)
                     }
                 }
-            },
-            content = { innerPadding ->
-                NavHost(
-                    navController = navController,
-                    startDestination = DEFAULT_SECTION.id,
-                    enterTransition = { fadeIn(animationSpec) },
-                    exitTransition = { fadeOut(animationSpec) },
-                ) {
-                    composable(Section.SHOWS.id) {
-                        MaterialTheme(colorScheme = Section.SHOWS.colorScheme) {
-                            ShowSection(innerPadding)
-                        }
-                    }
-                    composable(Section.MOVIES.id) {
-                        MaterialTheme(colorScheme = Section.MOVIES.colorScheme) {
-                            MoviesSection(innerPadding)
-                        }
-                    }
-                    composable(Section.PROFILE.id) {
-                        MaterialTheme(colorScheme = Section.PROFILE.colorScheme) {
-                            ProfileSection(innerPadding)
-                        }
-                    }
-                    composable(Section.SEARCH.id) {
-                        MaterialTheme(colorScheme = Section.SEARCH.colorScheme) {
-                            SearchSection(innerPadding)
-                        }
+                composable(Section.MOVIES.id) {
+                    MaterialTheme(colorScheme = Section.MOVIES.colorScheme) {
+                        MoviesSection(innerPadding)
                     }
                 }
-            },
-            contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(insetTop),
-        )
-    }
+                composable(Section.PROFILE.id) {
+                    MaterialTheme(colorScheme = Section.PROFILE.colorScheme) {
+                        ProfileSection(innerPadding)
+                    }
+                }
+                composable(Section.SEARCH.id) {
+                    MaterialTheme(colorScheme = Section.SEARCH.colorScheme) {
+                        SearchSection(innerPadding)
+                    }
+                }
+            }
+        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(insetTop),
+    )
 }
 
 private enum class Section(

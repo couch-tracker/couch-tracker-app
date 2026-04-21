@@ -74,7 +74,9 @@ data object TmdbLanguagesSettingsScreen : Screen() {
     override fun profileDataContext() = false
 
     @Composable
-    override fun content() = Content()
+    override fun Content() {
+        ScreenContainer { io.github.couchtracker.ui.screens.settings.Content() }
+    }
 }
 
 // Header + Switch + Category label
@@ -103,7 +105,6 @@ private fun Content() {
             DefaultErrorScreen(
                 error = apiError,
                 retry = { coroutineScope.launch { downloadTmdbLanguages() } },
-                backgroundColor = MaterialTheme.colorScheme.background,
             )
         },
     ) { allTmdbLanguages ->

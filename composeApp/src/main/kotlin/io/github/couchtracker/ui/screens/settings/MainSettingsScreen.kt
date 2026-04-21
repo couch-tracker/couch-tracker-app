@@ -17,11 +17,13 @@ import me.zhanghai.compose.preference.preferenceCategory
 @Serializable
 data object MainSettingsScreen : Screen() {
     @Composable
-    override fun content() = Content()
+    override fun Content() {
+        ScreenContainer { MainSettingsScreenContent() }
+    }
 }
 
 @Composable
-private fun Content() {
+private fun MainSettingsScreenContent() {
     val navController = LocalNavController.current
     BaseSettings(R.string.settings.str(), header = null, footer = null) {
         preferenceCategory(

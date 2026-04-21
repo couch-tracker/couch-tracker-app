@@ -2,7 +2,6 @@
 
 package io.github.couchtracker.ui.screens.seasons
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,18 +10,11 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -32,6 +24,7 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalSeasonId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.EpisodeListItem
 import io.github.couchtracker.ui.components.LoadableScreen
@@ -49,23 +42,28 @@ private const val LOG_TAG = "SeasonsScreen"
 
 @Serializable
 data class SeasonsScreen(val seasonId: String) : Screen() {
+
     @Composable
-    override fun content() {
+    override fun Content() {
         val externalSeasonId = ExternalSeasonId.parse(this@SeasonsScreen.seasonId)
         val seasonId = when (externalSeasonId) {
             is TmdbExternalSeasonId -> externalSeasonId.id
             is UnknownExternalSeasonId -> TODO()
         }
 
-        Content(
-            viewModel {
-                SeasonsScreenViewModel(
-                    application = viewModelApplication(),
-                    showId = seasonId.showId,
-                )
-            },
-            initialSeason = externalSeasonId,
-        )
+        val viewModel = viewModel {
+            SeasonsScreenViewModel(
+                application = viewModelApplication(),
+                showId = seasonId.showId,
+            )
+        }
+        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
+        ScreenContainer(colorScheme) {
+            Content(
+                viewModel,
+                initialSeason = externalSeasonId,
+            )
+        }
     }
 }
 
@@ -81,7 +79,6 @@ private fun Content(viewModel: SeasonsScreenViewModel, initialSeason: ExternalSe
             DefaultErrorScreen(
                 error = apiError,
                 retry = { viewModel.retryAll() },
-                backgroundColor = MaterialTheme.colorScheme.background,
             )
         },
     ) { showDetails ->
@@ -103,7 +100,6 @@ private fun SeasonsScreenContent(
     reloadSeason: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
@@ -115,46 +111,34 @@ private fun SeasonsScreenContent(
         pageCount = { showDetails.seasons.size },
     )
     val selectedSeason = showDetails.seasons[pagerState.currentPage]
-    val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Show
-    val backgroundColor by animateColorAsState(colorScheme.background)
     logCompositions(LOG_TAG, "Recomposing SeasonsScreenContent")
-    MaterialTheme(colorScheme = colorScheme) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = backgroundColor,
-            topBar = {
-                OverviewScreenComponents.Header(
-                    title = selectedSeason.name ?: selectedSeason.defaultName,
-                    subtitle = showDetails.name,
-                    backdrop = showDetails.backdrop,
-                    scrollBehavior = scrollBehavior,
-                    backgroundColor = { backgroundColor },
-                    belowAppBar = {
-                        OverviewScreenComponents.HeaderScrollableTabRow(
-                            pagerState = pagerState,
-                            tabText = { page ->
-                                showDetails.seasons[page].defaultName
-                            },
-                            onPageClick = { page ->
-                                coroutineScope.launch { pagerState.animateScrollToPage(page) }
-                            },
-                        )
-                    },
+    CouchTrackerScreenScaffold(
+        title = selectedSeason.name ?: selectedSeason.defaultName,
+        subtitle = showDetails.name,
+        backdrop = showDetails.backdrop,
+        belowAppBar = {
+            OverviewScreenComponents.HeaderScrollableTabRow(
+                pagerState = pagerState,
+                tabText = { page ->
+                    showDetails.seasons[page].defaultName
+                },
+                onPageClick = { page ->
+                    coroutineScope.launch { pagerState.animateScrollToPage(page) }
+                },
+            )
+        },
+        snackbarHostState = snackbarHostState,
+        content = { innerPadding ->
+            HorizontalPager(pagerState, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = 1) { page ->
+                val seasonDetails = showDetails.seasons[page]
+                OverviewScreenComponents.SeasonPage(
+                    innerPadding = innerPadding,
+                    viewModel = viewModel,
+                    seasonBaseData = seasonDetails,
                 )
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            content = { innerPadding ->
-                HorizontalPager(pagerState, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = 1) { page ->
-                    val seasonDetails = showDetails.seasons[page]
-                    OverviewScreenComponents.SeasonPage(
-                        innerPadding = innerPadding,
-                        viewModel = viewModel,
-                        seasonBaseData = seasonDetails,
-                    )
-                }
-            },
-        )
-    }
+            }
+        },
+    )
 }
 
 @Composable
