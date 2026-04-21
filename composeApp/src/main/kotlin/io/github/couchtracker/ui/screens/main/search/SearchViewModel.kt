@@ -40,6 +40,7 @@ import io.github.couchtracker.utils.error.ApiResult
 import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.settings.get
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -51,6 +52,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlin.time.Duration.Companion.milliseconds
 
 class SearchViewModel(
@@ -88,7 +90,7 @@ class SearchViewModel(
                 lazyGridState = LazyGridState(0, 0),
             )
         }
-        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+        .shareIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, replay = 1)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val searchResults: Flow<PagingData<SearchResultItem>> = currentSearchInstance
@@ -151,7 +153,7 @@ class SearchViewModel(
                 }
             }
         }
-    }.collectAsLoadable()
+    }.collectAsLoadable("explorePageModel")
 
     fun search() {
         searchRequestId++

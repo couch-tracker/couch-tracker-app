@@ -17,6 +17,7 @@ import io.github.couchtracker.utils.allErrors
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.collectAsLoadableInScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class EpisodesScreenViewModel(
@@ -34,9 +35,9 @@ class EpisodesScreenViewModel(
     )
     private val childModels = ComposableCache<EpisodeViewModel>()
 
-    val seasonDetails by baseViewModel.seasonDetails.collectAsLoadable()
-    val showBaseDetails by baseViewModel.showViewModel.baseDetails.collectAsLoadable()
-    val colorScheme by baseViewModel.showViewModel.colorScheme.collectAsLoadable()
+    val seasonDetails by baseViewModel.seasonDetails.collectAsLoadable("seasonDetails")
+    val showBaseDetails by baseViewModel.showViewModel.baseDetails.collectAsLoadable("showBaseDetails", Dispatchers.Main)
+    val colorScheme by baseViewModel.showViewModel.colorScheme.collectAsLoadable("colorScheme")
     val seasonSubtitle get() = baseViewModel.subtitle(seasonDetails, showBaseDetails)
 
     val allErrors by derivedStateOf {
@@ -55,8 +56,8 @@ class EpisodesScreenViewModel(
             episodeId = episodeId,
             retryContext = retryContext,
         )
-        val details by baseViewModel.details.collectAsLoadableInScope(scope)
-        val images by baseViewModel.images.collectAsLoadableInScope(scope)
+        val details by baseViewModel.details.collectAsLoadableInScope(scope, "details")
+        val images by baseViewModel.images.collectAsLoadableInScope(scope, "images")
         val allErrors by derivedStateOf {
             listOf(details, images).allErrors()
         }

@@ -34,8 +34,8 @@ class SeasonsScreenViewModel(
     )
     private val childModels = ComposableCache<SeasonViewModel>()
 
-    val showDetails by baseViewModel.showDetails.collectAsLoadable()
-    val colorScheme by baseViewModel.colorScheme.collectAsLoadable()
+    val showDetails by baseViewModel.showDetails.collectAsLoadable("showDetails")
+    val colorScheme by baseViewModel.colorScheme.collectAsLoadable("colorScheme")
 
     val allErrors by derivedStateOf {
         listOf(showDetails, colorScheme).allErrors() +
@@ -53,7 +53,7 @@ class SeasonsScreenViewModel(
             seasonId = seasonId,
             retryContext = retryContext,
         )
-        val details by baseViewModel.details.collectAsLoadableInScope(scope)
+        val details by baseViewModel.details.collectAsLoadableInScope(scope, "details")
         val allErrors by derivedStateOf {
             listOf(details).allErrors()
         }

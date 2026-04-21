@@ -107,10 +107,11 @@ private fun WatchedEpisodeSessionList(
     val fullProfileData = LocalFullProfileDataContext.current
     var dialogMode by remember { mutableStateOf<WatchedEpisodeSessionDialogMode?>(null) }
 
+    val title = R.string.watch_sessions.str()
     CouchTrackerScreenScaffold(
-        title = R.string.watch_sessions.str(),
-        subtitle = details.baseDetails.name.orEmpty(),
-        backdrop = details.baseDetails.backdrop,
+        title = { title },
+        subtitle = { details.baseDetails.name.orEmpty() },
+        backdrop = { details.baseDetails.backdrop },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -158,7 +159,9 @@ private fun WatchedEpisodeSessionList(
                 if (watchedEpisodeSessions.isEmpty()) {
                     item {
                         MessageComposable(
-                            modifier = Modifier.fillMaxWidth().height(240.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp),
                             icon = Icons.Outlined.Layers,
                             message = R.string.no_watch_sessions.str(),
                         )
@@ -170,7 +173,9 @@ private fun WatchedEpisodeSessionList(
                         } else {
                             item {
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp),
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                 ) {
@@ -188,7 +193,12 @@ private fun WatchedEpisodeSessionList(
                     }
                 }
                 item(key = "info-footer") {
-                    InfoFooter(R.string.watch_session_info.str(), modifier = Modifier.animateItem().padding(horizontal = 8.dp))
+                    InfoFooter(
+                        text = R.string.watch_session_info.str(),
+                        modifier = Modifier
+                            .animateItem()
+                            .padding(horizontal = 8.dp),
+                    )
                 }
             }
         },

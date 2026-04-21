@@ -146,8 +146,8 @@ private fun ShowScreenContent(
     )
     logCompositions(LOG_TAG, "Recomposing ShowScreenContent")
     CouchTrackerScreenScaffold(
-        title = viewModel.baseDetails.resultValueOrNull()?.name.orEmpty(),
-        backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
+        title = { viewModel.baseDetails.resultValueOrNull()?.name.orEmpty() },
+        backdrop = { viewModel.baseDetails.resultValueOrNull()?.backdrop },
         floatingActionButton = {
             ActionsHorizontalFloatingToolbar(actions)
         },
@@ -193,15 +193,12 @@ private fun OverviewScreenComponents.ShowDetailsContent(
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
-    val baseDetails = viewModel.baseDetails
-    val fullDetails = viewModel.fullDetails
-    val images = viewModel.images
-    val credits = viewModel.credits
+    logCompositions(LOG_TAG, "Recomposing ShowDetailsContent")
     ContentList(innerPadding, modifier) {
         topSpace()
-        section(title = { textBlock("creators", fullDetails.mapResult { it.createdByString }, placeholderLines = 2) }) {
+        section(title = { textBlock("creators", viewModel.fullDetails.mapResult { it.createdByString }, placeholderLines = 2) }) {
             tags(
-                tags = fullDetails.mapResult { details ->
+                tags = viewModel.fullDetails.mapResult { details ->
                     listOfNotNull(
                         details.baseDetails.year?.toString(),
                         details.rating?.formatted,
@@ -209,12 +206,12 @@ private fun OverviewScreenComponents.ShowDetailsContent(
                 },
             )
         }
-        section(title = { tagline(fullDetails.mapResult { it.tagline }) }) {
-            overview(baseDetails.mapResult { it.overview })
+        section(title = { tagline(viewModel.fullDetails.mapResult { it.tagline }) }) {
+            overview(viewModel.baseDetails.mapResult { it.overview })
         }
-        imagesSection(images, totalHeight = totalHeight)
-        castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
-        crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
+        imagesSection(viewModel.images, totalHeight = totalHeight)
+        castSection(viewModel.credits.mapResult { it.cast }, totalHeight = totalHeight)
+        crewSection(viewModel.credits.mapResult { it.crew }, totalHeight = totalHeight)
     }
 }
 
@@ -226,6 +223,7 @@ private fun OverviewScreenComponents.SeasonsContent(
 ) {
     val seasons = viewModel.fullDetails.mapResult { it.seasons }
     val navController = LocalNavController.current
+    logCompositions(LOG_TAG, "Recomposing SeasonsContent")
     LoadableScreen(
         seasons,
         onError = { apiError ->

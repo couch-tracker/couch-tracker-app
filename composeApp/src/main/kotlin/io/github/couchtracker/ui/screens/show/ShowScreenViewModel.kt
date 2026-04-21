@@ -10,6 +10,7 @@ import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.utils.allErrors
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.error.CouchTrackerError
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ShowScreenViewModel(
@@ -26,11 +27,11 @@ class ShowScreenViewModel(
         retryContext = retryContext,
     )
 
-    val baseDetails by baseViewModel.baseDetails.collectAsLoadable()
-    val fullDetails by baseViewModel.fullDetails.collectAsLoadable()
-    val colorScheme by baseViewModel.colorScheme.collectAsLoadable()
-    val images by baseViewModel.images.collectAsLoadable()
-    val credits by baseViewModel.credits.collectAsLoadable()
+    val baseDetails by baseViewModel.baseDetails.collectAsLoadable("baseDetails", Dispatchers.Main)
+    val fullDetails by baseViewModel.fullDetails.collectAsLoadable("fullDetails")
+    val colorScheme by baseViewModel.colorScheme.collectAsLoadable("colorScheme")
+    val images by baseViewModel.images.collectAsLoadable("images")
+    val credits by baseViewModel.credits.collectAsLoadable("credits")
 
     val allErrors: List<CouchTrackerError> by derivedStateOf {
         listOf(baseDetails, fullDetails, colorScheme, images, credits).allErrors()

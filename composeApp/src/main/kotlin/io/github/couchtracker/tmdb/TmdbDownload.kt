@@ -197,8 +197,8 @@ private fun <T : Any> tmdbGetOrDownload(
                 emit(downloadAndSave(cacheEvent, downloader, putInCache, coroutineContext))
             }
         }
-        .flowOn(coroutineContext)
         .distinctUntilChanged()
+        .flowOn(coroutineContext)
 }
 
 private suspend fun <T : Any> downloadAndSave(

@@ -24,8 +24,8 @@ class WatchedEpisodeSessionsScreenViewModel(
         retryContext = retryContext,
     )
 
-    val fullDetails by baseViewModel.fullDetails.collectAsLoadable()
-    val colorScheme by baseViewModel.colorScheme.collectAsLoadable()
+    val fullDetails by baseViewModel.fullDetails.collectAsLoadable("fullDetails")
+    val colorScheme by baseViewModel.colorScheme.collectAsLoadable("colorScheme")
 
     fun retryAll() {
         viewModelScope.launch { retryContext.retryAll() }

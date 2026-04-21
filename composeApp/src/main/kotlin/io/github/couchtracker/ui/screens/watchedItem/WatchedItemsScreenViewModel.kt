@@ -50,7 +50,7 @@ sealed interface WatchedItemsScreenViewModel {
             movieId = movieId,
             retryContext = retryContext,
         )
-        private val movieDetails by baseViewModel.fullDetails.collectAsLoadable()
+        private val movieDetails by baseViewModel.fullDetails.collectAsLoadable("movieDetails")
         override val details by derivedStateOf {
             movieDetails.mapResult { details ->
                 Details(
@@ -62,7 +62,7 @@ sealed interface WatchedItemsScreenViewModel {
             }
         }
         override val watchedItemType get() = WatchedItemType.MOVIE
-        override val colorScheme by baseViewModel.colorScheme.collectAsLoadable()
+        override val colorScheme by baseViewModel.colorScheme.collectAsLoadable("colorScheme")
 
         override fun retryAll() {
             viewModelScope.launch { retryContext.retryAll() }

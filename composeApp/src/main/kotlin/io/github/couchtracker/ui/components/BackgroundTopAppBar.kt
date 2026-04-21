@@ -100,7 +100,7 @@ fun BackgroundTopAppBar(
 @Composable
 fun BackgroundTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
-    backdrop: ImageModel?,
+    backdrop: () -> ImageModel?,
     appBar: @Composable (TopAppBarColors) -> Unit,
 ) {
     BackgroundTopAppBar(
@@ -124,7 +124,7 @@ fun BackgroundTopAppBar(
                         fraction = scrollBehavior.state.collapsedFraction,
                     ).roundToInt()
                 },
-                model = backdrop?.getCoilModel(constraints.maxWidth, constraints.maxHeight),
+                model = backdrop()?.getCoilModel(constraints.maxWidth, constraints.maxHeight),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
             )
