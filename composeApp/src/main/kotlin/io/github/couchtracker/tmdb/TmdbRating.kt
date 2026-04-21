@@ -19,7 +19,8 @@ data class TmdbRating private constructor(
         suspend fun ofOrNull(average: Float?, count: Int?): TmdbRating? {
             return when {
                 average == null || average < 0 -> null
-                count == null && average > 0 || count != null && count > 0 -> of(average, count)
+                average > 0 -> of(average, count)
+                average >= 0 && count != null && count > 0 -> of(average, count)
                 else -> null
             }
         }
