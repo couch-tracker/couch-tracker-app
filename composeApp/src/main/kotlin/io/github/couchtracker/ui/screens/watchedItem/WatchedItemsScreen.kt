@@ -111,10 +111,12 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
     }
     var watchedItemForInfoDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
     var watchedItemForDeleteDialog: WatchedItemWrapper? by remember { mutableStateOf(null) }
+
+    val title = R.string.viewing_history.str()
     CouchTrackerScreenScaffold(
-        title = R.string.viewing_history.str(),
-        subtitle = details.title,
-        backdrop = details.backdrop,
+        title = { title },
+        subtitle = { details.title },
+        backdrop = { details.backdrop },
         floatingActionButton = {
             val state = LocalWatchedItemSheetScaffoldState.current
             FloatingActionButton(

@@ -131,8 +131,8 @@ private fun MovieScreenContent(
     )
     logCompositions(LOG_TAG, "Recomposing MovieScreenContent")
     CouchTrackerScreenScaffold(
-        title = viewModel.baseDetails.resultValueOrNull()?.title.orEmpty(),
-        backdrop = viewModel.baseDetails.resultValueOrNull()?.backdrop,
+        title = { viewModel.baseDetails.resultValueOrNull()?.title.orEmpty() },
+        backdrop = { viewModel.baseDetails.resultValueOrNull()?.backdrop },
         floatingActionButton = {
             val state = LocalWatchedItemSheetScaffoldState.current
             MovieToolbar(
@@ -196,14 +196,11 @@ private fun OverviewScreenComponents.MoviePage(
     totalHeight: Int,
     modifier: Modifier = Modifier,
 ) {
-    val baseDetails = viewModel.baseDetails
-    val fullDetails = viewModel.fullDetails
-    val images = viewModel.images
-    val credits = viewModel.credits
+    logCompositions(LOG_TAG, "Recomposing MoviePage")
     ContentList(innerPadding, modifier) {
-        section(title = { textBlock("directors", credits.mapResult { it.directorsString }, placeholderLines = 2) }) {
+        section(title = { textBlock("directors", viewModel.credits.mapResult { it.directorsString }, placeholderLines = 2) }) {
             tags(
-                tags = fullDetails.mapResult { details ->
+                tags = viewModel.fullDetails.mapResult { details ->
                     listOfNotNull(
                         details.baseDetails.year?.toString(),
                         details.runtimeString,
@@ -212,12 +209,12 @@ private fun OverviewScreenComponents.MoviePage(
                 },
             )
         }
-        section(title = { tagline(fullDetails.mapResult { it.tagline }) }) {
-            overview(baseDetails.mapResult { it.overview })
+        section(title = { tagline(viewModel.fullDetails.mapResult { it.tagline }) }) {
+            overview(viewModel.baseDetails.mapResult { it.overview })
         }
-        imagesSection(images, totalHeight = totalHeight)
-        castSection(credits.mapResult { it.cast }, totalHeight = totalHeight)
-        crewSection(credits.mapResult { it.crew }, totalHeight = totalHeight)
+        imagesSection(viewModel.images, totalHeight = totalHeight)
+        castSection(viewModel.credits.mapResult { it.cast }, totalHeight = totalHeight)
+        crewSection(viewModel.credits.mapResult { it.crew }, totalHeight = totalHeight)
         // To avoid overlaps with the FAB; see FabBaselineTokens.ContainerHeight
         item("fab-spacer") { Spacer(Modifier.height(56.dp)) }
     }

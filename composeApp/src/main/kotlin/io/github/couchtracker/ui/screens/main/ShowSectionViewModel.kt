@@ -30,6 +30,7 @@ import io.github.couchtracker.utils.injectBrokenItems
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.koin.mp.KoinPlatform
 
 class ShowSectionViewModel(application: Application) : AndroidViewModel(application) {
@@ -84,15 +86,15 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
         .distinctUntilChanged()
-        .shareIn(viewModelScope, SharingStarted.Eagerly, 1)
+        .shareIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, 1)
 
     val watchlist: Loadable<List<Pair<ExternalShowId, CouchTrackerResult<BookmarkedShowData>>>> by flowDetailForShows(
         bookmarks.map { it.watchlist },
-    ).collectAsLoadable()
+    ).collectAsLoadable("watchlist")
 
     val following: Loadable<List<Pair<ExternalShowId, CouchTrackerResult<BookmarkedShowData>>>> by flowDetailForShows(
         bookmarks.map { it.following },
-    ).collectAsLoadable()
+    ).collectAsLoadable("following")
 
     val allErrors: List<CouchTrackerError> by derivedStateOf {
         watchlist.allErrors() + following.allErrors()

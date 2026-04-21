@@ -78,18 +78,18 @@ object OverviewScreenComponents {
     private const val WIDE_COMPONENTS_ASPECT_RATIO = 16f / 9
     private const val COLUMN_COMPONENTS_ASPECT_RATIO = 3f / 2
     private const val ITEMS_PER_COLUMN = 4
-    private const val PLACEHOLDER_IMAGES_COUNT = 3
-    private const val PLACEHOLDER_CAST_COUNT = 3
+    private val PLACEHOLDER_IMAGES = List(3) { null }
+    private val PLACEHOLDER_CAST = List(3) { null }
     private const val PLACEHOLDER_CREW_COLUMNS_COUNT = 1
     val LIST_BOTTOM_SPACE = 96.dp
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     fun Header(
-        title: String,
-        backdrop: ImageModel?,
+        title: () -> String,
+        backdrop: () -> ImageModel?,
         scrollBehavior: TopAppBarScrollBehavior,
-        subtitle: String? = null,
+        subtitle: () -> String? = { null },
         belowAppBar: @Composable ColumnScope.() -> Unit = {},
     ) {
         val navController = LocalNavController.current
@@ -103,14 +103,14 @@ object OverviewScreenComponents {
                         title = {
                             val isExpanded = LocalTextStyle.current == MaterialTheme.typography.displaySmall
                             Text(
-                                title,
+                                title(),
                                 maxLines = if (isExpanded) 6 else 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         },
-                        subtitle = subtitle?.let {
+                        subtitle = subtitle()?.let {
                             {
-                                Text(subtitle)
+                                Text(it)
                             }
                         },
                         navigationIcon = {
@@ -208,7 +208,7 @@ object OverviewScreenComponents {
                 text,
                 maxLines = 1,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             )
         }
     }
@@ -308,6 +308,7 @@ object OverviewScreenComponents {
             Text(
                 text.str(),
                 modifier = modifier
+                    .fillMaxWidth()
                     .animateItem()
                     .padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.titleMedium,
@@ -451,7 +452,7 @@ object OverviewScreenComponents {
             content = images
                 .mapError { return }
                 .onValue { it.ifEmpty { return } },
-            placeholder = { List(PLACEHOLDER_IMAGES_COUNT) { ImageModel(defaultAspectRatio, null) } },
+            placeholder = { PLACEHOLDER_IMAGES },
         ) { images, isPlaceholder ->
             HorizontalListSection(
                 totalHeight,
@@ -463,9 +464,9 @@ object OverviewScreenComponents {
                     shadowElevation = 8.dp,
                     tonalElevation = 8.dp,
                 ) {
-                    val aspectRation = image.aspectRatio ?: defaultAspectRatio
+                    val aspectRation = image?.aspectRatio ?: defaultAspectRatio
                     val imgWidth = (targetHeight * aspectRation).roundToInt()
-                    val model = image.getCoilModel(imgWidth, targetHeight)
+                    val model = image?.getCoilModel(imgWidth, targetHeight)
                     AsyncImage(
                         model,
                         modifier = Modifier
@@ -490,7 +491,7 @@ object OverviewScreenComponents {
             content = people
                 .mapError { return }
                 .onValue { it.ifEmpty { return } },
-            placeholder = { List(PLACEHOLDER_CAST_COUNT) { null } },
+            placeholder = { PLACEHOLDER_CAST },
         ) { people, isPlaceholder ->
             HorizontalListSection(
                 totalHeight = totalHeight,

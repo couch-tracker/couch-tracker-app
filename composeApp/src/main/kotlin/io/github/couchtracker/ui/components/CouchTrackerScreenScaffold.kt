@@ -54,10 +54,10 @@ fun BaseCouchTrackerScreenScaffold(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CouchTrackerScreenScaffold(
-    title: String,
-    backdrop: ImageModel?,
+    title: () -> String,
+    backdrop: () -> ImageModel?,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    subtitle: () -> String? = { null },
     belowAppBar: @Composable ColumnScope.() -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},

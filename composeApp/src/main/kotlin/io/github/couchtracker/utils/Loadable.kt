@@ -1,5 +1,6 @@
 package io.github.couchtracker.utils
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -11,13 +12,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import io.github.couchtracker.BuildConfig
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -96,20 +98,27 @@ fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
 
 fun <T> Flow<Loadable<T>>.collectAsLoadableInScope(
     scope: CoroutineScope,
+    debugLog: String,
     context: CoroutineContext = Dispatchers.Default,
 ): State<Loadable<T>> {
     val state = mutableStateOf<Loadable<T>>(Loadable.Loading)
-    scope.launch(Dispatchers.Main) {
-        flowOn(context).collectLatest { item -> state.value = item }
+    scope.launch(Dispatchers.Main, start = CoroutineStart.UNDISPATCHED) {
+        flowOn(context).collect { item ->
+            if (BuildConfig.DEBUG) {
+                Log.d("Loadable", "Collecting $debugLog: ${item.javaClass}")
+            }
+            state.value = item
+        }
     }
     return state
 }
 
 context(model: ViewModel)
 fun <T> Flow<Loadable<T>>.collectAsLoadable(
+    debugLog: String,
     context: CoroutineContext = Dispatchers.Default,
 ): State<Loadable<T>> {
-    return collectAsLoadableInScope(model.viewModelScope, context)
+    return collectAsLoadableInScope(model.viewModelScope, debugLog, context)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

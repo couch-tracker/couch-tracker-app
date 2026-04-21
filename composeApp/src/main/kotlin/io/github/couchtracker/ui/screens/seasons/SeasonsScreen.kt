@@ -113,9 +113,9 @@ private fun SeasonsScreenContent(
     val selectedSeason = showDetails.seasons[pagerState.currentPage]
     logCompositions(LOG_TAG, "Recomposing SeasonsScreenContent")
     CouchTrackerScreenScaffold(
-        title = selectedSeason.name ?: selectedSeason.defaultName,
-        subtitle = showDetails.name,
-        backdrop = showDetails.backdrop,
+        title = { selectedSeason.name ?: selectedSeason.defaultName },
+        subtitle = { showDetails.name },
+        backdrop = { showDetails.backdrop },
         belowAppBar = {
             OverviewScreenComponents.HeaderScrollableTabRow(
                 pagerState = pagerState,
