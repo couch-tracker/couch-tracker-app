@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.text.LocalBackgroundTextMeasurementExecutor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import io.github.couchtracker.ui.screens.watchedItem.WatchedItemsScreen
 import io.github.couchtracker.utils.loadAll
 import io.github.couchtracker.utils.rememberComputationResult
 import org.koin.compose.getKoin
+import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
 val LocalNavController = staticCompositionLocalOf<NavController> { error("no default nav controller") }
@@ -47,7 +49,10 @@ fun App() {
     val koinLoadState = rememberComputationResult { koin.loadAll() }
     val animationSpec = AnimationDefaults.NAV_HOST_FADE_ANIMATION_SPEC
     MaterialTheme(colorScheme = ColorSchemes.Base) {
-        CompositionLocalProvider(LocalNavController provides navController) {
+        CompositionLocalProvider(
+            LocalNavController provides navController,
+            LocalBackgroundTextMeasurementExecutor provides Executors.newSingleThreadExecutor(),
+        ) {
             Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
                 LoadableScreen(koinLoadState) {
                     AppSettingsContext {
