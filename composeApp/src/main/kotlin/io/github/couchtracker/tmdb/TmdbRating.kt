@@ -12,15 +12,17 @@ data class TmdbRating private constructor(
 ) {
     init {
         require(count == null || count > 0)
-        require(average > 0)
+        require(average >= 0)
     }
 
     companion object {
         suspend fun ofOrNull(average: Float?, count: Int?): TmdbRating? {
             return when {
-                average == null || average < 0 -> null
-                count == null && average > 0 || count != null && count > 0 -> of(average, count)
-                else -> null
+                average == null || !average.isFinite() -> null
+                average == 0f && count != null && count > 0 -> of(average, count)
+                average <= 0 -> null
+                count == null || count <= 0 -> of(average, null)
+                else -> of(average, count)
             }
         }
 
