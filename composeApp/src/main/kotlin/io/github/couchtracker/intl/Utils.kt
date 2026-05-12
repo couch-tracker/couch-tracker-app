@@ -1,13 +1,17 @@
 package io.github.couchtracker.intl
 
 import android.icu.text.ListFormatter
+import com.ibm.icu.impl.SimpleFormatterImpl
 import com.ibm.icu.text.DateFormat
+import com.ibm.icu.text.DateTimePatternGenerator
+import com.ibm.icu.text.SimpleDateFormat
 import com.ibm.icu.util.ULocale
 import io.github.couchtracker.intl.datetime.Skeleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaZoneId
+import java.time.ZonedDateTime
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
@@ -28,4 +32,24 @@ fun formatDateTimeSkeleton(instant: Instant, timeZone: TimeZone, skeleton: Skele
     val pattern = DateFormat.getInstanceForSkeleton(skeleton.value, locale)
     val temporal = instant.toJavaInstant().atZone(timeZone.toJavaZoneId())
     return pattern.format(temporal)
+}
+
+fun combineLiteralDateAndTimePattern(
+    locale: ULocale,
+    dateFormatStyle: Int,
+    literalDate: String,
+    timePattern: DateTimePatternGenerator.() -> String,
+    value: ZonedDateTime,
+): String {
+    val generator = DateTimePatternGenerator.getInstance(locale)
+    val dateTimePattern = generator.getDateTimeFormat(dateFormatStyle)
+    val pattern = SimpleFormatterImpl.formatRawPattern(
+        dateTimePattern,
+        2, // min
+        2, // max
+        timePattern(generator),
+        "'${literalDate.replace("'", "''")}'",
+    )
+
+    return SimpleDateFormat(pattern, locale).format(value)
 }
