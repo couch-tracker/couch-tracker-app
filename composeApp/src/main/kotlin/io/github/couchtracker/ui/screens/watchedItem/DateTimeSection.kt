@@ -256,10 +256,10 @@ private fun CustomDateTimeRow(
         is PartialDateTime.Local.Year -> localDate.localized(YearSkeleton.NUMERIC).string()
         is PartialDateTime.Local.YearMonth -> localDate.localized(YearSkeleton.NUMERIC, MonthSkeleton.WIDE).string()
         is PartialDateTime.Local.Date -> localDate.localized(Skeletons.MEDIUM_DATE).string()
-        is PartialDateTime.Local.DateTime -> localDate.localized(Skeletons.MEDIUM_DATE).string()
+        is PartialDateTime.Local.DateTime -> localDate.localized(Skeletons.MEDIUM_DATE, timeSkeleton = null).string()
     }
     val timeString = if (localDate is PartialDateTime.Local.DateTime) {
-        localDate.localized(TimeSkeleton.MINUTES).string()
+        localDate.localized(dateSkeleton = null, timeSkeleton = TimeSkeleton.MINUTES).string()
     } else {
         null
     }

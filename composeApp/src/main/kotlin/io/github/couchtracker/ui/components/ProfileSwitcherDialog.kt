@@ -30,9 +30,9 @@ import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.ProfileInfo
+import io.github.couchtracker.intl.datetime.DateTimeSkeleton
 import io.github.couchtracker.intl.datetime.Skeletons
 import io.github.couchtracker.intl.datetime.TimeSkeleton
-import io.github.couchtracker.intl.datetime.sum
 import io.github.couchtracker.intl.formatDateTimeSkeleton
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
@@ -122,7 +122,8 @@ fun ProfileInfo.formattedLastModified(): String {
         else -> formatDateTimeSkeleton(
             instant = lastModified,
             timeZone = TimeZone.currentSystemDefault(),
-            skeleton = (Skeletons.MEDIUM_DATE + TimeSkeleton.SECONDS).sum(),
+            dateTimeSkeleton = DateTimeSkeleton(Skeletons.MEDIUM_DATE, TimeSkeleton.SECONDS),
+            timezoneSkeleton = null,
             locale = Locale.current.platformLocale.toULocale(),
         )
     }

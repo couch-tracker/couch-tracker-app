@@ -62,10 +62,8 @@ class DynamicYearFormatter(
                     value = formatDateTimeSkeleton(
                         instant = LocalDate(year.value, month = Month.JANUARY, day = 1).atStartOfDayIn(tz),
                         timeZone = tz,
-                        skeleton = listOfNotNull(
-                            absoluteSkeleton,
-                            if (year.timeZone != null) timeZoneSkeleton else null,
-                        ).sum(),
+                        dateTimeSkeleton = DateTimeSkeleton(absoluteSkeleton),
+                        timezoneSkeleton = if (year.timeZone != null) timeZoneSkeleton else null,
                         locale = locale,
                     ),
                     nextTick = null,
