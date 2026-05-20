@@ -6,6 +6,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.intl.datetime.DateSkeleton
 import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
@@ -102,10 +103,12 @@ class EpisodesScreenViewModelHelper(
                             firstAirDate = episode.airDate?.let {
                                 PartialDateTime.Local.Date(it)
                                     .localized(
-                                        YearSkeleton.NUMERIC,
-                                        MonthSkeleton.WIDE,
-                                        DayOfMonthSkeleton.NUMERIC,
-                                        DayOfWeekSkeleton.WIDE,
+                                        DateSkeleton(
+                                            YearSkeleton.NUMERIC,
+                                            MonthSkeleton.WIDE,
+                                            DayOfMonthSkeleton.NUMERIC,
+                                            DayOfWeekSkeleton.WIDE,
+                                        ),
                                     )
                                     .localize()
                             },

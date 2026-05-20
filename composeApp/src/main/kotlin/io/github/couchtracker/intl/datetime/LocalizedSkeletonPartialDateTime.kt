@@ -12,12 +12,14 @@ import kotlinx.datetime.TimeZone
  * Specialization of [Localized] for [PartialDateTime] that are localized with a [Skeleton].
  */
 abstract class LocalizedSkeletonPartialDateTime<out PDT : PartialDateTime>(item: PDT) : Localized<PDT>(item) {
-    abstract val skeleton: Skeleton
+    abstract val dateTimeSkeleton: DateTimeSkeleton
+    abstract val timezoneSkeleton: TimezoneSkeleton?
 }
 
 private class LocalizedSkeletonPartialDateTimeImpl<out PDT : PartialDateTime>(
     item: PDT,
-    override val skeleton: Skeleton,
+    override val dateTimeSkeleton: DateTimeSkeleton,
+    override val timezoneSkeleton: TimezoneSkeleton?,
 ) : LocalizedSkeletonPartialDateTime<PDT>(item) {
 
     override fun localize(locale: ULocale): String {
@@ -33,24 +35,31 @@ private class LocalizedSkeletonPartialDateTimeImpl<out PDT : PartialDateTime>(
         return formatDateTimeSkeleton(
             instant = instant,
             timeZone = timeZone,
-            skeleton = skeleton,
+            dateTimeSkeleton = dateTimeSkeleton,
+            timezoneSkeleton = timezoneSkeleton,
             locale = locale,
         )
     }
 }
 
-/**
- * Localizes this [PartialDateTime.Local] with the given skeletons, which are concatenated together.
- */
-fun <L : Local> L.localized(skeletons: Collection<LocalSkeleton<L>>): LocalizedSkeletonPartialDateTime<L> {
-    return LocalizedSkeletonPartialDateTimeImpl(this, skeletons.sum())
+fun <L : Local.WithYear> L.localized(yearSkeleton: YearSkeleton): LocalizedSkeletonPartialDateTime<L> {
+    return LocalizedSkeletonPartialDateTimeImpl(this, DateTimeSkeleton(yearSkeleton), timezoneSkeleton = null)
 }
 
-fun <L : Local> L.localized(
-    firstSkeleton: LocalSkeleton<L>,
-    vararg otherSkeletons: LocalSkeleton<L>,
-): LocalizedSkeletonPartialDateTime<L> {
-    return LocalizedSkeletonPartialDateTimeImpl(this, (listOf(firstSkeleton) + otherSkeletons).toList().sum())
+fun <L : Local.WithYearMonth> L.localized(yearSkeleton: YearSkeleton?, monthSkeleton: MonthSkeleton?): LocalizedSkeletonPartialDateTime<L> {
+    return LocalizedSkeletonPartialDateTimeImpl(this, DateTimeSkeleton(yearSkeleton, monthSkeleton), timezoneSkeleton = null)
+}
+
+fun <L : Local.WithDate> L.localized(skeleton: DateSkeleton): LocalizedSkeletonPartialDateTime<L> {
+    return LocalizedSkeletonPartialDateTimeImpl(this, DateTimeSkeleton(skeleton, time = null), timezoneSkeleton = null)
+}
+
+fun <L : Local.WithDateTime> L.localized(skeleton: DateTimeSkeleton): LocalizedSkeletonPartialDateTime<L> {
+    return LocalizedSkeletonPartialDateTimeImpl(this, skeleton, timezoneSkeleton = null)
+}
+
+fun <L : Local.WithDateTime> L.localized(dateSkeleton: DateSkeleton?, timeSkeleton: TimeSkeleton?): LocalizedSkeletonPartialDateTime<L> {
+    return localized(DateTimeSkeleton(dateSkeleton, timeSkeleton))
 }
 
 /**
@@ -63,8 +72,7 @@ fun Zoned.localized(
     timezoneSkeleton: TimezoneSkeleton,
     localSkeletons: (Local) -> LocalizedSkeletonPartialDateTime<Local>,
 ): LocalizedSkeletonPartialDateTime<Zoned> {
-    val list = listOf(localSkeletons(this.local).skeleton, timezoneSkeleton).sum()
-    return LocalizedSkeletonPartialDateTimeImpl(this, list)
+    return LocalizedSkeletonPartialDateTimeImpl(this, localSkeletons(this.local).dateTimeSkeleton, timezoneSkeleton)
 }
 
 /**

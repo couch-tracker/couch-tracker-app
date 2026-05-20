@@ -1,6 +1,6 @@
 package io.github.couchtracker.intl.datetime
 
-import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import kotlin.collections.setOfNotNull
 
 /**
  * Represents a Unicode CLDR Skeleton.
@@ -16,16 +16,9 @@ interface Skeleton {
 }
 
 /**
- * A specialization of [Skeleton], which has a type [L] that must be a subtype of [PartialDateTime.Local].
- *
- * This is helpful to know which component is required for this skeleton to have a meaning.
- */
-interface LocalSkeleton<in L : PartialDateTime.Local> : Skeleton
-
-/**
  * See [Unicode docs](https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-year).
  */
-enum class YearSkeleton(override val value: String) : LocalSkeleton<PartialDateTime.Local.WithYear> {
+enum class YearSkeleton(override val value: String) : Skeleton {
 
     /**
      * Two low-order digits of the year, e.g. `95` for 1995
@@ -41,7 +34,7 @@ enum class YearSkeleton(override val value: String) : LocalSkeleton<PartialDateT
 /**
  * See [Unicode docs](https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-month).
  */
-enum class MonthSkeleton(override val value: String) : LocalSkeleton<PartialDateTime.Local.WithMonth> {
+enum class MonthSkeleton(override val value: String) : Skeleton {
     /**
      * Numeric, zero-padded month, e.g. `02` for February
      */
@@ -71,7 +64,7 @@ enum class MonthSkeleton(override val value: String) : LocalSkeleton<PartialDate
 /**
  * See [Unicode docs](https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-day).
  */
-enum class DayOfMonthSkeleton(override val value: String) : LocalSkeleton<PartialDateTime.Local.WithDay> {
+enum class DayOfMonthSkeleton(override val value: String) : Skeleton {
     /**
      * Numeric, zero-padded day-of-month, e.g. `09`
      */
@@ -86,7 +79,7 @@ enum class DayOfMonthSkeleton(override val value: String) : LocalSkeleton<Partia
 /**
  * See [Unicode docs](https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-weekday).
  */
-enum class DayOfWeekSkeleton(override val value: String) : LocalSkeleton<PartialDateTime.Local.WithDay> {
+enum class DayOfWeekSkeleton(override val value: String) : Skeleton {
     /**
      * Narrow day-of-week name, e.g. `T` for Tuesday
      */
@@ -114,7 +107,7 @@ enum class DayOfWeekSkeleton(override val value: String) : LocalSkeleton<Partial
  *  - [minute](https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-minute)
  *  - [second](https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-second)
  */
-enum class TimeSkeleton(override val value: String) : LocalSkeleton<PartialDateTime.Local.WithTime> {
+enum class TimeSkeleton(override val value: String) : Skeleton {
     /**
      * Time with hours and minutes, zero-padded. 12/24 hours is locale-dependent
      */
@@ -146,7 +139,45 @@ enum class TimezoneSkeleton(override val value: String) : Skeleton {
     SPECIFIC_NON_LOCATION("zzzz"),
 }
 
-private class PlusSkeleton(skeletons: Collection<Skeleton>) : Skeleton {
+interface SkeletonGroup : Skeleton {
+    val skeletons: Collection<Skeleton>
+
+    override val value: String
+        get() = skeletons.joinToString(separator = " ") { it.value }
+}
+
+data class DateSkeleton(
+    val year: YearSkeleton? = null,
+    val month: MonthSkeleton? = null,
+    val dayOfMonth: DayOfMonthSkeleton? = null,
+    val dayOfWeekSkeleton: DayOfWeekSkeleton? = null,
+) : SkeletonGroup {
+    init {
+        require(year != null || month != null || dayOfMonth != null || dayOfWeekSkeleton != null) { "At least one skeleton must be set" }
+    }
+
+    override val skeletons: Set<Skeleton>
+        get() = setOfNotNull(year, month, dayOfMonth, dayOfWeekSkeleton)
+}
+
+data class DateTimeSkeleton(
+    val date: DateSkeleton?,
+    val time: TimeSkeleton?,
+) : SkeletonGroup {
+
+    override val skeletons: Set<Skeleton>
+        get() = date?.skeletons.orEmpty() + setOfNotNull(time)
+
+    constructor(
+        year: YearSkeleton? = null,
+        month: MonthSkeleton? = null,
+        dayOfMonth: DayOfMonthSkeleton? = null,
+        dayOfWeek: DayOfWeekSkeleton? = null,
+        time: TimeSkeleton? = null,
+    ) : this(DateSkeleton(year, month, dayOfMonth, dayOfWeek), time)
+}
+
+private class PlusSkeleton(override val skeletons: Collection<Skeleton>) : SkeletonGroup {
     override val value = skeletons.joinToString(separator = " ") { it.value }
 }
 
@@ -155,12 +186,9 @@ private class PlusSkeleton(skeletons: Collection<Skeleton>) : Skeleton {
  */
 fun Collection<Skeleton>.sum(): Skeleton = PlusSkeleton(this)
 
-typealias DateSkeleton = LocalSkeleton<PartialDateTime.Local.WithDate>
-
 object Skeletons {
-    val NUMERIC_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.NUMERIC, DayOfMonthSkeleton.NUMERIC)
-    val MEDIUM_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.ABBREVIATED, DayOfMonthSkeleton.NUMERIC)
-    val LONG_DATE =
-        listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC, DayOfWeekSkeleton.ABBREVIATED)
-    val FULL_DATE = listOf<DateSkeleton>(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC, DayOfWeekSkeleton.WIDE)
+    val NUMERIC_DATE = DateSkeleton(YearSkeleton.NUMERIC, MonthSkeleton.NUMERIC, DayOfMonthSkeleton.NUMERIC)
+    val MEDIUM_DATE = DateSkeleton(YearSkeleton.NUMERIC, MonthSkeleton.ABBREVIATED, DayOfMonthSkeleton.NUMERIC)
+    val LONG_DATE = DateSkeleton(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC, DayOfWeekSkeleton.ABBREVIATED)
+    val FULL_DATE = DateSkeleton(YearSkeleton.NUMERIC, MonthSkeleton.WIDE, DayOfMonthSkeleton.NUMERIC, DayOfWeekSkeleton.WIDE)
 }

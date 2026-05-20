@@ -20,6 +20,7 @@ import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.intl.datetime.DateSkeleton
 import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
@@ -109,10 +110,12 @@ data class EpisodeListItemModel(
                 firstAirDate = episode.airDate?.let {
                     PartialDateTime.Local.Date(it)
                         .localized(
-                            YearSkeleton.NUMERIC,
-                            MonthSkeleton.ABBREVIATED,
-                            DayOfMonthSkeleton.NUMERIC,
-                            DayOfWeekSkeleton.ABBREVIATED,
+                            DateSkeleton(
+                                year = YearSkeleton.NUMERIC,
+                                month = MonthSkeleton.ABBREVIATED,
+                                dayOfMonth = DayOfMonthSkeleton.NUMERIC,
+                                dayOfWeekSkeleton = DayOfWeekSkeleton.ABBREVIATED,
+                            ),
                         )
                         .localize()
                 },

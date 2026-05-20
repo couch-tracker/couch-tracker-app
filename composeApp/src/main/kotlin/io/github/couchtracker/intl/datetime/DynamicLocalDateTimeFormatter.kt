@@ -51,7 +51,7 @@ class DynamicLocalDateTimeFormatter(
     private val timeSkeleton: TimeSkeleton = TimeSkeleton.MINUTES,
     private val timeZoneSkeleton: TimezoneSkeleton = TimezoneSkeleton.TIMEZONE_ID,
     relativeDateStyle: RelativeDateTimeFormatter.Style = RelativeDateTimeFormatter.Style.LONG,
-    private val absoluteDateSkeletons: List<DateSkeleton> = Skeletons.MEDIUM_DATE,
+    private val absoluteDateSkeletons: DateSkeleton = Skeletons.MEDIUM_DATE,
     relativeDurationFormatWidth: FormatWidth = FormatWidth.NARROW,
     relativeDurationOmitZeros: Boolean = true,
     relativeDurationMaxUnits: Int = 2,
@@ -114,15 +114,12 @@ class DynamicLocalDateTimeFormatter(
             thresholdEnd = instant + RELATIVE_DATE_THRESHOLD,
             withinThreshold = ::formatRelative,
             outsideThreshold = {
-                val skeletons = listOfNotNull(
-                    timeSkeleton,
-                    timeZoneSkeleton.takeIf { dateTime.timeZone != null && dateTime.timeZone != now.timeZone },
-                )
                 TickingValue(
                     value = formatDateTimeSkeleton(
                         instant = instant,
                         timeZone = tz,
-                        skeleton = (absoluteDateSkeletons + skeletons).sum(),
+                        dateTimeSkeleton = DateTimeSkeleton(absoluteDateSkeletons, timeSkeleton),
+                        timezoneSkeleton = timeZoneSkeleton.takeIf { dateTime.timeZone != null && dateTime.timeZone != now.timeZone },
                         locale = locale,
                     ),
                     nextTick = null,
