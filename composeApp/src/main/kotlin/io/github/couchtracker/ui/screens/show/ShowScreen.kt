@@ -29,7 +29,7 @@ import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.actions.Action
+import io.github.couchtracker.ui.actions.Actions
 import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
 import io.github.couchtracker.ui.actions.ShowActions
 import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
@@ -100,7 +100,7 @@ private enum class ShowScreenTab {
 }
 
 @Composable
-private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: List<Action>) {
+private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: Actions) {
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
@@ -131,7 +131,7 @@ private fun ShowScreenContent(
     viewModel: ShowScreenViewModel,
     totalHeight: Int,
     reloadShow: () -> Unit,
-    actions: List<Action>,
+    actions: Actions,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(
@@ -149,7 +149,7 @@ private fun ShowScreenContent(
         title = { viewModel.baseDetails.resultValueOrNull()?.name.orEmpty() },
         backdrop = { viewModel.baseDetails.resultValueOrNull()?.backdrop },
         floatingActionButton = {
-            ActionsHorizontalFloatingToolbar(actions)
+            ActionsHorizontalFloatingToolbar(actions, expanded = true)
         },
         snackbarHostState = snackbarHostState,
         belowAppBar = {

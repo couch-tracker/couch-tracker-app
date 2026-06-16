@@ -169,6 +169,7 @@
     <string name="action_bookmark_add">Add to bookmarks</string>
     <string name="action_bookmark_remove">Remove form bookmarks</string>
 
+    <string name="viewings_list">Viewings list</string>
     <string name="watch_sessions">Watch sessions</string>
     <string name="watch_session_info">Each episode you watch belongs to a watch session, which lets you group your viewings together logically. If you rewatch a show from the beginning, you can create a new watch session. Your progress, next episode to watch, and related information are all tied to active watch sessions.</string>
     <string name="add_watch_session">Add watch session</string>
