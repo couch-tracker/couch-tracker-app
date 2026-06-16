@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.AnimationDefaults
-import io.github.couchtracker.ui.actions.Action
+import io.github.couchtracker.ui.actions.Actions
 import io.github.couchtracker.ui.actions.ActionsVerticalMenu
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
@@ -161,7 +161,7 @@ fun DefaultErrorScreen(
     errorMessage: String,
     errorDetails: String?,
     retry: (() -> Unit)? = null,
-    manageItemActions: List<Action> = emptyList(),
+    manageItemActions: Actions = Actions(),
 ) {
     ErrorMessageComposable(
         modifier = Modifier.fillMaxSize(),
@@ -182,7 +182,7 @@ fun DefaultErrorScreen(
 fun DefaultErrorScreen(
     error: CouchTrackerError,
     retry: (() -> Unit)? = null,
-    manageItemActions: List<Action> = emptyList(),
+    manageItemActions: Actions = Actions(),
 ) {
     DefaultErrorScreen(
         errorMessage = error.title.string(),

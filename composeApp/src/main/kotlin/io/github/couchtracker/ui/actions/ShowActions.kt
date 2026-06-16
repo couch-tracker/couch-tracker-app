@@ -11,13 +11,16 @@ import io.github.couchtracker.ui.screens.show.navigateToEpisodeWatchSessions
 import io.github.couchtracker.utils.str
 
 @Composable
-fun ShowActions(showId: ExternalShowId): List<Action> {
+fun ShowActions(showId: ExternalShowId): Actions {
     val navController = LocalNavController.current
-    return listOf(
-        Action(R.string.action_lists.str(), Icons.AutoMirrored.Default.List) { /* TODO */ },
-        Action(R.string.action_watch_sessions.str(), Icons.Outlined.Layers) {
-            navController.navigateToEpisodeWatchSessions(showId)
-        },
-        BookmarkAction(showId),
+    return Actions(
+        mainAction = null,
+        otherActions = listOf(
+            Action(R.string.action_lists.str(), Icons.AutoMirrored.Default.List) { /* TODO */ },
+            Action(R.string.action_watch_sessions.str(), Icons.Outlined.Layers) {
+                navController.navigateToEpisodeWatchSessions(showId)
+            },
+            BookmarkAction(showId),
+        ),
     )
 }

@@ -8,16 +8,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
-import androidx.compose.material3.HorizontalFloatingToolbar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,28 +22,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalMovieId
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
-import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
-import io.github.couchtracker.ui.components.BookmarkIconButton
+import io.github.couchtracker.ui.actions.Actions
+import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
+import io.github.couchtracker.ui.actions.MovieActions
 import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
-import io.github.couchtracker.ui.components.WatchedItemsIconButton
-import io.github.couchtracker.ui.screens.watchedItem.LocalWatchedItemSheetScaffoldState
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
+import io.github.couchtracker.utils.error.UnsupportedItemError
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
-import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.serialization.Serializable
 import org.koin.mp.KoinPlatform
@@ -63,35 +54,54 @@ data class MovieScreen(val movieId: String) : Screen() {
     @Composable
     override fun Content() {
         val externalMovieId: ExternalMovieId = ExternalMovieId.parse(movieId)
-        val movieId = when (externalMovieId) {
+        when (externalMovieId) {
             is TmdbExternalMovieId -> {
-                externalMovieId.id
+                val viewModel = viewModel {
+                    MovieScreenViewModel(
+                        application = viewModelApplication(),
+                        movieId = externalMovieId.id,
+                    )
+                }
+                val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
+                ScreenContainer(colorScheme) {
+                    val actions = MovieActions(externalMovieId) {
+                        WatchedItemSheetMode.New.Movie(
+                            externalMovieId,
+                            mediaRuntime = viewModel.fullDetails.resultValueOrNull()?.runtime,
+                            mediaLanguages = listOfNotNull(viewModel.fullDetails.resultValueOrNull()?.originalLanguage),
+                        )
+                    }
+                    Content(viewModel, actions)
+                }
             }
-            is UnknownExternalMovieId -> TODO()
-        }
-        val viewModel = viewModel {
-            MovieScreenViewModel(
-                application = viewModelApplication(),
-                externalMovieId = externalMovieId,
-                movieId = movieId,
-            )
-        }
-        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
-        ScreenContainer(colorScheme) {
-            Content(viewModel)
+            is UnknownExternalMovieId -> {
+                ScreenContainer(ColorSchemes.Movie) {
+                    val actions = MovieActions(externalMovieId) {
+                        WatchedItemSheetMode.New.Movie(
+                            externalMovieId,
+                            mediaRuntime = null,
+                            mediaLanguages = emptyList(),
+                        )
+                    }
+                    DefaultErrorScreen(
+                        error = UnsupportedItemError(externalMovieId),
+                        manageItemActions = actions,
+                    )
+                }
+            }
         }
     }
 }
 
-fun NavController.navigateToMovie(id: TmdbMovieId, preloadData: BaseTmdbMovie?) {
+fun NavController.navigateToMovie(id: ExternalMovieId, preloadData: BaseTmdbMovie?) {
     if (preloadData != null) {
         KoinPlatform.getKoin().get<TmdbBaseMemoryCache>().registerItem(preloadData)
     }
-    navigate(MovieScreen(ExternalMovieId.serialize(id.toExternalId())))
+    navigate(MovieScreen(ExternalMovieId.serialize(id)))
 }
 
 @Composable
-private fun Content(viewModel: MovieScreenViewModel) {
+private fun Content(viewModel: MovieScreenViewModel, actions: Actions) {
     logCompositions(LOG_TAG, "Recomposing Content")
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         ResultScreen(
@@ -100,14 +110,15 @@ private fun Content(viewModel: MovieScreenViewModel) {
                 DefaultErrorScreen(
                     error = apiError,
                     retry = { viewModel.retryAll() },
+                    manageItemActions = actions,
                 )
             },
         ) {
             MovieScreenContent(
-                externalMovieId = viewModel.externalMovieId,
                 viewModel = viewModel,
                 totalHeight = constraints.maxHeight,
                 reloadMovie = { viewModel.retryAll() },
+                actions = actions,
             )
         }
     }
@@ -116,10 +127,10 @@ private fun Content(viewModel: MovieScreenViewModel) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MovieScreenContent(
-    externalMovieId: ExternalMovieId,
     viewModel: MovieScreenViewModel,
     totalHeight: Int,
     reloadMovie: () -> Unit,
+    actions: Actions,
 ) {
     var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -134,20 +145,7 @@ private fun MovieScreenContent(
         title = { viewModel.baseDetails.resultValueOrNull()?.title.orEmpty() },
         backdrop = { viewModel.baseDetails.resultValueOrNull()?.backdrop },
         floatingActionButton = {
-            val state = LocalWatchedItemSheetScaffoldState.current
-            MovieToolbar(
-                externalMovieId = externalMovieId,
-                expanded = toolbarExpanded,
-                onMarkAsWatched = {
-                    state.open(
-                        WatchedItemSheetMode.New.Movie(
-                            externalMovieId,
-                            mediaRuntime = viewModel.fullDetails.resultValueOrNull()?.runtime,
-                            mediaLanguages = listOfNotNull(viewModel.fullDetails.resultValueOrNull()?.originalLanguage),
-                        ),
-                    )
-                },
-            )
+            ActionsHorizontalFloatingToolbar(actions, expanded = toolbarExpanded)
         },
         snackbarHostState = snackbarHostState,
         content = { innerPadding ->
@@ -161,30 +159,6 @@ private fun MovieScreenContent(
                 innerPadding = innerPadding,
                 totalHeight = totalHeight,
             )
-        },
-    )
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun MovieToolbar(
-    externalMovieId: ExternalMovieId,
-    expanded: Boolean,
-    onMarkAsWatched: () -> Unit,
-) {
-    HorizontalFloatingToolbar(
-        expanded = expanded,
-        floatingActionButton = {
-            FloatingToolbarDefaults.StandardFloatingActionButton(onClick = onMarkAsWatched) {
-                Icon(Icons.Filled.Check, R.string.mark_movie_as_watched.str())
-            }
-        },
-        content = {
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
-            }
-            WatchedItemsIconButton(externalMovieId)
-            BookmarkIconButton(externalMovieId)
         },
     )
 }
