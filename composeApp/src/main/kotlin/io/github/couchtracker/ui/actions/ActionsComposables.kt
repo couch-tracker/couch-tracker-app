@@ -3,7 +3,10 @@ package io.github.couchtracker.ui.actions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -20,7 +23,7 @@ import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.components.DelayedActionIconLoadingIndicator
 
 @Composable
-fun RowScope.ActionsRow(actions: List<Action>) {
+private fun RowScope.ActionsRow(actions: List<Action>) {
     for (action in actions) {
         action.companionComposable()
         TooltipBox(
@@ -30,8 +33,10 @@ fun RowScope.ActionsRow(actions: List<Action>) {
             },
             state = rememberTooltipState(),
         ) {
-            IconButton(onClick = action.onClick, enabled = action.state?.isLoading != true) {
-                DelayedActionIconLoadingIndicator(action.icon, contentDescription = action.name, action = action.state)
+            ActionBadge(action) {
+                IconButton(onClick = action.onClick, enabled = action.state?.isLoading != true) {
+                    DelayedActionIconLoadingIndicator(action.icon, contentDescription = action.name, action = action.state)
+                }
             }
         }
     }
@@ -39,32 +44,82 @@ fun RowScope.ActionsRow(actions: List<Action>) {
 
 @Composable
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-fun ActionsHorizontalFloatingToolbar(actions: List<Action>) {
-    HorizontalFloatingToolbar(
-        expanded = false,
-        content = {
-            ActionsRow(actions)
-        },
-    )
+fun ActionsHorizontalFloatingToolbar(actions: Actions, expanded: Boolean) {
+    val mainAction = actions.mainAction
+    if (mainAction != null) {
+        HorizontalFloatingToolbar(
+            expanded = expanded,
+            floatingActionButton = {
+                mainAction.companionComposable()
+                ActionBadge(mainAction) {
+                    FloatingToolbarDefaults.StandardFloatingActionButton(
+                        onClick = {
+                            // FloatingActionButton cannot be disabled, so we do this to avoid double clicks while loading
+                            if (mainAction.state?.isLoading != true) {
+                                mainAction.onClick()
+                            }
+                        },
+                    ) {
+                        DelayedActionIconLoadingIndicator(mainAction.icon, contentDescription = mainAction.name, action = mainAction.state)
+                    }
+                }
+            },
+            content = {
+                ActionsRow(actions.otherActions)
+            },
+        )
+    } else {
+        HorizontalFloatingToolbar(
+            expanded = expanded,
+            content = {
+                ActionsRow(actions.otherActions)
+            },
+        )
+    }
+}
+
+@Composable
+fun ActionsVerticalMenu(actions: Actions) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ActionsVerticalMenu(listOfNotNull(actions.mainAction))
+        ActionsVerticalMenu(actions.otherActions)
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ActionsVerticalMenu(actions: List<Action>) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        for ((index, action) in actions.withIndex()) {
-            action.companionComposable()
-            ListItem(
-                onClick = action.onClick,
-                enabled = action.state?.isLoading != true,
-                leadingContent = {
-                    DelayedActionIconLoadingIndicator(action.icon, contentDescription = null, action = action.state)
-                },
-                content = {
-                    Text(action.name)
-                },
-                shapes = ListItemShapes(ItemPosition(index, actions.size)),
-            )
+private fun ActionsVerticalMenu(actions: List<Action>) {
+    if (actions.isNotEmpty()) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            for ((index, action) in actions.withIndex()) {
+                action.companionComposable()
+                ListItem(
+                    onClick = action.onClick,
+                    enabled = action.state?.isLoading != true,
+                    leadingContent = {
+                        ActionBadge(action) {
+                            DelayedActionIconLoadingIndicator(action.icon, contentDescription = null, action = action.state)
+                        }
+                    },
+                    content = {
+                        Text(action.name)
+                    },
+                    shapes = ListItemShapes(ItemPosition(index, actions.size)),
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun ActionBadge(action: Action, content: @Composable () -> Unit) {
+    BadgedBox(
+        badge = {
+            if (action.badgeLabel != null) {
+                Badge { Text(action.badgeLabel) }
+            }
+        },
+    ) {
+        content()
     }
 }
