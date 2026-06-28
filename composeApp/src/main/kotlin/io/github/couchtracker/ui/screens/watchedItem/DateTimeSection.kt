@@ -33,15 +33,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.TimeOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearOptions
+import dev.mmauro.datetimepolyglot.styles.MonthStyle
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.intl.datetime.MonthSkeleton
-import io.github.couchtracker.intl.datetime.Skeletons
-import io.github.couchtracker.intl.datetime.TimeSkeleton
-import io.github.couchtracker.intl.datetime.YearSkeleton
-import io.github.couchtracker.intl.datetime.localized
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.ui.StartSpaceLast
 import io.github.couchtracker.ui.components.DatePickerWorkflowStep
 import io.github.couchtracker.ui.components.PartialDateTimePickerDialog
@@ -256,15 +262,19 @@ private fun CustomDateTimeRow(
     setCustomDialogVisibility: (DateTimeSectionState.CustomDateDialogVisibility) -> Unit,
     deselect: () -> Unit,
 ) {
-    val localDate = selectedDateTime.local
-    val dateString = when (localDate) {
-        is PartialDateTime.Local.Year -> localDate.localized(YearSkeleton.NUMERIC).string()
-        is PartialDateTime.Local.YearMonth -> localDate.localized(YearSkeleton.NUMERIC, MonthSkeleton.WIDE).string()
-        is PartialDateTime.Local.Date -> localDate.localized(Skeletons.MEDIUM_DATE).string()
-        is PartialDateTime.Local.DateTime -> localDate.localized(Skeletons.MEDIUM_DATE, timeSkeleton = null).string()
+    val yearLocalizer = rememberLocalizer(YearOptions(), ::YearLocalizer)
+    val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.WIDE), ::YearMonthLocalizer)
+    val dateLocalizer = rememberLocalizer(DateStyle.MEDIUM, ::LocalDateLocalizer)
+    val timeLocalizer = rememberLocalizer(TimeOptions(TimeStyle.Local.SHORT), ::LocalTimeLocalizer)
+
+    val local = selectedDateTime.local
+    val dateString = when (local) {
+        is PartialDateTime.Local.Year -> yearLocalizer.localize(local.year)
+        is PartialDateTime.Local.YearMonth -> yearMonthLocalizer.localize(local.yearMonth)
+        is PartialDateTime.Local.Date, is PartialDateTime.Local.DateTime -> dateLocalizer.localize(local.date)
     }
-    val timeString = if (localDate is PartialDateTime.Local.DateTime) {
-        localDate.localized(dateSkeleton = null, timeSkeleton = TimeSkeleton.MINUTES).string()
+    val timeString = if (local is PartialDateTime.Local.DateTime) {
+        timeLocalizer.localize(local.time)
     } else {
         null
     }

@@ -7,21 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import dev.mmauro.datetimepolyglot.TickingValue
 import kotlinx.coroutines.delay
 import kotlin.time.Duration
-
-/**
- * @param value the computed value
- * @param nextTick after how much time the next value should be re-computed. `null` means that no more computations are needed.
- */
-data class TickingValue<out T>(val value: T, val nextTick: Duration?) {
-    init {
-        if (nextTick != null) {
-            require(nextTick.isPositive()) { "next tick must be positive ($nextTick)" }
-            require(nextTick.isFinite()) { "next tick must be finite ($nextTick)" }
-        }
-    }
-}
 
 /**
  * Remembers a value and recomputes after the specified amount of type.
@@ -67,30 +55,3 @@ fun <T> rememberTickingValue(
 
     return state.value
 }
-
-/**
- * Transforms the [TickingValue.value] from this instance from type [T] to [R] using [transform] and returns a new [TickingValue] with it
- * and the same [TickingValue.nextTick].
- */
-fun <T, R> TickingValue<T>.map(transform: (T) -> R): TickingValue<R> {
-    return TickingValue(value = transform(value), nextTick = nextTick)
-}
-
-fun <T, R> TickingValue<T>.flatMap(transform: (T) -> TickingValue<R>): TickingValue<R> {
-    return transform(value).withNextTickAtMost(nextTick)
-}
-
-fun <T1, T2, R> TickingValue<T1>.combine(
-    other: TickingValue<T2>,
-    transform: (T1, T2) -> R,
-): TickingValue<R> {
-    return TickingValue(
-        value = transform(this.value, other.value),
-        nextTick = listOfNotNull(this.nextTick, other.nextTick).minOrNull(),
-    )
-}
-
-fun <T> TickingValue<T>.withNextTickAtMost(nextTick: Duration?) = TickingValue(
-    value = value,
-    nextTick = listOfNotNull(this.nextTick, nextTick).minOrNull(),
-)

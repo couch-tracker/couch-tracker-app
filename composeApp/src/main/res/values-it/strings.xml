@@ -78,8 +78,8 @@
     <string name="section_crew">Troupe</string>
     <string name="section_guest_stars">Ospiti speciali</string>
 
-    <string name="duration_in_x">tra $1%s</string>
-    <string name="duration_x_ago">$1%s fa</string>
+    <string name="duration_in_x">tra %1$s</string>
+    <string name="duration_x_ago">%1$s fa</string>
     <string name="date_and_time">Data e ora</string>
     <string name="date_and_time_dialog_precision">Precisione:</string>
     <string name="date_and_time_precision_year">Anno</string>

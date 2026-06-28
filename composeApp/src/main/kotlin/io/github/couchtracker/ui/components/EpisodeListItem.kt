@@ -18,18 +18,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
+import dev.mmauro.datetimepolyglot.localizers.absolute.DateComponents
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
+import dev.mmauro.datetimepolyglot.styles.DayOfMonthStyle
+import dev.mmauro.datetimepolyglot.styles.DayOfWeekStyle
+import dev.mmauro.datetimepolyglot.styles.MonthStyle
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
-import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
-import io.github.couchtracker.intl.datetime.DateSkeleton
-import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
-import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
-import io.github.couchtracker.intl.datetime.MonthSkeleton
-import io.github.couchtracker.intl.datetime.YearSkeleton
-import io.github.couchtracker.intl.datetime.format
-import io.github.couchtracker.intl.datetime.localized
+import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbSeasonId
@@ -112,6 +110,12 @@ data class EpisodeListItemModel(
 ) {
 
     companion object {
+        private val FIRST_AIR_DATE_OPTIONS = DateComponents(
+            monthStyle = MonthStyle.ABBREVIATED,
+            dayOfMonthStyle = DayOfMonthStyle.NUMERIC,
+            dayOfWeekStyle = DayOfWeekStyle.ABBREVIATED,
+        )
+
         suspend fun fromTmdbEpisode(context: Context, show: TmdbShowId, episode: TmdbEpisode): EpisodeListItemModel {
             val id = TmdbExternalEpisodeId(TmdbEpisodeId(TmdbSeasonId(show, episode.seasonNumber), episode.episodeNumber))
             return EpisodeListItemModel(
@@ -119,17 +123,8 @@ data class EpisodeListItemModel(
                 name = episode.name,
                 number = context.getString(R.string.episode_x, episode.episodeNumber),
                 backdrop = episode.backdropImage?.toImageModelWithPlaceholder(),
-                firstAirDate = episode.airDate?.let {
-                    PartialDateTime.Local.Date(it).localized(
-                        DateSkeleton(
-                            year = YearSkeleton.NUMERIC,
-                            month = MonthSkeleton.ABBREVIATED,
-                            dayOfMonth = DayOfMonthSkeleton.NUMERIC,
-                            dayOfWeekSkeleton = DayOfWeekSkeleton.ABBREVIATED,
-                        ),
-                    ).localize()
-                },
-                runtime = episode.runtime()?.format(),
+                firstAirDate = episode.airDate?.localize(FIRST_AIR_DATE_OPTIONS),
+                runtime = episode.runtime()?.localize(RUNTIME_LOCALIZER_OPTIONS),
                 tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
             )
         }
