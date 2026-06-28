@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
 import org.koin.core.module.dsl.singleOf
 import java.util.Locale
+import android.icu.util.ULocale as AndroidULocale
 
 class LocaleData {
     @Suppress("ForbiddenMethodCall")
@@ -43,6 +44,8 @@ val CompositionLocal<Configuration>.currentFirstLocale
     }
 
 fun Locale.toULocale() = ULocale(toString())
+fun ULocale.toAndroidULocale() = AndroidULocale(toString())
+fun Locale.toAndroidULocale() = AndroidULocale(toString())
 
 fun LocaleListCompat.toList(): List<Locale> {
     return List(size()) { i -> checkNotNull(get(i)) }

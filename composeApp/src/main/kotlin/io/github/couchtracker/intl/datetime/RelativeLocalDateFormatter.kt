@@ -7,7 +7,7 @@ import com.ibm.icu.text.RelativeDateTimeFormatter.Direction
 import com.ibm.icu.text.RelativeDateTimeFormatter.RelativeUnit
 import com.ibm.icu.util.Calendar
 import com.ibm.icu.util.ULocale
-import io.github.couchtracker.utils.TickingValue
+import dev.mmauro.datetimepolyglot.TickingValue
 import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.toLocalDateTime
 import kotlinx.datetime.DatePeriod

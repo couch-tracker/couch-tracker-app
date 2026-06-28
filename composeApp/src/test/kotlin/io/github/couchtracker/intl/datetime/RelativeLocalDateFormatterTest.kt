@@ -3,6 +3,7 @@ package io.github.couchtracker.intl.datetime
 import com.ibm.icu.text.DisplayContext
 import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
+import dev.mmauro.datetimepolyglot.TickingValue
 import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.toLocalDateTime

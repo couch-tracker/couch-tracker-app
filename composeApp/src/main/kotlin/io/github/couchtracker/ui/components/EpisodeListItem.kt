@@ -18,14 +18,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
+import io.github.couchtracker.intl.RUNTIME_LOCALIZER_OPTIONS
 import io.github.couchtracker.intl.datetime.DateSkeleton
 import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
 import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
 import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
-import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.runtime
@@ -119,7 +120,7 @@ data class EpisodeListItemModel(
                         )
                         .localize()
                 },
-                runtime = episode.runtime()?.format(),
+                runtime = episode.runtime()?.localize(RUNTIME_LOCALIZER_OPTIONS),
                 tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
             )
         }

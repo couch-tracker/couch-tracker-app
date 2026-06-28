@@ -1,7 +1,7 @@
 package io.github.couchtracker.intl.datetime
 
+import dev.mmauro.datetimepolyglot.TickingValue
 import io.github.couchtracker.utils.MaybeZoned
-import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.Zoned
 import io.github.couchtracker.utils.plus
 import io.kotest.assertions.withClue
@@ -127,21 +127,22 @@ private fun <P> testNextTickPredictsChange(
     advanceBy: P.(Duration) -> P,
     format: (P) -> TickingValue<String>,
 ) {
-    if (formatted.nextTick == null) {
+    val nextTick = formatted.nextTick
+    if (nextTick == null) {
         withClue("nextTick is null, so format in the very far future (100 years) should yield same value") {
             format(value.advanceBy((365 * 100).days)) shouldBe formatted
         }
     } else {
-        withClue("nextTick is ${formatted.nextTick} would be @ ${value.advanceBy(formatted.nextTick - 1.nanoseconds)}") {
+        withClue("nextTick is $nextTick would be @ ${value.advanceBy(nextTick - 1.nanoseconds)}") {
             withClue("format at 1 nanosecond before nextTick should yield same relative value") {
-                format(value.advanceBy(formatted.nextTick - 1.nanoseconds)) should {
+                format(value.advanceBy(nextTick - 1.nanoseconds)) should {
                     it.value shouldBe formatted.value
                     it.nextTick shouldBe 1.nanoseconds
                 }
             }
 
             withClue("format at nextTick should yield different relative value") {
-                format(value.advanceBy(formatted.nextTick)) should {
+                format(value.advanceBy(nextTick)) should {
                     it.value shouldNotBe formatted.value
                 }
             }

@@ -1,7 +1,7 @@
 package io.github.couchtracker.intl.datetime
 
-import io.github.couchtracker.utils.TickingValue
-import io.github.couchtracker.utils.withNextTickAtMost
+import dev.mmauro.datetimepolyglot.TickingValue
+import dev.mmauro.datetimepolyglot.withNextTickAtMost
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Instant
 

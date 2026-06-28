@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeLocalizer
 import io.github.couchtracker.settings.AppSettingsContext
 import io.github.couchtracker.ui.AnimationDefaults
 import io.github.couchtracker.ui.ColorSchemes

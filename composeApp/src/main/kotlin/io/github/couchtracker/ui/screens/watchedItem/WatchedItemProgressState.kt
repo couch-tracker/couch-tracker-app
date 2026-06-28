@@ -2,10 +2,10 @@ package io.github.couchtracker.ui.screens.watchedItem
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import dev.mmauro.datetimepolyglot.TickingValue
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
-import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.rememberTickingValue
 import kotlinx.datetime.TimeZone
 import kotlin.time.Clock

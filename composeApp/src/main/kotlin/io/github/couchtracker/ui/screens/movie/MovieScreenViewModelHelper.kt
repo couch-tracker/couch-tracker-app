@@ -4,9 +4,10 @@ import android.app.Application
 import androidx.compose.material3.ColorScheme
 import app.moviebase.tmdb.model.TmdbGenre
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
-import io.github.couchtracker.intl.datetime.format
+import io.github.couchtracker.intl.RUNTIME_LOCALIZER_OPTIONS
 import io.github.couchtracker.intl.formatAndList
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
@@ -144,7 +145,7 @@ class MovieScreenViewModelHelper(
             tagline = tagline,
             rating = rating(),
             runtime = runtime,
-            runtimeString = runtime?.format(),
+            runtimeString = runtime?.localize(RUNTIME_LOCALIZER_OPTIONS),
             originalLanguage = language(),
             genres = genres,
         )

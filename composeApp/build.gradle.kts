@@ -93,6 +93,7 @@ kotlin {
         implementation(libs.preference)
         implementation(libs.reorderable)
         implementation(libs.tmdb.api)
+        implementation("dev.mmauro:datetime-polyglot:0.2.1-SNAPSHOT")
 
         // Test dependencies
 

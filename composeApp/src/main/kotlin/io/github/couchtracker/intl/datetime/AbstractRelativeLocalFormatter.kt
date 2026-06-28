@@ -6,7 +6,7 @@ import com.ibm.icu.text.RelativeDateTimeFormatter.AbsoluteUnit
 import com.ibm.icu.text.RelativeDateTimeFormatter.Direction
 import com.ibm.icu.text.RelativeDateTimeFormatter.RelativeUnit
 import com.ibm.icu.util.ULocale
-import io.github.couchtracker.utils.TickingValue
+import dev.mmauro.datetimepolyglot.TickingValue
 import io.github.couchtracker.utils.Zoned
 import kotlinx.datetime.TimeZone
 import kotlin.math.absoluteValue

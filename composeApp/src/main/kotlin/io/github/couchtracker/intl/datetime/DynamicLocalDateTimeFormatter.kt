@@ -2,16 +2,21 @@ package io.github.couchtracker.intl.datetime
 
 import android.content.Context
 import com.ibm.icu.text.DateFormat
-import com.ibm.icu.text.MeasureFormat.FormatWidth
 import com.ibm.icu.text.RelativeDateTimeFormatter
 import com.ibm.icu.util.ULocale
+import dev.mmauro.datetimepolyglot.TickingValue
+import dev.mmauro.datetimepolyglot.combine
+import dev.mmauro.datetimepolyglot.flatMap
+import dev.mmauro.datetimepolyglot.localizers.absolute.DurationOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.ExperimentalTickingDurationLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.TickingDurationLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.TickingDurationOptions
+import dev.mmauro.datetimepolyglot.styles.DurationStyle
 import io.github.couchtracker.R
 import io.github.couchtracker.intl.formatDateTimeSkeleton
 import io.github.couchtracker.utils.MaybeZoned
-import io.github.couchtracker.utils.TickingValue
 import io.github.couchtracker.utils.Zoned
-import io.github.couchtracker.utils.combine
-import io.github.couchtracker.utils.flatMap
+import io.github.couchtracker.utils.toAndroidULocale
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
 import kotlin.time.Duration.Companion.days
@@ -36,15 +41,16 @@ private val DURATION_THRESHOLD = 1.days
  * - `this Monday at 6pm`
  * - `5 days ago at 4:21`
  *
- * Finally, if the difference is also less than 24 hours, a duration format using [relativeDurationFormatWidth],
+ * Finally, if the difference is also less than 24 hours, a duration format using [durationStyle],
  * [relativeDurationOmitZeros], [relativeDurationMaxUnits], and a min unit derived from [timeSkeleton] is appended in parentheses (see
- * [RelativeDurationFormatter]). Examples:
+ * [TickingDurationLocalizer]). Examples:
  * - `today at 10:30 (in 3 hours, 5 minutes)`
  * - `yesterday at 9:00 PM (15h 5m ago)`
  *
  * The [context] is needed to retrieve the localization strings for "in x", "x ago", and one for parenthesizing. For this reason, [locale]
  * should always match the locale of the given [context].
  */
+@OptIn(ExperimentalTickingDurationLocalizer::class)
 class DynamicLocalDateTimeFormatter(
     private val context: Context,
     private val locale: ULocale,
@@ -52,7 +58,7 @@ class DynamicLocalDateTimeFormatter(
     private val timeZoneSkeleton: TimezoneSkeleton = TimezoneSkeleton.TIMEZONE_ID,
     relativeDateStyle: RelativeDateTimeFormatter.Style = RelativeDateTimeFormatter.Style.LONG,
     private val absoluteDateSkeletons: DateSkeleton = Skeletons.MEDIUM_DATE,
-    relativeDurationFormatWidth: FormatWidth = FormatWidth.NARROW,
+    durationStyle: DurationStyle = DurationStyle.NARROW,
     relativeDurationOmitZeros: Boolean = true,
     relativeDurationMaxUnits: Int = 2,
 ) {
@@ -64,15 +70,20 @@ class DynamicLocalDateTimeFormatter(
         relativeDateStyle = relativeDateStyle,
         dateFormatStyle = DateFormat.MEDIUM,
     )
-    private val relativeDurationFormatter = RelativeDurationFormatter(
-        locale = locale,
-        formatWidth = relativeDurationFormatWidth,
-        omitZeros = relativeDurationOmitZeros,
-        minUnit = when (timeSkeleton) {
-            TimeSkeleton.MINUTES -> DurationUnit.MINUTES
-            TimeSkeleton.SECONDS -> DurationUnit.SECONDS
-        },
-        maxUnits = relativeDurationMaxUnits,
+    private val tickingDurationLocalizer = TickingDurationLocalizer(
+        locale = locale.toAndroidULocale(),
+        options = TickingDurationOptions(
+            durationOptions = DurationOptions(
+                style = durationStyle,
+                omitZeros = relativeDurationOmitZeros,
+                minUnit = when (timeSkeleton) {
+                    TimeSkeleton.MINUTES -> DurationUnit.MINUTES
+                    TimeSkeleton.SECONDS -> DurationUnit.SECONDS
+                },
+                maxUnits = relativeDurationMaxUnits,
+            ),
+            abs = true,
+        ),
     )
 
     fun format(dateTime: MaybeZoned<LocalDateTime>, now: Zoned<Instant>): TickingValue<String> {
@@ -87,7 +98,7 @@ class DynamicLocalDateTimeFormatter(
                 thresholdEnd = instant + DURATION_THRESHOLD,
                 withinThreshold = {
                     val diff = instant - now.value
-                    val relDurationFormat = relativeDurationFormatter.format(diff).flatMap {
+                    val relDurationFormat = tickingDurationLocalizer.localize(diff).flatMap {
                         if (diff.isNegative()) {
                             TickingValue(
                                 value = context.getString(R.string.duration_x_ago, it),
