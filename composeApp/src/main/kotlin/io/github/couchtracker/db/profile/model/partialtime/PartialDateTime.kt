@@ -531,7 +531,3 @@ fun PartialDateTime?.group(): PartialDateTimeGroup = when (this) {
 fun List<PartialDateTime>.sort(): List<PartialDateTime> {
     return PartialDateTime.sort(items = this, getPartialDateTime = { this })
 }
-
-fun Instant.toLocalPartialDateTime(timeZone: TimeZone): DateTime {
-    return DateTime(dateTime = this.toLocalDateTime(timeZone))
-}

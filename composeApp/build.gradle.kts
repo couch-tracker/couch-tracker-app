@@ -93,6 +93,7 @@ kotlin {
         implementation(libs.preference)
         implementation(libs.reorderable)
         implementation(libs.tmdb.api)
+        implementation(libs.datetimePolyglot)
 
         // Test dependencies
 
@@ -104,6 +105,7 @@ kotlin {
         testImplementation(libs.kotest.extensions.koin)
         testImplementation(libs.kotest.property)
         testImplementation(libs.kotest.runner.junit5)
+        testImplementation(libs.kotest.runner.junit4)
 
         testImplementation(libs.mockk.android)
         testImplementation(libs.koin.test)

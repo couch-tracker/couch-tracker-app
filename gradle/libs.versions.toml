@@ -1,7 +1,7 @@
 [versions]
 agp = "8.12.3"
 android-compileSdk = "36"
-android-minSdk = "26"
+android-minSdk = "28"
 android-targetSdk = "36"
 androidx-activityCompose = "1.12.4"
 androidx-datastore = "1.2.0"
@@ -12,6 +12,7 @@ byte-size = "2.1.0"
 coil = "3.4.0"
 compose-bom = "2026.02.00"
 compose-paging = "3.4.1"
+datetime-polyglot = "0.4.1-SNAPSHOT"
 detekt = "2.0.0-alpha.2"
 gradle-versions = "0.53.0"
 icu = "78.2"
@@ -45,6 +46,7 @@ compose-material = { module = "androidx.compose.material:material" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-materialIconsExtended = { module = "androidx.compose.material:material-icons-extended" }
 compose-paging = { module = "androidx.paging:paging-compose", version.ref = "compose-paging" }
+datetimePolyglot = { module = "dev.mmauro:datetime-polyglot", version.ref = "datetime-polyglot" }
 detekt-ktlint = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
@@ -57,6 +59,7 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.
 kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-runner-junit4 = { module = "io.kotest:kotest-runner-junit4", version.ref = "kotest" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 ktor-client-okttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }

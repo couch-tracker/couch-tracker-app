@@ -2,17 +2,12 @@ package io.github.couchtracker.ui.screens.episodes
 
 import android.app.Application
 import android.content.Context
+import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
-import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
-import io.github.couchtracker.intl.datetime.DateSkeleton
-import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
-import io.github.couchtracker.intl.datetime.DayOfWeekSkeleton
-import io.github.couchtracker.intl.datetime.MonthSkeleton
-import io.github.couchtracker.intl.datetime.YearSkeleton
-import io.github.couchtracker.intl.datetime.format
-import io.github.couchtracker.intl.datetime.localized
+import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbRating
@@ -95,20 +90,9 @@ class EpisodesScreenViewModelHelper(
                             tmdbEpisodeId = id,
                             name = episode.name,
                             number = application.getString(R.string.episode_x, episode.episodeNumber),
-                            firstAirDate = episode.airDate?.let {
-                                PartialDateTime.Local.Date(it)
-                                    .localized(
-                                        DateSkeleton(
-                                            YearSkeleton.NUMERIC,
-                                            MonthSkeleton.WIDE,
-                                            DayOfMonthSkeleton.NUMERIC,
-                                            DayOfWeekSkeleton.WIDE,
-                                        ),
-                                    )
-                                    .localize()
-                            },
+                            firstAirDate = episode.airDate?.localize(DateStyle.FULL),
                             runtime = runtime,
-                            runtimeString = runtime?.format(),
+                            runtimeString = runtime?.localize(RUNTIME_LOCALIZER_OPTIONS),
                             tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
                         )
                     },

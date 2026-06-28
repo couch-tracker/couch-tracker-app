@@ -16,11 +16,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbSeason
 import coil3.compose.AsyncImage
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
+import dev.mmauro.datetimepolyglot.styles.MonthStyle
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
-import io.github.couchtracker.intl.datetime.MonthSkeleton
-import io.github.couchtracker.intl.datetime.YearSkeleton
-import io.github.couchtracker.intl.datetime.localized
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
@@ -95,17 +94,15 @@ data class SeasonListItemModel(
 ) {
 
     companion object {
+        private val AIR_DATE_OPTIONS = YearMonthOptions(monthStyle = MonthStyle.ABBREVIATED)
+
         suspend fun fromTmdbSeason(context: Context, season: TmdbSeason): SeasonListItemModel {
             val episodes = season.episodeCount ?: 0
             return SeasonListItemModel(
                 number = season.seasonNumber,
                 names = season.names(context),
                 poster = season.posterImage?.toImageModelWithPlaceholder(),
-                firstAirDate = season.airDate?.let {
-                    PartialDateTime.Local.YearMonth(it.yearMonth)
-                        .localized(YearSkeleton.NUMERIC, MonthSkeleton.ABBREVIATED)
-                        .localize()
-                },
+                firstAirDate = season.airDate?.yearMonth?.localize(AIR_DATE_OPTIONS),
                 episodesCount = context.resources.getQuantityString(
                     R.plurals.n_episodes,
                     episodes,

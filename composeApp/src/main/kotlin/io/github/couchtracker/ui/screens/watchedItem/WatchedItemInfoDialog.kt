@@ -26,17 +26,19 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.DisplayContext
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.model.partialtime.toLocalPartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
-import io.github.couchtracker.intl.datetime.localizedFull
+import io.github.couchtracker.intl.datetime.LOCAL_DATE_TIME_FULL_LOCALIZER_OPTIONS
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.toULocale
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +49,7 @@ fun WatchedItemInfoDialog(
     onEditRequest: () -> Unit,
     onDeleteRequest: () -> Unit,
 ) {
+    val ldtLocalizer = rememberLocalizer(LOCAL_DATE_TIME_FULL_LOCALIZER_OPTIONS, ::LocalDateTimeLocalizer)
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         content = {
@@ -69,7 +72,7 @@ fun WatchedItemInfoDialog(
                             Text(watchedItem.localizedWatchAt(includeTimeZone = true))
                         }
                         section(Text.Resource(R.string.add_date)) {
-                            Text(watchedItem.addedAt.toLocalPartialDateTime(TimeZone.currentSystemDefault()).localizedFull().string())
+                            Text(ldtLocalizer.localize(watchedItem.addedAt.toLocalDateTime(TimeZone.currentSystemDefault())))
                         }
 
                         for (selection in watchedItem.dimensions) {

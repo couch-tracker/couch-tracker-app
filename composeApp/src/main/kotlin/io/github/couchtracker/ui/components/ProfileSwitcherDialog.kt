@@ -24,23 +24,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.ProfileInfo
-import io.github.couchtracker.intl.datetime.DateTimeSkeleton
-import io.github.couchtracker.intl.datetime.Skeletons
-import io.github.couchtracker.intl.datetime.TimeSkeleton
-import io.github.couchtracker.intl.formatDateTimeSkeleton
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
 import io.github.couchtracker.utils.str
-import io.github.couchtracker.utils.toULocale
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
@@ -63,11 +63,16 @@ fun ProfileSwitcherDialog(
                 Icon(
                     imageVector = Icons.Default.Group,
                     contentDescription = null,
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 24.dp, vertical = 8.dp),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
                 )
                 Text(
                     text = R.string.switch_profile.str(),
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 24.dp).padding(top = 8.dp, bottom = 16.dp),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 24.dp)
+                        .padding(top = 8.dp, bottom = 16.dp),
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 LazyColumn(state = scrollState) {
@@ -115,16 +120,16 @@ fun ProfileInfo.supportingText(): String {
     return R.string.profile_last_used_with_date.str(formattedLastModified())
 }
 
+private val LAST_MODIFIED_LOCALIZER_OPTIONS = LocalDateTimeOptions(
+    dateOptions = DateStyle.MEDIUM,
+    timeOptions = TimeStyle.Local.MEDIUM,
+)
+
 @Composable
 fun ProfileInfo.formattedLastModified(): String {
+    val localizer = rememberLocalizer(LAST_MODIFIED_LOCALIZER_OPTIONS, ::LocalDateTimeLocalizer)
     return when (val lastModified = db.lastModified()) {
         null -> R.string.profile_last_used_unknown.str()
-        else -> formatDateTimeSkeleton(
-            instant = lastModified,
-            timeZone = TimeZone.currentSystemDefault(),
-            dateTimeSkeleton = DateTimeSkeleton(Skeletons.MEDIUM_DATE, TimeSkeleton.SECONDS),
-            timezoneSkeleton = null,
-            locale = Locale.current.platformLocale.toULocale(),
-        )
+        else -> localizer.localize(lastModified.toLocalDateTime(TimeZone.currentSystemDefault()))
     }
 }

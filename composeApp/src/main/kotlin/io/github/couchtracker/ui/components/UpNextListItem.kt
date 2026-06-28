@@ -2,6 +2,7 @@ package io.github.couchtracker.ui.components
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -13,18 +14,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
+import dev.mmauro.datetimepolyglot.localizers.localize
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
+import io.github.couchtracker.intl.datetime.DynamicDateAbsoluteTimeWithDurationLocalizer
+import io.github.couchtracker.intl.datetime.DynamicDateAbsoluteTimeWithDurationOptions
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeasonId
@@ -37,6 +43,13 @@ import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.seasonEpisodeNumberToString
 import io.github.couchtracker.ui.toImageModel
+import io.github.couchtracker.utils.rememberTickingValue
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 private val POSTER_HEIGHT = 64.dp
 private val POSTER_WIDTH = POSTER_HEIGHT * 2 / 3
@@ -47,7 +60,16 @@ fun UpNextListItem(
     upNext: UpNextListItemModel,
     position: ItemPosition,
 ) {
+    val dateTimeLocalizer = rememberLocalizer(DynamicDateAbsoluteTimeWithDurationOptions(), ::DynamicDateAbsoluteTimeWithDurationLocalizer)
     val navController = LocalNavController.current
+
+    val airInstant = remember {
+        Clock.System.now() + Random.nextLong(-14.days.inWholeMinutes, 14.days.inWholeMinutes).minutes
+    }
+    val dateTimeText = rememberTickingValue(dateTimeLocalizer, airInstant) {
+        dateTimeLocalizer.localize(airInstant.toLocalDateTime(TimeZone.currentSystemDefault()))
+    }
+
     ListItem(
         onClick = {
             navController.navigateToEpisode(upNext.episodeId)
@@ -74,10 +96,13 @@ fun UpNextListItem(
             Text(upNext.episodeLabel)
         },
         content = {
-            if (upNext.showName != null) {
-                Text(upNext.showName)
-            } else {
-                Text("Ops")
+            Column {
+                if (upNext.showName != null) {
+                    Text(upNext.showName)
+                } else {
+                    Text("Ops")
+                }
+                Text(dateTimeText, style = MaterialTheme.typography.labelMedium)
             }
         },
         trailingContent = {

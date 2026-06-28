@@ -27,15 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.YearOptions
+import dev.mmauro.datetimepolyglot.styles.MonthStyle
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
-import io.github.couchtracker.intl.datetime.MonthSkeleton
-import io.github.couchtracker.intl.datetime.YearSkeleton
-import io.github.couchtracker.intl.datetime.localized
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
@@ -224,10 +227,13 @@ private fun WatchedEpisodeSessionListItem(
 
     @Composable
     fun PartialDateTime.Local.monthString(): String {
+        val yearLocalizer = rememberLocalizer(YearOptions(), ::YearLocalizer)
+        val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.ABBREVIATED), ::YearMonthLocalizer)
+
         return when (this) {
-            is PartialDateTime.Local.Year -> localized(YearSkeleton.NUMERIC)
-            is PartialDateTime.Local.WithYearMonth -> localized(YearSkeleton.NUMERIC, MonthSkeleton.ABBREVIATED)
-        }.string()
+            is PartialDateTime.Local.Year -> yearLocalizer.localize(year)
+            is PartialDateTime.Local.WithYearMonth -> yearMonthLocalizer.localize(yearMonth)
+        }
     }
 
     ListItem(
