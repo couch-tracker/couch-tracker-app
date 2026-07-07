@@ -5,9 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.remember
 import io.github.couchtracker.BuildConfig
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
+import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.utils.error.SimulatedException
 import kotlinx.coroutines.delay
@@ -52,11 +56,25 @@ inline fun <T> logExecutionTime(logTag: String, message: String, f: () -> T): T 
 }
 
 @Suppress("MagicNumber")
+@JvmName("injectBrokenShows")
 fun Collection<ExternalShowId>.injectBrokenItems(): Collection<ExternalShowId> {
     return if (INJECT_BROKEN_ITEMS) {
         this + listOf(
             TmdbExternalShowId(TmdbShowId(546_544)),
             UnknownExternalShowId("xyz", "123456"),
+        )
+    } else {
+        this
+    }
+}
+
+@Suppress("MagicNumber")
+@JvmName("injectBrokenMovies")
+fun Collection<ExternalMovieId>.injectBrokenItems(): Collection<ExternalMovieId> {
+    return if (INJECT_BROKEN_ITEMS) {
+        this + listOf(
+            TmdbExternalMovieId(TmdbMovieId(546_544)),
+            UnknownExternalMovieId("xyz", "123456"),
         )
     } else {
         this
