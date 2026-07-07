@@ -63,7 +63,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         val portraitModel: ShowPortraitModel,
         val seasons: ApiLoadable<List<TmdbSeasonDetail>>,
     ) {
-        // Computing the hascode of this class is expensive.
+        // Computing the hashcode of this class is expensive.
         // Caching it, so it's computed on creation on a background thread
         private val cachedHashCode = super.hashCode()
         override fun hashCode() = cachedHashCode
@@ -90,11 +90,11 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
 
     val watchlist: Loadable<List<Pair<ExternalShowId, CouchTrackerResult<BookmarkedShowData>>>> by flowDetailForShows(
         bookmarks.map { it.watchlist },
-    ).collectAsLoadable("watchlist")
+    ).collectAsLoadable("shows-watchlist")
 
     val following: Loadable<List<Pair<ExternalShowId, CouchTrackerResult<BookmarkedShowData>>>> by flowDetailForShows(
         bookmarks.map { it.following },
-    ).collectAsLoadable("following")
+    ).collectAsLoadable("shows-following")
 
     val allErrors: List<CouchTrackerError> by derivedStateOf {
         watchlist.allErrors() + following.allErrors()

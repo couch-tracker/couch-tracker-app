@@ -64,6 +64,8 @@
 
     <string name="tab_movies_history">Cronologia</string>
     <string name="tab_movies_watchlist">Watchlist</string>
+    <string name="tab_movies_watchlist_empty">Watchlist vuota</string>
+    <string name="tab_movies_watchlist_empty_description">Questa sezione contiene i film salvati</string>
     <string name="tab_movies_calendar">Calendario</string>
     <string name="tab_movies_explore">Esplora</string>
 

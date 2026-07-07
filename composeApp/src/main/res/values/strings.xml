@@ -62,6 +62,8 @@
 
     <string name="tab_movies_history">History</string>
     <string name="tab_movies_watchlist">Watchlist</string>
+    <string name="tab_movies_watchlist_empty">Empty watchlist</string>
+    <string name="tab_movies_watchlist_empty_description">"This section contains bookmarked movies"</string>
     <string name="tab_movies_calendar">Calendar</string>
     <string name="tab_movies_explore">Explore</string>
 

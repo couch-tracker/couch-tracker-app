@@ -25,6 +25,8 @@ import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.error.ApiError
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
 
 @Composable
@@ -104,7 +106,7 @@ data class ShowPortraitModel(
 
     companion object {
 
-        fun fromApiTmdbShow(
+        suspend fun fromApiTmdbShow(
             context: Context,
             details: TmdbApiTmdbShow,
             preloadData: BaseTmdbShow?,
@@ -117,7 +119,7 @@ data class ShowPortraitModel(
             )
         }
 
-        fun fromApiTmdbShow(
+        suspend fun fromApiTmdbShow(
             context: Context,
             details: TmdbShowDetail,
             preloadData: BaseTmdbShow?,
@@ -140,9 +142,11 @@ data class ShowPortraitModel(
             )
         }
 
-        private fun labelFromNameYear(context: Context, name: String?, year: Int?): String? {
+        private suspend fun labelFromNameYear(context: Context, name: String?, year: Int?): String? {
             return if (name != null && year != null) {
-                context.getString(R.string.item_tile_with_year, name, year)
+                withContext(Dispatchers.Default) {
+                    context.getString(R.string.item_tile_with_year, name, year)
+                }
             } else {
                 name
             }
@@ -150,10 +154,10 @@ data class ShowPortraitModel(
     }
 }
 
-fun TmdbApiTmdbShow.toShowPortraitModels(context: Context, language: TmdbLanguage): ShowPortraitModel {
+suspend fun TmdbApiTmdbShow.toShowPortraitModels(context: Context, language: TmdbLanguage): ShowPortraitModel {
     return ShowPortraitModel.fromApiTmdbShow(context, this, preloadData = this.toBaseShow(language))
 }
 
-fun TmdbShowDetail.toShowPortraitModels(context: Context, language: TmdbLanguage): ShowPortraitModel {
+suspend fun TmdbShowDetail.toShowPortraitModels(context: Context, language: TmdbLanguage): ShowPortraitModel {
     return ShowPortraitModel.fromApiTmdbShow(context, this, preloadData = this.toBaseShow(language))
 }
