@@ -52,6 +52,8 @@
     <string name="tab_shows_following">Following</string>
     <string name="tab_shows_following_empty">Empty following</string>
     <string name="tab_shows_following_empty_description">"This section contains bookmarked shows with active watch sessions"</string>
+    <string name="tab_shows_up_next_empty">"You're caught up!"</string>
+    <string name="tab_shows_up_next_empty_description">"You're caught up with all the episodes, time to start a new show!"</string>
     <string name="tab_shows_up_next">Up next</string>
     <string name="tab_shows_calendar">Calendar</string>
     <string name="tab_shows_explore">Explore</string>

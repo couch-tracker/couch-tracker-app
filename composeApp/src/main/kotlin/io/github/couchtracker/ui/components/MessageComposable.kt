@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Error
@@ -39,10 +40,11 @@ fun MessageComposable(
     ) {
         Icon(icon, contentDescription = null, Modifier.size(40.dp))
         Spacer(Modifier.height(24.dp))
-        Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.headlineSmall)
+        val textModifier = Modifier.widthIn(max = 320.dp)
+        Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.headlineSmall, modifier = textModifier)
         if (details != null) {
             Spacer(Modifier.height(24.dp))
-            Text(details, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
+            Text(details, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium, modifier = textModifier)
         }
         content()
     }

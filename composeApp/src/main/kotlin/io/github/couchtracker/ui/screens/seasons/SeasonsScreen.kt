@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalSeasonId
@@ -30,7 +29,6 @@ import io.github.couchtracker.ui.components.EpisodeListItem
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.itemsWithPosition
-import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
@@ -161,7 +159,6 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
     viewModel: SeasonsScreenViewModel,
     seasonModel: SeasonsScreenViewModel.SeasonViewModel,
 ) {
-    val navController = LocalNavController.current
     val episodes = seasonModel.details.mapResult { it.episodes }
     LoadableScreen(
         episodes,
@@ -176,10 +173,9 @@ private fun OverviewScreenComponents.SeasonDetailsContent(
             innerPadding.plus(PaddingValues(vertical = 16.dp, horizontal = 8.dp)),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            itemsWithPosition(episodes) { position, (episodeId, episode) ->
+            itemsWithPosition(episodes) { position, episode ->
                 EpisodeListItem(
                     episode = episode,
-                    onClick = { navController.navigateToEpisode(episodeId) },
                     position = position,
                 )
             }

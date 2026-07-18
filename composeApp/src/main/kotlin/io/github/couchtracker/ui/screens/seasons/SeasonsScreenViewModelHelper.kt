@@ -2,11 +2,8 @@ package io.github.couchtracker.ui.screens.seasons
 
 import android.app.Application
 import androidx.compose.material3.ColorScheme
-import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
-import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
-import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -57,7 +54,7 @@ class SeasonsScreenViewModelHelper(
     )
 
     data class SeasonFullDetails(
-        val episodes: List<Pair<ExternalEpisodeId, EpisodeListItemModel>>,
+        val episodes: List<EpisodeListItemModel>,
     )
 
     val showDetails = retryContext { languages ->
@@ -104,8 +101,7 @@ class SeasonsScreenViewModelHelper(
                 result.map { tmdbSeasonDetails ->
                     SeasonFullDetails(
                         episodes = tmdbSeasonDetails.episodes.orEmpty().map { tmdbEpisode ->
-                            val id = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, tmdbEpisode.episodeNumber))
-                            id to EpisodeListItemModel.fromTmdbEpisode(application, tmdbEpisode)
+                            EpisodeListItemModel.fromTmdbEpisode(application, seasonId.showId, tmdbEpisode)
                         },
                     )
                 }

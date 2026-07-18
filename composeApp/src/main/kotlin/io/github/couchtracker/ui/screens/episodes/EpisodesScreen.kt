@@ -141,7 +141,7 @@ private fun EpisodesScreenContent(
         onRetry = onRetry,
     )
     val pagerState = rememberPagerState(
-        initialPage = seasonDetails.episodes.indexOfFirst { it.externalId == initialEpisode },
+        initialPage = seasonDetails.episodes.indexOfFirst { it.externalId == initialEpisode }.coerceAtLeast(0),
         pageCount = { seasonDetails.episodes.size },
     )
     val selectedEpisode = seasonDetails.episodes[pagerState.currentPage]

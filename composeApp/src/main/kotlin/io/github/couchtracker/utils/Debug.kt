@@ -57,7 +57,7 @@ inline fun <T> logExecutionTime(logTag: String, message: String, f: () -> T): T 
 
 @Suppress("MagicNumber")
 @JvmName("injectBrokenShows")
-fun Collection<ExternalShowId>.injectBrokenItems(): Collection<ExternalShowId> {
+fun Set<ExternalShowId>.injectBrokenItems(): Set<ExternalShowId> {
     return if (INJECT_BROKEN_ITEMS) {
         this + listOf(
             TmdbExternalShowId(TmdbShowId(546_544)),
