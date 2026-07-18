@@ -54,6 +54,8 @@
     <string name="tab_shows_following">Seguite</string>
     <string name="tab_shows_following_empty">Nessuna serie seguita</string>
     <string name="tab_shows_following_empty_description">"Questa sezione contiene serie TV salvate con sessioni di visioni attive"</string>
+    <string name="tab_shows_up_next_empty">Sei in pari!</string>
+    <string name="tab_shows_up_next_empty_description">Hai visto tutti gli episodi, è il momento di iniziare una nuova serie TV!</string>
     <string name="tab_shows_up_next">Prossimi</string>
     <string name="tab_shows_calendar">Calendario</string>
     <string name="tab_shows_explore">Esplora</string>

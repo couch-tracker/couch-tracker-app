@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.plus
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -20,18 +21,20 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.tmdbPager
+import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
@@ -39,12 +42,14 @@ import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.ShowPortrait
 import io.github.couchtracker.ui.components.ShowPortraitModel
+import io.github.couchtracker.ui.components.UpNextListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.components.toShowPortraitModels
-import io.github.couchtracker.ui.screens.main.ShowSectionViewModel.BookmarkedShowData
+import io.github.couchtracker.ui.itemsWithPosition
+import io.github.couchtracker.ui.screens.main.ShowSectionViewModel.UpNextEntry
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.error.CouchTrackerResult
+import io.github.couchtracker.utils.error.CouchTrackerLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.settings.get
@@ -63,9 +68,10 @@ fun ShowSection(
     // TODO: open up next as a first tab
     val pagerState = rememberPagerState(initialPage = ShowTab.WATCHLIST.ordinal) { ShowTab.entries.size }
     val snackbarHostState = remember { SnackbarHostState() }
+    val modelErrors by viewModel.allErrors().collectAsStateWithLifecycle(emptyList())
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        errors = { viewModel.allErrors },
+        errors = { modelErrors },
         onRetry = { viewModel.retryAll() },
     )
     MainSection(
@@ -95,11 +101,9 @@ fun ShowSection(
                         emptyMessage = R.string.tab_shows_following_empty.str(),
                         emptyDescription = R.string.tab_shows_following_empty_description.str(),
                     )
-                    ShowTab.UP_NEXT -> WipMessageComposable(
-                        gitHubIssueId = 127,
-                        description = "" +
-                            "- For each active watch session of a bookmarked show, the next unwatched episode\n" +
-                            "- For each bookmarked show, without any watch sessions, the pilot",
+                    ShowTab.UP_NEXT -> UpNext(
+                        entries = viewModel.upNext,
+                        onRetry = { viewModel.retryAll() },
                     )
                     ShowTab.EXPLORE -> ShowListComposable(viewModel.exploreState)
                     ShowTab.CALENDAR -> WipMessageComposable(
@@ -114,7 +118,7 @@ fun ShowSection(
 
 @Composable
 private fun BookmarkedShowGrid(
-    shows: Loadable<List<Pair<ExternalShowId, CouchTrackerResult<BookmarkedShowData>>>>,
+    shows: Loadable<List<ShowSectionViewModel.MaybeBookmarkedShowData>>,
     emptyMessage: String,
     emptyDescription: String,
 ) {
@@ -134,11 +138,11 @@ private fun BookmarkedShowGrid(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                items(shows) { (showId, bookmarkedShow) ->
+                items(shows) { bookmarkedShowData ->
                     ShowPortrait(
                         modifier = Modifier.fillMaxWidth(),
-                        showId = showId,
-                        showResult = bookmarkedShow.map { data ->
+                        showId = bookmarkedShowData.showId,
+                        showResult = bookmarkedShowData.data.map { data ->
                             data.portraitModel.copy(
                                 downloadState = when (val seasons = data.seasons) {
                                     is Loadable.Loaded -> when (seasons.value) {
@@ -150,6 +154,41 @@ private fun BookmarkedShowGrid(
                             )
                         },
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpNext(
+    entries: CouchTrackerLoadable<List<UpNextEntry>>,
+    onRetry: () -> Unit,
+) {
+    LoadableScreen(
+        entries,
+        onError = { apiError ->
+            DefaultErrorScreen(
+                error = apiError,
+                retry = onRetry,
+            )
+        },
+    ) { entries ->
+        if (entries.isEmpty()) {
+            MessageComposable(
+                modifier = Modifier.fillMaxSize(),
+                icon = Icons.Default.BookmarkBorder,
+                message = R.string.tab_shows_up_next_empty.str(),
+                details = R.string.tab_shows_up_next_empty_description.str(),
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp) + PaddingValues(bottom = OverviewScreenComponents.LIST_BOTTOM_SPACE),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                itemsWithPosition(entries) { position, upNextEntry ->
+                    UpNextListItem(upNextEntry.model, position)
                 }
             }
         }

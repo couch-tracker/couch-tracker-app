@@ -18,7 +18,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
+import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.intl.datetime.DateSkeleton
 import io.github.couchtracker.intl.datetime.DayOfMonthSkeleton
@@ -27,7 +30,10 @@ import io.github.couchtracker.intl.datetime.MonthSkeleton
 import io.github.couchtracker.intl.datetime.YearSkeleton
 import io.github.couchtracker.intl.datetime.format
 import io.github.couchtracker.intl.datetime.localized
+import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbRating
+import io.github.couchtracker.tmdb.TmdbSeasonId
+import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
@@ -35,6 +41,7 @@ import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.rememberPlaceholderPainter
+import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 
 private val STILL_WIDTH = 112.dp
 private val STILL_HEIGHT = 64.dp
@@ -43,11 +50,13 @@ private val STILL_HEIGHT = 64.dp
 @Composable
 fun EpisodeListItem(
     episode: EpisodeListItemModel,
-    onClick: () -> Unit = {},
     position: ItemPosition,
 ) {
+    val navController = LocalNavController.current
     ListItem(
-        onClick = onClick,
+        onClick = {
+            navController.navigateToEpisode(episode.episodeId)
+        },
         leadingContent = {
             Surface(shape = MaterialTheme.shapes.small) {
                 AsyncImage(
@@ -93,6 +102,7 @@ fun EpisodeListItem(
 }
 
 data class EpisodeListItemModel(
+    val episodeId: ExternalEpisodeId,
     val name: String?,
     val number: String,
     val backdrop: ImageModel?,
@@ -102,22 +112,22 @@ data class EpisodeListItemModel(
 ) {
 
     companion object {
-        suspend fun fromTmdbEpisode(context: Context, episode: TmdbEpisode): EpisodeListItemModel {
+        suspend fun fromTmdbEpisode(context: Context, show: TmdbShowId, episode: TmdbEpisode): EpisodeListItemModel {
+            val id = TmdbExternalEpisodeId(TmdbEpisodeId(TmdbSeasonId(show, episode.seasonNumber), episode.episodeNumber))
             return EpisodeListItemModel(
+                episodeId = id,
                 name = episode.name,
                 number = context.getString(R.string.episode_x, episode.episodeNumber),
                 backdrop = episode.backdropImage?.toImageModelWithPlaceholder(),
                 firstAirDate = episode.airDate?.let {
-                    PartialDateTime.Local.Date(it)
-                        .localized(
-                            DateSkeleton(
-                                year = YearSkeleton.NUMERIC,
-                                month = MonthSkeleton.ABBREVIATED,
-                                dayOfMonth = DayOfMonthSkeleton.NUMERIC,
-                                dayOfWeekSkeleton = DayOfWeekSkeleton.ABBREVIATED,
-                            ),
-                        )
-                        .localize()
+                    PartialDateTime.Local.Date(it).localized(
+                        DateSkeleton(
+                            year = YearSkeleton.NUMERIC,
+                            month = MonthSkeleton.ABBREVIATED,
+                            dayOfMonth = DayOfMonthSkeleton.NUMERIC,
+                            dayOfWeekSkeleton = DayOfWeekSkeleton.ABBREVIATED,
+                        ),
+                    ).localize()
                 },
                 runtime = episode.runtime()?.format(),
                 tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
