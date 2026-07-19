@@ -8,15 +8,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import io.github.couchtracker.ProfileDataContext
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffold
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetScaffoldState
+import io.github.couchtracker.ui.screens.watchedItem.rememberWatchedItemSheetScaffoldState
 import kotlinx.serialization.Serializable
 
 val LocalBackgroundColor = compositionLocalOf { ColorSchemes.Base.background }
+val LocalWatchedItemSheetScaffoldState = staticCompositionLocalOf<WatchedItemSheetScaffoldState> {
+    error("LocalWatchedItemSheetScaffoldState not provided")
+}
 
 @Serializable
 abstract class Screen {
@@ -50,12 +56,14 @@ abstract class Screen {
             CompositionLocalProvider(LocalBackgroundColor provides background) {
                 Surface(color = LocalBackgroundColor.current) {
                     if (profileDataContext()) {
-                        WatchedItemSheetScaffold(
-                            containerColor = { Color.Transparent },
-                            content = {
-                                content()
-                            },
-                        )
+                        val watchedItemSheetScaffoldState = rememberWatchedItemSheetScaffoldState()
+                        CompositionLocalProvider(LocalWatchedItemSheetScaffoldState provides watchedItemSheetScaffoldState) {
+                            WatchedItemSheetScaffold(
+                                containerColor = { Color.Transparent },
+                                scaffoldState = watchedItemSheetScaffoldState,
+                                content = content,
+                            )
+                        }
                     } else {
                         content()
                     }

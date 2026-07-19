@@ -117,7 +117,7 @@ private fun WatchedEpisodeSessionList(
                 onClick = {
                     dialogMode = WatchedEpisodeSessionDialogMode.New(
                         show = viewModel.externalShowId,
-                        mediaLanguages = listOfNotNull(details.originalLanguage),
+                        mediaLanguages = listOfNotNull(details.baseDetails.originalLanguage),
                     )
                 },
                 content = {
@@ -142,7 +142,7 @@ private fun WatchedEpisodeSessionList(
                             onClick = {
                                 dialogMode = WatchedEpisodeSessionDialogMode.Edit(
                                     session = sessionInfo.watchedEpisodeSession,
-                                    mediaLanguages = listOfNotNull(details.originalLanguage),
+                                    mediaLanguages = listOfNotNull(details.baseDetails.originalLanguage),
                                 )
                             },
                             position = position,

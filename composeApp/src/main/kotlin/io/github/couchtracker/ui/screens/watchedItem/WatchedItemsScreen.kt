@@ -40,6 +40,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ListItemShapes
+import io.github.couchtracker.ui.LocalWatchedItemSheetScaffoldState
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen

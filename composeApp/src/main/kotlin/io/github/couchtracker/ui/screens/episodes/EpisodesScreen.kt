@@ -10,16 +10,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
-import androidx.compose.material3.HorizontalFloatingToolbar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -39,17 +32,19 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalEpisodeId
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
+import io.github.couchtracker.ui.actions.episodeActions
 import io.github.couchtracker.ui.components.BaseCouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
-import io.github.couchtracker.ui.components.WatchedItemsIconButton
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.utils.Loadable
+import io.github.couchtracker.utils.error.UnsupportedItemError
 import io.github.couchtracker.utils.logCompositions
 import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.resultValueOrNull
-import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -63,10 +58,24 @@ data class EpisodeScreen(val episodeId: String) : Screen() {
     override fun Content() {
         val externalEpisodeId = ExternalEpisodeId.parse(this@EpisodeScreen.episodeId)
         val seasonId = when (externalEpisodeId) {
-            is TmdbExternalEpisodeId -> {
-                externalEpisodeId.id.seasonId
+            is TmdbExternalEpisodeId -> externalEpisodeId.id.seasonId
+            is UnknownExternalEpisodeId -> {
+                ScreenContainer(ColorSchemes.Show) {
+                    val actions = episodeActions(externalEpisodeId, showId = null) { watchedSession ->
+                        WatchedItemSheetMode.New.Episode(
+                            itemId = externalEpisodeId,
+                            watchedSession = watchedSession,
+                            mediaRuntime = null,
+                            mediaLanguages = emptyList(),
+                        )
+                    }
+                    DefaultErrorScreen(
+                        error = UnsupportedItemError(externalEpisodeId),
+                        manageItemActions = actions,
+                    )
+                }
+                return
             }
-            is UnknownExternalEpisodeId -> TODO()
         }
 
         val viewModel = viewModel {
@@ -104,7 +113,7 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
                 )
             },
         ) { seasonDetails ->
-            EpisodeScreenContent(
+            EpisodesScreenContent(
                 viewModel = viewModel,
                 initialEpisode = initialEpisode,
                 seasonDetails = seasonDetails,
@@ -117,7 +126,7 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun EpisodeScreenContent(
+private fun EpisodesScreenContent(
     viewModel: EpisodesScreenViewModel,
     initialEpisode: ExternalEpisodeId,
     seasonDetails: EpisodesScreenViewModelHelper.SeasonDetails,
@@ -177,14 +186,20 @@ private fun OverviewScreenComponents.EpisodePage(
 ) {
     val episodeModel = viewModel.viewModelForEpisode(episodeDetails.tmdbEpisodeId)
     var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
+    val actions = episodeActions(episodeDetails.externalId, showId = viewModel.seasonId.showId.toExternalId()) { watchedSession ->
+        WatchedItemSheetMode.New.Episode(
+            itemId = episodeDetails.externalId,
+            watchedSession = watchedSession,
+            mediaRuntime = episodeDetails.runtime,
+            mediaLanguages = listOfNotNull(viewModel.showBaseDetails.resultValueOrNull()?.originalLanguage),
+        )
+    }
+
     BaseCouchTrackerScreenScaffold(
         floatingActionButton = {
-            EpisodeToolbar(
-                externalEpisodeId = episodeDetails.externalId,
+            ActionsHorizontalFloatingToolbar(
+                actions = actions,
                 expanded = toolbarExpanded,
-                onMarkAsWatched = {
-                    // TODO: open watched scaffold
-                },
             )
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Bottom),
@@ -234,27 +249,4 @@ private fun OverviewScreenComponents.EpisodeDetailsContent(
         )
         crewSection(crew, totalHeight = totalHeight)
     }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun EpisodeToolbar(
-    externalEpisodeId: ExternalEpisodeId,
-    expanded: Boolean,
-    onMarkAsWatched: () -> Unit,
-) {
-    HorizontalFloatingToolbar(
-        expanded = expanded,
-        floatingActionButton = {
-            FloatingToolbarDefaults.StandardFloatingActionButton(onClick = onMarkAsWatched) {
-                Icon(Icons.Filled.Check, R.string.mark_episode_as_watched.str())
-            }
-        },
-        content = {
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.AutoMirrored.Default.List, contentDescription = "TODO") // TODO
-            }
-            WatchedItemsIconButton(externalEpisodeId)
-        },
-    )
 }

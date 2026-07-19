@@ -46,7 +46,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -56,7 +55,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -84,10 +82,6 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
-
-val LocalWatchedItemSheetScaffoldState = staticCompositionLocalOf<WatchedItemSheetScaffoldState> {
-    throw IllegalStateException("LocalWatchedItemSheetScaffoldState not provided")
-}
 
 @Stable
 class WatchedItemSheetScaffoldState(
@@ -137,7 +131,7 @@ fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
 @Composable
 fun WatchedItemSheetScaffold(
     containerColor: () -> Color,
-    scaffoldState: WatchedItemSheetScaffoldState = rememberWatchedItemSheetScaffoldState(),
+    scaffoldState: WatchedItemSheetScaffoldState,
     content: @Composable () -> Unit,
 ) {
     val bottomSheetState = scaffoldState.scaffoldState.bottomSheetState
@@ -194,12 +188,8 @@ fun WatchedItemSheetScaffold(
                 visible = bottomSheetState.targetValue != SheetValue.Hidden,
                 color = BottomSheetDefaults.ScrimColor,
                 onDismissRequest = { scaffoldState.close() },
-            ) {
-                CompositionLocalProvider(
-                    value = LocalWatchedItemSheetScaffoldState provides scaffoldState,
-                    content = content,
-                )
-            }
+                content = { content() },
+            )
         },
     )
 }
@@ -270,6 +260,18 @@ private fun WatchedItemSheetContent(
                                 .onPlaced { titleHeight = it.size.height },
                             style = MaterialTheme.typography.titleLarge,
                         )
+                        if (selections.sheetMode is WatchedItemSheetMode.New.Episode) {
+                            val text = when (val ws = selections.sheetMode.watchedSession) {
+                                is WatchedItemSheetMode.New.Episode.WatchedSession.New ->
+                                    R.string.viewing_will_be_added_to_new_watch_session.str()
+                                is WatchedItemSheetMode.New.Episode.WatchedSession.Existing if !ws.showLabel -> null
+                                is WatchedItemSheetMode.New.Episode.WatchedSession.Existing ->
+                                    R.string.viewing_will_be_added_to_x_watch_session.str(ws.session.nameOrUnknown())
+                            }
+                            if (text != null) {
+                                Text(text, modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelMedium)
+                            }
+                        }
                         Spacer(Modifier.height(16.dp))
                         DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, mediaRuntime)
                         for (selection in selections.dimensions.filter { it.dimension.isImportant }) {

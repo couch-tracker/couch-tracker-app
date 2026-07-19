@@ -31,7 +31,7 @@ import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.Screen
 import io.github.couchtracker.ui.actions.Actions
 import io.github.couchtracker.ui.actions.ActionsHorizontalFloatingToolbar
-import io.github.couchtracker.ui.actions.MovieActions
+import io.github.couchtracker.ui.actions.movieActions
 import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
 import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
@@ -64,9 +64,9 @@ data class MovieScreen(val movieId: String) : Screen() {
                 }
                 val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Movie
                 ScreenContainer(colorScheme) {
-                    val actions = MovieActions(externalMovieId) {
+                    val actions = movieActions(externalMovieId) {
                         WatchedItemSheetMode.New.Movie(
-                            externalMovieId,
+                            itemId = externalMovieId,
                             mediaRuntime = viewModel.fullDetails.resultValueOrNull()?.runtime,
                             mediaLanguages = listOfNotNull(viewModel.fullDetails.resultValueOrNull()?.originalLanguage),
                         )
@@ -76,7 +76,7 @@ data class MovieScreen(val movieId: String) : Screen() {
             }
             is UnknownExternalMovieId -> {
                 ScreenContainer(ColorSchemes.Movie) {
-                    val actions = MovieActions(externalMovieId) {
+                    val actions = movieActions(externalMovieId) {
                         WatchedItemSheetMode.New.Movie(
                             externalMovieId,
                             mediaRuntime = null,

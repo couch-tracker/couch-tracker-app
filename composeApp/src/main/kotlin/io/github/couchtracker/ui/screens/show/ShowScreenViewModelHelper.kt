@@ -62,6 +62,7 @@ class ShowScreenViewModelHelper(
         val overview: String?,
         val year: Int?,
         val backdrop: ImageModel?,
+        val originalLanguage: Bcp47Language?,
     )
 
     data class FullDetails(
@@ -69,7 +70,6 @@ class ShowScreenViewModelHelper(
         val createdBy: List<TmdbShowCreatedBy>,
         val createdByString: String?,
         val genres: List<TmdbGenre>,
-        val originalLanguage: Bcp47Language?,
         val rating: TmdbRating?,
         val tagline: String?,
         val seasons: List<Pair<ExternalSeasonId, SeasonListItemModel>>,
@@ -130,13 +130,13 @@ class ShowScreenViewModelHelper(
             overview = overview,
             year = firstAirDate?.year,
             backdrop = backdropImage?.toImageModelWithPlaceholder(),
+            originalLanguage = language(),
         )
         val createdBy = createdBy.orEmpty()
         val full = FullDetails(
             baseDetails = base,
             tagline = tagline,
             rating = rating(),
-            originalLanguage = language(),
             genres = genres,
             createdBy = createdBy,
             createdByString = if (createdBy.isEmpty()) {
@@ -157,5 +157,6 @@ class ShowScreenViewModelHelper(
         overview = overview,
         year = firstAirDate?.year,
         backdrop = backdrop?.toImageModelWithPlaceholder(),
+        originalLanguage = originalLanguage,
     )
 }
