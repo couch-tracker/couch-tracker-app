@@ -18,16 +18,11 @@ import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.details
-import io.github.couchtracker.tmdb.images
 import io.github.couchtracker.tmdb.runtime
-import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.CastPortraitModel
 import io.github.couchtracker.ui.components.CrewCompactListItemModel
-import io.github.couchtracker.ui.components.toCastPortraitModel
-import io.github.couchtracker.ui.components.toCrewCompactListItemModel
 import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
 import io.github.couchtracker.ui.seasonNumberToString
-import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.mapResult
@@ -61,7 +56,7 @@ class EpisodesScreenViewModelHelper(
     ) {
         fun subtitle(context: Context, showName: String?): String? {
             return if (showName != null) {
-                context.getString(R.string.show_dash_season, showName, defaultName)
+                context.getString(R.string.show_dash_x, showName, defaultName)
             } else {
                 defaultName
             }
@@ -129,32 +124,6 @@ class EpisodesScreenViewModelHelper(
         return seasonDetails.mapResult { season ->
             val show = showBaseDetails.resultValueOrNull()
             season.subtitle(application, show?.name)
-        }
-    }
-
-    class EpisodeViewModelHelper(
-        val application: Application,
-        val episodeId: TmdbEpisodeId,
-        val retryContext: TmdbFlowRetryContext,
-    ) {
-        val details: Flow<ApiLoadable<EpisodeFullDetails>> = retryContext { languages ->
-            episodeId.details(languages.apiLanguage).map { result ->
-                result.map { tmdbEpisodeDetails ->
-                    EpisodeFullDetails(
-                        overview = tmdbEpisodeDetails.overview,
-                        crew = tmdbEpisodeDetails.crew.orEmpty().toCrewCompactListItemModel(application),
-                        guestStars = tmdbEpisodeDetails.guestStars.orEmpty().toCastPortraitModel(),
-                    )
-                }
-            }
-        }
-
-        val images: Flow<ApiLoadable<List<ImageModel>>> = retryContext { languages ->
-            episodeId.images(languages.toTmdbLanguagesFilter()).map { result ->
-                result.map { images ->
-                    images.toImageModel(includeLogos = false)
-                }
-            }
         }
     }
 }

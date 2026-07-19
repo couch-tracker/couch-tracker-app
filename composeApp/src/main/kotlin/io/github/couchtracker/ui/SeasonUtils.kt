@@ -12,6 +12,37 @@ fun seasonNumberToString(context: Context, seasonNumber: Int): String {
     }
 }
 
+fun seasonEpisodeNumberToString(context: Context, seasonNumber: Int, episodeNumber: Int, episodeName: String? = null): String {
+    return if (seasonNumber == 0) {
+        if (episodeName == null) {
+            context.getString(R.string.season_special_episode, episodeNumber)
+        } else {
+            context.getString(R.string.season_special_episode_with_name, episodeNumber, episodeName)
+        }
+    } else {
+        if (episodeName == null) {
+            context.getString(R.string.season_episode, seasonNumber, episodeNumber)
+        } else {
+            context.getString(R.string.season_episode_with_name, seasonNumber, episodeNumber, episodeName)
+        }
+    }
+}
+
+fun showSeasonEpisodeNumberToString(
+    context: Context,
+    showName: String?,
+    seasonNumber: Int,
+    episodeNumber: Int,
+    episodeName: String? = null,
+): String {
+    val seasonEpisodeString = seasonEpisodeNumberToString(context, seasonNumber, episodeNumber, episodeName)
+    return if (showName == null) {
+        seasonEpisodeString
+    } else {
+        context.getString(R.string.show_dash_x, showName, seasonEpisodeString)
+    }
+}
+
 data class SeasonNames(
     val mainName: String,
     val secondaryName: String?,

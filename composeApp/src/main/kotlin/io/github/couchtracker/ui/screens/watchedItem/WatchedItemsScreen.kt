@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.plus
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.Text
@@ -32,24 +29,23 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
+import io.github.couchtracker.db.profile.externalids.UnknownExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalMovieId
 import io.github.couchtracker.db.profile.externalids.WatchableExternalId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
-import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.LocalWatchedItemSheetScaffoldState
 import io.github.couchtracker.ui.Screen
+import io.github.couchtracker.ui.actions.ActionFloatingActionButton
 import io.github.couchtracker.ui.components.CouchTrackerScreenScaffold
-import io.github.couchtracker.ui.components.DefaultErrorScreen
-import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.WatchedItemDimensionSelections
 import io.github.couchtracker.ui.itemsWithPosition
-import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.viewModelApplication
 import kotlinx.serialization.Serializable
@@ -60,23 +56,37 @@ data class WatchedItemsScreen(val itemId: String) : Screen() {
     @Composable
     override fun Content() {
         val viewModel = when (val externalItemId = ExternalId.parse<WatchableExternalId>(itemId)) {
-            is ExternalMovieId -> {
-                val movieId = when (externalItemId) {
-                    is TmdbExternalMovieId -> externalItemId.id
-                    is UnknownExternalMovieId -> TODO()
-                }
-                viewModel {
-                    WatchedItemsScreenViewModel.Movie(
+            is ExternalMovieId -> when (externalItemId) {
+                is TmdbExternalMovieId -> viewModel {
+                    WatchedItemsScreenViewModel.Movie.Tmdb(
                         application = viewModelApplication(),
-                        movieId = movieId,
+                        movieId = externalItemId.id,
+                    )
+                }
+                is UnknownExternalMovieId -> viewModel {
+                    WatchedItemsScreenViewModel.Movie.Unknown(
+                        application = viewModelApplication(),
+                        externalId = externalItemId,
                     )
                 }
             }
 
-            is ExternalEpisodeId -> TODO()
+            is ExternalEpisodeId -> when (externalItemId) {
+                is TmdbExternalEpisodeId -> viewModel {
+                    WatchedItemsScreenViewModel.Episode.Tmdb(
+                        application = viewModelApplication(),
+                        externalId = externalItemId,
+                    )
+                }
+                is UnknownExternalEpisodeId -> viewModel {
+                    WatchedItemsScreenViewModel.Episode.Unknown(
+                        application = viewModelApplication(),
+                        externalId = externalItemId,
+                    )
+                }
+            }
         }
-        val colorScheme = viewModel.colorScheme.resultValueOrNull() ?: ColorSchemes.Base
-        ScreenContainer(colorScheme) {
+        ScreenContainer(viewModel.colorScheme) {
             Content(viewModel)
         }
     }
@@ -86,27 +96,12 @@ fun NavController.navigateToWatchedItems(id: WatchableExternalId) {
     navigate(WatchedItemsScreen(id.serialize()))
 }
 
-@Composable
-private fun Content(
-    viewModel: WatchedItemsScreenViewModel,
-) {
-    LoadableScreen(
-        data = viewModel.details,
-        onError = { apiError ->
-            DefaultErrorScreen(
-                error = apiError,
-                retry = { viewModel.retryAll() },
-            )
-        },
-    ) { details ->
-        WatchedItemList(viewModel = viewModel, details = details)
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: WatchedItemsScreenViewModel.Details) {
+private fun Content(viewModel: WatchedItemsScreenViewModel) {
     val fullProfileData = LocalFullProfileDataContext.current
+    val details = viewModel.details
+
     val watchedItems = remember(fullProfileData, viewModel.externalId) {
         fullProfileData.watchedItems.filter { it.itemId == viewModel.externalId }.sortDescending()
     }
@@ -116,24 +111,10 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
     val title = R.string.viewing_history.str()
     CouchTrackerScreenScaffold(
         title = { title },
-        subtitle = { details.title },
+        subtitle = { details.subtitle },
         backdrop = { details.backdrop },
         floatingActionButton = {
-            val state = LocalWatchedItemSheetScaffoldState.current
-            FloatingActionButton(
-                onClick = {
-                    val sheetMode = when (viewModel) {
-                        is WatchedItemsScreenViewModel.Movie -> WatchedItemSheetMode.New.Movie(
-                            itemId = viewModel.externalId,
-                            mediaRuntime = details.runtime,
-                            mediaLanguages = listOfNotNull(details.originalLanguage),
-                        )
-                    }
-                    state.open(sheetMode)
-                },
-            ) {
-                Icon(Icons.Default.Add, contentDescription = R.string.add_viewing.str())
-            }
+            viewModel.markAsWatchedAction()?.let { ActionFloatingActionButton(it) }
         },
     ) { contentPadding ->
         if (watchedItems.isEmpty()) {
@@ -161,7 +142,7 @@ private fun WatchedItemList(viewModel: WatchedItemsScreenViewModel, details: Wat
         watchedItemForInfoDialog?.let { watchedItem ->
             val state = LocalWatchedItemSheetScaffoldState.current
             WatchedItemInfoDialog(
-                itemTitle = details.title,
+                itemTitle = details.subtitle,
                 watchedItem = watchedItem,
                 onDismissRequest = { watchedItemForInfoDialog = null },
                 onEditRequest = {

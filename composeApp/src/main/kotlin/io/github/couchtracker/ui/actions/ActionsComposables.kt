@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.IconButton
@@ -75,6 +76,24 @@ fun ActionsHorizontalFloatingToolbar(actions: Actions, expanded: Boolean) {
                 ActionsRow(actions.otherActions)
             },
         )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+fun ActionFloatingActionButton(action: Action) {
+    action.companionComposable()
+    ActionBadge(action) {
+        FloatingActionButton(
+            onClick = {
+                // FloatingActionButton cannot be disabled, so we do this to avoid double clicks while loading
+                if (action.state?.isLoading != true) {
+                    action.onClick()
+                }
+            },
+        ) {
+            DelayedActionIconLoadingIndicator(action.icon, contentDescription = action.name, action = action.state)
+        }
     }
 }
 
