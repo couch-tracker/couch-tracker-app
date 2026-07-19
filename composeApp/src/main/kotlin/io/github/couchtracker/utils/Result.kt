@@ -44,6 +44,18 @@ inline fun <O, T : O, E> Result<T, E>.mapError(f: (E) -> O): O = when (this) {
 inline fun <I, O, E> Loadable<Result<I, E>>.mapResult(f: (I) -> O): Loadable<Result<O, E>> = map { it.map(f) }
 
 /**
+ * Applies [f] to [Result.Value.value].
+ * Otherwise, [Loadable.Loading] and [Result.Error] are returned without executing [f].
+ */
+inline fun <I, O, E> Loadable<Result<I, E>>.flatMapResult(f: (I) -> Loadable<Result<O, E>>): Loadable<Result<O, E>> = when (this) {
+    is Loadable.Loaded -> when (value) {
+        is Result.Error -> Loadable.Loaded(value)
+        is Result.Value -> f(value.value)
+    }
+    Loadable.Loading -> Loadable.Loading
+}
+
+/**
  * A new [Loadable] where errors are mapped to a value using [f].
  */
 inline fun <O, T : O, E> Loadable<Result<T, E>>.mapError(f: (E) -> O): Loadable<O> = map { it.mapError(f) }
