@@ -94,6 +94,8 @@
 
     <string name="watched_movie_time_just_started">Just started</string>
     <string name="watched_movie_time_just_finished">Just finished</string>
+    <string name="watched_episode_time_just_started">Just started</string>
+    <string name="watched_episode_time_just_finished">Just finished</string>
     <string name="watched_item_time_today">Today</string>
     <string name="watched_item_time_custom">Custom</string>
     <string name="watched_item_language_other">Other</string>
@@ -200,6 +202,10 @@
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">First viewing</string>
     <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Last viewing</string>
+    <string name="choose_watch_session">Choose watch session</string>
+    <string name="manage_watch_sessions">Manage watch sessions</string>
+    <string name="viewing_will_be_added_to_new_watch_session">Will be part of a new watch session</string>
+    <string name="viewing_will_be_added_to_x_watch_session">Will be part of: %1$s</string>
 
     <string name="unsupported_item_id">Unsupported item id</string>
     <string name="unsupported_item_id_description">"The item with id '%1$s' is not supported by this app"</string>

@@ -8,6 +8,7 @@ import app.moviebase.tmdb.image.TmdbImageUrlBuilder
 import app.moviebase.tmdb.model.TmdbCrew
 import app.moviebase.tmdb.model.TmdbEpisode
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import app.moviebase.tmdb.model.TmdbShow
 import app.moviebase.tmdb.model.TmdbShowDetail
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -82,6 +83,12 @@ fun TmdbMovieDetail.language(
 }
 
 fun TmdbShowDetail.language(
+    allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
+): Bcp47Language? {
+    return language(originalLanguage, originCountry, allLocales)
+}
+
+fun TmdbShow.language(
     allLocales: List<ULocale> = KoinPlatform.getKoin().get<LocaleData>().allLocales,
 ): Bcp47Language? {
     return language(originalLanguage, originCountry, allLocales)

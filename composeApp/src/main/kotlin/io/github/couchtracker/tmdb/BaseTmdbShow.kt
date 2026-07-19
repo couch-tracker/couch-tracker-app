@@ -3,6 +3,7 @@ package io.github.couchtracker.tmdb
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.model.TmdbRatingItem
 import app.moviebase.tmdb.model.TmdbShowDetail
+import io.github.couchtracker.db.profile.Bcp47Language
 import kotlinx.datetime.LocalDate
 import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
 
@@ -16,7 +17,7 @@ data class BaseTmdbShow(
     val firstAirDate: LocalDate?,
     val originalName: String?,
     val originCountry: List<String>,
-    val originalLanguage: String?,
+    val originalLanguage: Bcp47Language?,
     val popularity: Float,
     override val voteCount: Int?,
     override val voteAverage: Float?,
@@ -32,7 +33,7 @@ fun ApiTmdbShow.toBaseShow(language: TmdbLanguage): BaseTmdbShow {
         firstAirDate = firstAirDate,
         originalName = originalName,
         originCountry = originCountry,
-        originalLanguage = originalLanguage,
+        originalLanguage = language(),
         popularity = popularity,
         voteCount = voteCount,
         voteAverage = voteAverage,
@@ -49,7 +50,7 @@ fun TmdbShowDetail.toBaseShow(language: TmdbLanguage): BaseTmdbShow {
         firstAirDate = firstAirDate,
         originalName = originalName,
         originCountry = originCountry,
-        originalLanguage = originalLanguage,
+        originalLanguage = language(),
         popularity = popularity,
         voteCount = voteCount,
         voteAverage = voteAverage,

@@ -7,6 +7,7 @@ import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import kotlin.time.Duration
@@ -42,14 +43,28 @@ sealed interface WatchedItemSheetMode {
 
         data class Episode(
             override val itemId: ExternalEpisodeId,
-            val session: WatchedEpisodeSession,
+            val watchedSession: WatchedSession,
             override val mediaRuntime: Duration?,
             override val mediaLanguages: List<Bcp47Language>,
         ) : New {
             override val watchedItemType = WatchedItemType.EPISODE
 
             override fun save(db: ProfileData, watchedItem: WatchedItem) {
+                val session = watchedSession.get(db)
                 db.watchedEpisodeQueries.insert(id = watchedItem.id, episodeId = itemId, session = session.id)
+            }
+
+            sealed interface WatchedSession {
+
+                fun get(db: ProfileData): WatchedEpisodeSession
+
+                data class New(val creator: (ProfileData) -> WatchedEpisodeSession) : WatchedSession {
+                    override fun get(db: ProfileData) = creator(db)
+                }
+
+                data class Existing(val session: WatchedEpisodeSessionWrapper, val showLabel: Boolean) : WatchedSession {
+                    override fun get(db: ProfileData) = session.watchedEpisodeSession
+                }
             }
         }
     }

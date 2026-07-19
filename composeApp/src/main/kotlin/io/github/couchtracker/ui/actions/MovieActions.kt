@@ -9,9 +9,9 @@ import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.utils.str
 
 @Composable
-fun MovieActions(movieId: ExternalMovieId, watchedItemSheetModel: () -> WatchedItemSheetMode.New): Actions {
+fun movieActions(movieId: ExternalMovieId, watchedItemSheetModel: () -> WatchedItemSheetMode.New.Movie): Actions {
     return Actions(
-        mainAction = MarkAsWatchedAction(watchedItemSheetModel),
+        mainAction = markMovieAsWatchedAction(watchedItemSheetModel),
         otherActions = listOf(
             Action(R.string.action_lists.str(), Icons.AutoMirrored.Default.List) { /* TODO */ },
             ViewingsListAction(movieId),

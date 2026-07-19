@@ -1,10 +1,13 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
+import androidx.compose.runtime.Composable
+import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisodeSession
+import io.github.couchtracker.utils.str
 
 data class WatchedEpisodeSessionWrapper(
-    private val watchedEpisodeSession: WatchedEpisodeSession,
+    val watchedEpisodeSession: WatchedEpisodeSession,
     val defaultDimensionSelections: WatchedItemDimensionSelectionsWrapper,
 ) {
 
@@ -19,6 +22,9 @@ data class WatchedEpisodeSessionWrapper(
             "WatchedEpisodeSession defaultDimensionSelections and given selections wrapper must match"
         }
     }
+
+    @Composable
+    fun nameOrUnknown(): String = name ?: R.string.unnamed_watch_session.str()
 
     companion object {
         fun load(

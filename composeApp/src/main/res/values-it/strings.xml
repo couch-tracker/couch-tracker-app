@@ -97,6 +97,8 @@
 
     <string name="watched_movie_time_just_started">Appena iniziato</string>
     <string name="watched_movie_time_just_finished">Appena finito</string>
+    <string name="watched_episode_time_just_started">Appena iniziato</string>
+    <string name="watched_episode_time_just_finished">Appena finito</string>
     <string name="watched_item_time_today">Oggi</string>
     <string name="watched_item_time_custom">Personalizzato</string>
     <string name="watched_item_language_other">Altra</string>
@@ -205,6 +207,10 @@
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">Prima visione</string>
     <string name="delete_watch_session_dialog_viewings_detail_last_viewing">Ultima visione</string>
+    <string name="choose_watch_session">Scegli una sessione di visioni</string>
+    <string name="manage_watch_sessions">Gestisci sessioni di visioni</string>
+    <string name="viewing_will_be_added_to_new_watch_session">Farà parte di una nuova sessione di visioni</string>
+    <string name="viewing_will_be_added_to_x_watch_session">Farà parte di: %1$s</string>
 
     <string name="unsupported_item_id">Id non supportato</string>
     <string name="unsupported_item_id_description">"L'elemento con id '%1$s' non è supportato da quest'app"</string>
