@@ -2,9 +2,10 @@ package io.github.couchtracker.ui.screens.episodes
 
 import android.app.Application
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.tmdb.TmdbEpisodeId
@@ -17,7 +18,9 @@ import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.collectAsLoadableInScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlin.coroutines.EmptyCoroutineContext
 
 class EpisodesScreenViewModel(
     application: Application,
@@ -46,7 +49,7 @@ class EpisodesScreenViewModel(
 
     class EpisodeViewModel(
         application: Application,
-        scope: CoroutineScope,
+        val scope: CoroutineScope,
         episodeId: TmdbEpisodeId,
         retryContext: TmdbFlowRetryContext,
     ) {
@@ -64,12 +67,19 @@ class EpisodesScreenViewModel(
 
     @Composable
     fun viewModelForEpisode(episode: TmdbEpisodeId): EpisodeViewModel {
-        return EpisodeViewModel(
-            getApplication(),
-            rememberCoroutineScope(),
-            episode,
-            retryContext,
-        ).also { childModels.put(it) }
+        val model = remember(episode) {
+            EpisodeViewModel(
+                getApplication(),
+                CoroutineScope(EmptyCoroutineContext),
+                episode,
+                retryContext,
+            )
+        }
+        DisposableEffect(model.scope) {
+            onDispose { model.scope.cancel() }
+        }
+        childModels.put(model)
+        return model
     }
 
     fun retryAll() {
