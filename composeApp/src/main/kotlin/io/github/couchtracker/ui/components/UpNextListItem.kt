@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
 import dev.mmauro.datetimepolyglot.localizers.localize
 import io.github.couchtracker.LocalNavController
@@ -129,18 +128,19 @@ data class UpNextListItemModel(
             context: Context,
             showPreloadData: BaseTmdbShow,
             watchSession: WatchedEpisodeSessionWrapper?,
-            episode: TmdbEpisode,
+            seasonNumber: Int,
+            episodeNumber: Int,
         ): UpNextListItemModel {
             val showId = showPreloadData.key.id
-            val seasonId = TmdbSeasonId(showId, episode.seasonNumber)
-            val episodeId = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, episode.episodeNumber))
+            val seasonId = TmdbSeasonId(showId, seasonNumber)
+            val episodeId = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, episodeNumber))
             return UpNextListItemModel(
                 showId = TmdbExternalShowId(showId),
                 watchSession = watchSession,
                 episodeId = episodeId,
                 showName = showPreloadData.name,
                 showPreloadData = showPreloadData,
-                episodeLabel = seasonEpisodeNumberToString(context, episode.seasonNumber, episode.episodeNumber),
+                episodeLabel = seasonEpisodeNumberToString(context, seasonNumber, episodeNumber),
                 posterModel = showPreloadData.poster?.toImageModel(),
             )
         }

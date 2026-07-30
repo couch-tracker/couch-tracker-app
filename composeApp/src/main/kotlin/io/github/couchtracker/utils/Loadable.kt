@@ -104,7 +104,7 @@ fun <T> Flow<Loadable<T>>.collectAsLoadableInScope(
     val state = mutableStateOf<Loadable<T>>(Loadable.Loading)
     scope.launch(Dispatchers.Main, start = CoroutineStart.UNDISPATCHED) {
         flowOn(context).collect { item ->
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG && state.value != item) {
                 Log.d("Loadable", "Collecting $debugLog: ${item.javaClass}")
             }
             state.value = item
