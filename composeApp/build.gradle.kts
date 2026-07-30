@@ -110,6 +110,7 @@ kotlin {
         testImplementation(libs.mockk.android)
         testImplementation(libs.koin.test)
         testImplementation(libs.sqldelight.jvm)
+        testImplementation(libs.turbine)
     }
 }
 

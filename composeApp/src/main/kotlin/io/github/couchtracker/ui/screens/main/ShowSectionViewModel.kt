@@ -1,18 +1,18 @@
 package io.github.couchtracker.ui.screens.main
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
-import app.moviebase.tmdb.model.TmdbEpisode
-import app.moviebase.tmdb.model.TmdbSeasonDetail
 import io.github.couchtracker.db.app.ProfilesInfo
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbLanguages
@@ -27,16 +27,20 @@ import io.github.couchtracker.ui.components.toShowPortraitModels
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.collectAsLoadable
+import io.github.couchtracker.utils.collectWithPrevious
 import io.github.couchtracker.utils.combineResults
 import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.error.CouchTrackerError
 import io.github.couchtracker.utils.error.CouchTrackerLoadable
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
+import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.injectBrokenItems
 import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.rememberingCombined
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
+import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +48,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -64,15 +67,14 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
     private data class BookmarkedShows(
         val bookmarkedShows: Set<ExternalShowId>,
         val watchSessions: Map<ExternalShowId, List<WatchedEpisodeSessionWrapper>>,
+        val watchedEpisodesBySession: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>>,
     )
 
     @Suppress("EqualsOrHashCode")
     data class BookmarkedShowData(
         val baseShowData: BaseTmdbShow,
-        val watchSessions: List<WatchedEpisodeSessionWrapper>,
         val portraitModel: ShowPortraitModel,
-        // TODO: I should probably keep less data in RAM than literally everything
-        val seasons: ApiLoadable<List<TmdbSeasonDetail>>,
+        val seasons: ApiLoadable<List<BookmarkedSeasonData>>,
     ) {
         // Computing the hashcode of this class is expensive.
         // Caching it, so it's computed on creation on a background thread
@@ -80,9 +82,19 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         override fun hashCode() = cachedHashCode
     }
 
+    data class BookmarkedSeasonData(
+        val id: TmdbSeasonId,
+        val seasonNumber: Int,
+        val episodes: List<BookmarkedEpisodeData>,
+    )
+
+    data class BookmarkedEpisodeData(
+        val episodeNumber: Int,
+    )
+
     data class MaybeBookmarkedShowData(
         val showId: ExternalShowId,
-        val watchSessions: List<WatchedEpisodeSessionWrapper>,
+        val watchSessions: Map<WatchedEpisodeSessionWrapper, Set<ExternalEpisodeId>>,
         val data: CouchTrackerResult<BookmarkedShowData>,
     )
 
@@ -100,6 +112,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                     BookmarkedShows(
                         bookmarkedShows = fullData.bookmarkedShows.keys.injectBrokenItems(),
                         watchSessions = fullData.watchedEpisodeSessions,
+                        watchedEpisodesBySession = fullData.watchedEpisodesBySession,
                     )
                 } else {
                     null
@@ -112,27 +125,31 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
 
     val watchlist: Loadable<List<MaybeBookmarkedShowData>> by bookmarks.mapLatest { bookmarks ->
         bookmarks.map { bookmarks ->
-            bookmarks.filter { bookmarkedShowData -> bookmarkedShowData.watchSessions.none { it.isActive } }
+            bookmarks.filter { bookmarkedShowData -> bookmarkedShowData.watchSessions.none { it.key.isActive } }
         }
     }.collectAsLoadable("shows-watchlist")
 
     val following: Loadable<List<MaybeBookmarkedShowData>> by bookmarks.mapLatest { bookmarks ->
         bookmarks.map { bookmarks ->
-            bookmarks.filter { bookmarkedShowData -> bookmarkedShowData.watchSessions.any { it.isActive } }
+            bookmarks.filter { bookmarkedShowData -> bookmarkedShowData.watchSessions.any { it.key.isActive } }
         }
     }.collectAsLoadable("shows-following")
 
-    val upNext: CouchTrackerLoadable<List<UpNextEntry>> by bookmarks.flatMapLatest { bookmarks ->
-        when (bookmarks) {
-            Loadable.Loading -> flowOf(Loadable.Loading)
-            is Loadable.Loaded -> {
-                val allFlows = bookmarks.value.flatMap { bookmarkedShowData ->
-                    bookmarkedShowData.upNextEntries()
+    val upNext: CouchTrackerLoadable<List<UpNextEntry>> by bookmarks
+        .collectWithPrevious { previous: Loadable<Map<MaybeBookmarkedShowData, CouchTrackerLoadable<List<UpNextEntry>>>>?, bookmarks ->
+            bookmarks.map { bookmarks ->
+                bookmarks.associateWith { bookmarkedShowData ->
+                    val old = previous?.valueOrNull()?.get(bookmarkedShowData)
+                    old ?: bookmarkedShowData.upNextEntries()
                 }
-                combine(allFlows) { it.toList().mergeUpNextEntries() }
             }
         }
-    }.collectAsLoadable("shows-up-next")
+        .mapLatest { bookmarksWithUpNext ->
+            bookmarksWithUpNext.flatMap { bookmarksWithUpNext ->
+                bookmarksWithUpNext.values.mergeUpNextEntries()
+            }
+        }
+        .collectAsLoadable("shows-up-next")
 
     fun allErrors(): Flow<List<CouchTrackerError>> {
         // Note: all errors in this model originate from `bookmarks`, so I don't need to check errors of individual fields
@@ -151,15 +168,23 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun Flow<BookmarkedShows>.withShowData(): Flow<Loadable<List<MaybeBookmarkedShowData>>> {
         return retryContext { languages ->
-            flatMapLatest { bookmarkedData ->
+            rememberingCombined(
+                keys = { it.bookmarkedShows },
+                flowToRemember = { showId -> flowDetailForShow(showId, languages) },
+            ) { bookmarkedData, showDataCache ->
                 if (bookmarkedData.bookmarkedShows.isEmpty()) {
-                    flowOf(emptyList())
+                    emptyList()
                 } else {
-                    combine(
-                        flows = bookmarkedData.bookmarkedShows.map { showId ->
-                            flowDetailForShow(showId, bookmarkedData.watchSessions[showId].orEmpty(), languages)
-                        },
-                    ) { it.toList() }
+                    bookmarkedData.bookmarkedShows.map { showId ->
+                        val watchSessions = bookmarkedData.watchSessions[showId].orEmpty()
+                        MaybeBookmarkedShowData(
+                            showId = showId,
+                            watchSessions = watchSessions.associateWith { watchSession ->
+                                bookmarkedData.watchedEpisodesBySession[watchSession].orEmpty().mapTo(HashSet()) { it.itemId }
+                            },
+                            data = showDataCache.getValue(showId),
+                        )
+                    }
                 }
             }
         }
@@ -167,19 +192,19 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun flowDetailForShow(
         showId: ExternalShowId,
-        watchSessions: List<WatchedEpisodeSessionWrapper>,
         languages: TmdbLanguages,
-    ): Flow<MaybeBookmarkedShowData> {
+    ): Flow<CouchTrackerResult<BookmarkedShowData>> {
+        Log.d("flowDetailForShow", "showId: $showId")
         val tmdbShowId: TmdbShowId = when (showId) {
             is TmdbExternalShowId -> showId.id
             is UnknownExternalShowId -> return flowOf(
-                MaybeBookmarkedShowData(showId, watchSessions, Result.Error(UnsupportedItemError(showId))),
+                Result.Error(UnsupportedItemError(showId)),
             )
         }
         return tmdbShowId.details(languages.apiLanguage).transform { result ->
             val details = when (result) {
                 is Result.Error -> {
-                    emit(MaybeBookmarkedShowData(showId, watchSessions, result))
+                    emit(result)
                     return@transform
                 }
                 is Result.Value -> result.value
@@ -189,10 +214,9 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                     baseShowData = details.toBaseShow(languages.apiLanguage),
                     portraitModel = details.toShowPortraitModels(application, languages.apiLanguage),
                     seasons = Loadable.Loading,
-                    watchSessions = watchSessions,
                 ),
             )
-            emit(MaybeBookmarkedShowData(showId, watchSessions, bookmarkedShow))
+            emit(bookmarkedShow)
             emitAll(
                 combine(
                     details.seasons.map {
@@ -200,78 +224,23 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                         seasonId.details(languages.apiLanguage)
                     },
                 ) { seasons ->
-                    MaybeBookmarkedShowData(
-                        showId = showId,
-                        watchSessions = watchSessions,
-                        data = bookmarkedShow.map { data ->
-                            data.copy(
-                                seasons = Loadable.Loaded(seasons.asList().combineResults()),
+                    val bookmarkedSeasonsData = seasons.asList().combineResults().map { season ->
+                        season.map { season ->
+                            val seasonId = TmdbSeasonId(tmdbShowId, season.seasonNumber)
+                            BookmarkedSeasonData(
+                                id = seasonId,
+                                seasonNumber = season.seasonNumber,
+                                episodes = season.episodes.orEmpty().map { episode ->
+                                    BookmarkedEpisodeData(
+                                        episodeNumber = episode.episodeNumber,
+                                    )
+                                },
                             )
-                        },
-                    )
-                },
-            )
-        }
-    }
-
-    private fun MaybeBookmarkedShowData.upNextEntries(): List<Flow<CouchTrackerLoadable<UpNextEntry?>>> {
-        return if (watchSessions.isEmpty()) {
-            listOf(upNextEntry(showId, null, this.data))
-        } else {
-            // Has watch sessions => one entry for each watch session
-            watchSessions.filter { it.isActive }.map { watchSession ->
-                upNextEntry(showId, watchSession, this.data)
-            }
-        }
-    }
-
-    private fun List<CouchTrackerLoadable<UpNextEntry?>>.mergeUpNextEntries(): CouchTrackerLoadable<List<UpNextEntry>> {
-        return if (isEmpty()) {
-            Loadable.value(emptyList())
-        } else if (any { it is Loadable.Loading }) {
-            Loadable.Loading
-        } else {
-            val loaded = mapNotNull { it.resultValueOrNull() }
-            if (loaded.isEmpty()) {
-                // Note: I'm just taking the first error; in principle they could be merged
-                Loadable.error(firstNotNullOf { it.resultErrorOrNull() })
-            } else {
-                Loadable.value(loaded)
-            }
-        }
-    }
-
-    private fun upNextEntry(
-        showId: ExternalShowId,
-        watchSession: WatchedEpisodeSessionWrapper?,
-        showData: CouchTrackerResult<BookmarkedShowData>,
-    ): Flow<CouchTrackerLoadable<UpNextEntry?>> {
-        val (showData, seasons) = when (showData) {
-            is Result.Error -> return flowOf(Loadable.Loaded(showData))
-            is Result.Value -> {
-                showData.value to when (showData.value.seasons) {
-                    Loadable.Loading -> return flowOf(Loadable.Loading)
-                    is Loadable.Loaded -> when (showData.value.seasons.value) {
-                        is Result.Error -> return flowOf(Loadable.Loaded(showData.value.seasons.value))
-                        is Result.Value -> showData.value.seasons.value.value
+                        }
                     }
-                }
-            }
-        }
-
-        return findNextEpisodeToWatch(showData.baseShowData.key.id, watchSession, seasons).map {
-            Loadable.value(
-                if (it == null) {
-                    null
-                } else {
-                    UpNextEntry(
-                        showId = showId,
-                        watchSession = watchSession,
-                        model = UpNextListItemModel.withShowData(
-                            context = application,
-                            showPreloadData = showData.baseShowData,
-                            watchSession = watchSession,
-                            episode = it,
+                    Result.Value(
+                        value = bookmarkedShow.value.copy(
+                            seasons = Loadable.Loaded(bookmarkedSeasonsData),
                         ),
                     )
                 },
@@ -279,37 +248,75 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    private fun findNextEpisodeToWatch(
-        showId: TmdbShowId,
-        watchSession: WatchedEpisodeSessionWrapper?,
-        seasons: List<TmdbSeasonDetail>,
-    ): Flow<TmdbEpisode?> {
-        return if (watchSession == null) {
-            // No watch sessions => one entry with the pilot
-            flowOf(seasons.firstOrNull { it.seasonNumber > 0 }?.episodes?.firstOrNull())
-        } else {
-            // By design, I read the full profile data again here.
-            // While it could potentially create minor inconsistencies,
-            // it avoids the situation where each minor profile change causes for the whole up-next section to reload
-            KoinPlatform.getKoin().get<Flow<ProfilesInfo>>()
-                .map { profilesInfo ->
-                    val fullData = profilesInfo.currentFullData.resultValueOrNull()
-                    val watchedEpisodes: Set<ExternalEpisodeId> = fullData?.watchedEpisodesBySession[watchSession]
-                        .orEmpty()
-                        .mapTo(mutableSetOf()) { it.itemId }
-                    for (season in seasons) {
-                        if (season.seasonNumber > 0) {
-                            val seasonId = TmdbSeasonId(showId, season.seasonNumber)
-                            for (episode in season.episodes.orEmpty()) {
-                                val episodeId = TmdbEpisodeId(seasonId, episode.episodeNumber).toExternalId()
-                                if (episodeId !in watchedEpisodes) {
-                                    return@map episode
-                                }
-                            }
-                        }
+    private fun MaybeBookmarkedShowData.upNextEntries(): CouchTrackerLoadable<List<UpNextEntry>> {
+        val (showData, seasons) = when (this.data) {
+            is Result.Error -> return Loadable.Loaded(data)
+            is Result.Value -> {
+                data.value to when (data.value.seasons) {
+                    Loadable.Loading -> return Loadable.Loading
+                    is Loadable.Loaded -> when (data.value.seasons.value) {
+                        is Result.Error -> return Loadable.Loaded(data.value.seasons.value)
+                        is Result.Value -> data.value.seasons.value.value
                     }
-                    null
                 }
+            }
+        }
+        Log.d("upNextEntries", "showId: $showId")
+        return Loadable.value(
+            if (watchSessions.isEmpty()) {
+                listOfNotNull(upNextEntry(showId, null, emptySet(), showData, seasons))
+            } else {
+                // Has watch sessions => one entry for each watch session
+                watchSessions.filter { it.key.isActive }.mapNotNull { watchSession ->
+                    upNextEntry(showId, watchSession.key, watchSession.value, showData, seasons)
+                }
+            },
+        )
+    }
+
+    private fun upNextEntry(
+        showId: ExternalShowId,
+        watchSession: WatchedEpisodeSessionWrapper?,
+        watchedEpisodes: Set<ExternalEpisodeId>,
+        showData: BookmarkedShowData,
+        seasons: List<BookmarkedSeasonData>,
+    ): UpNextEntry? {
+        for (season in seasons) {
+            if (season.seasonNumber > 0) {
+                for (episode in season.episodes) {
+                    val episodeId = TmdbEpisodeId(season.id, episode.episodeNumber).toExternalId()
+                    if (episodeId !in watchedEpisodes) {
+                        return UpNextEntry(
+                            showId = showId,
+                            watchSession = watchSession,
+                            model = UpNextListItemModel.withShowData(
+                                context = application,
+                                showPreloadData = showData.baseShowData,
+                                watchSession = watchSession,
+                                seasonNumber = season.seasonNumber,
+                                episodeNumber = episode.episodeNumber,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    private fun Collection<CouchTrackerLoadable<List<UpNextEntry>>>.mergeUpNextEntries(): CouchTrackerLoadable<List<UpNextEntry>> {
+        return if (isEmpty()) {
+            Loadable.value(emptyList())
+        } else if (any { it is Loadable.Loading }) {
+            Loadable.Loading
+        } else {
+            val loaded = mapNotNull { it.resultValueOrNull() }.flatten()
+            if (loaded.isEmpty()) {
+                // Note: I'm just taking the first error; in principle they could be merged
+                Loadable.error(firstNotNullOf { it.resultErrorOrNull() })
+            } else {
+                Loadable.value(loaded)
+            }
         }
     }
 
