@@ -24,12 +24,12 @@ data class FullProfileData(
     val watchedItemDimensions: List<WatchedItemDimensionWrapper>,
 ) {
 
-    private val watchedItemsEpisode = watchedItems.filterIsInstance<WatchedItemWrapper.Episode>()
-    private val watchedItemsMovie = watchedItems.filterIsInstance<WatchedItemWrapper.Movie>()
-    val watchedEpisodesBySession: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>> = watchedItemsEpisode
+    private val watchedEpisodes = watchedItems.filterIsInstance<WatchedItemWrapper.Episode>()
+    private val watchedMovies = watchedItems.filterIsInstance<WatchedItemWrapper.Movie>()
+    val watchedEpisodesBySession: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>> = watchedEpisodes
         .groupBy { it.session }
-    val watchedItemsByMovie: Map<ExternalMovieId, List<WatchedItemWrapper.Movie>> = watchedItemsMovie.groupBy { it.itemId }
-    val watchedItemsByEpisode: Map<ExternalEpisodeId, List<WatchedItemWrapper.Episode>> = watchedItemsEpisode.groupBy { it.itemId }
+    val watchedItemsByMovie: Map<ExternalMovieId, List<WatchedItemWrapper.Movie>> = watchedMovies.groupBy { it.itemId }
+    val watchedItemsByEpisode: Map<ExternalEpisodeId, List<WatchedItemWrapper.Episode>> = watchedEpisodes.groupBy { it.itemId }
 
     val bookmarkedShows: Map<ExternalShowId, BookmarkedItem> = bookmarkedItems.filterKeysOfInstance()
     val bookmarkedMovies: Map<ExternalMovieId, BookmarkedItem> = bookmarkedItems.filterKeysOfInstance()
