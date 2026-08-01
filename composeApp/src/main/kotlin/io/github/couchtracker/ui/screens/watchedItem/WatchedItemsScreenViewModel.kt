@@ -82,7 +82,7 @@ sealed interface WatchedItemsScreenViewModel {
 
             @Composable
             override fun markAsWatchedAction(): Action {
-                return markMovieAsWatchedAction {
+                return markMovieAsWatchedAction(externalId) {
                     val movieDetails = movieDetails.resultValueOrNull()
                     WatchedItemSheetMode.New.Movie(
                         itemId = externalId,
