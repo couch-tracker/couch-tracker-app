@@ -7,6 +7,7 @@ import io.github.couchtracker.utils.ActionState
 data class Action(
     val name: String,
     val icon: ImageVector,
+    val active: Boolean = false,
     val state: ActionState<*, *, *, *>? = null,
     val badgeLabel: String? = null,
     val companionComposable: @Composable () -> Unit = {},

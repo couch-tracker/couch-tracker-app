@@ -2,12 +2,14 @@ package io.github.couchtracker.ui.screens.seasons
 
 import android.app.Application
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -17,7 +19,9 @@ import io.github.couchtracker.utils.allErrors
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.collectAsLoadableInScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlin.coroutines.EmptyCoroutineContext
 
 class SeasonsScreenViewModel(
     application: Application,
@@ -44,15 +48,19 @@ class SeasonsScreenViewModel(
 
     class SeasonViewModel(
         application: Application,
-        scope: CoroutineScope,
+        val scope: CoroutineScope,
         seasonId: TmdbSeasonId,
         retryContext: TmdbFlowRetryContext,
-    ) {
+        showOriginalLanguage: () -> Bcp47Language?,
+    ) : AndroidViewModel(application) {
+
         private val baseViewModel = SeasonsScreenViewModelHelper.SeasonViewModelHelper(
             application = application,
             seasonId = seasonId,
             retryContext = retryContext,
+            showOriginalLanguage = showOriginalLanguage,
         )
+
         val details by baseViewModel.details.collectAsLoadableInScope(scope, "details")
         val allErrors by derivedStateOf {
             listOf(details).allErrors()
@@ -60,13 +68,21 @@ class SeasonsScreenViewModel(
     }
 
     @Composable
-    fun viewModelForSeason(season: TmdbSeasonId): SeasonViewModel {
-        return SeasonViewModel(
-            application = application,
-            scope = rememberCoroutineScope(),
-            seasonId = season,
-            retryContext = retryContext,
-        ).also { childModels.put(it) }
+    fun viewModelForSeason(season: TmdbSeasonId, showOriginalLanguage: () -> Bcp47Language?): SeasonViewModel {
+        val model = remember(season) {
+            SeasonViewModel(
+                application = application,
+                scope = CoroutineScope(EmptyCoroutineContext),
+                seasonId = season,
+                retryContext = retryContext,
+                showOriginalLanguage = showOriginalLanguage,
+            )
+        }
+        DisposableEffect(model.scope) {
+            onDispose { model.scope.cancel() }
+        }
+        childModels.put(model)
+        return model
     }
 
     fun retryAll() {

@@ -2,6 +2,7 @@ package io.github.couchtracker.ui.screens.seasons
 
 import android.app.Application
 import androidx.compose.material3.ColorScheme
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.externalids.ExternalSeasonId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalSeasonId
 import io.github.couchtracker.tmdb.TmdbFlowRetryContext
@@ -9,6 +10,7 @@ import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.extractColorScheme
+import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.EpisodeListItemModel
@@ -40,6 +42,7 @@ class SeasonsScreenViewModelHelper(
     class ShowDetails(
         val name: String?,
         val backdrop: ImageModel?,
+        val originalLanguage: Bcp47Language?,
         val seasons: List<SeasonBaseDetails>,
     )
 
@@ -63,6 +66,7 @@ class SeasonsScreenViewModelHelper(
                 ShowDetails(
                     name = details.name,
                     backdrop = details.backdropImage?.toImageModelWithPlaceholder(),
+                    originalLanguage = details.language(),
                     seasons = details.seasons.map { season ->
                         val tmdbSeasonId = TmdbSeasonId(showId, season.seasonNumber)
                         SeasonBaseDetails(
@@ -94,6 +98,7 @@ class SeasonsScreenViewModelHelper(
         val application: Application,
         val seasonId: TmdbSeasonId,
         val retryContext: TmdbFlowRetryContext,
+        val showOriginalLanguage: () -> Bcp47Language?,
     ) {
 
         val details: Flow<ApiLoadable<SeasonFullDetails>> = retryContext { languages ->
@@ -101,7 +106,12 @@ class SeasonsScreenViewModelHelper(
                 result.map { tmdbSeasonDetails ->
                     SeasonFullDetails(
                         episodes = tmdbSeasonDetails.episodes.orEmpty().map { tmdbEpisode ->
-                            EpisodeListItemModel.fromTmdbEpisode(application, seasonId.showId, tmdbEpisode)
+                            EpisodeListItemModel.fromTmdbEpisode(
+                                context = application,
+                                show = seasonId.showId,
+                                episode = tmdbEpisode,
+                                showOriginalLanguage = showOriginalLanguage,
+                            )
                         },
                     )
                 }

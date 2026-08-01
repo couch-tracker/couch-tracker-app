@@ -118,7 +118,7 @@ fun ShowSection(
 
 @Composable
 private fun BookmarkedShowGrid(
-    shows: Loadable<List<ShowSectionViewModel.MaybeBookmarkedShowData>>,
+    shows: Loadable<List<ShowSectionViewModel.BookmarkedShow>>,
     emptyMessage: String,
     emptyDescription: String,
 ) {
@@ -182,13 +182,17 @@ private fun UpNext(
                 details = R.string.tab_shows_up_next_empty_description.str(),
             )
         } else {
+            // TODO: after marking an episode as watched, this should scroll to it
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp) + PaddingValues(bottom = OverviewScreenComponents.LIST_BOTTOM_SPACE),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                itemsWithPosition(entries) { position, upNextEntry ->
-                    UpNextListItem(upNextEntry.model, position)
+                itemsWithPosition(
+                    items = entries,
+                    key = { _, upNextEntry -> upNextEntry.itemKey },
+                ) { position, upNextEntry ->
+                    UpNextListItem(upNextEntry.model, position, modifier = Modifier.animateItem())
                 }
             }
         }

@@ -1,13 +1,9 @@
 package io.github.couchtracker.ui.components
 
 import android.content.Context
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,16 +14,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
-import dev.mmauro.datetimepolyglot.localizers.absolute.DateComponents
+import dev.mmauro.datetimepolyglot.TickingValue
 import dev.mmauro.datetimepolyglot.localizers.absolute.localize
-import dev.mmauro.datetimepolyglot.styles.DayOfMonthStyle
-import dev.mmauro.datetimepolyglot.styles.DayOfWeekStyle
-import dev.mmauro.datetimepolyglot.styles.MonthStyle
+import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalDateLocalizer
+import dev.mmauro.datetimepolyglot.localizers.localize
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
+import io.github.couchtracker.intl.datetime.EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS
 import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbSeasonId
@@ -36,10 +35,14 @@ import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.toImageModelWithPlaceholder
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.ItemPosition
-import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.PlaceholdersDefaults
+import io.github.couchtracker.ui.actions.markEpisodeAsWatchedAction
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
+import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
+import io.github.couchtracker.utils.rememberTickingValue
+import kotlinx.datetime.LocalDate
+import kotlin.time.Duration
 
 private val STILL_WIDTH = 112.dp
 private val STILL_HEIGHT = 64.dp
@@ -51,10 +54,31 @@ fun EpisodeListItem(
     position: ItemPosition,
 ) {
     val navController = LocalNavController.current
-    ListItem(
+
+    val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS, ::DynamicLocalDateLocalizer)
+    val dateTimeText = rememberTickingValue(dateTimeLocalizer, episode.firstAirDate) {
+        if (episode.firstAirDate == null) {
+            TickingValue(null, null)
+        } else {
+            dateTimeLocalizer.localize(episode.firstAirDate)
+        }
+    }
+
+    val markEpisodeAsWatchedAction = markEpisodeAsWatchedAction(episode.showId, episode.episodeId) { watchedSession ->
+        WatchedItemSheetMode.New.Episode(
+            itemId = episode.episodeId,
+            watchedSession = watchedSession,
+            mediaRuntime = episode.runtimeDuration,
+            mediaLanguages = listOfNotNull(episode.showOriginalLanguage()),
+        )
+    }
+    ListItemWithAction(
+        action = markEpisodeAsWatchedAction,
         onClick = {
             navController.navigateToEpisode(episode.episodeId)
         },
+        leadingContentHeight = STILL_HEIGHT,
+        position = position,
         leadingContent = {
             Surface(shape = MaterialTheme.shapes.small) {
                 AsyncImage(
@@ -69,63 +93,65 @@ fun EpisodeListItem(
                 )
             }
         },
-        overlineContent = {
+    ) {
+        Column {
             if (episode.name != null) {
-                Text(episode.number)
+                Text(episode.number, style = MaterialTheme.typography.labelSmall)
             }
-        },
-        content = {
+
             if (episode.name != null) {
                 Text(episode.name, style = MaterialTheme.typography.titleMedium)
             } else {
                 Text(episode.number)
             }
-        },
-        supportingContent = {
+
             TagsRow(
                 tags = listOfNotNull(
-                    episode.firstAirDate,
+                    dateTimeText,
                     episode.tmdbRating?.formatted,
                     episode.runtime,
                 ),
                 tagStyle = MaterialTheme.typography.labelSmall,
             )
-        },
-        trailingContent = {
-            Icon(Icons.Default.RadioButtonUnchecked, contentDescription = null)
-        },
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-        shapes = ListItemShapes(position),
-    )
+        }
+    }
 }
 
 data class EpisodeListItemModel(
+    val showId: ExternalShowId,
     val episodeId: ExternalEpisodeId,
     val name: String?,
     val number: String,
     val backdrop: ImageModel?,
-    val firstAirDate: String?,
+    val firstAirDate: LocalDate?,
     val runtime: String?,
     val tmdbRating: TmdbRating?,
+    // For the marked as watched dialog.
+    // This data will be read when opening the dialog to mark as watched
+    val showOriginalLanguage: () -> Bcp47Language?,
+    val runtimeDuration: Duration?,
 ) {
 
     companion object {
-        private val FIRST_AIR_DATE_OPTIONS = DateComponents(
-            monthStyle = MonthStyle.ABBREVIATED,
-            dayOfMonthStyle = DayOfMonthStyle.NUMERIC,
-            dayOfWeekStyle = DayOfWeekStyle.ABBREVIATED,
-        )
-
-        suspend fun fromTmdbEpisode(context: Context, show: TmdbShowId, episode: TmdbEpisode): EpisodeListItemModel {
+        suspend fun fromTmdbEpisode(
+            context: Context,
+            show: TmdbShowId,
+            episode: TmdbEpisode,
+            showOriginalLanguage: () -> Bcp47Language?,
+        ): EpisodeListItemModel {
             val id = TmdbExternalEpisodeId(TmdbEpisodeId(TmdbSeasonId(show, episode.seasonNumber), episode.episodeNumber))
+            val runtime = episode.runtime()
             return EpisodeListItemModel(
+                showId = show.toExternalId(),
                 episodeId = id,
                 name = episode.name,
                 number = context.getString(R.string.episode_x, episode.episodeNumber),
                 backdrop = episode.backdropImage?.toImageModelWithPlaceholder(),
-                firstAirDate = episode.airDate?.localize(FIRST_AIR_DATE_OPTIONS),
-                runtime = episode.runtime()?.localize(RUNTIME_LOCALIZER_OPTIONS),
+                firstAirDate = episode.airDate,
+                runtime = runtime?.localize(RUNTIME_LOCALIZER_OPTIONS),
                 tmdbRating = TmdbRating.ofOrNull(episode.voteAverage, episode.voteCount),
+                runtimeDuration = runtime,
+                showOriginalLanguage = showOriginalLanguage,
             )
         }
     }

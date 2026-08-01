@@ -12,7 +12,7 @@ fun episodeActions(
     watchedItemSheetModel: (WatchedItemSheetMode.New.Episode.WatchedSession) -> WatchedItemSheetMode.New.Episode,
 ): Actions {
     return Actions(
-        mainAction = showId?.let { markEpisodeAsWatchedAction(it, watchedItemSheetModel) },
+        mainAction = showId?.let { markEpisodeAsWatchedAction(it, episodeId, watchedItemSheetModel) },
         otherActions = listOf(
             ViewingsListAction(episodeId),
         ),

@@ -168,7 +168,7 @@ sealed interface WatchedItemsScreenViewModel {
 
             @Composable
             override fun markAsWatchedAction(): Action {
-                return markEpisodeAsWatchedAction(externalId.id.showId.toExternalId()) { watchedSession ->
+                return markEpisodeAsWatchedAction(externalId.id.showId.toExternalId(), externalId) { watchedSession ->
                     val showDetails = showBaseDetails.resultValueOrNull()
                     val seasonDetails = seasonDetails.resultValueOrNull()
                     val episodeDetails = seasonDetails?.findEpisode()
