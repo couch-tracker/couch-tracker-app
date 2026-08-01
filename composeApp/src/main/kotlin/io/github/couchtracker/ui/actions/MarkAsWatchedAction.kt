@@ -5,6 +5,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
+import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.ModalWatchedEpisodeSessionSelectorBottomSheet
 import io.github.couchtracker.db.profile.model.watchedItem.rememberModalWatchedEpisodeSessionSelectorBottomSheetState
@@ -13,11 +15,14 @@ import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.utils.str
 
 @Composable
-fun markMovieAsWatchedAction(watchedItemSheetModel: () -> WatchedItemSheetMode.New.Movie): Action {
+fun markMovieAsWatchedAction(movieId: ExternalMovieId, watchedItemSheetModel: () -> WatchedItemSheetMode.New.Movie): Action {
     val state = LocalWatchedItemSheetScaffoldState.current
+    val fullProfileData = LocalFullProfileDataContext.current
+    val isWatched = movieId in fullProfileData.watchedItemsByMovie
     return Action(
         name = R.string.mark_movie_as_watched.str(),
         icon = Icons.Filled.Check,
+        active = isWatched,
         onClick = {
             state.open(watchedItemSheetModel())
         },
@@ -27,15 +32,18 @@ fun markMovieAsWatchedAction(watchedItemSheetModel: () -> WatchedItemSheetMode.N
 @Composable
 fun markEpisodeAsWatchedAction(
     showId: ExternalShowId,
+    episodeId: ExternalEpisodeId,
     watchedItemSheetModel: (WatchedItemSheetMode.New.Episode.WatchedSession) -> WatchedItemSheetMode.New.Episode,
 ): Action {
     val fullProfileData = LocalFullProfileDataContext.current
     val sessionSelectorSheetState = rememberModalWatchedEpisodeSessionSelectorBottomSheetState()
     val watchedItemSheetState = LocalWatchedItemSheetScaffoldState.current
+    val isWatched = fullProfileData.watchedItemsByEpisode[episodeId].orEmpty().any { it.session.isActive }
 
     return Action(
         name = R.string.mark_episode_as_watched.str(),
         icon = Icons.Filled.Check,
+        active = isWatched,
         onClick = {
             val activeSessions = fullProfileData.watchedEpisodeSessions[showId].orEmpty().filter { it.isActive }
             if (activeSessions.size > 1) {

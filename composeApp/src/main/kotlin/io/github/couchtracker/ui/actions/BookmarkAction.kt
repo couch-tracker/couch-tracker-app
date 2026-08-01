@@ -28,6 +28,7 @@ fun BookmarkAction(id: BookmarkableExternalId): Action {
         } else {
             Icons.Outlined.BookmarkAdd
         },
+        active = isBookmarked,
         state = bookmarkAction,
         companionComposable = {
             ProfileDbErrorDialog(bookmarkAction)

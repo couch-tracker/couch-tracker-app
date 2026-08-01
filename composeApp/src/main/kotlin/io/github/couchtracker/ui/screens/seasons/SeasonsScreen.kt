@@ -132,6 +132,7 @@ private fun SeasonsScreenContent(
                 OverviewScreenComponents.SeasonPage(
                     innerPadding = innerPadding,
                     viewModel = viewModel,
+                    showDetails = showDetails,
                     seasonBaseData = seasonDetails,
                 )
             }
@@ -144,8 +145,9 @@ private fun OverviewScreenComponents.SeasonPage(
     innerPadding: PaddingValues,
     viewModel: SeasonsScreenViewModel,
     seasonBaseData: SeasonsScreenViewModelHelper.SeasonBaseDetails,
+    showDetails: SeasonsScreenViewModelHelper.ShowDetails,
 ) {
-    val seasonModel = viewModel.viewModelForSeason(seasonBaseData.tmdbSeasonId)
+    val seasonModel = viewModel.viewModelForSeason(seasonBaseData.tmdbSeasonId, showOriginalLanguage = { showDetails.originalLanguage })
     SeasonDetailsContent(
         innerPadding = innerPadding,
         viewModel = viewModel,
