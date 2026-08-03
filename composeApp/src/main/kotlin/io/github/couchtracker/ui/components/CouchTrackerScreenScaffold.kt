@@ -4,12 +4,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -23,7 +23,6 @@ import io.github.couchtracker.ui.LocalBackgroundColor
 /**
  * A scaffold that applies correct background/content colors when used inside [io.github.couchtracker.ui.Screen]
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun BaseCouchTrackerScreenScaffold(
     modifier: Modifier = Modifier,
@@ -51,7 +50,7 @@ fun BaseCouchTrackerScreenScaffold(
  * A scaffold that applies correct background/content colors when used inside [io.github.couchtracker.ui.Screen].
  * This also applies a default top bar and scroll behavior.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CouchTrackerScreenScaffold(
     title: () -> String,
@@ -62,9 +61,9 @@ fun CouchTrackerScreenScaffold(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},
     scaffoldContainer: @Composable (scaffold: @Composable () -> Unit) -> Unit = { it() },
+    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()),
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     scaffoldContainer {
         BaseCouchTrackerScreenScaffold(
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
