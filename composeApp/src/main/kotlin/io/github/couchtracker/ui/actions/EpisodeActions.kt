@@ -14,7 +14,7 @@ fun episodeActions(
     return Actions(
         mainAction = showId?.let { markEpisodeAsWatchedAction(it, episodeId, watchedItemSheetModel) },
         otherActions = listOf(
-            ViewingsListAction(episodeId),
+            ViewingsHistoryAction(episodeId),
         ),
     )
 }

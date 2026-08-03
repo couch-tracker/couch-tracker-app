@@ -14,7 +14,7 @@ fun movieActions(movieId: ExternalMovieId, watchedItemSheetModel: () -> WatchedI
         mainAction = markMovieAsWatchedAction(movieId, watchedItemSheetModel),
         otherActions = listOf(
             Action(R.string.action_lists.str(), Icons.AutoMirrored.Default.List) { /* TODO */ },
-            ViewingsListAction(movieId),
+            ViewingsHistoryAction(movieId),
             BookmarkAction(movieId),
         ),
     )
