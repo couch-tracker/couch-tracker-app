@@ -77,8 +77,8 @@ sealed interface WatchedItemsScreenViewModel {
                     backdrop = movieDetails?.baseDetails?.backdrop,
                 )
             }
-            override val colorScheme = baseViewModel.colorScheme.collectAsLoadable("colorScheme").value.resultValueOrNull()
-                ?: ColorSchemes.Movie
+            val colorSchemeResult by baseViewModel.colorScheme.collectAsLoadable("colorScheme")
+            override val colorScheme get() = colorSchemeResult.resultValueOrNull() ?: ColorSchemes.Movie
 
             @Composable
             override fun markAsWatchedAction(): Action {
@@ -144,8 +144,8 @@ sealed interface WatchedItemsScreenViewModel {
             private val showBaseDetails by showBaseModel.baseDetails.collectAsLoadable("showBaseDetails")
             private val seasonDetails by seasonModel.seasonDetails.collectAsLoadable("seasonDetails")
 
-            override val colorScheme = showBaseModel.colorScheme.collectAsLoadable("colorScheme").value.resultValueOrNull()
-                ?: ColorSchemes.Show
+            val colorSchemeResult by showBaseModel.colorScheme.collectAsLoadable("colorScheme")
+            override val colorScheme get() = colorSchemeResult.resultValueOrNull() ?: ColorSchemes.Show
 
             override val details by derivedStateOf {
                 val showBaseDetails = showBaseDetails.resultValueOrNull()
