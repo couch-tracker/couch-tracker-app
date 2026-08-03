@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.profile.Bcp47Language
+import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
 import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
@@ -26,6 +27,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 class SeasonsScreenViewModel(
     application: Application,
     showId: TmdbShowId,
+    var pendingPulseAnimation: ExternalEpisodeId?,
 ) : AndroidViewModel(
     application = application,
 ) {

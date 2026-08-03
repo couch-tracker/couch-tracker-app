@@ -34,8 +34,8 @@ import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.actions.markEpisodeAsWatchedAction
 import io.github.couchtracker.ui.rememberPlaceholderPainter
-import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.ui.screens.main.ShowSectionViewModel
+import io.github.couchtracker.ui.screens.seasons.navigateToSeason
 import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.seasonEpisodeNumberToString
@@ -76,7 +76,7 @@ fun UpNextListItem(
         modifier = modifier,
         action = markEpisodeAsWatchedAction,
         onClick = {
-            navController.navigateToEpisode(upNext.episodeId)
+            navController.navigateToSeason(upNext.seasonId, upNext.episodeId)
         },
         leadingContentHeight = POSTER_HEIGHT,
         position = position,

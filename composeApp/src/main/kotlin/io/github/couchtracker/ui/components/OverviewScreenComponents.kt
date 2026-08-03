@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -249,12 +251,14 @@ object OverviewScreenComponents {
         innerPadding: PaddingValues,
         modifier: Modifier = Modifier,
         verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
+        state: LazyListState = rememberLazyListState(),
         content: LazyListScope.() -> Unit,
     ) {
         LazyColumn(
             contentPadding = innerPadding + PaddingValues(bottom = LIST_BOTTOM_SPACE),
             modifier = modifier.fillMaxSize(),
             verticalArrangement = verticalArrangement,
+            state = state,
         ) {
             content()
         }

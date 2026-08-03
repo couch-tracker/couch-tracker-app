@@ -3,7 +3,8 @@ package io.github.couchtracker.ui.components
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,11 +48,11 @@ import kotlin.time.Duration
 private val STILL_WIDTH = 112.dp
 private val STILL_HEIGHT = 64.dp
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EpisodeListItem(
     episode: EpisodeListItemModel,
     position: ItemPosition,
+    colors: ListItemColors = ListItemDefaults.colors(),
 ) {
     val navController = LocalNavController.current
 
@@ -93,6 +94,7 @@ fun EpisodeListItem(
                 )
             }
         },
+        colors = colors,
     ) {
         Column {
             if (episode.name != null) {
