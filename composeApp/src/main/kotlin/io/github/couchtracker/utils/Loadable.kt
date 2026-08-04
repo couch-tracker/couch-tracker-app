@@ -83,14 +83,6 @@ inline fun <T> Loadable<T>.onValue(f: (T) -> Unit): Loadable<T> {
     return this
 }
 
-fun <T> List<Loadable<T>>.allLoaded(): List<T> {
-    return filterIsInstance<Loadable.Loaded<T>>().map { it.value }
-}
-
-fun <E> List<Loadable<Result<*, E>>>.allErrors(): List<E> {
-    return allLoaded().allErrors()
-}
-
 @Composable
 fun <T> Flow<T>.collectAsLoadableWithLifecycle(): State<Loadable<T>> {
     return remember(this) { map { Loadable.Loaded(it) } }.collectAsStateWithLifecycle(Loadable.Loading)

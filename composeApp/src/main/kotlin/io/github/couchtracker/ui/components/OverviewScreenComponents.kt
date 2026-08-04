@@ -222,16 +222,16 @@ object OverviewScreenComponents {
     @Composable
     fun ShowSnackbarOnErrorEffect(
         snackbarHostState: SnackbarHostState,
-        errors: () -> List<CouchTrackerError>,
+        error: () -> CouchTrackerError?,
         onRetry: () -> Unit,
-        retryMessage: String = R.string.error_loading_data.str(),
-        retryAction: String = R.string.retry_action.str(),
     ) {
-        val inError = errors().isNotEmpty()
-        LaunchedEffect(snackbarHostState, inError, onRetry, retryMessage, retryAction) {
-            if (inError) {
+        val error = error()
+        val errorMessage = error?.title?.string()
+        val retryAction = if (error != null && error.isRetriable) R.string.retry_action.str() else null
+        LaunchedEffect(snackbarHostState, onRetry, errorMessage, retryAction) {
+            if (errorMessage != null) {
                 val result = snackbarHostState.showSnackbar(
-                    retryMessage,
+                    errorMessage,
                     actionLabel = retryAction,
                     duration = SnackbarDuration.Indefinite,
                     withDismissAction = true,

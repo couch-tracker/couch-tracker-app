@@ -1,6 +1,5 @@
 package io.github.couchtracker.utils
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +8,9 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 fun <T, R> Flow<T>.collectWithPrevious(operation: suspend (previous: R?, value: T) -> R): Flow<R> = flow {
@@ -26,7 +27,6 @@ fun <T, R> Flow<T>.collectWithPrevious(operation: suspend (previous: R?, value: 
  *
  * As a design decision, only the latest value of all involved Flows is used.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 fun <I : Any, P1, P2, O> Flow<I>.biFork(
     fork1: (Flow<I>) -> Flow<P1>,
     fork2: (Flow<I>) -> Flow<P2>,
@@ -66,7 +66,7 @@ private sealed interface RememberingCombinedEvent<I : Any, K, C> {
 fun <I : Any, K, C, O> Flow<I>.rememberingCombined(
     keys: (I) -> Set<K>,
     flowToRemember: (K) -> Flow<C>,
-    f: (I, Map<K, C>) -> O,
+    f: suspend (I, Map<K, C>) -> O,
 ): Flow<O> = channelFlow {
     val jobs = mutableMapOf<K, Job>()
     val events = Channel<RememberingCombinedEvent<I, K, C>>()
@@ -131,5 +131,13 @@ fun <I : Any, K, C, O> Flow<I>.rememberingCombined(
         if (latestItem != null && latestValues.size == keysCount) {
             send(f(latestItem, latestValues))
         }
+    }
+}
+
+fun <T> Flow<T>.withLoading(): Flow<Loadable<T>> {
+    val original = this
+    return flow {
+        emit(Loadable.Loading)
+        emitAll(original.map { Loadable.Loaded(it) })
     }
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -125,7 +124,6 @@ private fun TmdbShowContent(viewModel: ShowScreenViewModel, actions: Actions) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ShowScreenContent(
     viewModel: ShowScreenViewModel,
@@ -141,7 +139,7 @@ private fun ShowScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        errors = { viewModel.allErrors },
+        error = { viewModel.aggregateError },
         onRetry = reloadShow,
     )
     logCompositions(LOG_TAG, "Recomposing ShowScreenContent")

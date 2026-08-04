@@ -30,32 +30,33 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.collectWithPrevious
-import io.github.couchtracker.utils.combineResults
 import io.github.couchtracker.utils.error.ApiLoadable
 import io.github.couchtracker.utils.error.CouchTrackerError
 import io.github.couchtracker.utils.error.CouchTrackerLoadable
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
+import io.github.couchtracker.utils.error.aggregateError
+import io.github.couchtracker.utils.error.aggregateErrorOrNull
+import io.github.couchtracker.utils.error.aggregateResults
 import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.injectBrokenItems
 import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.rememberingCombined
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
 import io.github.couchtracker.utils.valueOrNull
+import io.github.couchtracker.utils.withLoading
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.datetime.LocalDate
@@ -163,17 +164,17 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         }
         .collectAsLoadable("shows-up-next")
 
-    fun allErrors(): Flow<List<CouchTrackerError>> {
+    fun aggregateError(): Flow<CouchTrackerError?> {
         // Note: all errors in this model originate from `bookmarks`, so I don't need to check errors of individual fields
         return bookmarks.map { bookmarks ->
             when (bookmarks) {
-                Loadable.Loading -> emptyList()
+                Loadable.Loading -> null
                 is Loadable.Loaded -> bookmarks.value.mapNotNull { bookmarkedShowData ->
                     when (bookmarkedShowData.data) {
                         is Result.Error -> bookmarkedShowData.data.error
                         is Result.Value -> bookmarkedShowData.data.value.seasons.resultErrorOrNull()
                     }
-                }
+                }.aggregateErrorOrNull()
             }
         }
     }
@@ -213,37 +214,17 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                 Result.Error(UnsupportedItemError(showId)),
             )
         }
-        return tmdbShowId.details(languages.apiLanguage).transform { result ->
-            val details = when (result) {
-                is Result.Error -> {
-                    emit(result)
-                    return@transform
-                }
-                is Result.Value -> result.value
-            }
-            val bookmarkedShow = Result.Value(
-                value = BookmarkedShowData(
-                    baseShowData = details.toBaseShow(languages.apiLanguage),
-                    portraitModel = details.toShowPortraitModels(application, languages.apiLanguage),
-                    seasons = Loadable.Loading,
-                    originalLanguage = details.language(),
-                ),
-            )
-            emit(bookmarkedShow)
-            emitAll(
-                combine(
-                    details.seasons.map {
-                        val seasonId = TmdbSeasonId(tmdbShowId, it.seasonNumber)
-                        seasonId.details(languages.apiLanguage)
-                    },
-                ) { seasons ->
-                    val bookmarkedSeasonsData = seasons.asList().combineResults().map { season ->
-                        season.map { season ->
-                            val seasonId = TmdbSeasonId(tmdbShowId, season.seasonNumber)
+        return tmdbShowId.details(languages.apiLanguage)
+            .rememberingCombined(
+                keys = { showDetails -> showDetails.valueOrNull()?.seasons.orEmpty().map { it.seasonNumber }.toSet() },
+                flowToRemember = { seasonNumber ->
+                    val seasonId = TmdbSeasonId(tmdbShowId, seasonNumber)
+                    seasonId.details(languages.apiLanguage).withLoading().map { seasonResult ->
+                        seasonResult.mapResult { seasonDetails ->
                             BookmarkedSeasonData(
                                 id = seasonId,
-                                number = season.seasonNumber,
-                                episodes = season.episodes.orEmpty().map { episode ->
+                                number = seasonNumber,
+                                episodes = seasonDetails.episodes.orEmpty().map { episode ->
                                     BookmarkedEpisodeData(
                                         number = episode.episodeNumber,
                                         name = episode.name,
@@ -254,14 +235,24 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                             )
                         }
                     }
-                    Result.Value(
-                        value = bookmarkedShow.value.copy(
-                            seasons = Loadable.Loaded(bookmarkedSeasonsData),
-                        ),
-                    )
                 },
-            )
-        }
+            ) { showDetails, seasonsDataCache ->
+                val details = when (showDetails) {
+                    is Result.Error -> {
+                        return@rememberingCombined showDetails
+                    }
+                    is Result.Value -> showDetails.value
+                }
+                val seasons = details.seasons.map { seasonsDataCache.getValue(it.seasonNumber) }.aggregateResults()
+                Result.Value(
+                    value = BookmarkedShowData(
+                        baseShowData = details.toBaseShow(languages.apiLanguage),
+                        portraitModel = details.toShowPortraitModels(application, languages.apiLanguage),
+                        seasons = seasons,
+                        originalLanguage = details.language(),
+                    ),
+                )
+            }
     }
 
     private fun BookmarkedShow.upNextEntries(): CouchTrackerLoadable<List<UpNextEntry>> {
@@ -352,8 +343,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                 .flatten()
                 .sortedByDescending { it.lastWatchedEpisode }
             if (loaded.isEmpty()) {
-                // Note: I'm just taking the first error; in principle they could be merged
-                Loadable.error(firstNotNullOf { it.resultErrorOrNull() })
+                Loadable.error(mapNotNull { it.resultErrorOrNull() }.aggregateError())
             } else {
                 Loadable.value(loaded)
             }
