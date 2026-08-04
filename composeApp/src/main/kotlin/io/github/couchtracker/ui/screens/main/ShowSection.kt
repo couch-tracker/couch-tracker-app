@@ -68,10 +68,10 @@ fun ShowSection(
     // TODO: open up next as a first tab
     val pagerState = rememberPagerState(initialPage = ShowTab.WATCHLIST.ordinal) { ShowTab.entries.size }
     val snackbarHostState = remember { SnackbarHostState() }
-    val modelErrors by viewModel.allErrors().collectAsStateWithLifecycle(emptyList())
+    val modelError by viewModel.aggregateError().collectAsStateWithLifecycle(null)
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        errors = { modelErrors },
+        error = { modelError },
         onRetry = { viewModel.retryAll() },
     )
     MainSection(

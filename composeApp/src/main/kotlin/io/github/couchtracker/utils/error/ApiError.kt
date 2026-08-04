@@ -14,6 +14,8 @@ typealias ApiLoadable<T> = Loadable<ApiResult<T>>
 
 sealed interface ApiError : CouchTrackerError {
 
+    override val requiresUserAttention: Boolean get() = false
+
     data class ClientError(override val cause: ClientRequestException) : ApiError {
         override val debugMessage = cause.message
         override val title = Text.Resource(R.string.api_exception_client_error)
@@ -51,6 +53,7 @@ sealed interface ApiError : CouchTrackerError {
             null
         }
         override val isRetriable = false
+        override val requiresUserAttention = true
     }
 
     data class Simulated(override val cause: SimulatedException? = null) : ApiError {

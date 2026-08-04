@@ -11,4 +11,5 @@ data class UnsupportedItemError(val unsupportedItem: ExternalId) : CouchTrackerE
     override val title = Text.Resource(R.string.unsupported_item_id)
     override val details = Text.Lambda { R.string.unsupported_item_id_description.str(unsupportedItem.serialize()) }
     override val isRetriable = false
+    override val requiresUserAttention = true
 }

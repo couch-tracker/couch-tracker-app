@@ -13,9 +13,10 @@ import io.github.couchtracker.tmdb.TmdbFlowRetryContext
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.utils.ComposableCache
-import io.github.couchtracker.utils.allErrors
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.collectAsLoadableInScope
+import io.github.couchtracker.utils.error.aggregateErrorOrNull
+import io.github.couchtracker.utils.resultErrorOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -42,9 +43,11 @@ class EpisodesScreenViewModel(
     val colorScheme by baseViewModel.showViewModel.colorScheme.collectAsLoadable("colorScheme")
     val seasonSubtitle get() = baseViewModel.subtitle(seasonDetails, showBaseDetails)
 
-    val allErrors by derivedStateOf {
-        listOf(seasonDetails, showBaseDetails, colorScheme).allErrors() +
-            childModels.elements.flatMap { it.allErrors }
+    val aggregateError by derivedStateOf {
+        listOf(seasonDetails, showBaseDetails, colorScheme)
+            .map { it.resultErrorOrNull() }
+            .plus(childModels.elements.mapNotNull { it.aggregateError })
+            .aggregateErrorOrNull()
     }
 
     class EpisodeViewModel(
@@ -60,8 +63,10 @@ class EpisodesScreenViewModel(
         )
         val details by baseViewModel.details.collectAsLoadableInScope(scope, "details")
         val images by baseViewModel.images.collectAsLoadableInScope(scope, "images")
-        val allErrors by derivedStateOf {
-            listOf(details, images).allErrors()
+        val aggregateError by derivedStateOf {
+            listOf(details, images)
+                .map { it.resultErrorOrNull() }
+                .aggregateErrorOrNull()
         }
     }
 

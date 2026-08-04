@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package io.github.couchtracker.ui.screens.episodes
 
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -124,7 +122,7 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EpisodesScreenContent(
     viewModel: EpisodesScreenViewModel,
@@ -137,7 +135,7 @@ private fun EpisodesScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        errors = { viewModel.allErrors },
+        error = { viewModel.aggregateError },
         onRetry = onRetry,
     )
     val pagerState = rememberPagerState(

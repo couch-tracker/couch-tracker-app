@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-
 package io.github.couchtracker.ui.screens.movie
 
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -124,7 +121,7 @@ private fun Content(viewModel: MovieScreenViewModel, actions: Actions) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun MovieScreenContent(
     viewModel: MovieScreenViewModel,
@@ -137,7 +134,7 @@ private fun MovieScreenContent(
 
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        errors = { viewModel.allErrors },
+        error = { viewModel.aggregateError },
         onRetry = reloadMovie,
     )
     logCompositions(LOG_TAG, "Recomposing MovieScreenContent")

@@ -7,9 +7,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
-import io.github.couchtracker.utils.allErrors
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.error.CouchTrackerError
+import io.github.couchtracker.utils.error.aggregateErrorOrNull
+import io.github.couchtracker.utils.resultErrorOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -33,8 +34,10 @@ class ShowScreenViewModel(
     val images by baseViewModel.images.collectAsLoadable("images")
     val credits by baseViewModel.credits.collectAsLoadable("credits")
 
-    val allErrors: List<CouchTrackerError> by derivedStateOf {
-        listOf(baseDetails, fullDetails, colorScheme, images, credits).allErrors()
+    val aggregateError: CouchTrackerError? by derivedStateOf {
+        listOf(baseDetails, fullDetails, colorScheme, images, credits)
+            .map { it.resultErrorOrNull() }
+            .aggregateErrorOrNull()
     }
 
     fun retryAll() {

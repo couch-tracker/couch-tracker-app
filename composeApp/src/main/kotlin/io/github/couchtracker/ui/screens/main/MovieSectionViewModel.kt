@@ -22,6 +22,8 @@ import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.error.CouchTrackerError
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
+import io.github.couchtracker.utils.error.aggregateErrorOrNull
+import io.github.couchtracker.utils.errorOrNull
 import io.github.couchtracker.utils.injectBrokenItems
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.resultValueOrNull
@@ -54,8 +56,8 @@ class MovieSectionViewModel(application: Application) : AndroidViewModel(applica
             .distinctUntilChanged(),
     ).collectAsLoadable("movies-watchlist")
 
-    val allErrors: List<CouchTrackerError> by derivedStateOf {
-        watchlist.allErrors()
+    val aggregateError: CouchTrackerError? by derivedStateOf {
+        watchlist.aggregateError()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -94,15 +96,10 @@ class MovieSectionViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    private fun Loadable<List<Pair<ExternalMovieId, CouchTrackerResult<MoviePortraitModel>>>>.allErrors(): List<CouchTrackerError> {
+    private fun Loadable<List<Pair<ExternalMovieId, CouchTrackerResult<MoviePortraitModel>>>>.aggregateError(): CouchTrackerError? {
         return when (this) {
-            Loadable.Loading -> emptyList()
-            is Loadable.Loaded -> value.mapNotNull { (_, movie) ->
-                when (movie) {
-                    is Result.Error -> movie.error
-                    is Result.Value -> null
-                }
-            }
+            Loadable.Loading -> null
+            is Loadable.Loaded -> value.map { it.second.errorOrNull() }.aggregateErrorOrNull()
         }
     }
 

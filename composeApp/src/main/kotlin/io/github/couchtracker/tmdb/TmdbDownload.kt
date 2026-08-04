@@ -24,7 +24,6 @@ import io.ktor.client.plugins.ResponseException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -109,7 +108,7 @@ fun <ID : TmdbId, L : Any, T : Any> tmdbLocalizedCachedDownload(
     val fullLogTag = "$id-$language-$logTag"
     val loadFromCacheQuery = loadFromCacheFn(cache)(id, language, ::TmdbTimestampedEntry)
     return tmdbGetOrDownload(
-        logTag = "$id-$fullLogTag",
+        logTag = fullLogTag,
         cacheKey = TmdbCacheKey(loadFromCacheQuery, listOf(id, language)),
         loadFromCache = { loadFromCacheQuery.executeAsOneOrNull() },
         putInCache = { data -> putInCacheFn(cache)(id, language, data.value, data.lastUpdate) },
@@ -156,7 +155,7 @@ fun <L : Any, T : Any> tmdbLocalizedCachedDownload(
  *
  * Handles caching, stale caching, reloads if cache changes.
  */
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 private fun <T : Any> tmdbGetOrDownload(
     logTag: String,
     cacheKey: TmdbCacheKey,
@@ -181,11 +180,22 @@ private fun <T : Any> tmdbGetOrDownload(
                     Log.d(LOG_TAG, "$logTag: Entry is old (age=$age), starting download")
                     when (val downloaded = downloadAndSave(cacheEvent, downloader, putInCache, coroutineContext)) {
                         is Result.Error -> {
-                            Log.w(
-                                LOG_TAG,
-                                "$logTag: Download failed, using a stale entry (${downloaded.error.debugMessage})",
-                                downloaded.error.cause,
-                            )
+                            if (downloaded.error.requiresUserAttention) {
+                                // Error is "important", let's emit it
+                                Log.e(
+                                    LOG_TAG,
+                                    "$logTag: Download failed in a way that requires the user's attention (${downloaded.error.debugMessage})",
+                                    downloaded.error.cause,
+                                )
+                                emit(downloaded)
+                            } else {
+                                // Error not important, let's emit nothing, and keep the stale data
+                                Log.w(
+                                    LOG_TAG,
+                                    "$logTag: Download failed, using a stale entry (${downloaded.error.debugMessage})",
+                                    downloaded.error.cause,
+                                )
+                            }
                         }
                         is Result.Value -> {
                             emit(downloaded)

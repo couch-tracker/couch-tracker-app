@@ -16,6 +16,12 @@ interface CouchTrackerError {
     val title: Text
     val details: Text?
     val isRetriable: Boolean
+
+    /**
+     * Whether the issue is not transitory, and generally required explicit action from the user to be solved,
+     * for example, by removing a show that no longer exists from the bookmarks
+     **/
+    val requiresUserAttention: Boolean
 }
 
 /**
