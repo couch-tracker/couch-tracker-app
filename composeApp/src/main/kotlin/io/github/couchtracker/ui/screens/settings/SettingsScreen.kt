@@ -46,6 +46,7 @@ fun NavGraphBuilder.settings() {
         composable<MainSettingsScreen>()
         composable<ProfilesSettingsScreen>()
         composable<ProfileSettingsScreen>()
+        composable<StyleAndBehaviorSettingsScreen>()
         composable<TmdbLanguagesSettingsScreen>()
     }
 }

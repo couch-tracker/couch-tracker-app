@@ -12,15 +12,17 @@ import io.github.couchtracker.utils.settings.LoadedSettingsFlow
 import io.github.couchtracker.utils.settings.LoadedSettingsGetter
 import kotlinx.coroutines.flow.flowOf
 import org.koin.compose.koinInject
+import org.koin.core.Koin
 import org.koin.mp.KoinPlatform
 
 val LocalAppSettingsContext = compositionLocalOf<LoadedSettings<AppSettings>> { error("no default app settings context") }
 
 object AppSettings : AbstractAppSettings(), LoadedSettingsGetter<AppSettings> {
 
-    override val loadedSettingsFlow by KoinPlatform.getKoin().inject<LoadedSettingsFlow<AppSettings>>()
+    override val loadedSettingsFlow by KoinPlatform.getKoin().injectAppSettings()
 
     val Tmdb = settings(TmdbSettings)
+    val StyleAndBehavior = settings(StyleAndBehaviorSettings)
 
     val CurrentProfileId = setting(
         key = longPreferencesKey("currentProfileId"),
@@ -43,3 +45,6 @@ fun AppSettingsContext(content: @Composable () -> Unit) {
 fun appSettings(): LoadedSettings<AppSettings> {
     return LocalAppSettingsContext.current
 }
+
+fun Koin.injectAppSettings() = inject<LoadedSettingsFlow<AppSettings>>()
+fun Koin.getAppSettings() = get<LoadedSettingsFlow<AppSettings>>().settings

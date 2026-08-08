@@ -75,7 +75,7 @@ data object TmdbLanguagesSettingsScreen : Screen() {
 
     @Composable
     override fun Content() {
-        ScreenContainer { io.github.couchtracker.ui.screens.settings.Content() }
+        ScreenContainer { SettingsContent() }
     }
 }
 
@@ -83,7 +83,7 @@ data object TmdbLanguagesSettingsScreen : Screen() {
 private const val NUMBER_OF_ITEMS_BEFORE_LANGUAGE_LIST = 3
 
 @Composable
-private fun Content() {
+private fun SettingsContent() {
     val settingsTmdbLanguages by appSettings().loadWithDefault { Tmdb.Languages }
     val coroutineScope = rememberCoroutineScope()
 
