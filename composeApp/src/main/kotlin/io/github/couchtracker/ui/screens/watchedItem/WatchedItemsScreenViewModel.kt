@@ -14,6 +14,7 @@ import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
+import io.github.couchtracker.settings.getAppSettings
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.ui.ColorSchemes
@@ -25,9 +26,13 @@ import io.github.couchtracker.ui.screens.episodes.EpisodesScreenViewModelHelper
 import io.github.couchtracker.ui.screens.movie.MovieScreenViewModelHelper
 import io.github.couchtracker.ui.screens.show.ShowScreenViewModelHelper
 import io.github.couchtracker.ui.showSeasonEpisodeNumberToString
+import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.collectAsLoadable
 import io.github.couchtracker.utils.resultValueOrNull
+import io.github.couchtracker.utils.valueOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.koin.mp.KoinPlatform
 import kotlin.time.Duration
 
 sealed interface WatchedItemsScreenViewModel {
@@ -141,6 +146,11 @@ sealed interface WatchedItemsScreenViewModel {
                 retryContext = retryContext,
             )
 
+            private val settings by KoinPlatform.getKoin()
+                .getAppSettings()
+                .map { Loadable.Loaded(it) }
+                .collectAsLoadable("settings")
+
             private val showBaseDetails by showBaseModel.baseDetails.collectAsLoadable("showBaseDetails")
             private val seasonDetails by seasonModel.seasonDetails.collectAsLoadable("seasonDetails")
 
@@ -153,13 +163,17 @@ sealed interface WatchedItemsScreenViewModel {
                 val episodeDetails = seasonDetails?.findEpisode()
 
                 Details(
-                    subtitle = showSeasonEpisodeNumberToString(
-                        context = application,
-                        showName = showBaseDetails?.name ?: externalId.id.showId.toExternalId().serialize(),
-                        seasonNumber = externalId.id.seasonId.number,
-                        episodeNumber = externalId.id.number,
-                        episodeName = episodeDetails?.name,
-                    ),
+                    subtitle = settings.valueOrNull()?.let { settings ->
+                        val formatting = settings.get { StyleAndBehavior.EpisodeNumberFormatting }.current
+                        showSeasonEpisodeNumberToString(
+                            context = application,
+                            formatting = formatting,
+                            showName = showBaseDetails?.name ?: externalId.id.showId.toExternalId().serialize(),
+                            seasonNumber = externalId.id.seasonId.number,
+                            episodeNumber = externalId.id.number,
+                            episodeName = episodeDetails?.name,
+                        )
+                    }.orEmpty(),
                     runtime = episodeDetails?.runtime,
                     originalLanguage = showBaseDetails?.originalLanguage,
                     backdrop = showBaseDetails?.backdrop,

@@ -50,4 +50,13 @@
     <string name="tmdb_languages_settings_footer">I contenuti localizzati verranno mostrati con la prima lingua disponibile</string>
     <string name="tmdb_languages_limit_reached">Hai raggiunto il numero massimo di lingue impostabili</string>
     <string name="use_system_languages">Usa lingue di sistema</string>
+
+    <string name="style_and_behavior">Stile e comportamento</string>
+    <string name="style">Stile</string>
+    <string name="behavior">Comportamento</string>
+    <string name="episode_number_formatting">"Formato del numero dell'episodio"</string>
+    <string name="episode_number_formatting_summary">I numeri degli episodi sono nel formato %1$s</string>
+    <string name="open_episode_behavior">"All'apertura di un episodio"</string>
+    <string name="open_episode_behavior_highlight_in_season">"Apri la stagione ed evidenzia l'episodio"</string>
+    <string name="open_episode_behavior_episode_details">"Apri i dettagli dell'episodio"</string>
 </resources>

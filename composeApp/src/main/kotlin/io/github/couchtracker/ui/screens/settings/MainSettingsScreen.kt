@@ -3,6 +3,7 @@ package io.github.couchtracker.ui.screens.settings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.ManageAccounts
+import androidx.compose.material.icons.filled.Style
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +38,12 @@ private fun MainSettingsScreenContent() {
                 Icon(Icons.Filled.ManageAccounts, contentDescription = null)
             },
             onClick = { navController.navigate(ProfilesSettingsScreen) },
+        )
+        preference(
+            key = "ux",
+            icon = { Icon(Icons.Default.Style, contentDescription = null) },
+            title = { Text(R.string.style_and_behavior.str()) },
+            onClick = { navController.navigate(StyleAndBehaviorSettingsScreen) },
         )
         // TODO move to appropriate section
         preference(

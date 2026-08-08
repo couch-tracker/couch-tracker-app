@@ -2,7 +2,10 @@ package io.github.couchtracker.utils.settings
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlin.enums.enumEntries
 
 /**
  * Specialization of [AbstractSettings] that holds [PreferencesSetting].
@@ -27,6 +30,19 @@ abstract class AbstractPreferencesSettings : AbstractSettings() {
             serialize = serialize,
         ),
     )
+
+    protected inline fun <reified E : Enum<E>> setting(
+        key: String,
+        default: E,
+    ): PreferencesSetting<String, E, E> {
+        val entries = enumEntries<E>()
+        return setting(
+            key = stringPreferencesKey(key),
+            default = flowOf(default),
+            serialize = { it.name },
+            parse = { entries.single { entry -> entry.name == it } },
+        )
+    }
 
     protected fun <V : D, D> setting(
         key: Preferences.Key<V>,

@@ -13,6 +13,8 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
+import io.github.couchtracker.settings.AppSettings
+import io.github.couchtracker.settings.StyleAndBehaviorSettings
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbLanguages
@@ -45,6 +47,7 @@ import io.github.couchtracker.utils.mapResult
 import io.github.couchtracker.utils.rememberingCombined
 import io.github.couchtracker.utils.resultErrorOrNull
 import io.github.couchtracker.utils.resultValueOrNull
+import io.github.couchtracker.utils.settings.get
 import io.github.couchtracker.utils.valueOrNull
 import io.github.couchtracker.utils.withLoading
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +55,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -148,12 +152,14 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }.collectAsLoadable("shows-following")
 
-    val upNext: CouchTrackerLoadable<List<UpNextEntry>> by bookmarks
-        .collectWithPrevious { previous: Loadable<Map<BookmarkedShow, CouchTrackerLoadable<List<UpNextEntry>>>>?, bookmarks ->
-            bookmarks.map { bookmarks ->
-                bookmarks.associateWith { bookmarkedShowData ->
-                    val old = previous?.valueOrNull()?.get(bookmarkedShowData)
-                    old ?: bookmarkedShowData.upNextEntries()
+    val upNext: CouchTrackerLoadable<List<UpNextEntry>> by AppSettings.get { StyleAndBehavior.EpisodeNumberFormatting }
+        .flatMapLatest { episodeFormatting ->
+            bookmarks.collectWithPrevious { previous: Loadable<Map<BookmarkedShow, CouchTrackerLoadable<List<UpNextEntry>>>>?, bookmarks ->
+                bookmarks.map { bookmarks ->
+                    bookmarks.associateWith { bookmarkedShowData ->
+                        val old = previous?.valueOrNull()?.get(bookmarkedShowData)
+                        old ?: bookmarkedShowData.upNextEntries(episodeFormatting.current)
+                    }
                 }
             }
         }
@@ -255,7 +261,9 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
             }
     }
 
-    private fun BookmarkedShow.upNextEntries(): CouchTrackerLoadable<List<UpNextEntry>> {
+    private fun BookmarkedShow.upNextEntries(
+        episodeFormatting: StyleAndBehaviorSettings.EpisodeNumberFormattingOption,
+    ): CouchTrackerLoadable<List<UpNextEntry>> {
         val (showData, seasons) = when (this.data) {
             is Result.Error -> return Loadable.Loaded(data)
             is Result.Value -> {
@@ -279,12 +287,13 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         return Loadable.value(
             watchSessionsToDisplay.mapNotNull { (watchSession, episodes) ->
                 upNextEntry(
-                    showId,
-                    watchSession,
-                    episodes,
-                    showData,
-                    seasons,
+                    showId = showId,
+                    watchSession = watchSession,
+                    watchedEpisodes = episodes,
+                    showData = showData,
+                    seasons = seasons,
                     hasMultipleWatchSessions = watchSessionsToDisplay.size > 1,
+                    episodeFormatting = episodeFormatting,
                 )
             },
         )
@@ -298,6 +307,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         showData: BookmarkedShowData,
         seasons: List<BookmarkedSeasonData>,
         hasMultipleWatchSessions: Boolean,
+        episodeFormatting: StyleAndBehaviorSettings.EpisodeNumberFormattingOption,
     ): UpNextEntry? {
         val watchedEpisodesIds = watchedEpisodes.mapTo(HashSet()) { it.itemId }
         for (season in seasons) {
@@ -319,6 +329,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                             watchSession = watchSession,
                             model = UpNextListItemModel.withShowData(
                                 context = application,
+                                episodeFormatting = episodeFormatting,
                                 watchSession = watchSession,
                                 show = showData,
                                 season = season,

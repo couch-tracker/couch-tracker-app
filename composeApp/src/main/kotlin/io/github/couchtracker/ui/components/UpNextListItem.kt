@@ -26,6 +26,10 @@ import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.intl.datetime.EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS
 import io.github.couchtracker.intl.datetime.rememberLocalizer
+import io.github.couchtracker.settings.StyleAndBehaviorSettings
+import io.github.couchtracker.settings.StyleAndBehaviorSettings.OpenEpisodeBehaviorOption.HIGHLIGHT_IN_SEASON
+import io.github.couchtracker.settings.StyleAndBehaviorSettings.OpenEpisodeBehaviorOption.OPEN_EPISODE_DETAILS
+import io.github.couchtracker.settings.appSettings
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbSeasonId
@@ -34,6 +38,7 @@ import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.actions.markEpisodeAsWatchedAction
 import io.github.couchtracker.ui.rememberPlaceholderPainter
+import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.ui.screens.main.ShowSectionViewModel
 import io.github.couchtracker.ui.screens.seasons.navigateToSeason
 import io.github.couchtracker.ui.screens.show.navigateToShow
@@ -54,6 +59,7 @@ fun UpNextListItem(
     modifier: Modifier = Modifier,
 ) {
     val navController = LocalNavController.current
+    val openEpisodeBehavior = appSettings().get { StyleAndBehavior.OpenEpisodeBehavior }
 
     val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS, ::DynamicLocalDateLocalizer)
     val dateTimeText = rememberTickingValue(dateTimeLocalizer, upNext.episodeAirDate) {
@@ -76,7 +82,10 @@ fun UpNextListItem(
         modifier = modifier,
         action = markEpisodeAsWatchedAction,
         onClick = {
-            navController.navigateToSeason(upNext.seasonId, upNext.episodeId)
+            when (openEpisodeBehavior.current) {
+                HIGHLIGHT_IN_SEASON -> navController.navigateToSeason(upNext.seasonId, upNext.episodeId)
+                OPEN_EPISODE_DETAILS -> navController.navigateToEpisode(upNext.episodeId)
+            }
         },
         leadingContentHeight = POSTER_HEIGHT,
         position = position,
@@ -128,8 +137,10 @@ data class UpNextListItemModel(
 
     companion object {
 
+        @Suppress("LongParameterList")
         fun withShowData(
             context: Context,
+            episodeFormatting: StyleAndBehaviorSettings.EpisodeNumberFormattingOption,
             watchSession: WatchedEpisodeSessionWrapper?,
             show: ShowSectionViewModel.BookmarkedShowData,
             season: ShowSectionViewModel.BookmarkedSeasonData,
@@ -138,7 +149,13 @@ data class UpNextListItemModel(
             val showId = show.baseShowData.key.id
             val seasonId = TmdbSeasonId(showId, season.number)
             val episodeId = TmdbExternalEpisodeId(TmdbEpisodeId(seasonId, episode.number))
-            val episodeNumberLabel = seasonEpisodeNumberToString(context, season.number, episode.number, episode.name)
+            val episodeNumberLabel = seasonEpisodeNumberToString(
+                context = context,
+                formatting = episodeFormatting,
+                seasonNumber = season.number,
+                episodeNumber = episode.number,
+                episodeName = episode.name,
+            )
 
             return UpNextListItemModel(
                 showId = showId.toExternalId(),
