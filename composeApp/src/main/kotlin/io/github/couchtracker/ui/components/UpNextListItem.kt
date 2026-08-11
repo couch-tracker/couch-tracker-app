@@ -38,7 +38,7 @@ import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.actions.markEpisodeAsWatchedAction
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
-import io.github.couchtracker.ui.screens.main.ShowSectionViewModel
+import io.github.couchtracker.ui.screens.main.show.ShowSectionViewModel
 import io.github.couchtracker.ui.screens.seasons.navigateToSeason
 import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode

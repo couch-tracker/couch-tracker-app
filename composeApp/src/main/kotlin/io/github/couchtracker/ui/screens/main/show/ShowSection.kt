@@ -56,7 +56,7 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun ShowSection(
     innerPadding: PaddingValues,
-    viewModel: io.github.couchtracker.ui.screens.main.ShowSectionViewModel = viewModel(),
+    viewModel: ShowSectionViewModel = viewModel(),
 ) {
     // TODO: open up next as a first tab
     val pagerState = rememberPagerState(initialPage = ShowTab.WATCHLIST.ordinal) { ShowTab.entries.size }
@@ -73,6 +73,9 @@ fun ShowSection(
         imageModel = R.drawable.sunset,
         title = R.string.main_section_shows.str(),
         actions = {
+            if (ShowTab.entries[pagerState.currentPage] == ShowTab.UP_NEXT) {
+                UpNextAppBarActions()
+            }
             MainSectionDefaults.DefaultAppBarActions()
         },
         tabText = { page -> Text(text = ShowTab.entries[page].displayName.str()) },
@@ -95,7 +98,7 @@ fun ShowSection(
                         emptyDescription = R.string.tab_shows_following_empty_description.str(),
                     )
                     ShowTab.UP_NEXT -> UpNextTab(
-                        entries = viewModel.upNext,
+                        upNextModel = viewModel.upNext,
                         onRetry = { viewModel.retryAll() },
                     )
                     ShowTab.EXPLORE -> ShowListComposable(viewModel.exploreState)
@@ -111,7 +114,7 @@ fun ShowSection(
 
 @Composable
 private fun BookmarkedShowGrid(
-    shows: Loadable<List<io.github.couchtracker.ui.screens.main.ShowSectionViewModel.BookmarkedShow>>,
+    shows: Loadable<List<ShowSectionViewModel.BookmarkedShow>>,
     emptyMessage: String,
     emptyDescription: String,
 ) {

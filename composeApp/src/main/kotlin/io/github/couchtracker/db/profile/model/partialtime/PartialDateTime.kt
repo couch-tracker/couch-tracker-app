@@ -23,7 +23,6 @@ import kotlinx.datetime.format.char
 import kotlinx.datetime.format.format
 import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.yearMonth
 import kotlin.time.Instant
 
@@ -528,6 +527,6 @@ fun PartialDateTime?.group(): PartialDateTimeGroup = when (this) {
 /**
  * Sorts the given list of [PartialDateTime]. See [PartialDateTime.sort].
  */
-fun List<PartialDateTime>.sort(): List<PartialDateTime> {
+fun <PDT : PartialDateTime?> List<PDT>.sort(): List<PDT> {
     return PartialDateTime.sort(items = this, getPartialDateTime = { this })
 }

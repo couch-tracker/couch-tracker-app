@@ -59,4 +59,11 @@
     <string name="open_episode_behavior">"All'apertura di un episodio"</string>
     <string name="open_episode_behavior_highlight_in_season">"Apri la stagione ed evidenzia l'episodio"</string>
     <string name="open_episode_behavior_episode_details">"Apri i dettagli dell'episodio"</string>
+
+    <string name="up_next_enable_suggested_section">Mostra sezione suggeriti</string>
+    <string name="up_next_group_by_airing_status">Raggruppa per stato di trasmissione</string>
+    <string name="up_next_sort_option_last_watched_first">Visti più di recente per primi</string>
+    <string name="up_next_sort_option_same_as_shows">Come per le serie</string>
+    <string name="up_next_sort_option_newest_first">Più recenti per primi</string>
+    <string name="up_next_sort_option_oldest_first">Più vecchi per primi</string>
 </resources>

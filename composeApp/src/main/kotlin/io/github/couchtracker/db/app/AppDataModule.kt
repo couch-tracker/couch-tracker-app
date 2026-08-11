@@ -10,6 +10,7 @@ import io.github.couchtracker.db.common.adapters.URIColumnAdapter
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.utils.lazyEagerModule
 import io.github.couchtracker.utils.settings.get
+import io.github.couchtracker.utils.settings.getCurrent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -35,7 +36,7 @@ val AppDataModule = lazyEagerModule {
 
     single<Flow<ProfilesInfo>> {
         val profiles = get<AppData>().profileQueries.selectAll().asFlow().map { it.executeAsList() }
-        val profileId = AppSettings.get { CurrentProfileId }.map { it.current }
+        val profileId = AppSettings.getCurrent { CurrentProfileId }
         profilesInfoFlow(profiles, profileId)
             .shareIn(get<AppCoroutineScope>(), SharingStarted.Eagerly, 1)
     }
