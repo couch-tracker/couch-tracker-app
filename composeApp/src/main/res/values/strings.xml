@@ -215,4 +215,13 @@
     <string name="unsupported_item_id">Unsupported item id</string>
     <string name="unsupported_item_id_description">"The item with id '%1$s' is not supported by this app"</string>
     <string name="manage_item">Manage item</string>
+
+    <string name="up_next_section_suggested">Suggested</string>
+    <string name="up_next_section_airing_today">Airing today</string>
+    <string name="up_next_section_aired_recently">Aired recently</string>
+    <string name="up_next_section_airing_soon">Airing soon</string>
+    <string name="up_next_section_aired">Aired</string>
+    <string name="up_next_section_unknown_air_date">Unknown air date</string>
+    <string name="up_next_section_not_aired">Not aired</string>
+    <string name="up_next_section_other">Other</string>
 </resources>

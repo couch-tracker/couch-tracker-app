@@ -59,4 +59,11 @@
     <string name="open_episode_behavior">When opening an episode</string>
     <string name="open_episode_behavior_highlight_in_season">Open the season and highlight the episode</string>
     <string name="open_episode_behavior_episode_details">Open the episode details</string>
+
+    <string name="up_next_enable_suggested_section">Enable suggested section</string>
+    <string name="up_next_group_by_airing_status">Group by airing status</string>
+    <string name="up_next_sort_option_last_watched_first">Last watched first</string>
+    <string name="up_next_sort_option_same_as_shows">Same as shows</string>
+    <string name="up_next_sort_option_newest_first">Newest first</string>
+    <string name="up_next_sort_option_oldest_first">Oldest first</string>
 </resources>

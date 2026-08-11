@@ -40,6 +40,7 @@ import io.github.couchtracker.utils.error.ApiResult
 import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.settings.get
+import io.github.couchtracker.utils.settings.getCurrent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -82,11 +83,11 @@ class SearchViewModel(
         .debounce { (prevId, params) -> if (prevId == params.searchRequestId) 300.milliseconds else 0.milliseconds }
         .map { (_, params) -> params.query to params.filters }
         .distinctUntilChanged()
-        .combine(AppSettings.get { Tmdb.Languages }) { searchParameters, tmdbLanguages ->
+        .combine(AppSettings.getCurrent { Tmdb.Languages }) { searchParameters, tmdbLanguages ->
             SearchInstance(
                 query = searchParameters.first,
                 filters = searchParameters.second,
-                tmdbLanguage = tmdbLanguages.current.apiLanguage,
+                tmdbLanguage = tmdbLanguages.apiLanguage,
                 lazyGridState = LazyGridState(0, 0),
             )
         }

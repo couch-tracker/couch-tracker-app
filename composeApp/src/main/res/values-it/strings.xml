@@ -220,4 +220,13 @@
     <string name="unsupported_item_id">Id non supportato</string>
     <string name="unsupported_item_id_description">"L'elemento con id '%1$s' non è supportato da quest'app"</string>
     <string name="manage_item">Gestisci elemento</string>
+
+    <string name="up_next_section_suggested">Suggeriti</string>
+    <string name="up_next_section_airing_today">In onda oggi</string>
+    <string name="up_next_section_aired_recently">Trasmessi di recente</string>
+    <string name="up_next_section_airing_soon">In onda prossimamente</string>
+    <string name="up_next_section_aired">Trasmessi</string>
+    <string name="up_next_section_unknown_air_date">Data di trasmissione sconosciuta</string>
+    <string name="up_next_section_not_aired">Non ancora trasmessi</string>
+    <string name="up_next_section_other">Altro</string>
 </resources>

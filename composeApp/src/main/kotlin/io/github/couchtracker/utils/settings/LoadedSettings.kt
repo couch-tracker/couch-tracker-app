@@ -7,6 +7,7 @@ import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.collectAsLoadableWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 private typealias SettingGetter<S, V, D> = S.() -> Setting<*, *, V, D>
@@ -66,4 +67,10 @@ fun <S : AbstractSettings> S.loaded(): Flow<LoadedSettings<S>> {
             values = flowsMap.keys.zip(loadedSettings).toMap(),
         )
     }
+}
+
+inline fun <S : AbstractSettings, reified V : D, reified D> Flow<LoadedSettings<S>>.getCurrentSetting(
+    crossinline setting: SettingGetter<S, V, D>,
+): Flow<D> {
+    return this.map { it.get(setting).current }.distinctUntilChanged()
 }

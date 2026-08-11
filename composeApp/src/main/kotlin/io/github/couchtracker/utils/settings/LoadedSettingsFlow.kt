@@ -35,9 +35,15 @@ inline fun <S : AbstractSettings, reified V : D, reified D> LoadedSettingsGetter
     return loadedSettingsFlow.settings.map { it.get(setting) }.distinctUntilChanged()
 }
 
+inline fun <S : AbstractSettings, reified V : D, reified D> LoadedSettingsGetter<S>.getCurrent(
+    crossinline setting: S.() -> Setting<*, *, V, D>,
+): Flow<D> {
+    return get(setting).map { it.current }.distinctUntilChanged()
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 inline fun <S : AbstractSettings, reified V : D, reified D> LoadedSettingsGetter<S>.getWithDefault(
     crossinline setting: S.() -> Setting<*, *, V, D>,
 ): Flow<LoadedSettingWithDefault<V, D>> {
-    return loadedSettingsFlow.settings.flatMapLatest { it.getWithDefault(setting) }
+    return loadedSettingsFlow.settings.flatMapLatest { it.getWithDefault(setting) }.distinctUntilChanged()
 }

@@ -18,7 +18,7 @@ import io.github.couchtracker.utils.error.SimulatedException
 import io.github.couchtracker.utils.injectApiError
 import io.github.couchtracker.utils.injectCacheMiss
 import io.github.couchtracker.utils.logExecutionTime
-import io.github.couchtracker.utils.settings.get
+import io.github.couchtracker.utils.settings.getCurrent
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.http.HttpStatusCode
@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -62,7 +61,7 @@ private val tmdbCacheEvents = EventBus<TmdbCacheEvent>()
 
 fun tmdbFlowRetryContext(
     retryToken: FlowRetryToken = FlowRetryToken(),
-    languages: Flow<TmdbLanguages> = AppSettings.get { Tmdb.Languages }.map { it.current },
+    languages: Flow<TmdbLanguages> = AppSettings.getCurrent { Tmdb.Languages },
 ): TmdbFlowRetryContext {
     return FlowRetryContext(retryToken, languages)
 }
