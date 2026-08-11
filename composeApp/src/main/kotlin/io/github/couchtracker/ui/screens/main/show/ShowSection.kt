@@ -1,17 +1,13 @@
-@file:OptIn(ExperimentalFoundationApi::class)
-
-package io.github.couchtracker.ui.screens.main
+package io.github.couchtracker.ui.screens.main.show
 
 import android.app.Application
 import androidx.annotation.StringRes
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.plus
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -34,7 +30,6 @@ import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.R
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.tmdb.tmdbPager
-import io.github.couchtracker.ui.components.DefaultErrorScreen
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.OverviewScreenComponents
@@ -42,14 +37,12 @@ import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.ShowPortrait
 import io.github.couchtracker.ui.components.ShowPortraitModel
-import io.github.couchtracker.ui.components.UpNextListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.components.toShowPortraitModels
-import io.github.couchtracker.ui.itemsWithPosition
-import io.github.couchtracker.ui.screens.main.ShowSectionViewModel.UpNextEntry
+import io.github.couchtracker.ui.screens.main.MainSection
+import io.github.couchtracker.ui.screens.main.MainSectionDefaults
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
-import io.github.couchtracker.utils.error.CouchTrackerLoadable
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.settings.get
@@ -63,7 +56,7 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun ShowSection(
     innerPadding: PaddingValues,
-    viewModel: ShowSectionViewModel = viewModel(),
+    viewModel: io.github.couchtracker.ui.screens.main.ShowSectionViewModel = viewModel(),
 ) {
     // TODO: open up next as a first tab
     val pagerState = rememberPagerState(initialPage = ShowTab.WATCHLIST.ordinal) { ShowTab.entries.size }
@@ -101,7 +94,7 @@ fun ShowSection(
                         emptyMessage = R.string.tab_shows_following_empty.str(),
                         emptyDescription = R.string.tab_shows_following_empty_description.str(),
                     )
-                    ShowTab.UP_NEXT -> UpNext(
+                    ShowTab.UP_NEXT -> UpNextTab(
                         entries = viewModel.upNext,
                         onRetry = { viewModel.retryAll() },
                     )
@@ -118,7 +111,7 @@ fun ShowSection(
 
 @Composable
 private fun BookmarkedShowGrid(
-    shows: Loadable<List<ShowSectionViewModel.BookmarkedShow>>,
+    shows: Loadable<List<io.github.couchtracker.ui.screens.main.ShowSectionViewModel.BookmarkedShow>>,
     emptyMessage: String,
     emptyDescription: String,
 ) {
@@ -154,45 +147,6 @@ private fun BookmarkedShowGrid(
                             )
                         },
                     )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun UpNext(
-    entries: CouchTrackerLoadable<List<UpNextEntry>>,
-    onRetry: () -> Unit,
-) {
-    LoadableScreen(
-        entries,
-        onError = { apiError ->
-            DefaultErrorScreen(
-                error = apiError,
-                retry = onRetry,
-            )
-        },
-    ) { entries ->
-        if (entries.isEmpty()) {
-            MessageComposable(
-                modifier = Modifier.fillMaxSize(),
-                icon = Icons.Default.BookmarkBorder,
-                message = R.string.tab_shows_up_next_empty.str(),
-                details = R.string.tab_shows_up_next_empty_description.str(),
-            )
-        } else {
-            // TODO: after marking an episode as watched, this should scroll to it
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp) + PaddingValues(bottom = OverviewScreenComponents.LIST_BOTTOM_SPACE),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                itemsWithPosition(
-                    items = entries,
-                    key = { _, upNextEntry -> upNextEntry.itemKey },
-                ) { position, upNextEntry ->
-                    UpNextListItem(upNextEntry.model, position, modifier = Modifier.animateItem())
                 }
             }
         }

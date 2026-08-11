@@ -38,6 +38,7 @@ import io.github.couchtracker.ui.generateColorScheme
 import io.github.couchtracker.ui.screens.main.search.SEARCH_SCREEN_EVENT_BUS
 import io.github.couchtracker.ui.screens.main.search.SearchScreenEvent
 import io.github.couchtracker.ui.screens.main.search.SearchSection
+import io.github.couchtracker.ui.screens.main.show.ShowSection
 import io.github.couchtracker.utils.str
 import kotlinx.serialization.Serializable
 
