@@ -15,7 +15,7 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.intl.datetime.PDT_FULL_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.rememberPartialDateTimeLocalizer
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.ui.components.ProfileDbActionDialog
 import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.str
@@ -66,7 +66,7 @@ fun DeleteWatchedEpisodeSessionConfirmDialog(
 
 @Composable
 private fun ViewingDateSection(title: String, watchAt: PartialDateTime?) {
-    val localizer = rememberPartialDateTimeLocalizer(PDT_FULL_LOCALIZER_OPTIONS)
+    val localizer = rememberLocalizer(PDT_FULL_LOCALIZER_OPTIONS)
     if (watchAt != null) {
         Column {
             Text(title, style = MaterialTheme.typography.labelMedium)

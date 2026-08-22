@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.DisplayContext
-import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
@@ -49,7 +48,7 @@ fun WatchedItemInfoDialog(
     onEditRequest: () -> Unit,
     onDeleteRequest: () -> Unit,
 ) {
-    val ldtLocalizer = rememberLocalizer(LOCAL_DATE_TIME_FULL_LOCALIZER_OPTIONS, ::LocalDateTimeLocalizer)
+    val ldtLocalizer = rememberLocalizer(LOCAL_DATE_TIME_FULL_LOCALIZER_OPTIONS)
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         content = {

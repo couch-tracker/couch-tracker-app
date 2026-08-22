@@ -17,7 +17,6 @@ import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
 import dev.mmauro.datetimepolyglot.TickingValue
 import dev.mmauro.datetimepolyglot.localizers.absolute.localize
-import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalDateLocalizer
 import dev.mmauro.datetimepolyglot.localizers.localizeNow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
@@ -56,7 +55,7 @@ fun EpisodeListItem(
 ) {
     val navController = LocalNavController.current
 
-    val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS, ::DynamicLocalDateLocalizer)
+    val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS)
     val dateTimeText = rememberTickingValue(dateTimeLocalizer, episode.firstAirDate) {
         if (episode.firstAirDate == null) {
             TickingValue(null, null)
