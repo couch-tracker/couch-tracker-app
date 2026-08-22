@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
-import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateLocalizer
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.intl.datetime.rememberLocalizer
@@ -141,7 +140,7 @@ private fun TimeSelectorTopAppBar(
     selectedDate: PartialDateTime.Local.Date,
     openTimePicker: (DatePickerWorkflowStep) -> Unit,
 ) {
-    val dateLocalizer = rememberLocalizer(DateStyle.FULL, ::LocalDateLocalizer)
+    val dateLocalizer = rememberLocalizer(DateStyle.FULL)
     TopAppBar(
         title = {
             Text(dateLocalizer.localize(selectedDate.date))

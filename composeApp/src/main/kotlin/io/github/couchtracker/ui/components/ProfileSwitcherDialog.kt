@@ -26,10 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
-import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
@@ -128,7 +126,7 @@ private val LAST_MODIFIED_LOCALIZER_OPTIONS = LocalDateTimeOptions(
 
 @Composable
 fun ProfileInfo.formattedLastModified(): String {
-    val localizer = rememberLocalizer(LAST_MODIFIED_LOCALIZER_OPTIONS, ::LocalDateTimeLocalizer)
+    val localizer = rememberLocalizer(LAST_MODIFIED_LOCALIZER_OPTIONS)
     return when (val lastModified = db.lastModified()) {
         null -> R.string.profile_last_used_unknown.str()
         else -> localizer.localize(lastModified.toLocalDateTime(TimeZone.currentSystemDefault()))

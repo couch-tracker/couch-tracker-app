@@ -10,7 +10,7 @@ import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTimeGroup
 import io.github.couchtracker.intl.datetime.PDT_FULL_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.rememberPartialDateTimeLocalizer
+import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.utils.str
 
 /**
@@ -137,7 +137,7 @@ fun Collection<WatchedItemWrapper>.sortAndGroupDescending(): Map<PartialDateTime
 
 @Composable
 fun WatchedItemWrapper.localizedWatchAt(includeTimeZone: Boolean): String {
-    val pdtLocalizer = rememberPartialDateTimeLocalizer(PDT_FULL_LOCALIZER_OPTIONS)
+    val pdtLocalizer = rememberLocalizer(PDT_FULL_LOCALIZER_OPTIONS)
 
     val watchAt = watchAt
     if (watchAt == null) {

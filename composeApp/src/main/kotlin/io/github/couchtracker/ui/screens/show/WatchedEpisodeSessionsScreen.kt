@@ -28,8 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
-import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearOptions
 import dev.mmauro.datetimepolyglot.styles.MonthStyle
@@ -229,8 +227,8 @@ private fun WatchedEpisodeSessionListItem(
 
     @Composable
     fun PartialDateTime.Local.monthString(): String {
-        val yearLocalizer = rememberLocalizer(YearOptions(), ::YearLocalizer)
-        val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.ABBREVIATED), ::YearMonthLocalizer)
+        val yearLocalizer = rememberLocalizer(YearOptions())
+        val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.ABBREVIATED))
 
         return when (this) {
             is PartialDateTime.Local.Year -> yearLocalizer.localize(year)

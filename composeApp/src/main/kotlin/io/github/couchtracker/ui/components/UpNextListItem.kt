@@ -15,7 +15,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.mmauro.datetimepolyglot.TickingValue
-import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalDateLocalizer
 import dev.mmauro.datetimepolyglot.localizers.localizeNow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.Bcp47Language
@@ -61,7 +60,7 @@ fun UpNextListItem(
     val navController = LocalNavController.current
     val openEpisodeBehavior = appSettings().get { StyleAndBehavior.OpenEpisodeBehavior }
 
-    val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS, ::DynamicLocalDateLocalizer)
+    val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS)
     val dateTimeText = rememberTickingValue(dateTimeLocalizer, upNext.episodeAirDate) {
         if (upNext.episodeAirDate == null) {
             TickingValue(null, null)

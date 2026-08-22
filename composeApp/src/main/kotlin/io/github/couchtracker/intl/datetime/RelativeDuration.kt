@@ -42,7 +42,7 @@ fun rememberTickingDurationText(
     localize: TickingDurationLocalizer.(Duration) -> TickingValue<Text> = { localize(it).map(Text::Literal) },
 ): String {
     // TODO use Flows?
-    val localizer = rememberLocalizer(options, ::TickingDurationLocalizer)
+    val localizer = rememberLocalizer(options)
 
     return rememberTickingValue(localizer, instant, *keys) {
         val relative = instant - Clock.System.now()

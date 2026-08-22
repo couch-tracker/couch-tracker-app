@@ -34,12 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
-import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateLocalizer
-import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
-import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
-import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearOptions
 import dev.mmauro.datetimepolyglot.styles.MonthStyle
@@ -262,10 +258,10 @@ private fun CustomDateTimeRow(
     setCustomDialogVisibility: (DateTimeSectionState.CustomDateDialogVisibility) -> Unit,
     deselect: () -> Unit,
 ) {
-    val yearLocalizer = rememberLocalizer(YearOptions(), ::YearLocalizer)
-    val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.WIDE), ::YearMonthLocalizer)
-    val dateLocalizer = rememberLocalizer(DateStyle.MEDIUM, ::LocalDateLocalizer)
-    val timeLocalizer = rememberLocalizer(LocalTimeOptions(LocalTimeStyle.SHORT), ::LocalTimeLocalizer)
+    val yearLocalizer = rememberLocalizer(YearOptions())
+    val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.WIDE))
+    val dateLocalizer = rememberLocalizer(DateStyle.MEDIUM)
+    val timeLocalizer = rememberLocalizer(LocalTimeOptions(LocalTimeStyle.SHORT))
 
     val local = selectedDateTime.local
     val dateString = when (local) {

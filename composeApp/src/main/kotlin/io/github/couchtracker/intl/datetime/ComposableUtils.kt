@@ -6,12 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
+import dev.mmauro.datetimepolyglot.localizers.PolyglotLocalizer
+import dev.mmauro.datetimepolyglot.localizers.PolyglotLocalizerOptions
 import io.github.couchtracker.utils.toAndroidULocale
 
 @Composable
-fun <OPTIONS, LOCALIZER> rememberLocalizer(options: OPTIONS, localizerFactory: (OPTIONS, ULocale) -> LOCALIZER): LOCALIZER {
+fun <OPTIONS : PolyglotLocalizerOptions<LOCALIZER>, LOCALIZER : PolyglotLocalizer> rememberLocalizer(options: OPTIONS): LOCALIZER {
     val locale = LocalLocale.current.platformLocale
-    return remember(options, locale, localizerFactory) { localizerFactory(options, locale.toAndroidULocale()) }
+    return remember(options, locale) { options.localizer(locale.toAndroidULocale()) }
 }
 
 @Composable

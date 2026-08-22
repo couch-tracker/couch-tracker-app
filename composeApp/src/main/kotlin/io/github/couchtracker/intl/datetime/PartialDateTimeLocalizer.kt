@@ -3,10 +3,10 @@
 package io.github.couchtracker.intl.datetime
 
 import android.icu.util.ULocale
-import androidx.compose.runtime.Composable
 import dev.mmauro.datetimepolyglot.Zoned
 import dev.mmauro.datetimepolyglot.localizers.ExperimentalZonedLocalizer
 import dev.mmauro.datetimepolyglot.localizers.PolyglotDateTimeLocalizer
+import dev.mmauro.datetimepolyglot.localizers.PolyglotLocalizerOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateComponents
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyleOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateLocalizer
@@ -14,8 +14,6 @@ import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeComponents
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeOptions
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeComponents
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
@@ -52,7 +50,7 @@ data class PartialDateTimeOptions(
     val zonedYearMonthOptions: ZonedYearMonthOptions,
     val zonedDateOptions: ZonedDateOptions,
     val zonedInstantOptions: ZonedInstantOptions,
-) {
+) : PolyglotLocalizerOptions<PartialDateTimeLocalizer> {
 
     constructor(
         yearOptions: YearOptions,
@@ -117,6 +115,10 @@ data class PartialDateTimeOptions(
         timeOptions = LocalTimeOptions(LocalTimeComponents(hourStyle, minuteStyle, secondStyle, fractionalSecondDigits, dayPeriodStyle)),
         timeZoneOptions = TimeZoneOptions(timeZoneStyle),
     )
+
+    override fun localizer(locale: ULocale): PartialDateTimeLocalizer {
+        return PartialDateTimeLocalizer(this, locale)
+    }
 }
 
 class PartialDateTimeLocalizer(
@@ -155,9 +157,4 @@ fun PartialDateTime.localize(
     locale: ULocale = ULocale.getDefault(),
 ): String {
     return PartialDateTimeLocalizer(options, locale).localize(this)
-}
-
-@Composable
-fun rememberPartialDateTimeLocalizer(options: PartialDateTimeOptions): PartialDateTimeLocalizer {
-    return rememberLocalizer(options, ::PartialDateTimeLocalizer)
 }
