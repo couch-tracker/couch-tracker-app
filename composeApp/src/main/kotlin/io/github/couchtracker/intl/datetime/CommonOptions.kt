@@ -4,7 +4,7 @@ import dev.mmauro.datetimepolyglot.localizers.absolute.DateComponents
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.DurationOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalDateOptions
 import dev.mmauro.datetimepolyglot.styles.DayOfMonthStyle
 import dev.mmauro.datetimepolyglot.styles.DayOfWeekStyle
@@ -22,7 +22,7 @@ val PDT_FULL_LOCALIZER_OPTIONS = PartialDateTimeOptions(
 
 val LOCAL_DATE_TIME_FULL_LOCALIZER_OPTIONS = LocalDateTimeOptions(
     dateOptions = DateStyle.FULL,
-    timeOptions = TimeStyle.Local.MEDIUM,
+    timeOptions = LocalTimeStyle.MEDIUM,
 )
 
 val EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS = DynamicLocalDateOptions(

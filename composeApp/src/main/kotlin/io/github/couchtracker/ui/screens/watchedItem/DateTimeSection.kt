@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.dp
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeLocalizer
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeOptions
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
@@ -265,7 +265,7 @@ private fun CustomDateTimeRow(
     val yearLocalizer = rememberLocalizer(YearOptions(), ::YearLocalizer)
     val yearMonthLocalizer = rememberLocalizer(YearMonthOptions(monthStyle = MonthStyle.WIDE), ::YearMonthLocalizer)
     val dateLocalizer = rememberLocalizer(DateStyle.MEDIUM, ::LocalDateLocalizer)
-    val timeLocalizer = rememberLocalizer(TimeOptions(TimeStyle.Local.SHORT), ::LocalTimeLocalizer)
+    val timeLocalizer = rememberLocalizer(LocalTimeOptions(LocalTimeStyle.SHORT), ::LocalTimeLocalizer)
 
     val local = selectedDateTime.local
     val dateString = when (local) {
