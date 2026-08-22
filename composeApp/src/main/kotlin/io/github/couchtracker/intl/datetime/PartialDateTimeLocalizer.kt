@@ -12,6 +12,8 @@ import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyleOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeComponents
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.TimeComponents
 import dev.mmauro.datetimepolyglot.localizers.absolute.TimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearLocalizer
@@ -22,6 +24,8 @@ import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedDateOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedInstantLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedInstantOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedLocalDateLocalizer
+import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedTimeComponents
+import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedYearLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedYearMonthLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.ZonedYearMonthOptions
@@ -54,7 +58,7 @@ data class PartialDateTimeOptions(
         yearOptions: YearOptions,
         yearMonthOptions: YearMonthOptions,
         dateOptions: DateStyleOptions,
-        timeOptions: TimeOptions<TimeComponents.Local>,
+        timeOptions: LocalTimeOptions<LocalTimeComponents>,
         timeZoneOptions: TimeZoneOptions,
     ) : this(
         yearOptions = yearOptions,
@@ -66,8 +70,8 @@ data class PartialDateTimeOptions(
         zonedDateOptions = ZonedDateOptions(dateOptions, timeZoneOptions),
         zonedInstantOptions = ZonedInstantOptions(
             dateOptions,
-            TimeOptions(
-                styleOptions = TimeComponents.Zoned(
+            ZonedTimeOptions(
+                styleOptions = ZonedTimeComponents(
                     hourStyle = timeOptions.styleOptions.hourStyle,
                     minuteStyle = timeOptions.styleOptions.minuteStyle,
                     secondStyle = timeOptions.styleOptions.secondStyle,
@@ -82,7 +86,7 @@ data class PartialDateTimeOptions(
 
     constructor(
         dateOptions: DateComponents,
-        timeOptions: TimeOptions<TimeComponents.Local>,
+        timeOptions: LocalTimeOptions<LocalTimeComponents>,
         timeZoneOptions: TimeZoneOptions,
     ) : this(
         yearOptions = YearOptions(eraStyle = dateOptions.eraStyle, yearStyle = dateOptions.yearStyle),
@@ -110,7 +114,7 @@ data class PartialDateTimeOptions(
         timeZoneStyle: TimeZoneStyle.Generic = TimeZoneStyle.Generic.LOCATION,
     ) : this(
         dateOptions = DateComponents(eraStyle, yearStyle, monthStyle, dayOfMonthStyle, dayOfWeekStyle),
-        timeOptions = TimeOptions(TimeComponents.Local(hourStyle, minuteStyle, secondStyle, fractionalSecondDigits, dayPeriodStyle)),
+        timeOptions = LocalTimeOptions(LocalTimeComponents(hourStyle, minuteStyle, secondStyle, fractionalSecondDigits, dayPeriodStyle)),
         timeZoneOptions = TimeZoneOptions(timeZoneStyle),
     )
 }

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalProfilesContext
@@ -122,7 +123,7 @@ fun ProfileInfo.supportingText(): String {
 
 private val LAST_MODIFIED_LOCALIZER_OPTIONS = LocalDateTimeOptions(
     dateOptions = DateStyle.MEDIUM,
-    timeOptions = TimeStyle.Local.MEDIUM,
+    timeOptions = LocalTimeStyle.MEDIUM,
 )
 
 @Composable

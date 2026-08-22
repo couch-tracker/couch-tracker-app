@@ -18,7 +18,7 @@ import coil3.compose.AsyncImage
 import dev.mmauro.datetimepolyglot.TickingValue
 import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalDateLocalizer
-import dev.mmauro.datetimepolyglot.localizers.localize
+import dev.mmauro.datetimepolyglot.localizers.localizeNow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
@@ -61,7 +61,7 @@ fun EpisodeListItem(
         if (episode.firstAirDate == null) {
             TickingValue(null, null)
         } else {
-            dateTimeLocalizer.localize(episode.firstAirDate)
+            dateTimeLocalizer.localizeNow(episode.firstAirDate)
         }
     }
 

@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.mmauro.datetimepolyglot.TickingValue
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalDateLocalizer
-import dev.mmauro.datetimepolyglot.localizers.localize
+import dev.mmauro.datetimepolyglot.localizers.localizeNow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
@@ -66,7 +66,7 @@ fun UpNextListItem(
         if (upNext.episodeAirDate == null) {
             TickingValue(null, null)
         } else {
-            dateTimeLocalizer.localize(upNext.episodeAirDate)
+            dateTimeLocalizer.localizeNow(upNext.episodeAirDate)
         }
     }
 

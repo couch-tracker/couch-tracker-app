@@ -7,7 +7,7 @@ import dev.mmauro.datetimepolyglot.Zoned
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.DurationOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicDateAbsoluteTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.relative.RelativeDateAbsoluteTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.relative.RelativeLocalDateOptions
@@ -70,7 +70,7 @@ class DynamicDateAbsoluteTimeWithDurationLocalizerTest : FunSpec(
                                             style = RelativeUnitStyle.SHORT,
                                         ),
                                     ),
-                                    absoluteOptions = LocalDateTimeOptions(DateStyle.MEDIUM, TimeStyle.Local.SHORT),
+                                    absoluteOptions = LocalDateTimeOptions(DateStyle.MEDIUM, LocalTimeStyle.SHORT),
                                 ),
                                 durationOptions = DurationOptions(style = DurationStyle.WIDE),
                             ),
@@ -84,7 +84,7 @@ class DynamicDateAbsoluteTimeWithDurationLocalizerTest : FunSpec(
                             locale = ULocale.ITALIAN,
                             options = DynamicDateAbsoluteTimeWithDurationOptions(
                                 dateTimeOptions = DynamicDateAbsoluteTimeWithDurationOptions.DEFAULT_DATE_TIME_OPTIONS.copy(
-                                    absoluteOptions = LocalDateTimeOptions(DateStyle.MEDIUM, TimeStyle.Local.MEDIUM),
+                                    absoluteOptions = LocalDateTimeOptions(DateStyle.MEDIUM, LocalTimeStyle.MEDIUM),
                                 ),
                                 durationOptions = DurationOptions(
                                     minUnit = DurationUnit.SECONDS,

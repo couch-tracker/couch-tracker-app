@@ -11,9 +11,9 @@ import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.DurationOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.ExperimentalTickingDurationLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
+import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.TickingDurationLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.TickingDurationOptions
-import dev.mmauro.datetimepolyglot.localizers.absolute.TimeStyle
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicDateAbsoluteTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicDateAbsoluteTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.dynamic.DynamicLocalizer
@@ -43,7 +43,7 @@ data class DynamicDateAbsoluteTimeWithDurationOptions(
                 ),
                 joinerStyle = DateStyle.SHORT,
             ),
-            absoluteOptions = LocalDateTimeOptions(DateStyle.MEDIUM, TimeStyle.Local.SHORT),
+            absoluteOptions = LocalDateTimeOptions(DateStyle.MEDIUM, LocalTimeStyle.SHORT),
         )
     }
 }
