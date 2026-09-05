@@ -15,9 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
-import dev.mmauro.datetimepolyglot.TickingValue
 import dev.mmauro.datetimepolyglot.localizers.absolute.localize
-import dev.mmauro.datetimepolyglot.localizers.localizeNow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
@@ -26,6 +24,7 @@ import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.intl.datetime.EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS
 import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
+import io.github.couchtracker.intl.datetime.localize
 import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbRating
@@ -40,7 +39,6 @@ import io.github.couchtracker.ui.actions.markEpisodeAsWatchedAction
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.ui.screens.episodes.navigateToEpisode
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
-import io.github.couchtracker.utils.rememberTickingValue
 import kotlinx.datetime.LocalDate
 import kotlin.time.Duration
 
@@ -56,13 +54,7 @@ fun EpisodeListItem(
     val navController = LocalNavController.current
 
     val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS)
-    val dateTimeText = rememberTickingValue(dateTimeLocalizer, episode.firstAirDate) {
-        if (episode.firstAirDate == null) {
-            TickingValue(null, null)
-        } else {
-            dateTimeLocalizer.localizeNow(episode.firstAirDate)
-        }
-    }
+    val dateTimeText = episode.firstAirDate?.let { dateTimeLocalizer.localize(it) }?.value
 
     val markEpisodeAsWatchedAction = markEpisodeAsWatchedAction(episode.showId, episode.episodeId) { watchedSession ->
         WatchedItemSheetMode.New.Episode(

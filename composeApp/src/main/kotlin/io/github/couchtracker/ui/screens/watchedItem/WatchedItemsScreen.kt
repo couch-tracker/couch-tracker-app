@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.github.couchtracker.LocalFullProfileDataContext
@@ -35,6 +36,7 @@ import io.github.couchtracker.db.profile.externalids.WatchableExternalId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
+import io.github.couchtracker.intl.datetime.collectAsStateWithLifecycle
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.LocalWatchedItemSheetScaffoldState
 import io.github.couchtracker.ui.Screen
@@ -170,7 +172,10 @@ private fun WatchedItemListItem(
     onClick: () -> Unit,
     shapes: ListItemShapes,
 ) {
-    val progressState = rememberWatchedItemProgressState(watchedItem, mediaRuntime)
+    val state = remember(watchedItem, mediaRuntime) {
+        watchedItem.watchedItemProgressState(mediaRuntime)
+    }
+    val progressState by state.collectAsStateWithLifecycle()
     ListItem(
         onClick = onClick,
         content = {

@@ -14,8 +14,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import dev.mmauro.datetimepolyglot.TickingValue
-import dev.mmauro.datetimepolyglot.localizers.localizeNow
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
@@ -24,6 +22,7 @@ import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.intl.datetime.EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS
+import io.github.couchtracker.intl.datetime.localize
 import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.settings.StyleAndBehaviorSettings
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.OpenEpisodeBehaviorOption.HIGHLIGHT_IN_SEASON
@@ -44,7 +43,6 @@ import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.screens.watchedItem.WatchedItemSheetMode
 import io.github.couchtracker.ui.seasonEpisodeNumberToString
 import io.github.couchtracker.ui.toImageModel
-import io.github.couchtracker.utils.rememberTickingValue
 import kotlinx.datetime.LocalDate
 import kotlin.time.Duration
 
@@ -61,13 +59,7 @@ fun UpNextListItem(
     val openEpisodeBehavior = appSettings().get { StyleAndBehavior.OpenEpisodeBehavior }
 
     val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS)
-    val dateTimeText = rememberTickingValue(dateTimeLocalizer, upNext.episodeAirDate) {
-        if (upNext.episodeAirDate == null) {
-            TickingValue(null, null)
-        } else {
-            dateTimeLocalizer.localizeNow(upNext.episodeAirDate)
-        }
-    }
+    val dateTimeText = upNext.episodeAirDate?.let { dateTimeLocalizer.localize(it) }?.value
 
     val markEpisodeAsWatchedAction = markEpisodeAsWatchedAction(upNext.showId, upNext.episodeId) { watchedSession ->
         WatchedItemSheetMode.New.Episode(
