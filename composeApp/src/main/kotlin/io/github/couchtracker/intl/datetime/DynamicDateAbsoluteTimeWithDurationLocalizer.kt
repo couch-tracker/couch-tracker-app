@@ -6,7 +6,7 @@ import dev.mmauro.datetimepolyglot.TickingValue
 import dev.mmauro.datetimepolyglot.Zoned
 import dev.mmauro.datetimepolyglot.combine
 import dev.mmauro.datetimepolyglot.flatMap
-import dev.mmauro.datetimepolyglot.localizers.PolyglotReferenceValueLocalizer
+import dev.mmauro.datetimepolyglot.localizers.PolyglotReferenceDateTimeLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.DurationOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.ExperimentalTickingDurationLocalizer
@@ -69,7 +69,7 @@ data class DynamicDateAbsoluteTimeWithDurationLocalizer(
     private val context: Context,
     private val options: DynamicDateAbsoluteTimeWithDurationOptions = DynamicDateAbsoluteTimeWithDurationOptions(),
     private val locale: ULocale = ULocale.getDefault(),
-) : PolyglotReferenceValueLocalizer<LocalDateTime> {
+) : PolyglotReferenceDateTimeLocalizer<LocalDateTime> {
 
     private val dynamicDateAbsoluteTimeLocalizer = DynamicDateAbsoluteTimeLocalizer(options.dateTimeOptions, locale)
     private val tickingDurationLocalizer = TickingDurationLocalizer(TickingDurationOptions(options.durationOptions, abs = true), locale)
