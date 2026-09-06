@@ -9,14 +9,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue.Expanded
+import androidx.compose.material3.SheetValue.Hidden
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +42,7 @@ import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModalWatchedEpisodeSessionSelectorBottomSheet(
     state: ModalWatchedEpisodeSessionSelectorBottomSheetState,
@@ -90,7 +91,6 @@ fun ModalWatchedEpisodeSessionSelectorBottomSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WatchedEpisodeSessionListItem(
     session: WatchedEpisodeSessionInfo,
@@ -114,7 +114,6 @@ private fun WatchedEpisodeSessionListItem(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun OpenWatchSessionsListItem(showId: ExternalShowId, position: ItemPosition) {
     val navController = LocalNavController.current
@@ -165,7 +164,10 @@ class ModalWatchedEpisodeSessionSelectorBottomSheetState(
 @Composable
 fun rememberModalWatchedEpisodeSessionSelectorBottomSheetState(): ModalWatchedEpisodeSessionSelectorBottomSheetState {
     val coroutineScope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = Hidden,
+        enabledValues = setOf(Hidden, Expanded),
+    )
 
     return remember(coroutineScope, sheetState) {
         ModalWatchedEpisodeSessionSelectorBottomSheetState(

@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -34,6 +34,7 @@ import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.components.DelayedActionIconLoadingIndicator
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RowScope.ActionsRow(actions: List<Action>) {
     for (action in actions) {
@@ -55,7 +56,6 @@ private fun RowScope.ActionsRow(actions: List<Action>) {
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun ActionsHorizontalFloatingToolbar(actions: Actions, expanded: Boolean) {
     val mainAction = actions.mainAction
     if (mainAction != null) {
@@ -119,6 +119,7 @@ fun ActionsVerticalMenu(actions: Actions) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionButton(action: Action, modifier: Modifier = Modifier) {
     action.companionComposable()
@@ -147,7 +148,6 @@ fun ActionButton(action: Action, modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionsVerticalMenu(actions: List<Action>) {
     if (actions.isNotEmpty()) {

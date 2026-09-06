@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHostState
@@ -122,7 +120,6 @@ private fun Content(initialEpisode: ExternalEpisodeId, viewModel: EpisodesScreen
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EpisodesScreenContent(
     viewModel: EpisodesScreenViewModel,
@@ -174,7 +171,6 @@ private fun EpisodesScreenContent(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun OverviewScreenComponents.EpisodePage(
     innerPadding: PaddingValues,

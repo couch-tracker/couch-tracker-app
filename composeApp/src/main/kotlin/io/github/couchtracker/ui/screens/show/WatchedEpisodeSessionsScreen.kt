@@ -11,8 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.LayersClear
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -101,7 +99,6 @@ private fun Content(viewModel: WatchedEpisodeSessionsScreenViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WatchedEpisodeSessionList(
     viewModel: WatchedEpisodeSessionsScreenViewModel,
@@ -209,7 +206,6 @@ private fun WatchedEpisodeSessionList(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun WatchedEpisodeSessionListItem(
     watchedEpisodeSessionInfo: WatchedEpisodeSessionInfo,
     onClick: () -> Unit = {},

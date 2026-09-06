@@ -39,7 +39,6 @@ import io.github.couchtracker.utils.emptyPager
 import io.github.couchtracker.utils.error.ApiResult
 import io.github.couchtracker.utils.flatMap
 import io.github.couchtracker.utils.map
-import io.github.couchtracker.utils.settings.get
 import io.github.couchtracker.utils.settings.getCurrent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,7 +66,7 @@ class SearchViewModel(
     var mediaFilters by mutableStateOf(initialMediaFilters)
     private var searchRequestId by mutableStateOf(0)
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    @OptIn(FlowPreview::class)
     val currentSearchInstance = snapshotFlow {
         SearchParameters(
             query = searchFieldState.text.toString(),
@@ -93,7 +92,7 @@ class SearchViewModel(
         }
         .shareIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, replay = 1)
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     val searchResults: Flow<PagingData<SearchResultItem>> = currentSearchInstance
         .flatMapLatest { (query, filters, tmdbLanguage) ->
             val pager = if (query.isBlank()) {

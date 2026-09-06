@@ -3,7 +3,6 @@ package io.github.couchtracker.ui.components
 import android.content.Context
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +33,6 @@ import kotlinx.datetime.yearMonth
 private val POSTER_WIDTH = 64.dp
 private val POSTER_HEIGHT = 96.dp
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SeasonListItem(
     season: SeasonListItemModel,

@@ -1,9 +1,7 @@
 package io.github.couchtracker.ui.components
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +17,6 @@ import io.github.couchtracker.utils.str
 import io.github.couchtracker.utils.timezonesTree
 import kotlinx.datetime.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TimezonePickerDialog(
     timezone: TimeZone?,

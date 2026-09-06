@@ -150,7 +150,7 @@ style:
   ReturnCount:
     max: 5
     excludeGuardClauses: true
-  SpacingAfterPackageDeclaration:
+  SpacingAfterPackageAndImports:
     active: true
   ThrowsCount:
     excludeGuardClauses: true

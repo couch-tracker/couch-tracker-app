@@ -44,7 +44,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -115,9 +115,9 @@ fun rememberWatchedItemSheetScaffoldState(): WatchedItemSheetScaffoldState {
     val coroutineScope = rememberCoroutineScope()
 
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
+        bottomSheetState = rememberBottomSheetState(
             initialValue = SheetValue.Hidden,
-            skipHiddenState = false,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.PartiallyExpanded, SheetValue.Expanded),
         ),
     )
     return remember(coroutineScope, bottomSheetScaffoldState) {

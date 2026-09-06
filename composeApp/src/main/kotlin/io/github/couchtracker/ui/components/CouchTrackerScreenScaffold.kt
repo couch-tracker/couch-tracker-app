@@ -3,7 +3,6 @@ package io.github.couchtracker.ui.components
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
@@ -50,7 +49,6 @@ fun BaseCouchTrackerScreenScaffold(
  * A scaffold that applies correct background/content colors when used inside [io.github.couchtracker.ui.Screen].
  * This also applies a default top bar and scroll behavior.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CouchTrackerScreenScaffold(
     title: () -> String,

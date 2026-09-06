@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,7 +29,6 @@ import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.utils.str
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchExplorePage(padding: PaddingValues, viewModel: SearchViewModel) {
     LoadableScreen(
@@ -59,7 +57,6 @@ fun SearchExplorePage(padding: PaddingValues, viewModel: SearchViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun LazyGridScope.genresList(
     title: @Composable () -> String,
     genres: List<TmdbGenre>,

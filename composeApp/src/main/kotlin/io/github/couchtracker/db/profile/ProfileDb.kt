@@ -98,6 +98,8 @@ sealed class ProfileDb : KoinComponent {
         )
     }
 
+    // False positive with Detekt 2.0.0-alpha.6
+    @Suppress("RedundantSuspendModifier")
     suspend fun ensureDbExists() = write { db ->
         db.transaction {
             // We need to execute an empty DB transaction in order to force the creation of the DB in case it doesn't exist

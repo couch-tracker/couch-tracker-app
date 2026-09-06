@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -102,7 +101,6 @@ private fun WatchedItemFinishEta(progressState: WatchedItemProgressState.Current
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WatchedItemProgressIndicator(progressState: WatchedItemProgressState.CurrentlyWatching) {
     if (progressState.endsAt == null) {

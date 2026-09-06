@@ -19,13 +19,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarState
-import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
@@ -41,14 +39,12 @@ import coil3.compose.AsyncImage
 import io.github.couchtracker.R
 import io.github.couchtracker.ui.components.BackgroundTopAppBar
 import io.github.couchtracker.utils.str
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 
 typealias SearchMediaFilters = Set<SearchableMediaType>
 
-sealed class SearchScreenEvent {
-    object FocusSearch : SearchScreenEvent()
+sealed interface SearchScreenEvent {
+    object FocusSearch : SearchScreenEvent
 }
 
 val SEARCH_SCREEN_EVENT_BUS = MutableSharedFlow<SearchScreenEvent>(
@@ -61,7 +57,6 @@ fun SearchSection(innerPadding: PaddingValues) {
     val viewModel = viewModel {
         SearchViewModel(SearchableMediaType.entries.toSet())
     }
-    val cs = rememberCoroutineScope()
     val searchBarState = rememberSearchBarState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(canScroll = { false })
 
@@ -83,7 +78,6 @@ fun SearchSection(innerPadding: PaddingValues) {
                 .focusRequester(focusRequester),
             viewModel = viewModel,
             searchBarState = searchBarState,
-            coroutineScope = cs,
         )
     }
     Scaffold(
@@ -93,7 +87,7 @@ fun SearchSection(innerPadding: PaddingValues) {
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             BackgroundTopAppBar(
-                contentOffset = { scrollBehavior.contentOffset },
+                contentOffset = { scrollBehavior.scrollState.contentOffset },
                 collapsedFraction = { 0f },
                 image = { modifier, _ ->
                     AsyncImage(
@@ -143,28 +137,17 @@ fun SearchSection(innerPadding: PaddingValues) {
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun SearchInputField(
     modifier: Modifier,
     viewModel: SearchViewModel,
     searchBarState: SearchBarState,
-    coroutineScope: CoroutineScope,
 ) {
     SearchBarDefaults.InputField(
         modifier = modifier,
-        state = viewModel.searchFieldState,
+        searchBarState = searchBarState,
+        textFieldState = viewModel.searchFieldState,
         onSearch = {
             viewModel.search()
-        },
-        expanded = searchBarState.currentValue == SearchBarValue.Expanded,
-        onExpandedChange = { expand ->
-            coroutineScope.launch {
-                if (expand) {
-                    searchBarState.animateToExpanded()
-                } else {
-                    searchBarState.animateToCollapsed()
-                }
-            }
         },
         placeholder = {
             Text(
