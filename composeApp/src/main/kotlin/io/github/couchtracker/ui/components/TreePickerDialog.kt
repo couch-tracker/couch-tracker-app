@@ -4,16 +4,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -21,7 +24,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExpandedDockedSearchBar
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,11 +33,13 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,7 +100,6 @@ data class SuggestedOptions<C, T : Any>(
  * @param C the type of value held by categories
  * @param T the type of the items
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun <C, T : Any> TreePickerDialog(
     selected: T?,
@@ -245,7 +249,6 @@ private data class TreePickerContext<C, T : Any>(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogHeader(
     icon: @Composable () -> Unit,
     title: @Composable () -> Unit,
@@ -254,21 +257,25 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogHeader(
     selected: T?,
     onSelect: (T) -> Unit,
 ) {
-    var searchQueryField: String? by remember { mutableStateOf(null) }
+    var open by remember { mutableStateOf(false) }
+    val textFieldState = rememberTextFieldState()
 
     Surface(Modifier.fillMaxWidth(), color = AlertDialogDefaults.containerColor) {
-        when (val query = searchQueryField) {
-            null -> TreePickerDialogTopAppBar(
+        when (open) {
+            true -> TreePickerDialogTopAppBar(
                 icon = icon,
                 title = title,
-                onOpenSearchBar = { searchQueryField = "" },
+                onOpenSearchBar = { open = true },
                 categoriesStack = categoriesStack,
                 navigateUp = navigateUp,
             )
 
-            else -> TreePickerDialogSearchBar(
-                searchQuery = query,
-                onSearchQuery = { searchQueryField = it },
+            false -> TreePickerDialogSearchBar(
+                textFieldState = textFieldState,
+                onClose = {
+                    textFieldState.setTextAndPlaceCursorAtEnd("")
+                    open = false
+                },
                 categoriesStack = categoriesStack,
                 selected = selected,
                 onSelect = onSelect,
@@ -278,7 +285,6 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogHeader(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogTopAppBar(
     icon: @Composable () -> Unit,
     title: @Composable () -> Unit,
@@ -316,46 +322,46 @@ private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogTopAppBar(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun <C, T : Any> TreePickerContext<C, T>.TreePickerDialogSearchBar(
-    searchQuery: String,
-    onSearchQuery: (String?) -> Unit,
+    textFieldState: TextFieldState,
+    onClose: () -> Unit,
     categoriesStack: CategoriesStack<C, T>,
     selected: T?,
     onSelect: (T) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
-    var expanded by remember { mutableStateOf(true) }
-    SearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = searchQuery,
-                onQueryChange = onSearchQuery,
-                onSearch = { },
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-                placeholder = {
-                    Text(
-                        text = searchPlaceHolder(),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                modifier = Modifier.focusRequester(focusRequester),
-                trailingIcon = {
-                    IconButton({ onSearchQuery(null) }) {
-                        Icon(Icons.Default.Close, contentDescription = null)
-                    }
-                },
-            )
-        },
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
+    val searchBarState = rememberSearchBarState(SearchBarValue.Expanded)
+
+    val inputField = @Composable {
+        SearchBarDefaults.InputField(
+            onSearch = { },
+            textFieldState = textFieldState,
+            searchBarState = searchBarState,
+            placeholder = {
+                Text(
+                    text = searchPlaceHolder(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
+            modifier = Modifier.focusRequester(focusRequester),
+            trailingIcon = {
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Default.Close, contentDescription = null)
+                }
+            },
+        )
+    }
+    SearchBar(state = searchBarState, inputField = inputField)
+    ExpandedDockedSearchBar(
+        modifier = Modifier.fillMaxHeight(),
+        state = searchBarState,
+        inputField = inputField,
     ) {
         val searchResults = categoriesStack.last()
             .allLeafs()
             .toList()
-            .filter { it.matches(searchQuery) }
+            .filter { it.matches(textFieldState.text.toString()) }
         TreePickerDialogLinearizedItemList(
             items = searchResults,
             itemName = { it.fullName() },
@@ -475,7 +481,7 @@ private fun <C, T : Any, TN : MixedValueTree.NonRoot<C, T>> TreePickerContext<C,
     }
 
     ListItem(
-        headlineContent = {
+        content = {
             Text(
                 text = name,
                 fontWeight = if (item.isSelected(selected)) FontWeight.ExtraBold else null,

@@ -1,11 +1,9 @@
 package io.github.couchtracker.ui.screens.watchedItem
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -198,7 +196,6 @@ fun DateTimeSectionDialog(sectionState: DateTimeSectionState) {
 }
 
 @Composable
-@OptIn(ExperimentalAnimationApi::class)
 fun WatchedItemSelectionsScope.DateTimeSection(
     enabled: Boolean,
     sectionState: DateTimeSectionState,
@@ -250,7 +247,6 @@ fun WatchedItemSelectionsScope.DateTimeSection(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CustomDateTimeRow(
     enabled: Boolean,

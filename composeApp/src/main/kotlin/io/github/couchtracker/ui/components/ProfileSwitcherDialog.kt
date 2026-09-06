@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -36,12 +35,10 @@ import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
 import io.github.couchtracker.utils.str
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun ProfileSwitcherDialog(
     close: () -> Unit,
@@ -77,7 +74,7 @@ fun ProfileSwitcherDialog(
                 LazyColumn(state = scrollState) {
                     items(profiles, key = { it.profile.id }) { profileInfo ->
                         ListItem(
-                            headlineContent = { Text(profileInfo.profile.name) },
+                            content = { Text(profileInfo.profile.name) },
                             supportingContent = { Text(profileInfo.supportingText()) },
                             modifier = Modifier.clickable {
                                 coroutineScope.launch {
@@ -99,7 +96,7 @@ fun ProfileSwitcherDialog(
                     }
                     item(key = "settings") {
                         ListItem(
-                            headlineContent = { Text(R.string.profiles_settings.str()) },
+                            content = { Text(R.string.profiles_settings.str()) },
                             leadingContent = { Icon(Icons.Filled.ManageAccounts, contentDescription = null) },
                             modifier = Modifier.clickable {
                                 navController.navigate(ProfilesSettingsScreen)

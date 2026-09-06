@@ -5,7 +5,6 @@ import io.github.couchtracker.cache.SqlDelightTmdbCacheDefinitionsGenerator
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.detekt)
@@ -19,9 +18,7 @@ buildConfig {
     forClass("io.github.couchtracker.tmdb", "TmdbConfig") {
         buildConfigField<String>(
             name = "API_KEY",
-            value = provider {
-                properties["COUCH_TRACKER_TMDB_API_KEY"]?.toString() ?: error("You must provide a Tmdb API key")
-            },
+            value = providers.gradleProperty("COUCH_TRACKER_TMDB_API_KEY"),
         )
     }
 }
@@ -31,9 +28,7 @@ kotlin {
         jvmTarget = JvmTarget.JVM_11
         allWarningsAsErrors = true
         freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
-        freeCompilerArgs.add("-Xannotation-default-target=param-property")
         freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
-        freeCompilerArgs.add("-XXLanguage:+ContextParameters")
     }
 
     dependencies {
@@ -189,11 +184,14 @@ sqldelight {
     }
 }
 
-tasks.register<SqlDelightTmdbCacheDefinitionsGenerator>("generateSqldelightTmdbCacheDefinitions")
+val generateSqlDefinitionsTask = tasks.register<SqlDelightTmdbCacheDefinitionsGenerator>("generateSqldelightTmdbCacheDefinitions")
+
 
 tasks.configureEach {
-    if (name.startsWith("generate") && name.endsWith("TmdbCacheInterface")) {
-        dependsOn += "generateSqldelightTmdbCacheDefinitions"
+    val isVerifyTmdbCacheMigration = name.startsWith("verify") && name.endsWith("TmdbCacheMigration")
+    val isGenerateTmdbCacheInterface = name.startsWith("generate") && name.endsWith("TmdbCacheInterface")
+    if (isVerifyTmdbCacheMigration || isGenerateTmdbCacheInterface) {
+        dependsOn += generateSqlDefinitionsTask
     }
 }
 

@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -67,7 +66,6 @@ data object MainScreen : Screen() {
 
 private val DEFAULT_SECTION = Section.SHOWS
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(navController: NavHostController, currentSection: Section) {
     val insetTop = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top)

@@ -1,6 +1,7 @@
 package io.github.couchtracker.ui.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -8,7 +9,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,7 +58,6 @@ enum class DatePickerWorkflowStep {
     CHOOSE_TIME,
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PartialDateTimePickerDialog(
     initialDate: PartialDateTime.Local?,
@@ -89,9 +88,11 @@ fun PartialDateTimePickerDialog(
                 }
 
                 DatePickerWorkflowStep.CHOOSE_TIME -> {
-                    DialogButtonForDate(selectedDate, onDateSelected, close, label = R.string.skip_action.str())
-                    val selectedTime = selectedPartialDateTime(precision, datePickerState, timePickerState)
-                    DialogButtonForDate(selectedTime, onDateSelected, close)
+                    Row {
+                        DialogButtonForDate(selectedDate, onDateSelected, close, label = R.string.skip_action.str())
+                        val selectedTime = selectedPartialDateTime(precision, datePickerState, timePickerState)
+                        DialogButtonForDate(selectedTime, onDateSelected, close)
+                    }
                 }
             }
         },
@@ -134,7 +135,6 @@ fun PartialDateTimePickerDialog(
 }
 
 /** The [TopAppBar] to show on the time picker */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TimeSelectorTopAppBar(
     selectedDate: PartialDateTime.Local.Date,
@@ -158,7 +158,6 @@ private fun TimeSelectorTopAppBar(
 }
 
 /** The button bar to select the time precision */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DatePrecisionSelector(precision: DatePrecision, selectPrecision: (DatePrecision) -> Unit) {
     @Composable
@@ -215,7 +214,6 @@ private fun rememberDatePrecision(initialDate: PartialDateTime.Local?): MutableS
 }
 
 /** Given the initial date, creates and remembers a [DatePickerState] */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun rememberDatePickerState(initialDate: PartialDateTime.Local?): DatePickerState {
     val initialEpochMillis = initialDate?.toInstant(TimeZone.UTC)?.toEpochMilliseconds()
@@ -232,7 +230,6 @@ private fun rememberDatePickerState(initialDate: PartialDateTime.Local?): DatePi
 }
 
 /** Given the initial date, creates and remembers a [TimePickerState] */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun rememberTimePickerState(initialDate: PartialDateTime.Local?): TimePickerState {
     val initialDateTime = if (initialDate is PartialDateTime.Local.DateTime) {
@@ -247,7 +244,6 @@ private fun rememberTimePickerState(initialDate: PartialDateTime.Local?): TimePi
 }
 
 /** The currently selected [LocalDate] */
-@OptIn(ExperimentalMaterial3Api::class)
 private fun selectedLocalDate(
     datePrecision: DatePrecision,
     datePickerState: DatePickerState,
@@ -266,7 +262,6 @@ private fun selectedLocalDate(
 }
 
 /** The current selected partial date, with a precision that ranges from year to date */
-@OptIn(ExperimentalMaterial3Api::class)
 private fun selectedPartialDate(
     datePrecision: DatePrecision,
     datePickerState: DatePickerState,
@@ -280,7 +275,6 @@ private fun selectedPartialDate(
 }
 
 /** The current selected DateTime, or null if a date/time hasn't been chosen, or the precision is year/month */
-@OptIn(ExperimentalMaterial3Api::class)
 private fun selectedPartialDateTime(
     datePrecision: DatePrecision,
     datePickerState: DatePickerState,

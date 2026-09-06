@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -114,7 +113,6 @@ private fun Content(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SeasonsScreenContent(
     viewModel: SeasonsScreenViewModel,
@@ -168,7 +166,6 @@ private fun SeasonsScreenContent(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OverviewScreenComponents.SeasonPage(
     innerPadding: PaddingValues,
@@ -187,7 +184,6 @@ private fun OverviewScreenComponents.SeasonPage(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OverviewScreenComponents.SeasonDetailsContent(
     innerPadding: PaddingValues,

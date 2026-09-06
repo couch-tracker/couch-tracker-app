@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -26,7 +25,6 @@ import io.github.couchtracker.ui.actions.ActionButton
 private val LIST_ITEM_VERTICAL_PADDING = 10.dp
 private val LIST_ITEM_HORIZONTAL_PADDING = 12.dp
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ListItemWithAction(
     action: Action,

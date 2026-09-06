@@ -15,7 +15,6 @@ import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
@@ -232,7 +231,6 @@ fun rememberWatchedEpisodeSessionDialogState(mode: WatchedEpisodeSessionDialogMo
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DimensionSelectionsDialog(
     mediaLanguages: List<Bcp47Language>,

@@ -26,10 +26,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests
-        run: ./gradlew testReleaseUnitTest
+        run: ./gradlew testDebugUnitTest
 
       - name: Archive test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          path: composeApp/build/reports/tests/testReleaseUnitTest/*
+          path: composeApp/build/reports/tests/testDebugUnitTest/*
