@@ -56,6 +56,15 @@ fun App() {
             Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
                 LoadableScreen(koinLoadState) {
                     AppSettingsContext {
+                        val enterTransition = fadeIn(animationSpec)
+                        val exitTransition = run {
+                            val slideSpec = tween<IntOffset>(
+                                durationMillis = AnimationDefaults.ANIMATION_DURATION_MS,
+                                easing = FastOutLinearInEasing,
+                            )
+                            slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
+                                fadeOut(animationSpec)
+                        }
                         ProfilesContext {
                             NavHost(
                                 navController = navController,
@@ -69,15 +78,10 @@ fun App() {
                                         fadeIn(animationSpec)
                                 },
                                 exitTransition = { fadeOut(animationSpec) },
-                                popEnterTransition = { fadeIn(animationSpec) },
-                                popExitTransition = {
-                                    val slideSpec = tween<IntOffset>(
-                                        durationMillis = AnimationDefaults.ANIMATION_DURATION_MS,
-                                        easing = FastOutLinearInEasing,
-                                    )
-                                    slideOutVertically(slideSpec) { (it * ANIMATION_SLIDE).roundToInt() } +
-                                        fadeOut(animationSpec)
-                                },
+                                popEnterTransition = { enterTransition },
+                                predictivePopEnterTransition = { enterTransition },
+                                popExitTransition = { exitTransition },
+                                predictivePopExitTransition = { exitTransition },
                             ) {
                                 composable<MainScreen>()
                                 composable<MovieScreen>()
