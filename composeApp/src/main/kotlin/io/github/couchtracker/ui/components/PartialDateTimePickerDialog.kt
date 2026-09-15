@@ -33,10 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.utils.str
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime

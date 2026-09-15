@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
@@ -41,7 +42,6 @@ import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.ui.StartSpaceLast
 import io.github.couchtracker.ui.components.DatePickerWorkflowStep
 import io.github.couchtracker.ui.components.PartialDateTimePickerDialog

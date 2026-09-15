@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import dev.mmauro.datetimepolyglot.TickingValue
+import dev.mmauro.datetimepolyglot.compose.localizers.localize
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.DurationOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.ExperimentalTickingDurationLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.TickingDurationOptions
@@ -23,8 +25,6 @@ import dev.mmauro.datetimepolyglot.map
 import dev.mmauro.datetimepolyglot.styles.DurationStyle
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
-import io.github.couchtracker.intl.datetime.localize
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.str
 import kotlin.time.Clock

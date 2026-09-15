@@ -25,12 +25,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.DisplayContext
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelection
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.intl.datetime.LOCAL_DATE_TIME_FULL_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.currentFirstLocale
 import io.github.couchtracker.utils.str

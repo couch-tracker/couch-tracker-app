@@ -89,6 +89,7 @@ kotlin {
         implementation(libs.reorderable)
         implementation(libs.tmdb.api)
         implementation(libs.datetimePolyglot)
+        implementation(libs.datetimePolyglot.compose)
 
         // Test dependencies
 

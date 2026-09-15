@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.moviebase.tmdb.model.TmdbEpisode
 import coil3.compose.AsyncImage
+import dev.mmauro.datetimepolyglot.compose.localizers.localize
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
@@ -24,8 +26,6 @@ import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.intl.datetime.EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS
 import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.localize
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbSeasonId

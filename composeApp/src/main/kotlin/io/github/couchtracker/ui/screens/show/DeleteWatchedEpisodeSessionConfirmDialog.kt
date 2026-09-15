@@ -10,12 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.intl.datetime.PDT_FULL_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.ui.components.ProfileDbActionDialog
 import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.str
