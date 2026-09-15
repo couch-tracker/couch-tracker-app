@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import dev.mmauro.datetimepolyglot.compose.collectAsStateWithLifecycle
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
@@ -36,7 +37,6 @@ import io.github.couchtracker.db.profile.externalids.WatchableExternalId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.localizedWatchAt
 import io.github.couchtracker.db.profile.model.watchedItem.sortDescending
-import io.github.couchtracker.intl.datetime.collectAsStateWithLifecycle
 import io.github.couchtracker.ui.ListItemShapes
 import io.github.couchtracker.ui.LocalWatchedItemSheetScaffoldState
 import io.github.couchtracker.ui.Screen

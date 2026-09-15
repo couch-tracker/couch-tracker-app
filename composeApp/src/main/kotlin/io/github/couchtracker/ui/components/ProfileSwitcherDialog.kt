@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.DateStyle
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalDateTimeOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.LocalTimeStyle
@@ -31,7 +32,6 @@ import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.LocalProfilesContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.app.ProfileInfo
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.ui.screens.settings.ProfilesSettingsScreen
 import io.github.couchtracker.utils.str

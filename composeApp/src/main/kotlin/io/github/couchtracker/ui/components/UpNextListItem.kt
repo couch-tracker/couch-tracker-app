@@ -14,6 +14,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import dev.mmauro.datetimepolyglot.compose.localizers.localize
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.externalids.ExternalEpisodeId
@@ -22,8 +24,6 @@ import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalEpisodeId
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.intl.datetime.EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.localize
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.settings.StyleAndBehaviorSettings
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.OpenEpisodeBehaviorOption.HIGHLIGHT_IN_SEASON
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.OpenEpisodeBehaviorOption.OPEN_EPISODE_DETAILS

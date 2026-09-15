@@ -5,7 +5,6 @@ import dev.mmauro.datetimepolyglot.TickingValueProvider
 import io.github.couchtracker.db.profile.WatchedItem
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
-import kotlinx.datetime.TimeZone
 import kotlin.let
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -33,19 +32,18 @@ sealed interface WatchedItemProgressState {
 fun WatchedItemWrapper.watchedItemProgressState(mediaRuntime: Duration?): TickingValueProvider<WatchedItemProgressState> {
     // If the watchAt is not precise enough (e.g. doesn't have a time), it doesn't make much sense to show a progress because it would
     // be too imprecise (e.g. start at midnight).
-    val startInstant = watchAt.let { watchAt ->
-        if (watchAt != null && watchAt.local is PartialDateTime.Local.DateTime) {
-            // FIXME: timezone change
-            when (watchAt) {
-                is PartialDateTime.Local -> watchAt.toInstant(TimeZone.currentSystemDefault())
-                is PartialDateTime.Zoned -> watchAt.toInstant()
-            }
-        } else {
-            null
-        }
-    }
-
     return TickingValueProvider { reference ->
+        val startInstant = watchAt.let { watchAt ->
+            if (watchAt != null && watchAt.local is PartialDateTime.Local.DateTime) {
+                when (watchAt) {
+                    is PartialDateTime.Local -> watchAt.toInstant(reference.timeZone)
+                    is PartialDateTime.Zoned -> watchAt.toInstant()
+                }
+            } else {
+                null
+            }
+        }
+
         val elapsed = startInstant?.let { reference.value - it }
         val approximateMediaRuntime = mediaRuntime ?: type().fallbackRuntime
         if (elapsed == null) {

@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearMonthOptions
 import dev.mmauro.datetimepolyglot.localizers.absolute.YearOptions
 import dev.mmauro.datetimepolyglot.styles.MonthStyle
@@ -35,7 +36,6 @@ import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.ui.ColorSchemes
 import io.github.couchtracker.ui.ItemPosition
 import io.github.couchtracker.ui.ListItemShapes

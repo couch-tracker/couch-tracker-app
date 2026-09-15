@@ -1,6 +1,7 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
 import androidx.compose.runtime.Composable
+import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.ProfileData
 import io.github.couchtracker.db.profile.WatchedEpisode
@@ -10,7 +11,6 @@ import io.github.couchtracker.db.profile.externalids.ExternalId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTimeGroup
 import io.github.couchtracker.intl.datetime.PDT_FULL_LOCALIZER_OPTIONS
-import io.github.couchtracker.intl.datetime.rememberLocalizer
 import io.github.couchtracker.utils.str
 
 /**
@@ -139,10 +139,7 @@ fun Collection<WatchedItemWrapper>.sortAndGroupDescending(): Map<PartialDateTime
 fun WatchedItemWrapper.localizedWatchAt(includeTimeZone: Boolean): String {
     val pdtLocalizer = rememberLocalizer(PDT_FULL_LOCALIZER_OPTIONS)
 
-    val watchAt = watchAt
-    if (watchAt == null) {
-        return R.string.unknown_date.str()
-    }
+    val watchAt = watchAt ?: return R.string.unknown_date.str()
     val date = if (includeTimeZone) watchAt else watchAt.local
 
     return pdtLocalizer.localize(date)
