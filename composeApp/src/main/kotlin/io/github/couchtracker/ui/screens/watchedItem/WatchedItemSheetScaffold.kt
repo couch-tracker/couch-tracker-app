@@ -66,6 +66,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.Bcp47Language
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemDimensionSelectionValidity
@@ -81,6 +82,7 @@ import io.github.couchtracker.utils.rememberProfileDbActionState
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlin.collections.orEmpty
 import kotlin.time.Duration
 
 @Stable
@@ -261,16 +263,7 @@ private fun WatchedItemSheetContent(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         if (selections.sheetMode is WatchedItemSheetMode.New.Episode) {
-                            val text = when (val ws = selections.sheetMode.watchedSession) {
-                                is WatchedItemSheetMode.New.Episode.WatchedSession.New ->
-                                    R.string.viewing_will_be_added_to_new_watch_session.str()
-                                is WatchedItemSheetMode.New.Episode.WatchedSession.Existing if !ws.showLabel -> null
-                                is WatchedItemSheetMode.New.Episode.WatchedSession.Existing ->
-                                    R.string.viewing_will_be_added_to_x_watch_session.str(ws.session.nameOrUnknown())
-                            }
-                            if (text != null) {
-                                Text(text, modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelMedium)
-                            }
+                            WatchSessionLabel(selections.sheetMode)
                         }
                         Spacer(Modifier.height(16.dp))
                         DateTimeSection(enabled = enabled, selections.datetime, watchedItemType, mediaRuntime)
@@ -343,6 +336,26 @@ private fun WatchedItemSheetContent(
                 },
         )
     }
+}
+
+@Composable
+private fun WatchSessionLabel(sheetMode: WatchedItemSheetMode.New.Episode) {
+    val fullProfileData = LocalFullProfileDataContext.current
+
+    val text = when (val ws = sheetMode.watchedSession) {
+        is WatchedItemSheetMode.New.Episode.WatchedSession.New -> R.string.viewing_will_be_added_to_new_watch_session.str()
+        is WatchedItemSheetMode.New.Episode.WatchedSession.Existing -> {
+            val activeSessions = fullProfileData.watchedEpisodeSessions[ws.session.showId].orEmpty().filter { it.isActive }
+
+            if (activeSessions.size == 1 && ws.session.isActive && ws.session.name == null) {
+                R.string.viewing_will_be_added_to_the_active_watch_session.str()
+            } else {
+                R.string.viewing_will_be_added_to_x_watch_session.str(ws.session.nameOrUnknown())
+            }
+        }
+    }
+
+    Text(text, modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelMedium)
 }
 
 @Composable

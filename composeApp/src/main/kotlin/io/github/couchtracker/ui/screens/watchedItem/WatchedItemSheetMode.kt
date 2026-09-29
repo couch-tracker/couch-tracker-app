@@ -62,7 +62,7 @@ sealed interface WatchedItemSheetMode {
                     override fun get(db: ProfileData) = creator(db)
                 }
 
-                data class Existing(val session: WatchedEpisodeSessionWrapper, val showLabel: Boolean) : WatchedSession {
+                data class Existing(val session: WatchedEpisodeSessionWrapper) : WatchedSession {
                     override fun get(db: ProfileData) = session.watchedEpisodeSession
                 }
             }
