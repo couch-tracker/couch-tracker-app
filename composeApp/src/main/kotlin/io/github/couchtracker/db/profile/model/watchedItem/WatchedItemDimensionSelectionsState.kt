@@ -39,7 +39,7 @@ class WatchedItemDimensionSelectionsState(
     fun save(db: ProfileData): WatchedItemDimensionSelections {
         return db.transactionWithResult {
             val dimensionsSelections = when (mode) {
-                WatchedItemDimensionSelectionsMode.New -> {
+                is WatchedItemDimensionSelectionsMode.New -> {
                     val selectionsId = db.watchedItemDimensionSelectionsQueries.insert().executeAsOne()
                     WatchedItemDimensionSelections(selectionsId)
                 }
@@ -57,7 +57,7 @@ class WatchedItemDimensionSelectionsState(
 
 sealed interface WatchedItemDimensionSelectionsMode {
 
-    data object New : WatchedItemDimensionSelectionsMode
+    data class New(val initialSelections: WatchedItemDimensionSelectionsWrapper?) : WatchedItemDimensionSelectionsMode
 
     data class Edit(val selections: WatchedItemDimensionSelectionsWrapper) : WatchedItemDimensionSelectionsMode
 }
@@ -71,24 +71,15 @@ fun rememberWatchedItemDimensionSelectionsState(
 
     // TODO make this savable
     return remember(profileData, watchedItemType, mode) {
-        when (mode) {
-            is WatchedItemDimensionSelectionsMode.New -> {
-                val dimensions = profileData.watchedItemDimensions
-                    .filter { watchedItemType in it.appliesTo }
-                    .map { it.emptySelection() }
-                WatchedItemDimensionSelectionsState(
-                    mode = mode,
-                    dimensions = dimensions,
-                )
-            }
-
-            is WatchedItemDimensionSelectionsMode.Edit -> {
-                WatchedItemDimensionSelectionsState(
-                    mode = mode,
-                    dimensions = mode.selections.dimensions
-                        .filter { watchedItemType in it.dimension.appliesTo || !it.isEmpty() },
-                )
-            }
+        val selections = when (mode) {
+            is WatchedItemDimensionSelectionsMode.New ->
+                mode.initialSelections?.dimensions ?: profileData.watchedItemDimensions.map { it.emptySelection() }
+            is WatchedItemDimensionSelectionsMode.Edit -> mode.selections.dimensions
         }
+
+        WatchedItemDimensionSelectionsState(
+            mode = mode,
+            dimensions = selections.filter { watchedItemType in it.dimension.appliesTo || !it.isEmpty() },
+        )
     }
 }

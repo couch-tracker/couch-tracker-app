@@ -49,7 +49,15 @@ fun rememberWatchedItemSelectionsState(mode: WatchedItemSheetMode): WatchedItemS
     val dimensionSelectionsState = rememberWatchedItemDimensionSelectionsState(
         watchedItemType = mode.watchedItemType,
         mode = when (mode) {
-            is WatchedItemSheetMode.New -> WatchedItemDimensionSelectionsMode.New
+            is WatchedItemSheetMode.New -> WatchedItemDimensionSelectionsMode.New(
+                initialSelections = when (mode) {
+                    is WatchedItemSheetMode.New.Episode -> when (val wsProvider = mode.watchedSession) {
+                        is WatchedItemSheetMode.New.Episode.WatchedSession.New -> null
+                        is WatchedItemSheetMode.New.Episode.WatchedSession.Existing -> wsProvider.session.defaultDimensionSelections
+                    }
+                    is WatchedItemSheetMode.New.Movie -> null
+                },
+            )
             is WatchedItemSheetMode.Edit -> WatchedItemDimensionSelectionsMode.Edit(mode.watchedItem.selections)
         },
     )
