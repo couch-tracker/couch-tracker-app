@@ -204,7 +204,7 @@ fun rememberWatchedEpisodeSessionDialogState(mode: WatchedEpisodeSessionDialogMo
     val defaultDimensionSelectionsState = rememberWatchedItemDimensionSelectionsState(
         watchedItemType = WatchedItemType.EPISODE,
         mode = when (mode) {
-            is WatchedEpisodeSessionDialogMode.New -> WatchedItemDimensionSelectionsMode.New
+            is WatchedEpisodeSessionDialogMode.New -> WatchedItemDimensionSelectionsMode.New(initialSelections = null)
             is WatchedEpisodeSessionDialogMode.Edit -> WatchedItemDimensionSelectionsMode.Edit(mode.session.defaultDimensionSelections)
         },
     )
