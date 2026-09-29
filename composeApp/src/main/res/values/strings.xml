@@ -210,6 +210,7 @@
     <string name="choose_watch_session">Choose watch session</string>
     <string name="manage_watch_sessions">Manage watch sessions</string>
     <string name="viewing_will_be_added_to_new_watch_session">Will be part of a new watch session</string>
+    <string name="viewing_will_be_added_to_the_active_watch_session">Will be part of the currently active watch session</string>
     <string name="viewing_will_be_added_to_x_watch_session">Will be part of: %1$s</string>
 
     <string name="unsupported_item_id">Unsupported item id</string>

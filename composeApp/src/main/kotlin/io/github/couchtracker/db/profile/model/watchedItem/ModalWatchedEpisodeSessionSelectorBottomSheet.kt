@@ -40,6 +40,7 @@ import io.github.couchtracker.ui.screens.show.sorted
 import io.github.couchtracker.utils.pluralStr
 import io.github.couchtracker.utils.str
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +51,7 @@ fun ModalWatchedEpisodeSessionSelectorBottomSheet(
     if (!state.showBottomSheet) {
         return
     }
-
+    val coroutineScope = rememberCoroutineScope()
     val fullProfileData = LocalFullProfileDataContext.current
     ModalBottomSheet(
         sheetState = state.sheetState,
@@ -75,14 +76,20 @@ fun ModalWatchedEpisodeSessionSelectorBottomSheet(
                             session = session,
                             position = position,
                             onClick = {
-                                state.onSelected?.invoke(session.watchedEpisodeSession)
+                                coroutineScope.launch {
+                                    state.onSelected(session.watchedEpisodeSession)
+                                }
                                 state.close()
                             },
                         )
                     }
                     item { Spacer(Modifier.height(16.dp)) }
                     item {
-                        OpenWatchSessionsListItem(state.externalShowId, ItemPosition(0, 1))
+                        OpenWatchSessionsListItem(
+                            showId = state.externalShowId,
+                            position = ItemPosition(0, 1),
+                            onOpenWatchSessions = { state.close() },
+                        )
                     }
                     item { Spacer(Modifier.height(16.dp)) }
                 }
@@ -115,10 +122,17 @@ private fun WatchedEpisodeSessionListItem(
 }
 
 @Composable
-private fun OpenWatchSessionsListItem(showId: ExternalShowId, position: ItemPosition) {
+private fun OpenWatchSessionsListItem(
+    showId: ExternalShowId,
+    position: ItemPosition,
+    onOpenWatchSessions: () -> Unit,
+) {
     val navController = LocalNavController.current
     ListItem(
-        onClick = { navController.navigateToEpisodeWatchSessions(showId) },
+        onClick = {
+            onOpenWatchSessions()
+            navController.navigateToEpisodeWatchSessions(showId)
+        },
         leadingContent = {
             Icon(Icons.Default.Layers, contentDescription = null)
         },
@@ -139,15 +153,18 @@ class ModalWatchedEpisodeSessionSelectorBottomSheetState(
 ) {
     var sessions: List<WatchedEpisodeSessionWrapper>? by mutableStateOf(null)
         private set
-    var onSelected: ((WatchedEpisodeSessionWrapper) -> Unit)? by mutableStateOf(null)
-        private set
+    private val selectionChannel = Channel<WatchedEpisodeSessionWrapper?>()
 
-    val showBottomSheet get() = sessions != null && onSelected != null
+    val showBottomSheet get() = sessions != null
     val externalShowId get() = requireNotNull(sessions).map { it.showId }.toSet().single()
 
-    fun open(sessions: List<WatchedEpisodeSessionWrapper>, onSelected: (WatchedEpisodeSessionWrapper) -> Unit) {
+    suspend fun onSelected(selected: WatchedEpisodeSessionWrapper) {
+        this.selectionChannel.send(selected)
+    }
+
+    suspend fun open(sessions: List<WatchedEpisodeSessionWrapper>): WatchedEpisodeSessionWrapper? {
         this.sessions = sessions
-        this.onSelected = onSelected
+        return this.selectionChannel.receive()
     }
 
     fun close() {
@@ -155,7 +172,7 @@ class ModalWatchedEpisodeSessionSelectorBottomSheetState(
             sheetState.hide()
         }.invokeOnCompletion {
             this.sessions = null
-            this.onSelected = null
+            this.selectionChannel.trySend(null)
         }
     }
 }

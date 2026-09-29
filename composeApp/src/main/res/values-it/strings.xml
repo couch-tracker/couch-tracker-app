@@ -215,6 +215,7 @@
     <string name="choose_watch_session">Scegli una sessione di visioni</string>
     <string name="manage_watch_sessions">Gestisci sessioni di visioni</string>
     <string name="viewing_will_be_added_to_new_watch_session">Farà parte di una nuova sessione di visioni</string>
+    <string name="viewing_will_be_added_to_the_active_watch_session">Farà parte della sessione di visioni attualmente attiva</string>
     <string name="viewing_will_be_added_to_x_watch_session">Farà parte di: %1$s</string>
 
     <string name="unsupported_item_id">Id non supportato</string>

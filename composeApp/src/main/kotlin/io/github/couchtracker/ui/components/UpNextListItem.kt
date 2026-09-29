@@ -61,7 +61,7 @@ fun UpNextListItem(
     val dateTimeLocalizer = rememberLocalizer(EPISODE_FIRST_AIRDATE_LOCALIZER_OPTIONS)
     val dateTimeText = upNext.episodeAirDate?.let { dateTimeLocalizer.localize(it) }?.value
 
-    val markEpisodeAsWatchedAction = markEpisodeAsWatchedAction(upNext.showId, upNext.episodeId) { watchedSession ->
+    val markEpisodeAsWatchedAction = markEpisodeAsWatchedAction(upNext.showId, upNext.episodeId, upNext.watchSession) { watchedSession ->
         WatchedItemSheetMode.New.Episode(
             itemId = upNext.episodeId,
             watchedSession = watchedSession,
