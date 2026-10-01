@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import kotlin.enums.enumEntries
 
 /**
@@ -52,5 +54,18 @@ abstract class AbstractPreferencesSettings : AbstractSettings() {
         default = default,
         parse = { it },
         serialize = { it },
+    )
+
+    protected inline fun <reified V> jsonSetting(key: String, default: V) = setting(
+        key = stringPreferencesKey(key),
+        default = flowOf(default),
+        parse = {
+            try {
+                Json.decodeFromString<V>(it)
+            } catch (_: SerializationException) {
+                default
+            }
+        },
+        serialize = { Json.encodeToString(it) },
     )
 }
