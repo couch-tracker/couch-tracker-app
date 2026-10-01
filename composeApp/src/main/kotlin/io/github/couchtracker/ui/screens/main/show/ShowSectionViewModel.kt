@@ -17,12 +17,16 @@ import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedEpisodeSessionWrapper
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
+import io.github.couchtracker.model.sort.SortAndCategorizedLocalizedList
+import io.github.couchtracker.model.sort.SortableItemModel
+import io.github.couchtracker.model.sort.SortableProperty
+import io.github.couchtracker.model.sort.Sorter
+import io.github.couchtracker.model.sort.localized
 import io.github.couchtracker.settings.AppSettings
 import io.github.couchtracker.settings.StyleAndBehaviorSettings
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.UpNextSortOrderOption.LAST_WATCHED_FIRST
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.UpNextSortOrderOption.NEWEST_FIRST
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.UpNextSortOrderOption.OLDEST_FIRST
-import io.github.couchtracker.settings.StyleAndBehaviorSettings.UpNextSortOrderOption.SAME_AS_SHOWS
 import io.github.couchtracker.settings.UpNextOptions
 import io.github.couchtracker.settings.upNextOptions
 import io.github.couchtracker.tmdb.BaseTmdbShow
@@ -32,6 +36,7 @@ import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.language
+import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.toBaseShow
@@ -69,7 +74,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -102,7 +106,14 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         val watchedEpisodesBySession: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>>,
     )
 
+    data class BookmarkedShowsModel(
+        val sorter: Sorter,
+        val shows: SortAndCategorizedLocalizedList<BookmarkedShow>,
+    )
+
     data class BookmarkedShow(
+        // A unique key for this entry
+        val itemKey: Any,
         val showId: ExternalShowId,
         val watchSessions: Map<WatchedEpisodeSessionWrapper, List<WatchedItemWrapper.Episode>>,
         val data: CouchTrackerResult<BookmarkedShowData>,
@@ -114,6 +125,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         val portraitModel: ShowPortraitModel,
         val seasons: ApiLoadable<List<BookmarkedSeasonData>>,
         val originalLanguage: Bcp47Language?,
+        val sortModel: SortableItemModel,
     ) {
         // Computing the hashcode of this class is expensive.
         // Caching it, so it's computed on creation on a background thread
@@ -180,16 +192,16 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
             .distinctUntilChanged()
             .shareIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, 1)
 
-    val watchlist: Loadable<List<BookmarkedShow>> by bookmarks.mapLatest { bookmarks ->
-        bookmarks.map { bookmarks ->
-            bookmarks.filter { bookmarkedShowData -> bookmarkedShowData.watchSessions.none { it.key.isActive } }
-        }
+    val watchlist: Loadable<BookmarkedShowsModel> by bookmarks.filterGroupedAndSorted(
+        sorter = AppSettings.getCurrent { StyleAndBehavior.ShowsWatchlistSortOrder },
+    ) { bookmarkedShowData ->
+        bookmarkedShowData.watchSessions.none { it.key.isActive }
     }.collectAsLoadable("shows-watchlist")
 
-    val following: Loadable<List<BookmarkedShow>> by bookmarks.mapLatest { bookmarks ->
-        bookmarks.map { bookmarks ->
-            bookmarks.filter { bookmarkedShowData -> bookmarkedShowData.watchSessions.any { it.key.isActive } }
-        }
+    val following: Loadable<BookmarkedShowsModel> by bookmarks.filterGroupedAndSorted(
+        sorter = AppSettings.getCurrent { StyleAndBehavior.ShowsFollowingSortOrder },
+    ) { bookmarkedShowData ->
+        bookmarkedShowData.watchSessions.any { it.key.isActive }
     }.collectAsLoadable("shows-following")
 
     val upNext: CouchTrackerLoadable<UpNextModel> by AppSettings.getCurrent { StyleAndBehavior.EpisodeNumberFormatting }
@@ -241,6 +253,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                     bookmarkedData.bookmarkedShows.map { showId ->
                         val watchSessions = bookmarkedData.watchSessions[showId].orEmpty()
                         BookmarkedShow(
+                            itemKey = showId.serialize(),
                             showId = showId,
                             watchSessions = watchSessions.associateWith { watchSession ->
                                 bookmarkedData.watchedEpisodesBySession[watchSession].orEmpty()
@@ -300,6 +313,11 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                         portraitModel = details.toShowPortraitModels(application, languages.apiLanguage),
                         seasons = seasons,
                         originalLanguage = details.language(),
+                        sortModel = SortableItemModel(
+                            name = SortableProperty.ofLoaded(details.name),
+                            tmdbRating = SortableProperty.ofLoaded(details.rating()),
+                            firstPublicRelease = SortableProperty.ofLoaded(details.firstAirDate?.let { PartialDateTime.Local.Date(it) }),
+                        ),
                     ),
                 )
             }
@@ -481,10 +499,30 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                     .mapTo(mutableSetOf()) { it.first }
                     .toList()
             }
-            // TODO: implement same as show
-            SAME_AS_SHOWS -> upNextEntries
             NEWEST_FIRST -> upNextEntries.sortedByDescending { it.airDate }
             OLDEST_FIRST -> upNextEntries.sortedBy { it.airDate }
+        }
+    }
+
+    private fun Flow<Loadable<List<BookmarkedShow>>>.filterGroupedAndSorted(
+        sorter: Flow<Sorter>,
+        predicate: (BookmarkedShow) -> Boolean,
+    ): Flow<Loadable<BookmarkedShowsModel>> {
+        return sorter.combine(this) { sorter, bookmarks ->
+            bookmarks.map { bookmarks ->
+                val filtered = bookmarks.filter(predicate)
+                val sortedAndGrouped = sorter.sortAndGroup(filtered) { show ->
+                    when (show.data) {
+                        is Result.Value -> show.data.value.sortModel
+                        is Result.Error -> SortableItemModel(
+                            name = SortableProperty.Error,
+                            tmdbRating = SortableProperty.Error,
+                            firstPublicRelease = SortableProperty.Error,
+                        )
+                    }
+                }
+                BookmarkedShowsModel(sorter, sortedAndGrouped.localized(application))
+            }
         }
     }
 
