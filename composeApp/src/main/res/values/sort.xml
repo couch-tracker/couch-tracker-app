@@ -1,0 +1,22 @@
+<resources>
+    <string name="up_next_sort_option_last_watched_first">Last watched first</string>
+    <string name="up_next_sort_option_newest_first">Newest first</string>
+    <string name="up_next_sort_option_oldest_first">Oldest first</string>
+
+    <string name="sorter_by_name">By name</string>
+    <string name="sorter_by_rating">By rating</string>
+    <string name="sorter_by_release_date">By date</string>
+
+    <string name="sort_category_error">Items in error</string>
+    <string name="sort_category_unsupported">Unsupported</string>
+    <string name="sort_category_without_name">Unnamed</string>
+    <string name="sort_category_without_tmdb_rating">Without TMDB rating</string>
+    <string name="sort_category_without_release_date">Without release date</string>
+    <string name="sort_category_name_initials">"Starting with '%1$s'"</string>
+    <string name="sort_category_rating">Rated %1$d+ stars</string>
+    <string name="sort_category_release_century">Released in the %1$s century</string>
+    <string name="sort_category_release_decade">Released in the %1$ds</string>
+    <string name="sort_category_release_year">Released in %1$d</string>
+    <string name="sort_category_release_year_month">Released in %1$s</string>
+    <string name="sort_category_release_date">Released on %1$s</string>
+</resources>
