@@ -3,8 +3,10 @@ package io.github.couchtracker.settings
 import androidx.annotation.StringRes
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import io.github.couchtracker.R
+import io.github.couchtracker.model.sort.Sorter
 import io.github.couchtracker.settings.StyleAndBehaviorSettings.UpNextSortOrderOption
 import io.github.couchtracker.utils.settings.LoadedSettings
+import io.github.couchtracker.utils.settings.PreferencesSetting
 import kotlinx.coroutines.flow.flowOf
 import org.koin.core.component.KoinComponent
 import java.util.Locale
@@ -43,7 +45,6 @@ object StyleAndBehaviorSettings : AbstractAppSettings(), KoinComponent {
 
     enum class UpNextSortOrderOption(@StringRes val stringRes: Int) {
         LAST_WATCHED_FIRST(R.string.up_next_sort_option_last_watched_first),
-        SAME_AS_SHOWS(R.string.up_next_sort_option_same_as_shows),
         NEWEST_FIRST(R.string.up_next_sort_option_newest_first),
         OLDEST_FIRST(R.string.up_next_sort_option_oldest_first),
     }
@@ -59,6 +60,16 @@ object StyleAndBehaviorSettings : AbstractAppSettings(), KoinComponent {
     val UpNextSortOrder = setting(
         key = "up-next-sort-order",
         default = UpNextSortOrderOption.LAST_WATCHED_FIRST,
+    )
+
+    val ShowsWatchlistSortOrder: PreferencesSetting<String, Sorter, Sorter> = jsonSetting(
+        key = "shows-watchlist-sort-order",
+        default = Sorter.Alphabetical() as Sorter,
+    )
+
+    val ShowsFollowingSortOrder: PreferencesSetting<String, Sorter, Sorter> = jsonSetting(
+        key = "shows-following-sort-order",
+        default = Sorter.Alphabetical() as Sorter,
     )
 }
 

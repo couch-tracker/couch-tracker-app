@@ -145,8 +145,8 @@ fun UpNextTab(
             )
         } else {
             val listState = rememberLazyListState()
-            var previousSections = remember { sections }
-            var previousUpNextOptions = remember { upNextOptions }
+            var previousSections by remember { mutableStateOf(sections) }
+            var previousUpNextOptions by remember { mutableStateOf(upNextOptions) }
             val scrollOffset = with(LocalDensity.current) { 200.dp.toPx().roundToInt() }
             // This effect will scroll the list to items that change
             LaunchedEffect(sections) {
@@ -185,7 +185,7 @@ fun UpNextTab(
                                 text = section.stringRes.str(),
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
-                                    .padding(bottom = 4.dp),
+                                    .padding(top = 12.dp, bottom = 4.dp),
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -197,7 +197,7 @@ fun UpNextTab(
                         UpNextListItem(upNextEntry.model, position, modifier = Modifier.animateItem())
                         Spacer(Modifier.height(2.dp))
                     }
-                    item { Spacer(Modifier.height(24.dp)) }
+                    item { Spacer(Modifier.height(10.dp)) }
                 }
             }
         }

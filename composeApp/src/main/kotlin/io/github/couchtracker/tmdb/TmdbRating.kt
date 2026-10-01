@@ -9,10 +9,19 @@ data class TmdbRating private constructor(
     val average: Float,
     val count: Int?,
     val formatted: String,
-) {
+) : Comparable<TmdbRating> {
+
     init {
         require(count == null || count > 0)
         require(average >= 0)
+    }
+
+    override fun compareTo(other: TmdbRating): Int {
+        return if (average != other.average) {
+            average.compareTo(other.average)
+        } else {
+            (count ?: 0).compareTo(other.count ?: 0)
+        }
     }
 
     companion object {

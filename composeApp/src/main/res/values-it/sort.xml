@@ -1,0 +1,21 @@
+<resources>
+    <string name="up_next_sort_option_last_watched_first">Visti più di recente per primi</string>
+    <string name="up_next_sort_option_newest_first">Più recenti per primi</string>
+    <string name="up_next_sort_option_oldest_first">Più vecchi per primi</string>
+
+    <string name="sorter_by_name">Per nome</string>
+    <string name="sorter_by_rating">Per valutazione</string>
+    <string name="sorter_by_release_date">Per data</string>
+
+    <string name="sort_category_error">Elementi in errore</string>
+    <string name="sort_category_unsupported">Non supportati</string>
+    <string name="sort_category_without_name">Senza nome</string>
+    <string name="sort_category_without_rating">Senza valutazione</string>
+    <string name="sort_category_without_release_date">Senza data di uscita</string>
+    <string name="sort_category_rating">Valutati %1$d+ stelle</string>
+    <string name="sort_category_release_century">Rilasciati nel %1$s secolo</string>
+    <string name="sort_category_release_decade">Rilasciati negli anni %1$ds</string>
+    <string name="sort_category_release_year">Rilasciati nel %1$d</string>
+    <string name="sort_category_release_year_month">Rilasciati a %1$s</string>
+    <string name="sort_category_release_date">Rilasciati il %1$s</string>
+</resources>
