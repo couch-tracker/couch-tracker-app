@@ -20,10 +20,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
+
+typealias LoadableResult<T, E> = Loadable<Result<T, E>>
 
 /**
  * Extension of [Result] that allows the value to be [Loading].
@@ -138,4 +144,35 @@ fun <T> rememberComputationResult(key: Any = Unit, compute: suspend () -> T): Lo
             compute()
         }
     }.awaitAsLoadable()
+}
+
+fun <T, E> LoadableResult<Flow<T>, E>.transpose(): Flow<LoadableResult<T, E>> {
+    return when (this) {
+        Loadable.Loading -> flowOf(Loadable.Loading)
+        is Loadable.Loaded -> when (this.value) {
+            is Result.Error -> flowOf(Loadable.Loaded(this.value))
+            is Result.Value -> this.value.value.map { Loadable.value(it) }
+        }
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T, E, R> Flow<Loadable<Result<T, E>>>.flattenResult(mapper: (Flow<T>) -> Flow<R>): Flow<Loadable<Result<R, E>>> {
+    val x = this
+        .filterIsInstance<Loadable.Loaded<T>>()
+        .map { it.value }
+        .filterIsInstance<Result.Value<T>>()
+        .map { it.value }
+
+    val flow = mapper(x)
+
+    return flatMapMerge { loadable ->
+        when (loadable) {
+            Loadable.Loading -> flowOf(Loadable.Loading)
+            is Loadable.Loaded -> when (loadable.value) {
+                is Result.Error -> flowOf(Loadable.Loaded(loadable.value))
+                is Result.Value -> flow.map { Loadable.Loaded(Result.Value(it)) }
+            }
+        }
+    }
 }

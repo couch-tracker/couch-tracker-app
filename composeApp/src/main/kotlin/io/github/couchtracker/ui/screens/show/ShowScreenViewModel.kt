@@ -33,9 +33,10 @@ class ShowScreenViewModel(
     val colorScheme by baseViewModel.colorScheme.collectAsLoadable("colorScheme")
     val images by baseViewModel.images.collectAsLoadable("images")
     val credits by baseViewModel.credits.collectAsLoadable("credits")
+    val history by baseViewModel.history.collectAsLoadable("history")
 
     val aggregateError: CouchTrackerError? by derivedStateOf {
-        listOf(baseDetails, fullDetails, colorScheme, images, credits)
+        listOf(baseDetails, fullDetails, colorScheme, images, credits, history)
             .map { it.resultErrorOrNull() }
             .aggregateErrorOrNull()
     }

@@ -40,9 +40,11 @@ import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.toBaseShow
+import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.components.ShowPortraitModel
 import io.github.couchtracker.ui.components.UpNextListItemModel
 import io.github.couchtracker.ui.components.toShowPortraitModels
+import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.collectAsLoadable
@@ -144,6 +146,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
         val name: String?,
         val airDate: LocalDate?,
         val runtime: Duration?,
+        val backdrop: ImageModel?,
     )
 
     data class UpNextEntry(
@@ -293,6 +296,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                                         name = episode.name,
                                         airDate = episode.airDate,
                                         runtime = episode.runtime(),
+                                        backdrop = episode.backdropImage?.toImageModel(),
                                     )
                                 },
                             )

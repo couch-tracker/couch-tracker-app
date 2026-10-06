@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package io.github.couchtracker.ui.screens.show
 
 import androidx.compose.foundation.layout.Arrangement
@@ -7,9 +5,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.plus
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -37,7 +35,7 @@ import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
-import io.github.couchtracker.ui.components.WipMessageComposable
+import io.github.couchtracker.ui.components.WatchedItemListItem
 import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.ui.screens.seasons.navigateToSeason
 import io.github.couchtracker.utils.error.UnsupportedItemError
@@ -177,7 +175,10 @@ private fun ShowScreenContent(
                         innerPadding = innerPadding,
                         viewModel = viewModel,
                     )
-                    ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
+                    ShowScreenTab.VIEWING_HISTORY -> WatchedEpisodesList(
+                        innerPadding = innerPadding,
+                        viewModel = viewModel,
+                    )
                 }
             }
         },
@@ -239,9 +240,33 @@ private fun OverviewScreenComponents.SeasonsContent(
             itemsWithPosition(seasons) { position, (id, season) ->
                 SeasonListItem(
                     season = season,
-                    onClick = { navController.navigateToSeason(id) },
+                    onClick = { navController.navigateToSeason(id.toExternalId()) },
                     position = position,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WatchedEpisodesList(
+    innerPadding: PaddingValues,
+    viewModel: ShowScreenViewModel,
+) {
+    LoadableScreen(
+        data = viewModel.history,
+        onError = { apiError ->
+            DefaultErrorScreen(
+                error = apiError,
+                retry = { viewModel.retryAll() },
+            )
+        },
+    ) { history ->
+        OverviewScreenComponents.ContentList(
+            innerPadding = innerPadding.plus(PaddingValues(vertical = 16.dp, horizontal = 8.dp)),
+        ) {
+            itemsWithPosition(history) { position, model ->
+                WatchedItemListItem(model, position)
             }
         }
     }

@@ -1,5 +1,6 @@
 package io.github.couchtracker.db.profile.model.watchedItem
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import dev.mmauro.datetimepolyglot.compose.localizers.rememberLocalizer
 import io.github.couchtracker.R
@@ -12,6 +13,7 @@ import io.github.couchtracker.db.profile.model.partialtime.PartialDateTime
 import io.github.couchtracker.db.profile.model.partialtime.PartialDateTimeGroup
 import io.github.couchtracker.intl.datetime.PDT_FULL_LOCALIZER_OPTIONS
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.toAndroidULocale
 
 /**
  * Wrapper around a [WatchedItem]. It's useful to also capture the values for all dimensions associated with it.
@@ -140,6 +142,15 @@ fun WatchedItemWrapper.localizedWatchAt(includeTimeZone: Boolean): String {
     val pdtLocalizer = rememberLocalizer(PDT_FULL_LOCALIZER_OPTIONS)
 
     val watchAt = watchAt ?: return R.string.unknown_date.str()
+    val date = if (includeTimeZone) watchAt else watchAt.local
+
+    return pdtLocalizer.localize(date)
+}
+
+fun WatchedItemWrapper.localizedWatchAt(context: Context, includeTimeZone: Boolean): String {
+    val pdtLocalizer = PDT_FULL_LOCALIZER_OPTIONS.localizer(context.resources.configuration.locales[0].toAndroidULocale())
+
+    val watchAt = watchAt ?: return context.getString(R.string.unknown_date)
     val date = if (includeTimeZone) watchAt else watchAt.local
 
     return pdtLocalizer.localize(date)

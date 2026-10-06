@@ -3,6 +3,7 @@ package io.github.couchtracker.utils.error
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.Text
+import io.github.couchtracker.utils.mapResult
 
 /**
  * This class aggregates a set of errors.
@@ -60,6 +61,13 @@ fun Collection<CouchTrackerError?>.aggregateErrorOrNull(): CouchTrackerError? {
 
 fun Collection<CouchTrackerError>.aggregateError(): CouchTrackerError {
     return aggregateErrorOrNull() ?: error("No errors found")
+}
+
+fun <T1, T2, R> CouchTrackerLoadable<T1>.combine(other: CouchTrackerLoadable<T2>, transform: (T1, T2) -> R): CouchTrackerLoadable<R> {
+    return listOf(this, other).aggregateResults().mapResult { (a, b) ->
+        @Suppress("UNCHECKED_CAST")
+        transform(a as T1, b as T2)
+    }
 }
 
 /**
