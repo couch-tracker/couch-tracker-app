@@ -12,6 +12,7 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.utils.filterKeysOfInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.collections.orEmpty
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.measureTimedValue
 
@@ -33,6 +34,10 @@ data class FullProfileData(
 
     val bookmarkedShows: Map<ExternalShowId, BookmarkedItem> = bookmarkedItems.filterKeysOfInstance()
     val bookmarkedMovies: Map<ExternalMovieId, BookmarkedItem> = bookmarkedItems.filterKeysOfInstance()
+
+    fun watchedEpisodesForShow(showId: ExternalShowId): List<WatchedItemWrapper.Episode> {
+        return watchedEpisodeSessions[showId].orEmpty().flatMap { watchedEpisodesBySession[it].orEmpty() }
+    }
 
     companion object {
 

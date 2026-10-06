@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -138,4 +139,14 @@ fun <T> rememberComputationResult(key: Any = Unit, compute: suspend () -> T): Lo
             compute()
         }
     }.awaitAsLoadable()
+}
+
+fun <T, E> Loadable<Result<Flow<Loadable<Result<T, E>>>, E>>.flattenFlow(): Flow<Loadable<Result<T, E>>> {
+    return when (this) {
+        Loadable.Loading -> flowOf(Loadable.Loading)
+        is Loadable.Loaded -> when (this.value) {
+            is Result.Error -> flowOf(Loadable.Loaded(this.value))
+            is Result.Value -> this.value.value
+        }
+    }
 }

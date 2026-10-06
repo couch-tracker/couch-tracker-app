@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.plus
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,11 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.R
+import io.github.couchtracker.db.profile.FullProfileData
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.db.profile.externalids.UnknownExternalShowId
+import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemWrapper
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbBaseMemoryCache
 import io.github.couchtracker.ui.ColorSchemes
@@ -37,6 +41,7 @@ import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.ResultScreen
 import io.github.couchtracker.ui.components.SeasonListItem
+import io.github.couchtracker.ui.components.WatchedItemListItem
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.itemsWithPosition
 import io.github.couchtracker.ui.screens.seasons.navigateToSeason
@@ -177,7 +182,10 @@ private fun ShowScreenContent(
                         innerPadding = innerPadding,
                         viewModel = viewModel,
                     )
-                    ShowScreenTab.VIEWING_HISTORY -> WipMessageComposable(gitHubIssueId = 131)
+                    ShowScreenTab.VIEWING_HISTORY -> WatchedEpisodesList(
+                        innerPadding = innerPadding,
+                        viewModel = viewModel,
+                    )
                 }
             }
         },
@@ -243,6 +251,21 @@ private fun OverviewScreenComponents.SeasonsContent(
                     position = position,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun WatchedEpisodesList(
+    innerPadding: PaddingValues,
+    viewModel: ShowScreenViewModel,
+) {
+    val fullProfileData = LocalFullProfileDataContext.current
+    val watchedEpisodes = fullProfileData.watchedEpisodesForShow(viewModel.showId.toExternalId())
+
+    LazyColumn(contentPadding = innerPadding) {
+        for(watchedEpisode in watchedEpisodes) {
+            WatchedItemListItem()
         }
     }
 }
