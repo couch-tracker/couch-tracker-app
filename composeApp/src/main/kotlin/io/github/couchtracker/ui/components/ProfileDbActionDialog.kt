@@ -70,5 +70,5 @@ fun <S : Any, O> ProfileDbActionDialog(
             },
         )
     }
-    ProfileDbErrorDialog(action)
+    CouchTrackerErrorDialog(action)
 }
