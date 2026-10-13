@@ -74,8 +74,8 @@ import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemSelections
 import io.github.couchtracker.db.profile.model.watchedItem.WatchedItemType
 import io.github.couchtracker.db.profile.model.watchedItem.rememberWatchedItemSelectionsState
 import io.github.couchtracker.ui.components.BoxWithScrim
+import io.github.couchtracker.ui.components.CouchTrackerErrorDialog
 import io.github.couchtracker.ui.components.DelayedActionLoadingIndicator
-import io.github.couchtracker.ui.components.ProfileDbErrorDialog
 import io.github.couchtracker.utils.ProfileDbActionState
 import io.github.couchtracker.utils.Text
 import io.github.couchtracker.utils.rememberProfileDbActionState
@@ -230,7 +230,7 @@ private fun WatchedItemSheetContent(
     val enabled = !saveAction.isLoading
 
     BoxWithConstraints {
-        ProfileDbErrorDialog(saveAction)
+        CouchTrackerErrorDialog(saveAction)
         if (selections.sheetMode is WatchedItemSheetMode.Edit) {
             DeleteWatchedItemConfirmDialog(
                 watchedItem = if (showDeleteDialog) selections.sheetMode.watchedItem else null,
