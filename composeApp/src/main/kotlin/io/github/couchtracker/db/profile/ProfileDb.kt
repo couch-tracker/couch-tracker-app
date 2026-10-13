@@ -134,12 +134,12 @@ sealed class ProfileDb : KoinComponent {
             try {
                 val db = get<ProfileData> { parametersOf(driver) }
                 Result.Value(value = block(db))
-            } catch (ignored: DBCorruptedException) {
+            } catch (e: DBCorruptedException) {
                 onCorrupted()
-                Result.Error(ProfileDbError.FileError.InvalidDatabase)
+                Result.Error(ProfileDbError.FileError.InvalidDatabase(e))
             } catch (expected: Exception) {
                 Log.e(LOG_TAG, "Error in profile database transaction", expected)
-                Result.Error(ProfileDbError.TransactionError(exception = expected))
+                Result.Error(ProfileDbError.TransactionError(cause = expected))
             }
         }
     }

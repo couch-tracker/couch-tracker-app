@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
  * @param O the output type: what the [execute] lambda returns. It's responsibility of the [decorator] to convert this to a suitable
  * [Result]<[T], [E]>
  */
-class ActionState<T, E, I, O>(
+class ActionState<out T, out E, I, O>(
     private val coroutineScope: CoroutineScope,
     private val state: MutableState<Actionable<Result<T, E>>>,
     private val decorator: suspend (block: (I) -> O) -> Result<T, E>,

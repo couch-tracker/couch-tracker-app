@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import io.github.couchtracker.LocalFullProfileDataContext
 import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.BookmarkableExternalId
-import io.github.couchtracker.ui.components.ProfileDbErrorDialog
+import io.github.couchtracker.ui.components.CouchTrackerErrorDialog
 import io.github.couchtracker.utils.rememberProfileDbActionState
 import io.github.couchtracker.utils.str
 
@@ -31,7 +31,7 @@ fun BookmarkAction(id: BookmarkableExternalId): Action {
         active = isBookmarked,
         state = bookmarkAction,
         companionComposable = {
-            ProfileDbErrorDialog(bookmarkAction)
+            CouchTrackerErrorDialog(bookmarkAction)
         },
         onClick = {
             if (isBookmarked) {
