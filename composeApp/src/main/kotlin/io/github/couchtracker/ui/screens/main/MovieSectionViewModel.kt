@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import io.github.couchtracker.db.app.ProfilesInfo
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
@@ -41,7 +40,7 @@ import org.koin.mp.KoinPlatform
 class MovieSectionViewModel(application: Application) : AndroidViewModel(application) {
     private val retryContext = tmdbFlowRetryContext()
 
-    val exploreState = MovieExploreTabState(application, viewModelScope)
+    val exploreState = MovieExploreTabState(viewModelScope)
 
     val watchlist: Loadable<List<Pair<ExternalMovieId, CouchTrackerResult<MoviePortraitModel>>>> by flowDetailForMovies(
         movies = KoinPlatform.getKoin().get<Flow<ProfilesInfo>>()
@@ -91,7 +90,7 @@ class MovieSectionViewModel(application: Application) : AndroidViewModel(applica
         }
         return tmdbMovieId.details(languages.apiLanguage).map { result ->
             movieId to result.map {
-                it.toMoviePortraitModels(application, languages.apiLanguage)
+                it.toMoviePortraitModels(languages.apiLanguage)
             }
         }
     }

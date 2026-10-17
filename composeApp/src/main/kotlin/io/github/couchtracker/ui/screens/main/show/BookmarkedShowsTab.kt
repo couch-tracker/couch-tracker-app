@@ -19,6 +19,7 @@ import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.ShowPortrait
 import io.github.couchtracker.ui.components.ShowPortraitModel
+import io.github.couchtracker.ui.components.ShowPortraitModel.SecondaryInfo
 import io.github.couchtracker.ui.components.SortActionButton
 import io.github.couchtracker.ui.components.SortedGrid
 import io.github.couchtracker.utils.Loadable
@@ -84,6 +85,11 @@ fun BookmarkedShowTab(
                             .animateItem(),
                         showId = show.showId,
                         showResult = showPortraitModel,
+                        secondaryInfo = when (sorter) {
+                            is Sorter.Alphabetical -> SecondaryInfo.DEFAULT_SECONDARY_INFO
+                            is Sorter.ByReleaseDate -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Year
+                            is Sorter.ByTmdbRating -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Rating
+                        },
                     )
                 },
             )
