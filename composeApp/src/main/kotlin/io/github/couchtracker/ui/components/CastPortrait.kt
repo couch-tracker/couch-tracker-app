@@ -1,11 +1,8 @@
 package io.github.couchtracker.ui.components
 
 import android.content.Context
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import app.moviebase.tmdb.image.TmdbImage
 import app.moviebase.tmdb.image.TmdbImageType
 import app.moviebase.tmdb.model.TmdbAggregateCast
@@ -35,26 +32,19 @@ fun CastPortrait(
             }
         },
         elementTypeIcon = PlaceholdersDefaults.PERSON.icon,
-        label = person?.name.orEmpty(),
-        labelMinLines = 1,
-        extraContent = {
-            val subtitleItems = buildList {
-                if (person == null) {
-                    add(null)
-                } else {
-                    addAll(person.roles)
-                    person.episodesCountString?.let { add(it) }
-                }
-            }
-            subtitleItems.forEach { subtitle ->
-                Text(
-                    text = subtitle.orEmpty(),
-                    textAlign = TextAlign.Center,
-                    // Same style as ListItem's supporting content
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    minLines = 1,
-                )
+        titles = if (person != null) {
+            listOfNotNull(person.name)
+        } else {
+            // Some default space while downloading
+            listOf(null)
+        },
+        subtitles = buildList {
+            if (person != null) {
+                addAll(person.roles)
+                person.episodesCountString?.let { add(it) }
+            } else {
+                // Some default space while downloading
+                add(null)
             }
         },
         onClick = onClick,
