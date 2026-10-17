@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.components
 
-import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Downloading
 import androidx.compose.material.icons.outlined.Error
@@ -9,24 +8,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.moviebase.tmdb.model.TmdbShowDetail
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbLanguage
+import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbShowId
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.PlaceholdersDefaults
 import io.github.couchtracker.ui.components.ShowPortraitModel.DownloadState
+import io.github.couchtracker.ui.components.ShowPortraitModel.SecondaryInfo
 import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.toImageModel
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.error.ApiError
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
 
 @Composable
@@ -34,6 +32,7 @@ fun ShowPortrait(
     modifier: Modifier,
     /** A nullable show will render a placeholder */
     show: ShowPortraitModel?,
+    secondaryInfo: Set<SecondaryInfo>,
 ) {
     val navController = LocalNavController.current
     PortraitComposable(
@@ -50,8 +49,27 @@ fun ShowPortrait(
             DownloadState.Loading -> Icons.Outlined.Downloading
             DownloadState.NotFound -> Icons.Outlined.QuestionMark
         },
-        label = show?.label.orEmpty(),
-        labelMinLines = if (show == null) 2 else 1,
+        titles = if (show != null) {
+            listOfNotNull(show.label)
+        } else {
+            // Some default space while downloading
+            listOf(null)
+        },
+        subtitles = buildList {
+            if (secondaryInfo.isNotEmpty()) {
+                if (show != null) {
+                    val nonNullInfo = SecondaryInfo.entries
+                        .filter { it in secondaryInfo }
+                        .mapNotNull { it.toLabel(show) }
+                    if (nonNullInfo.isNotEmpty()) {
+                        add(nonNullInfo.joinToString(separator = " • "))
+                    }
+                } else {
+                    // Some default space while downloading
+                    add(null)
+                }
+            }
+        },
         onClick = if (show?.id != null) {
             {
                 navController.navigateToShow(
@@ -70,6 +88,7 @@ fun ShowPortrait(
     modifier: Modifier,
     showId: ExternalShowId,
     showResult: CouchTrackerResult<ShowPortraitModel>,
+    secondaryInfo: Set<SecondaryInfo>,
 ) {
     val model = when (showResult) {
         is Result.Value -> showResult.value
@@ -86,16 +105,31 @@ fun ShowPortrait(
     ShowPortrait(
         modifier = modifier,
         show = model,
+        secondaryInfo = secondaryInfo,
     )
 }
 
 data class ShowPortraitModel(
     val id: ExternalShowId,
     val label: String?,
+    val yearStr: String?,
+    val ratingStr: String?,
     val posterModel: ImageModel?,
     val preloadData: BaseTmdbShow?,
     val downloadState: DownloadState = DownloadState.Downloaded,
 ) {
+
+    enum class SecondaryInfo(val toLabel: (ShowPortraitModel) -> String?) {
+        Year({ it.yearStr }),
+        Rating({ it.ratingStr }),
+        ;
+
+        companion object {
+            // The year is sometimes necessary to disambiguate shows, e.g. Doctor Who; always display it
+            val DEFAULT_SECONDARY_INFO = setOf(Year)
+            val EXPLORE_SECONDARY_INFO = setOf(Year, Rating)
+        }
+    }
 
     enum class DownloadState {
         Downloaded,
@@ -106,27 +140,31 @@ data class ShowPortraitModel(
 
     companion object {
 
-        suspend fun fromApiTmdbShow(
-            context: Context,
+        fun fromApiTmdbShow(
             details: TmdbApiTmdbShow,
             preloadData: BaseTmdbShow?,
+            rating: TmdbRating?,
         ): ShowPortraitModel {
             return ShowPortraitModel(
                 id = TmdbExternalShowId(TmdbShowId(details.id)),
-                label = labelFromNameYear(context, details.name, details.firstAirDate?.year),
+                label = details.name,
+                yearStr = details.firstAirDate?.year?.toString(),
+                ratingStr = rating?.formatted,
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
         }
 
-        suspend fun fromApiTmdbShow(
-            context: Context,
+        fun fromApiTmdbShow(
             details: TmdbShowDetail,
             preloadData: BaseTmdbShow?,
+            rating: TmdbRating?,
         ): ShowPortraitModel {
             return ShowPortraitModel(
                 id = TmdbExternalShowId(TmdbShowId(details.id)),
-                label = labelFromNameYear(context, details.name, details.firstAirDate?.year),
+                label = details.name,
+                yearStr = details.firstAirDate?.year?.toString(),
+                ratingStr = rating?.formatted,
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
@@ -136,28 +174,20 @@ data class ShowPortraitModel(
             return ShowPortraitModel(
                 id = id,
                 label = label,
+                yearStr = null,
+                ratingStr = null,
                 posterModel = null,
                 downloadState = state,
                 preloadData = null,
             )
         }
-
-        private suspend fun labelFromNameYear(context: Context, name: String?, year: Int?): String? {
-            return if (name != null && year != null) {
-                withContext(Dispatchers.Default) {
-                    context.getString(R.string.item_tile_with_year, name, year)
-                }
-            } else {
-                name
-            }
-        }
     }
 }
 
-suspend fun TmdbApiTmdbShow.toShowPortraitModels(context: Context, language: TmdbLanguage): ShowPortraitModel {
-    return ShowPortraitModel.fromApiTmdbShow(context, this, preloadData = this.toBaseShow(language))
+fun TmdbApiTmdbShow.toShowPortraitModel(language: TmdbLanguage, rating: TmdbRating?): ShowPortraitModel {
+    return ShowPortraitModel.fromApiTmdbShow(this, preloadData = this.toBaseShow(language), rating = rating)
 }
 
-suspend fun TmdbShowDetail.toShowPortraitModels(context: Context, language: TmdbLanguage): ShowPortraitModel {
-    return ShowPortraitModel.fromApiTmdbShow(context, this, preloadData = this.toBaseShow(language))
+fun TmdbShowDetail.toShowPortraitModel(language: TmdbLanguage, rating: TmdbRating?): ShowPortraitModel {
+    return ShowPortraitModel.fromApiTmdbShow(this, preloadData = this.toBaseShow(language), rating = rating)
 }

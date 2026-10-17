@@ -12,7 +12,9 @@
     <string name="sort_category_without_name">Unnamed</string>
     <string name="sort_category_without_rating">Without rating</string>
     <string name="sort_category_without_release_date">Without release date</string>
-    <string name="sort_category_rating">Rated %1$d+ stars</string>
+    <string name="sort_category_rating">Rated %1$d stars</string>
+    <string name="sort_category_rating_range">Rated %1$d-%2$d stars</string>
+    <string name="sort_category_rating_range_decimal">Rated %1$.1f - %2$.1f stars</string>
     <string name="sort_category_release_century">Released in the %1$s century</string>
     <string name="sort_category_release_decade">Released in the %1$ds</string>
     <string name="sort_category_release_year">Released in %1$d</string>

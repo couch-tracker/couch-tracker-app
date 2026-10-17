@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.components
 
-import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.QuestionMark
@@ -8,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.moviebase.tmdb.model.TmdbMovieDetail
 import io.github.couchtracker.LocalNavController
-import io.github.couchtracker.R
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
 import io.github.couchtracker.tmdb.BaseTmdbMovie
@@ -24,8 +22,6 @@ import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.error.ApiError
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import app.moviebase.tmdb.model.TmdbMovie as TmdbApiTmdbMovie
 
 @Composable
@@ -48,8 +44,18 @@ fun MoviePortrait(
             DownloadState.Error -> Icons.Outlined.Error
             DownloadState.NotFound -> Icons.Outlined.QuestionMark
         },
-        label = movie?.label.orEmpty(),
-        labelMinLines = if (movie == null) 2 else 1,
+        titles = if (movie != null) {
+            listOfNotNull(movie.label)
+        } else {
+            // Some default space while downloading
+            listOf(null)
+        },
+        subtitles = if (movie != null) {
+            listOfNotNull(movie.yearStr)
+        } else {
+            // Some default space while downloading
+            listOf(null)
+        },
         onClick = if (movie?.id != null) {
             {
                 navController.navigateToMovie(
@@ -90,6 +96,7 @@ fun MoviePortrait(
 data class MoviePortraitModel(
     val id: ExternalMovieId,
     val label: String?,
+    val yearStr: String?,
     val posterModel: ImageModel?,
     val preloadData: BaseTmdbMovie?,
     val downloadState: DownloadState = DownloadState.Downloaded,
@@ -103,29 +110,27 @@ data class MoviePortraitModel(
 
     companion object {
 
-        suspend fun fromApiTmdbMovie(
-            context: Context,
+        fun fromApiTmdbMovie(
             details: TmdbApiTmdbMovie,
             preloadData: BaseTmdbMovie?,
         ): MoviePortraitModel {
-            val year = details.releaseDate?.year
             return MoviePortraitModel(
                 id = TmdbExternalMovieId(TmdbMovieId(details.id)),
-                label = labelFromNameYear(context, details.title, year),
+                label = details.title,
+                yearStr = details.releaseDate?.year?.toString(),
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
         }
 
-        suspend fun fromApiTmdbMovie(
-            context: Context,
+        fun fromApiTmdbMovie(
             details: TmdbMovieDetail,
             preloadData: BaseTmdbMovie?,
         ): MoviePortraitModel {
-            val year = details.releaseDate?.year
             return MoviePortraitModel(
                 id = TmdbExternalMovieId(TmdbMovieId(details.id)),
-                label = labelFromNameYear(context, details.title, year),
+                label = details.title,
+                yearStr = details.releaseDate?.year?.toString(),
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
@@ -135,28 +140,19 @@ data class MoviePortraitModel(
             return MoviePortraitModel(
                 id = id,
                 label = label,
+                yearStr = null,
                 posterModel = null,
                 downloadState = state,
                 preloadData = null,
             )
         }
-
-        private suspend fun labelFromNameYear(context: Context, title: String?, year: Int?): String? {
-            return if (year == null) {
-                title
-            } else {
-                withContext(Dispatchers.Default) {
-                    context.getString(R.string.item_tile_with_year, title, year)
-                }
-            }
-        }
     }
 }
 
-suspend fun TmdbApiTmdbMovie.toMoviePortraitModels(context: Context, language: TmdbLanguage): MoviePortraitModel {
-    return MoviePortraitModel.fromApiTmdbMovie(context, this, preloadData = this.toBaseMovie(language))
+fun TmdbApiTmdbMovie.toMoviePortraitModels(language: TmdbLanguage): MoviePortraitModel {
+    return MoviePortraitModel.fromApiTmdbMovie(this, preloadData = this.toBaseMovie(language))
 }
 
-suspend fun TmdbMovieDetail.toMoviePortraitModels(context: Context, language: TmdbLanguage): MoviePortraitModel {
-    return MoviePortraitModel.fromApiTmdbMovie(context, this, preloadData = this.toBaseMovie(language))
+fun TmdbMovieDetail.toMoviePortraitModels(language: TmdbLanguage): MoviePortraitModel {
+    return MoviePortraitModel.fromApiTmdbMovie(this, preloadData = this.toBaseMovie(language))
 }

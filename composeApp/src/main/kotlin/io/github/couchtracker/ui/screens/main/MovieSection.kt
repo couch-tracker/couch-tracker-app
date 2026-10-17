@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.screens.main
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -148,7 +147,7 @@ enum class MovieTab(
     CALENDAR(R.string.tab_movies_calendar),
 }
 
-class MovieExploreTabState(context: Context, viewModelScope: CoroutineScope) {
+class MovieExploreTabState(viewModelScope: CoroutineScope) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val movieFlow = AppSettings.get { Tmdb.Languages }
@@ -159,7 +158,7 @@ class MovieExploreTabState(context: Context, viewModelScope: CoroutineScope) {
                 downloader = { page ->
                     trending.getTrendingMovies(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
                 },
-                mapper = { movie -> movie.toMoviePortraitModels(context, tmdbLanguage) },
+                mapper = { movie -> movie.toMoviePortraitModels(tmdbLanguage) },
             ).flow
         }
         .removeDuplicates { it.id }

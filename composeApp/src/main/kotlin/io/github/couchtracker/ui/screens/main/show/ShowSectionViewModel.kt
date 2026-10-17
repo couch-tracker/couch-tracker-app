@@ -42,7 +42,7 @@ import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.components.ShowPortraitModel
 import io.github.couchtracker.ui.components.UpNextListItemModel
-import io.github.couchtracker.ui.components.toShowPortraitModels
+import io.github.couchtracker.ui.components.toShowPortraitModel
 import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.collectAsLoadable
@@ -98,7 +98,7 @@ private val UP_NEXT_AIRING_SOON_THRESHOLD = DatePeriod(days = 7)
 class ShowSectionViewModel(application: Application) : AndroidViewModel(application) {
     private val retryContext = tmdbFlowRetryContext()
 
-    val exploreState = ShowExploreTabState(application, viewModelScope)
+    val exploreState = ShowExploreTabState(viewModelScope)
 
     private data class BookmarkedShows(
         val bookmarkedShows: Set<ExternalShowId>,
@@ -307,15 +307,16 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                     is Result.Value -> showDetails.value
                 }
                 val seasons = details.seasons.map { seasonsDataCache.getValue(it.seasonNumber) }.aggregateResults()
+                val rating = details.rating()
                 Result.Value(
                     value = BookmarkedShowData(
                         baseShowData = details.toBaseShow(languages.apiLanguage),
-                        portraitModel = details.toShowPortraitModels(application, languages.apiLanguage),
+                        portraitModel = details.toShowPortraitModel(languages.apiLanguage, rating),
                         seasons = seasons,
                         originalLanguage = details.language(),
                         sortModel = SortableItemModel(
                             name = SortableProperty.ofLoaded(details.name),
-                            tmdbRating = SortableProperty.ofLoaded(details.rating()),
+                            tmdbRating = SortableProperty.ofLoaded(rating),
                             firstPublicRelease = SortableProperty.ofLoaded(details.firstAirDate?.let { PartialDateTime.Local.Date(it) }),
                         ),
                     ),
