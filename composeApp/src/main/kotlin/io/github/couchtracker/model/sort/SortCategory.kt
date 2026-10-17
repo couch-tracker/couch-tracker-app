@@ -9,6 +9,10 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.YearMonth
 
 interface SortCategory {
+
+    // Whether this category should be preferred instead of the parent when they contain the same elements
+    val betterThanParent: Boolean get() = true
+
     fun localize(context: Context): String?
 
     object RootCategory : SortCategory {
@@ -19,8 +23,19 @@ interface SortCategory {
         override fun localize(context: Context) = initial.toString()
     }
 
-    data class TmdbRatingCategory(val stars: Int) : SortCategory {
-        override fun localize(context: Context) = context.getString(R.string.sort_category_rating, stars)
+    data class TmdbRatingCategory(val stars: IntRange) : SortCategory {
+        override fun localize(context: Context) = if (stars.first == stars.last) {
+            context.resources.getQuantityString(R.plurals.sort_category_rating, stars.first, stars.first)
+        } else {
+            context.getString(R.string.sort_category_rating_range, stars.first, stars.last)
+        }
+    }
+
+    data class TmdbRatingCategoryDecimal(val stars: ClosedFloatingPointRange<Float>) : SortCategory {
+        override val betterThanParent: Boolean get() = false
+        override fun localize(context: Context): String {
+            return context.getString(R.string.sort_category_rating_range_decimal, stars.start, stars.endInclusive)
+        }
     }
 
     data class FirstPublicReleaseCenturyCategory(val century: Int) : SortCategory {
@@ -58,6 +73,7 @@ interface SortCategory {
     }
 
     data class FirstPublicReleaseDateCategory(val date: LocalDate) : SortCategory {
+        override val betterThanParent: Boolean get() = false
         override fun localize(context: Context): String {
             val locale = context.resources.configuration.locales[0]
             val uLocale = ULocale.forLocale(locale)

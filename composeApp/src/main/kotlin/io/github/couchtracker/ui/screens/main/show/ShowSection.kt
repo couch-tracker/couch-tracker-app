@@ -1,6 +1,5 @@
 package io.github.couchtracker.ui.screens.main.show
 
-import android.app.Application
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,13 +21,15 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.R
 import io.github.couchtracker.settings.AppSettings
+import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
 import io.github.couchtracker.ui.components.ShowPortrait
+import io.github.couchtracker.ui.components.ShowPortraitModel.SecondaryInfo
 import io.github.couchtracker.ui.components.WipMessageComposable
-import io.github.couchtracker.ui.components.toShowPortraitModels
+import io.github.couchtracker.ui.components.toShowPortraitModel
 import io.github.couchtracker.ui.screens.main.MainSection
 import io.github.couchtracker.ui.screens.main.MainSectionDefaults
 import io.github.couchtracker.utils.removeDuplicates
@@ -91,7 +92,7 @@ fun ShowSection(
                         upNextModel = viewModel.upNext,
                         onRetry = { viewModel.retryAll() },
                     )
-                    ShowTab.EXPLORE -> ShowListComposable(viewModel.exploreState)
+                    ShowTab.EXPLORE -> ShowExploreComposable(viewModel.exploreState)
                     ShowTab.CALENDAR -> WipMessageComposable(
                         gitHubIssueId = 129,
                         description = "A calendar of the episodes of bookmarked shows",
@@ -103,12 +104,12 @@ fun ShowSection(
 }
 
 @Composable
-private fun ShowListComposable(
+private fun ShowExploreComposable(
     tabState: ShowExploreTabState,
 ) {
     val lazyItems = tabState.showFlow.collectAsLazyPagingItems()
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { show, _ ->
-        ShowPortrait(Modifier.fillMaxWidth(), show)
+        ShowPortrait(Modifier.fillMaxWidth(), show, secondaryInfo = SecondaryInfo.EXPLORE_SECONDARY_INFO)
     }
 }
 
@@ -124,7 +125,7 @@ private enum class ShowTab(
     EXPLORE(R.string.tab_shows_explore),
 }
 
-class ShowExploreTabState(application: Application, viewModelScope: CoroutineScope) {
+class ShowExploreTabState(viewModelScope: CoroutineScope) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val showFlow = AppSettings.get { Tmdb.Languages }
@@ -136,7 +137,7 @@ class ShowExploreTabState(application: Application, viewModelScope: CoroutineSco
                     trending.getTrendingShows(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
                 },
                 mapper = { show ->
-                    show.toShowPortraitModels(application, tmdbLanguage)
+                    show.toShowPortraitModel(tmdbLanguage, show.rating())
                 },
             ).flow
         }

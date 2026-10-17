@@ -62,7 +62,7 @@ fun BasePortraitComposable(
             }
         }
         Spacer(Modifier.height(8.dp))
-        CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleSmall) {
+        CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleMedium) {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -80,8 +80,8 @@ fun PortraitComposable(
     modifier: Modifier,
     imageModel: @Composable ((w: Int, h: Int) -> Any?)?,
     elementTypeIcon: ImageVector,
-    label: String,
-    labelMinLines: Int = 1,
+    titles: List<String?>,
+    subtitles: List<String?> = emptyList(),
     onClick: (() -> Unit)?,
     overlayIcon: ImageVector? = null,
     extraContent: @Composable () -> Unit = {},
@@ -121,11 +121,18 @@ fun PortraitComposable(
             }
         },
         label = {
-            Text(
-                label,
-                textAlign = TextAlign.Center,
-                minLines = labelMinLines,
-            )
+            for (title in titles) {
+                Text(title.orEmpty(), textAlign = TextAlign.Center)
+            }
+            for (subtitle in subtitles) {
+                Text(
+                    text = subtitle.orEmpty(),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelMedium,
+                    minLines = 1,
+                )
+            }
             extraContent()
         },
     )

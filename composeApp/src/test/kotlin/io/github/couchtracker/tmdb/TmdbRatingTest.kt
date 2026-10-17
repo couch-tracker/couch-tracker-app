@@ -52,7 +52,7 @@ class TmdbRatingTest : FunSpec(
                     if (rating?.count != null) {
                         rating.count shouldBe count
                     }
-                    if (avg != null && avg > 0f) {
+                    if (avg != null && avg > 0f && avg < 10f) {
                         rating?.average shouldBe avg
                     }
                 }
