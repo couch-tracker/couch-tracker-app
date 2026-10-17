@@ -515,11 +515,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                 val sortedAndGrouped = sorter.sortAndGroup(filtered) { show ->
                     when (show.data) {
                         is Result.Value -> show.data.value.sortModel
-                        is Result.Error -> SortableItemModel(
-                            name = SortableProperty.Error,
-                            tmdbRating = SortableProperty.Error,
-                            firstPublicRelease = SortableProperty.Error,
-                        )
+                        is Result.Error -> SortableItemModel.ERROR
                     }
                 }
                 BookmarkedShowsModel(sorter, sortedAndGrouped.localized(application))

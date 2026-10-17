@@ -71,6 +71,11 @@ object StyleAndBehaviorSettings : AbstractAppSettings(), KoinComponent {
         key = "shows-following-sort-order",
         default = Sorter.Alphabetical() as Sorter,
     )
+
+    val MoviesWatchlistSortOrder: PreferencesSetting<String, Sorter, Sorter> = jsonSetting(
+        key = "movies-watchlist-sort-order",
+        default = Sorter.Alphabetical() as Sorter,
+    )
 }
 
 data class UpNextOptions(
