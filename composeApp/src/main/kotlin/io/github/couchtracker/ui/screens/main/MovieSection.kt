@@ -1,44 +1,49 @@
 package io.github.couchtracker.ui.screens.main
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.plus
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.moviebase.tmdb.model.TmdbTimeWindow
 import io.github.couchtracker.R
-import io.github.couchtracker.db.profile.externalids.ExternalMovieId
+import io.github.couchtracker.model.sort.SortableItemType
+import io.github.couchtracker.model.sort.Sorter
 import io.github.couchtracker.settings.AppSettings
+import io.github.couchtracker.settings.appSettings
+import io.github.couchtracker.tmdb.rating
 import io.github.couchtracker.tmdb.tmdbPager
 import io.github.couchtracker.ui.components.LoadableScreen
 import io.github.couchtracker.ui.components.MessageComposable
 import io.github.couchtracker.ui.components.MoviePortrait
-import io.github.couchtracker.ui.components.MoviePortraitModel
+import io.github.couchtracker.ui.components.MoviePortraitModel.SecondaryInfo
 import io.github.couchtracker.ui.components.OverviewScreenComponents
 import io.github.couchtracker.ui.components.PaginatedGrid
 import io.github.couchtracker.ui.components.PortraitComposableDefaults
+import io.github.couchtracker.ui.components.SortActionButton
+import io.github.couchtracker.ui.components.SortedGrid
 import io.github.couchtracker.ui.components.WipMessageComposable
 import io.github.couchtracker.ui.components.toMoviePortraitModels
 import io.github.couchtracker.utils.Loadable
-import io.github.couchtracker.utils.error.CouchTrackerResult
+import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.removeDuplicates
 import io.github.couchtracker.utils.settings.get
 import io.github.couchtracker.utils.str
@@ -47,6 +52,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @Composable
 fun MoviesSection(
@@ -55,9 +61,10 @@ fun MoviesSection(
 ) {
     val pagerState = rememberPagerState(initialPage = MovieTab.EXPLORE.ordinal) { MovieTab.entries.size }
     val snackbarHostState = remember { SnackbarHostState() }
+    val modelError by viewModel.aggregateError().collectAsStateWithLifecycle(null)
     OverviewScreenComponents.ShowSnackbarOnErrorEffect(
         snackbarHostState = snackbarHostState,
-        error = { viewModel.aggregateError },
+        error = { modelError },
         onRetry = { viewModel.retryAll() },
     )
     MainSection(
@@ -66,6 +73,10 @@ fun MoviesSection(
         imageModel = R.drawable.aurora_borealis,
         title = R.string.main_section_movies.str(),
         actions = {
+            when (MovieTab.entries[pagerState.currentPage]) {
+                MovieTab.WATCHLIST -> BookmarkedMovieActions()
+                else -> {}
+            }
             MainSectionDefaults.DefaultAppBarActions()
         },
         tabText = { page -> Text(text = MovieTab.entries[page].displayName.str()) },
@@ -77,8 +88,8 @@ fun MoviesSection(
                         gitHubIssueId = 126,
                         description = "All watched movies",
                     )
-                    MovieTab.EXPLORE -> MovieListComposable(viewModel.exploreState)
-                    MovieTab.WATCHLIST -> WatchlistedMoviesGrid(
+                    MovieTab.EXPLORE -> MovieExploreComposable(viewModel.exploreState)
+                    MovieTab.WATCHLIST -> BookmarkedMoviesGrid(
                         movies = viewModel.watchlist,
                         emptyMessage = R.string.tab_movies_watchlist_empty.str(),
                         emptyDescription = R.string.tab_movies_watchlist_empty_description.str(),
@@ -94,12 +105,28 @@ fun MoviesSection(
 }
 
 @Composable
-private fun WatchlistedMoviesGrid(
-    movies: Loadable<List<Pair<ExternalMovieId, CouchTrackerResult<MoviePortraitModel>>>>,
+private fun BookmarkedMovieActions() {
+    val cs = rememberCoroutineScope()
+    val settings = appSettings()
+    val current = settings.get { StyleAndBehavior.MoviesWatchlistSortOrder }.current
+    SortActionButton(
+        itemTypes = setOf(SortableItemType.MOVIE),
+        currentSorter = current,
+        setCurrentSorter = { newSorter ->
+            cs.launch {
+                settings.getSetting { StyleAndBehavior.MoviesWatchlistSortOrder }.set(newSorter)
+            }
+        },
+    )
+}
+
+@Composable
+private fun BookmarkedMoviesGrid(
+    movies: Loadable<MovieSectionViewModel.BookmarkedMoviesModel>,
     emptyMessage: String,
     emptyDescription: String,
 ) {
-    LoadableScreen(movies) { movies ->
+    LoadableScreen(movies) { (sorter, movies) ->
         if (movies.isEmpty()) {
             MessageComposable(
                 modifier = Modifier.fillMaxSize(),
@@ -108,32 +135,38 @@ private fun WatchlistedMoviesGrid(
                 details = emptyDescription,
             )
         } else {
-            LazyVerticalGrid(
-                modifier = Modifier.fillMaxSize(),
+            SortedGrid(
+                sorter = sorter,
+                sortedItems = movies,
                 columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH),
-                contentPadding = PaddingValues(8.dp) + PaddingValues(bottom = OverviewScreenComponents.LIST_BOTTOM_SPACE),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(movies) { (movieId, movieModel) ->
+                itemKey = { it.itemKey },
+                itemComposable = { movie ->
                     MoviePortrait(
-                        modifier = Modifier.fillMaxWidth(),
-                        movieId = movieId,
-                        movieResult = movieModel,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                            .animateItem(),
+                        movieId = movie.movieId,
+                        movieResult = movie.data.map { it.portraitModel },
+                        secondaryInfo = when (sorter) {
+                            is Sorter.Alphabetical -> SecondaryInfo.DEFAULT_SECONDARY_INFO
+                            is Sorter.ByReleaseDate -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Year
+                            is Sorter.ByTmdbRating -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Rating
+                        },
                     )
-                }
-            }
+                },
+            )
         }
     }
 }
 
 @Composable
-private fun MovieListComposable(
+private fun MovieExploreComposable(
     tabState: MovieExploreTabState,
 ) {
     val lazyItems = tabState.movieFlow.collectAsLazyPagingItems()
     PaginatedGrid(lazyItems, columns = GridCells.Adaptive(minSize = PortraitComposableDefaults.SUGGESTED_WIDTH)) { movie, _ ->
-        MoviePortrait(Modifier.fillMaxWidth(), movie)
+        MoviePortrait(Modifier.fillMaxWidth(), movie, SecondaryInfo.EXPLORE_SECONDARY_INFO)
     }
 }
 
@@ -158,7 +191,7 @@ class MovieExploreTabState(viewModelScope: CoroutineScope) {
                 downloader = { page ->
                     trending.getTrendingMovies(timeWindow = TmdbTimeWindow.DAY, page = page, language = tmdbLanguage.apiParameter)
                 },
-                mapper = { movie -> movie.toMoviePortraitModels(tmdbLanguage) },
+                mapper = { movie -> movie.toMoviePortraitModels(tmdbLanguage, movie.rating()) },
             ).flow
         }
         .removeDuplicates { it.id }

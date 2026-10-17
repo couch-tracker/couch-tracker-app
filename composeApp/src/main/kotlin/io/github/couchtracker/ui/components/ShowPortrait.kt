@@ -21,60 +21,61 @@ import io.github.couchtracker.ui.components.ShowPortraitModel.DownloadState
 import io.github.couchtracker.ui.components.ShowPortraitModel.SecondaryInfo
 import io.github.couchtracker.ui.screens.show.navigateToShow
 import io.github.couchtracker.ui.toImageModel
+import io.github.couchtracker.utils.Loadable
 import io.github.couchtracker.utils.Result
 import io.github.couchtracker.utils.error.ApiError
 import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
+import io.github.couchtracker.utils.map
+import io.github.couchtracker.utils.valueOrNull
 import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
 
 @Composable
 fun ShowPortrait(
     modifier: Modifier,
     /** A nullable show will render a placeholder */
-    show: ShowPortraitModel?,
+    show: Loadable<ShowPortraitModel>,
     secondaryInfo: Set<SecondaryInfo>,
 ) {
     val navController = LocalNavController.current
     PortraitComposable(
         modifier,
-        imageModel = show?.let {
+        imageModel = show.valueOrNull()?.let {
             { w, h ->
-                show.posterModel?.getCoilModel(w, h)
+                it.posterModel?.getCoilModel(w, h)
             }
         },
         elementTypeIcon = PlaceholdersDefaults.SHOW.icon,
-        overlayIcon = when (show?.downloadState) {
-            null, DownloadState.Downloaded -> null
-            DownloadState.Error -> Icons.Outlined.Error
-            DownloadState.Loading -> Icons.Outlined.Downloading
-            DownloadState.NotFound -> Icons.Outlined.QuestionMark
+        overlayIcon = when (show) {
+            is Loadable.Loaded -> when (show.value.downloadState) {
+                DownloadState.Downloaded -> null
+                DownloadState.Error -> Icons.Outlined.Error
+                DownloadState.Loading -> Icons.Outlined.Downloading
+                DownloadState.NotFound -> Icons.Outlined.QuestionMark
+            }
+            Loadable.Loading -> null
         },
-        titles = if (show != null) {
-            listOfNotNull(show.label)
-        } else {
+        titles = when (show) {
+            is Loadable.Loaded -> listOfNotNull(show.value.label)
             // Some default space while downloading
-            listOf(null)
+            Loadable.Loading -> listOf(null)
         },
-        subtitles = buildList {
-            if (secondaryInfo.isNotEmpty()) {
-                if (show != null) {
-                    val nonNullInfo = SecondaryInfo.entries
+        subtitles = if (secondaryInfo.isNotEmpty()) {
+            PortraitComposableDefaults.joinIntoSubtitle(
+                tags = show.map { show ->
+                    SecondaryInfo.entries
                         .filter { it in secondaryInfo }
                         .mapNotNull { it.toLabel(show) }
-                    if (nonNullInfo.isNotEmpty()) {
-                        add(nonNullInfo.joinToString(separator = " • "))
-                    }
-                } else {
-                    // Some default space while downloading
-                    add(null)
-                }
-            }
+                },
+            )
+        } else {
+            emptyList()
         },
-        onClick = if (show?.id != null) {
+        onClick = if (show is Loadable.Loaded) {
             {
                 navController.navigateToShow(
-                    id = show.id,
-                    preloadData = show.preloadData,
+                    id = show.value.id,
+                    preloadData = show.value.preloadData,
                 )
             }
         } else {
@@ -104,7 +105,7 @@ fun ShowPortrait(
     }
     ShowPortrait(
         modifier = modifier,
-        show = model,
+        show = Loadable.Loaded(model),
         secondaryInfo = secondaryInfo,
     )
 }
