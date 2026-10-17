@@ -43,6 +43,7 @@ import io.github.couchtracker.ui.components.TagsRow
 import io.github.couchtracker.ui.rememberPlaceholderPainter
 import io.github.couchtracker.utils.heightWithAspectRatio
 import io.github.couchtracker.utils.str
+import io.github.couchtracker.utils.valueOrNull
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -103,7 +104,7 @@ private fun SearchResults(results: Flow<PagingData<SearchResultItem>>, lazyGridS
         verticalArrangement = Arrangement.spacedBy(2.dp),
         itemComposable = { item, index ->
             SearchResult(
-                item,
+                item.valueOrNull(),
                 position = ItemPosition(index, paginatedItems.itemSnapshotList.size),
             )
         },

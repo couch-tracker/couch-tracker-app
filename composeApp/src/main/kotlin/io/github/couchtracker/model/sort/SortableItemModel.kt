@@ -7,4 +7,12 @@ data class SortableItemModel(
     val name: SortableProperty<String>,
     val tmdbRating: SortableProperty<TmdbRating>,
     val firstPublicRelease: SortableProperty<PartialDateTime.Local>,
-)
+) {
+    companion object {
+        val ERROR = SortableItemModel(
+            name = SortableProperty.Error,
+            tmdbRating = SortableProperty.Error,
+            firstPublicRelease = SortableProperty.Error,
+        )
+    }
+}

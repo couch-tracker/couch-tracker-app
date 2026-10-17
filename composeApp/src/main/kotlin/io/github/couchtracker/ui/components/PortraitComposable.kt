@@ -25,11 +25,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.couchtracker.ui.rememberPlaceholderPainter
+import io.github.couchtracker.utils.Loadable
 
 object PortraitComposableDefaults {
     const val POSTER_ASPECT_RATIO = 2f / 3
     val SUGGESTED_WIDTH = 120.dp
     const val POSTER_ALPHA_WITH_OVERLAY = 0.5f
+
+    fun joinIntoSubtitle(tags: Loadable<List<String>>): List<String?> {
+        return when (tags) {
+            Loadable.Loading -> listOf(null)
+            is Loadable.Loaded -> listOf(tags.value.joinToString(separator = " • "))
+        }
+    }
 }
 
 @Composable
