@@ -89,7 +89,7 @@
     <string name="timezone_category_other">Altro</string>
     <plurals name="timezone_category_subtitle">
         <item quantity="one">%1$d fuso orario</item>
-        <item quantity="many">%1$d fusi orari</item>
+        <item quantity="many">%1$d di fusi orari</item>
         <item quantity="other">%1$d fusi orari</item>
     </plurals>
     <string name="timezone_search_placeholder">Città, continente, id</string>
@@ -154,7 +154,7 @@
 
     <plurals name="n_episodes">
         <item quantity="one">%1$d episodio</item>
-        <item quantity="many">%1$d episodi</item>
+        <item quantity="many">%1$d di episodi</item>
         <item quantity="other">%1$d episodi</item>
     </plurals>
 
@@ -165,7 +165,7 @@
     <string name="language_undetermined_description">La lingua del contenuto è sconosciuta</string>
     <plurals name="language_category_subtitle">
         <item quantity="one">%1$d variante</item>
-        <item quantity="many">%1$d varianti</item>
+        <item quantity="many">%1$d di varianti</item>
         <item quantity="other">%1$d varianti</item>
     </plurals>
     <string name="language_search_placeholder">Nome, nome originale, id</string>
@@ -200,12 +200,14 @@
     <string name="no_watched_episodes_in_this_session">Nessun episodio visto in questa sessione</string>
     <plurals name="x_watched_episodes_in_this_session">
         <item quantity="one">%1$d episodio visto in questa sessione</item>
+        <item quantity="many">%1$d di episodi visti in questa sessione</item>
         <item quantity="other">%1$d episodi visti in questa sessione</item>
     </plurals>
     <string name="delete_watch_session_dialog_title">Eliminare sessione di visioni?</string>
     <string name="delete_watch_session_dialog_description">Questa sessione di visioni verrà eliminata permanentemente assieme a tutti gli episodi visti ad essa associati</string>
     <plurals name="delete_watch_session_dialog_viewings_detail_count">
         <item quantity="one">%1$d episodio visto verrà permanentemente eliminato</item>
+        <item quantity="many">%1$d di episodi visti verranno permanentemente eliminati</item>
         <item quantity="other">%1$d episodi visti verranno permanentemente eliminati</item>
     </plurals>
     <string name="delete_watch_session_dialog_viewings_detail_first_viewing">Prima visione</string>

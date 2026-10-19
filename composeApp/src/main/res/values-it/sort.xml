@@ -14,7 +14,7 @@
     <string name="sort_category_without_release_date">Senza data di uscita</string>
     <plurals name="sort_category_rating">
         <item quantity="one">Valutati %1$d stella</item>
-        <item quantity="many">Valutati %1$d stelle</item>
+        <item quantity="many">Valutati %1$d di stelle</item>
         <item quantity="other">Valutati %1$d stelle</item>
     </plurals>
     <string name="sort_category_rating_range">Valutati %1$d-%2$d stelle</string>
