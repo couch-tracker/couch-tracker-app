@@ -95,6 +95,9 @@ interface SortCategory {
                 is Sorter.Alphabetical -> context.getString(R.string.sort_category_without_name)
                 is Sorter.ByReleaseDate -> context.getString(R.string.sort_category_without_release_date)
                 is Sorter.ByTmdbRating -> context.getString(R.string.sort_category_without_rating)
+                is Sorter.Random -> error("All items should support random sorting")
+                is Sorter.ByRuntime -> context.getString(R.string.sort_category_without_runtime)
+                is Sorter.ByEpisodeRuntime -> context.getString(R.string.sort_category_without_runtime)
             }
         }
     }

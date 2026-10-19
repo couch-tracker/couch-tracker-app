@@ -15,6 +15,10 @@ val RUNTIME_LOCALIZER_OPTIONS = DurationOptions(
     style = DurationStyle.SHORT,
 )
 
+val RUNTIME_LOCALIZER_NARROW_OPTIONS = DurationOptions(
+    style = DurationStyle.NARROW,
+)
+
 val PDT_FULL_LOCALIZER_OPTIONS = PartialDateTimeOptions(
     monthStyle = MonthStyle.WIDE,
     dayOfWeekStyle = DayOfWeekStyle.WIDE,

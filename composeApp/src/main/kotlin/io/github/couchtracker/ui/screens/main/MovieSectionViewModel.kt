@@ -20,6 +20,7 @@ import io.github.couchtracker.tmdb.TmdbLanguages
 import io.github.couchtracker.tmdb.TmdbMovieId
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.rating
+import io.github.couchtracker.tmdb.runtime
 import io.github.couchtracker.tmdb.tmdbFlowRetryContext
 import io.github.couchtracker.ui.components.MoviePortraitModel
 import io.github.couchtracker.ui.components.toMoviePortraitModels
@@ -145,14 +146,18 @@ class MovieSectionViewModel(application: Application) : AndroidViewModel(applica
         return tmdbMovieId.details(languages.apiLanguage).map { result ->
             result.map { result ->
                 val rating = result.rating()
+                val runtime = SortableProperty.ofLoaded(result.runtime())
                 BookmarkedMovieData(
                     portraitModel = result.toMoviePortraitModels(languages.apiLanguage, rating),
                     sortModel = SortableItemModel(
+                        identifier = movieId,
                         name = SortableProperty.ofLoaded(result.title),
                         tmdbRating = SortableProperty.ofLoaded(rating),
                         firstPublicRelease = SortableProperty.ofLoaded(
                             result.releaseDate?.let { PartialDateTime.Local.Date(it) },
                         ),
+                        totalRuntime = runtime,
+                        episodeRuntime = runtime,
                     ),
                 )
             }
@@ -167,7 +172,7 @@ class MovieSectionViewModel(application: Application) : AndroidViewModel(applica
                 val sortedAndGrouped = sorter.sortAndGroup(bookmarks) { movie ->
                     when (movie.data) {
                         is Result.Value -> movie.data.value.sortModel
-                        is Result.Error -> SortableItemModel.ERROR
+                        is Result.Error -> SortableItemModel.error(movie.movieId)
                     }
                 }
                 BookmarkedMoviesModel(sorter, sortedAndGrouped.localized(application))

@@ -122,7 +122,7 @@ private fun DropdownSorterCategory(
                 } else {
                     MaterialTheme.colorScheme.onSecondaryContainer
                 }
-                Icon(category.icon, contentDescription = null, tint = color)
+                Icon(category.icon.painter(), contentDescription = null, tint = color)
                 DropdownSorterCategoryLine(state, color)
                 Text(
                     text = category.localizedName.string(),

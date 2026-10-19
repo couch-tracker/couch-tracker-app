@@ -34,6 +34,7 @@ import io.github.couchtracker.tmdb.TmdbEpisodeId
 import io.github.couchtracker.tmdb.TmdbLanguages
 import io.github.couchtracker.tmdb.TmdbSeasonId
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.tmdb.approximateTotalRuntime
 import io.github.couchtracker.tmdb.details
 import io.github.couchtracker.tmdb.language
 import io.github.couchtracker.tmdb.rating
@@ -88,6 +89,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.koin.mp.KoinPlatform
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 private val UP_NEXT_MARKED_WATCHED_RECENTLY_THRESHOLD = DatePeriod(days = 1)
 private val UP_NEXT_WATCHED_RECENTLY_THRESHOLD = DatePeriod(days = 14)
@@ -315,9 +317,12 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                         seasons = seasons,
                         originalLanguage = details.language(),
                         sortModel = SortableItemModel(
+                            identifier = showId,
                             name = SortableProperty.ofLoaded(details.name),
                             tmdbRating = SortableProperty.ofLoaded(rating),
                             firstPublicRelease = SortableProperty.ofLoaded(details.firstAirDate?.let { PartialDateTime.Local.Date(it) }),
+                            totalRuntime = SortableProperty.ofLoaded(details.episodeRuntime.lastOrNull()?.minutes),
+                            episodeRuntime = SortableProperty.ofLoaded(details.approximateTotalRuntime()),
                         ),
                     ),
                 )
@@ -515,7 +520,7 @@ class ShowSectionViewModel(application: Application) : AndroidViewModel(applicat
                 val sortedAndGrouped = sorter.sortAndGroup(filtered) { show ->
                     when (show.data) {
                         is Result.Value -> show.data.value.sortModel
-                        is Result.Error -> SortableItemModel.ERROR
+                        is Result.Error -> SortableItemModel.error(show.showId)
                     }
                 }
                 BookmarkedShowsModel(sorter, sortedAndGrouped.localized(application))

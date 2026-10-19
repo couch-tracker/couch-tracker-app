@@ -6,12 +6,17 @@
     <string name="sorter_by_name">Per nome</string>
     <string name="sorter_by_rating">Per valutazione</string>
     <string name="sorter_by_release_date">Per data</string>
+    <string name="sorter_random">Random</string>
+    <string name="sorter_by_runtime">Per durata</string>
+    <string name="sorter_by_episode_runtime">Per durata episodio</string>
 
     <string name="sort_category_error">Elementi in errore</string>
     <string name="sort_category_unsupported">Non supportati</string>
     <string name="sort_category_without_name">Senza nome</string>
     <string name="sort_category_without_rating">Senza valutazione</string>
     <string name="sort_category_without_release_date">Senza data di uscita</string>
+    <string name="sort_category_without_runtime">Senza durata</string>
+
     <plurals name="sort_category_rating">
         <item quantity="one">Valutati %1$d stella</item>
         <item quantity="many">Valutati %1$d di stelle</item>

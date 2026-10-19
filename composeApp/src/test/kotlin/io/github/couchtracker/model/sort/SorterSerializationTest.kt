@@ -16,11 +16,21 @@ class SorterSerializationTest : FunSpec(
             Json.decodeFromString<Sorter>("{\"type\":\"ByReleaseDate\"}") shouldEqual Sorter.ByReleaseDate(false)
             Json.decodeFromString<Sorter>("{\"type\":\"ByReleaseDate\",\"asc\":false}") shouldEqual Sorter.ByReleaseDate(false)
             Json.decodeFromString<Sorter>("{\"type\":\"ByReleaseDate\",\"asc\":true}") shouldEqual Sorter.ByReleaseDate(true)
+            Json.decodeFromString<Sorter>("{\"type\":\"Random\",\"seed\":123}") shouldEqual Sorter.Random(123)
+            Json.decodeFromString<Sorter>("{\"type\":\"ByRuntime\"}") shouldEqual Sorter.ByRuntime(true)
+            Json.decodeFromString<Sorter>("{\"type\":\"ByRuntime\",\"asc\":false}") shouldEqual Sorter.ByRuntime(false)
+            Json.decodeFromString<Sorter>("{\"type\":\"ByRuntime\",\"asc\":true}") shouldEqual Sorter.ByRuntime(true)
+            Json.decodeFromString<Sorter>("{\"type\":\"ByEpisodeRuntime\"}") shouldEqual Sorter.ByEpisodeRuntime(true)
+            Json.decodeFromString<Sorter>("{\"type\":\"ByEpisodeRuntime\",\"asc\":false}") shouldEqual Sorter.ByEpisodeRuntime(false)
+            Json.decodeFromString<Sorter>("{\"type\":\"ByEpisodeRuntime\",\"asc\":true}") shouldEqual Sorter.ByEpisodeRuntime(true)
         }
         test("all sorters can be serialized") {
-            Json.encodeToString(Sorter.Alphabetical())
-            Json.encodeToString(Sorter.ByTmdbRating())
-            Json.encodeToString(Sorter.ByReleaseDate())
+            Json.encodeToString<Sorter>(Sorter.Alphabetical()) shouldEqual "{\"type\":\"Alphabetical\"}"
+            Json.encodeToString<Sorter>(Sorter.ByTmdbRating()) shouldEqual "{\"type\":\"ByTmdbRating\"}"
+            Json.encodeToString<Sorter>(Sorter.ByReleaseDate()) shouldEqual "{\"type\":\"ByReleaseDate\"}"
+            Json.encodeToString<Sorter>(Sorter.Random(123)) shouldEqual "{\"type\":\"Random\",\"seed\":123}"
+            Json.encodeToString<Sorter>(Sorter.ByRuntime()) shouldEqual "{\"type\":\"ByRuntime\"}"
+            Json.encodeToString<Sorter>(Sorter.ByEpisodeRuntime()) shouldEqual "{\"type\":\"ByEpisodeRuntime\"}"
         }
     },
 )

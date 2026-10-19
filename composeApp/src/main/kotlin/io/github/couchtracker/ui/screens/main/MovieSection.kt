@@ -149,9 +149,10 @@ private fun BookmarkedMoviesGrid(
                         movieId = movie.movieId,
                         movieResult = movie.data.map { it.portraitModel },
                         secondaryInfo = when (sorter) {
-                            is Sorter.Alphabetical -> SecondaryInfo.DEFAULT_SECONDARY_INFO
                             is Sorter.ByReleaseDate -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Year
                             is Sorter.ByTmdbRating -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Rating
+                            is Sorter.ByRuntime, is Sorter.ByEpisodeRuntime -> SecondaryInfo.DEFAULT_SECONDARY_INFO + SecondaryInfo.Runtime
+                            is Sorter.Alphabetical, is Sorter.Random -> SecondaryInfo.DEFAULT_SECONDARY_INFO
                         },
                     )
                 },

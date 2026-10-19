@@ -7,13 +7,17 @@ import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.moviebase.tmdb.model.TmdbShowDetail
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.externalids.ExternalShowId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalShowId
+import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_NARROW_OPTIONS
+import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
 import io.github.couchtracker.tmdb.BaseTmdbShow
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbRating
 import io.github.couchtracker.tmdb.TmdbShowId
+import io.github.couchtracker.tmdb.approximateTotalRuntime
 import io.github.couchtracker.tmdb.toBaseShow
 import io.github.couchtracker.ui.ImageModel
 import io.github.couchtracker.ui.PlaceholdersDefaults
@@ -28,6 +32,7 @@ import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.valueOrNull
+import kotlin.time.Duration.Companion.minutes
 import app.moviebase.tmdb.model.TmdbShow as TmdbApiTmdbShow
 
 @Composable
@@ -115,6 +120,8 @@ data class ShowPortraitModel(
     val label: String?,
     val yearStr: String?,
     val ratingStr: String?,
+    val totalRuntimeStr: String?,
+    val episodeRuntimeStr: String?,
     val posterModel: ImageModel?,
     val preloadData: BaseTmdbShow?,
     val downloadState: DownloadState = DownloadState.Downloaded,
@@ -123,6 +130,8 @@ data class ShowPortraitModel(
     enum class SecondaryInfo(val toLabel: (ShowPortraitModel) -> String?) {
         Year({ it.yearStr }),
         Rating({ it.ratingStr }),
+        TotalRuntime({ it.totalRuntimeStr }),
+        EpisodeRuntime({ it.episodeRuntimeStr }),
         ;
 
         companion object {
@@ -151,6 +160,9 @@ data class ShowPortraitModel(
                 label = details.name,
                 yearStr = details.firstAirDate?.year?.toString(),
                 ratingStr = rating?.formatted,
+                // Not in the API
+                totalRuntimeStr = null,
+                episodeRuntimeStr = null,
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
@@ -166,6 +178,8 @@ data class ShowPortraitModel(
                 label = details.name,
                 yearStr = details.firstAirDate?.year?.toString(),
                 ratingStr = rating?.formatted,
+                totalRuntimeStr = details.episodeRuntime.lastOrNull()?.minutes?.localize(RUNTIME_LOCALIZER_NARROW_OPTIONS),
+                episodeRuntimeStr = details.approximateTotalRuntime()?.localize(RUNTIME_LOCALIZER_NARROW_OPTIONS),
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
@@ -177,6 +191,8 @@ data class ShowPortraitModel(
                 label = label,
                 yearStr = null,
                 ratingStr = null,
+                totalRuntimeStr = null,
+                episodeRuntimeStr = null,
                 posterModel = null,
                 downloadState = state,
                 preloadData = null,

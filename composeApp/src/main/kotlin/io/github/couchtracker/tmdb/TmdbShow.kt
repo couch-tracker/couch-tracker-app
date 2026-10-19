@@ -5,6 +5,8 @@ import app.moviebase.tmdb.model.TmdbImages
 import app.moviebase.tmdb.model.TmdbShowDetail
 import io.github.couchtracker.utils.error.ApiResult
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import app.moviebase.tmdb.model.TmdbShow as ApiTmdbShow
 
 fun TmdbShowId.details(language: TmdbLanguage): Flow<ApiResult<TmdbShowDetail>> {
@@ -53,6 +55,16 @@ fun TmdbShowId.aggregateCredits(language: TmdbLanguage): Flow<ApiResult<TmdbAggr
             )
         },
     )
+}
+
+fun TmdbShowDetail.approximateTotalRuntime(): Duration? {
+    val episodes = this.numberOfEpisodes
+    val runtime = this.episodeRuntime
+    return if (runtime.isEmpty() || episodes == null || episodes < 0) {
+        null
+    } else {
+        runtime.average().minutes * episodes
+    }
 }
 
 val ApiTmdbShow.tmdbShowId get() = TmdbShowId(id)

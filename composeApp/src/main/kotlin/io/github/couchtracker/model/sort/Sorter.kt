@@ -13,6 +13,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.math.floor
+import kotlin.time.Duration
 
 typealias SortAndCategorizedList<T> = List<Pair<SortCategory, List<T>>>
 typealias SortAndCategorizedLocalizedList<T> = List<Pair<String?, List<T>>>
@@ -111,6 +112,55 @@ sealed interface Sorter : Comparator<SortableItemModel> {
                 add(SortCategory.FirstPublicReleaseDateCategory(property.date))
             }
         }
+    }
+
+    @Serializable
+    @SerialName("Random")
+    data class Random(val seed: Int) : PropertySorter<Long> {
+        @Transient
+        override val comparator = naturalOrder<Long>().ofSortableProperty(asc = true)
+
+        constructor() : this(kotlin.random.Random.nextInt())
+
+        @Suppress("MagicNumber")
+        override fun getProperty(model: SortableItemModel): SortableProperty<Long> {
+            // MurmurHash3. Fast, and decently distributed (consecutive ints have very different hashes)
+            var h = (seed.toLong() shl 32) or (model.identifier.hashCode().toLong() and 0xFFFFFFFFL)
+
+            h = h xor (h ushr 33)
+            h *= 0xff51afd7ed558ccdUL.toLong()
+            h = h xor (h ushr 33)
+            h *= 0xc4ceb9fe1a85ec53UL.toLong()
+            h = h xor (h ushr 33)
+
+            return SortableProperty.ofLoaded(h)
+        }
+
+        @Suppress("MagicNumber")
+        override fun propertyCategories(property: Long): List<SortCategory> = listOf(SortCategory.RootCategory)
+    }
+
+    sealed class RuntimeSorter : PropertySorter<Duration> {
+        override fun propertyCategories(property: Duration) = listOf(
+            SortCategory.RootCategory,
+            // TODO: categories
+        )
+    }
+
+    @Serializable
+    @SerialName("ByRuntime")
+    data class ByRuntime(val asc: Boolean = true) : RuntimeSorter() {
+        @Transient
+        override val comparator = naturalOrder<Duration>().ofSortableProperty(asc)
+        override fun getProperty(model: SortableItemModel) = model.totalRuntime
+    }
+
+    @Serializable
+    @SerialName("ByEpisodeRuntime")
+    data class ByEpisodeRuntime(val asc: Boolean = true) : RuntimeSorter() {
+        @Transient
+        override val comparator = naturalOrder<Duration>().ofSortableProperty(asc)
+        override fun getProperty(model: SortableItemModel) = model.episodeRuntime
     }
 }
 

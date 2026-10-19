@@ -6,9 +6,12 @@ import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.moviebase.tmdb.model.TmdbMovieDetail
+import dev.mmauro.datetimepolyglot.localizers.absolute.localize
 import io.github.couchtracker.LocalNavController
 import io.github.couchtracker.db.profile.externalids.ExternalMovieId
 import io.github.couchtracker.db.profile.externalids.TmdbExternalMovieId
+import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_NARROW_OPTIONS
+import io.github.couchtracker.intl.datetime.RUNTIME_LOCALIZER_OPTIONS
 import io.github.couchtracker.tmdb.BaseTmdbMovie
 import io.github.couchtracker.tmdb.TmdbLanguage
 import io.github.couchtracker.tmdb.TmdbMovieId
@@ -27,6 +30,7 @@ import io.github.couchtracker.utils.error.CouchTrackerResult
 import io.github.couchtracker.utils.error.UnsupportedItemError
 import io.github.couchtracker.utils.map
 import io.github.couchtracker.utils.valueOrNull
+import kotlin.time.Duration.Companion.minutes
 import app.moviebase.tmdb.model.TmdbMovie as TmdbApiTmdbMovie
 
 @Composable
@@ -113,6 +117,7 @@ data class MoviePortraitModel(
     val label: String?,
     val yearStr: String?,
     val ratingStr: String?,
+    val runtimeStr: String?,
     val posterModel: ImageModel?,
     val preloadData: BaseTmdbMovie?,
     val downloadState: DownloadState = DownloadState.Downloaded,
@@ -121,6 +126,7 @@ data class MoviePortraitModel(
     enum class SecondaryInfo(val toLabel: (MoviePortraitModel) -> String?) {
         Year({ it.yearStr }),
         Rating({ it.ratingStr }),
+        Runtime({ it.runtimeStr }),
         ;
 
         companion object {
@@ -148,6 +154,8 @@ data class MoviePortraitModel(
                 label = details.title,
                 yearStr = details.releaseDate?.year?.toString(),
                 ratingStr = rating?.formatted,
+                // The API doesn't have the runtime
+                runtimeStr = null,
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
@@ -163,6 +171,7 @@ data class MoviePortraitModel(
                 label = details.title,
                 yearStr = details.releaseDate?.year?.toString(),
                 ratingStr = rating?.formatted,
+                runtimeStr = details.runtime?.minutes?.localize(RUNTIME_LOCALIZER_NARROW_OPTIONS),
                 posterModel = details.posterImage?.toImageModel(),
                 preloadData = preloadData,
             )
@@ -174,6 +183,7 @@ data class MoviePortraitModel(
                 label = label,
                 yearStr = null,
                 ratingStr = null,
+                runtimeStr = null,
                 posterModel = null,
                 downloadState = state,
                 preloadData = null,
